@@ -1,0 +1,51 @@
+# DealMatch robots.txt
+# Anti-scraping: block all crawlers from sensitive routes
+
+User-agent: *
+# Block all API routes
+Disallow: /api/
+# Block admin portal entirely
+Disallow: /admin
+Disallow: /admin-login
+# Block user-specific pages
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /matches
+Disallow: /messages
+Disallow: /onboarding
+Disallow: /verify
+Disallow: /earn
+Disallow: /auth
+# Block mortgage and payment flows
+Disallow: /mortgage
+Disallow: /payment
+# Block internal verification routes
+Disallow: /verification
+# Allow public-facing marketing pages only
+Allow: /
+Allow: /browse
+Allow: /hotels
+Allow: /shortlets
+Allow: /professionals
+
+# Block AI training crawlers explicitly
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+# Sitemap
+Sitemap: https://dealmatch.com.ng/sitemap.xml

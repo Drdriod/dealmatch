@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables - NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Owner-only reference (contains business logic, admin emails, revenue rates)
+# Keep this file local only - do not push to a public GitHub repo
+OWNER_PRIVATE.md
+
+# Editor/OS junk
+.DS_Store
+*.log
+.vscode/
+.idea/
