@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/admin/:resource",
+      "destination": "/api/admin/[resource]"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
