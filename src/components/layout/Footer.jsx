@@ -19,7 +19,7 @@ export default function Footer() {
               Deal<span className="text-terracotta">Match</span>
             </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
-              Nigeria's smartest real estate matching platform. Find your perfect property, connect with verified professionals, and close with confidence.
+              DealMatch matches real demand with vetted supply: property, talent, equipment, expertise. Every listing matched, not just posted.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex gap-3 mt-6">
@@ -40,7 +40,7 @@ export default function Footer() {
               {[
                 { label: 'Browse Deals',    to: '/browse' },
                 { label: 'My Matches',      to: '/matches' },
-                { label: 'List a Property', to: '/list' },
+                { label: 'Post a Listing',  to: '/marketplace' },
                 { label: 'Deal Alerts',     to: '/dashboard' },
                 { label: 'How It Works',    to: '/' },
               ].map(item => (
@@ -50,10 +50,16 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-bold tracking-widest uppercase text-white/30 mb-5">Professionals</h4>
+            <h4 className="text-xs font-bold tracking-widest uppercase text-white/30 mb-5">Categories</h4>
             <ul className="space-y-3">
-              {['Land Surveyors', 'Property Inspectors', 'Mortgage Lenders', 'Real Estate Agents', 'Developers'].map(item => (
-                <li key={item}><Link to="/professionals" className="text-sm text-white/50 hover:text-blush transition-colors">{item}</Link></li>
+              {[
+                { label: 'Real Estate & Housing',            to: '/browse' },
+                { label: 'Skilled Artisans',                 to: '/marketplace/artisans' },
+                { label: 'Automotive',                       to: '/marketplace/automotive' },
+                { label: 'Professional & Business Services', to: '/forum/professional-business-services' },
+                { label: 'Community Forum',                  to: '/forum' },
+              ].map(item => (
+                <li key={item.label}><Link to={item.to} className="text-sm text-white/50 hover:text-blush transition-colors">{item.label}</Link></li>
               ))}
             </ul>
           </div>
@@ -62,7 +68,7 @@ export default function Footer() {
         <div className="border-t border-white/8 pt-8 flex flex-col md:flex-row justify-between gap-4 text-xs text-white/25">
           <div>
           <p>© {new Date().getFullYear()} DealMatch. All rights reserved.</p>
-          <p className="mt-1 text-xs" style={{color:'rgba(255,255,255,0.2)'}}>Every match is a connection, every connection is a home</p>
+          <p className="mt-1 text-xs" style={{color:'rgba(255,255,255,0.2)'}}>Every listing matched, not just posted</p>
         </div>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-white/50 transition-colors">Privacy Policy</Link>

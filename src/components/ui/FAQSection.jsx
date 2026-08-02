@@ -5,28 +5,32 @@ import { FadeUp } from '@/components/ui/ScrollReveal'
 
 const FAQS = [
   {
-    q: 'How does DealMatch verify listings and users?',
-    a: 'Every listing is reviewed by our team before it goes live, and landlords/agents go through identity verification. Fake or duplicate listings are removed as soon as they\'re flagged.',
+    q: 'Is DealMatch only for real estate?',
+    a: 'No. Real estate is one category among many: skilled artisans, automotive, professional and business services, logistics, events, health and home care, and more. Every category shares the same matching, verification, and escrow system.',
+  },
+  {
+    q: 'How does DealMatch verify listings and providers?',
+    a: 'Every listing is reviewed by our team before it goes live, and providers go through identity verification. Fake or duplicate listings are removed as soon as they\'re flagged.',
   },
   {
     q: 'How does escrow protection work?',
-    a: 'When you pay rent or a deposit through DealMatch, the funds are held securely and are not released to the landlord until you confirm you\'ve moved in. If something goes wrong before then, your money stays protected.',
+    a: 'When you pay through DealMatch, funds are held securely and are not released to the other side until you confirm the job is done, or you\'ve moved in for a rental. If something goes wrong before then, your money stays protected.',
   },
   {
     q: 'Is DealMatch free to use?',
-    a: 'Browsing and matching with properties is free. Some services - like escrow-protected payments and select professional bookings - carry a small platform fee, shown upfront before you pay anything.',
+    a: 'Browsing and matching is free. Some services - like escrow-protected payments and select professional bookings - carry a small platform fee, shown upfront before you pay anything.',
   },
   {
-    q: 'What happens if a landlord or agent scams me?',
-    a: 'Report it immediately through the property page or your dashboard. Our team investigates every complaint, and verified accounts found to be fraudulent are permanently banned. If you paid through our escrow system, your funds are protected until move-in is confirmed.',
+    q: 'What happens if a provider or landlord scams me?',
+    a: 'Report it immediately through the listing page or your dashboard. Our team investigates every complaint, and verified accounts found to be fraudulent are permanently banned. If you paid through our escrow system, your funds are protected until you confirm completion.',
   },
   {
     q: 'How does the AI matching actually work?',
-    a: 'You tell us your budget, location, and preferences, and our system compares that against available listings to surface the closest matches - rather than making you scroll through everything manually.',
+    a: 'You tell us what you need, your location, and your preferences, and our system compares that against verified supply to surface the closest matches - rather than making you scroll through everything manually.',
   },
   {
-    q: 'Can I list my property or connect as a professional (lawyer, surveyor, inspector)?',
-    a: 'Yes. Sign up, choose the relevant role, and complete verification. Once approved, your listing or profile becomes visible to matched users.',
+    q: 'Can I list on DealMatch or offer my services as a professional?',
+    a: 'Yes. Sign up, choose the relevant category, and complete verification. Once approved, your listing or profile becomes visible to matched users.',
   },
   {
     q: 'What areas in Nigeria does DealMatch cover?',

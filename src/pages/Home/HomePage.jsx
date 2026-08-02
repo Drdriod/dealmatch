@@ -34,10 +34,10 @@ const CATEGORY_STRIP = [
 ]
 
 const FEATURES = [
-  { icon: <Bot size={32} className="text-terracotta" />, title:'AI-Powered Matching',   desc:'Pinecone vector search matches you with properties based on deep preference analysis: not just filters.' },
-  { icon: <Shield size={36} className="text-terracotta" />, title:'Escrow Protection',      desc:'Pay rent and deposits safely. Funds held until you confirm move-in: landlords cannot touch it early.' },
+  { icon: <Bot size={32} className="text-terracotta" />, title:'AI-Powered Matching',   desc:'Vector-based matching finds real fits across property, skills, and services: not just keyword filters.' },
+  { icon: <Shield size={36} className="text-terracotta" />, title:'Escrow Protection',      desc:'Pay for any deal safely. Funds held until you confirm delivery: the other side cannot touch it early.' },
   { icon: <CheckCircle size={36} className="text-terracotta" />, title:'Verified Listings',      desc:'Every listing reviewed by our team. Fake listings and scams blocked before they reach you.' },
-  { icon: <Briefcase size={36} className="text-terracotta" />, title:'Pro Network',            desc:'Verified surveyors, inspectors, lawyers, and lenders: swipe through them like properties.' },
+  { icon: <Briefcase size={36} className="text-terracotta" />, title:'Verified Providers',      desc:'Surveyors, inspectors, lawyers, artisans, and more: verified and rated, not just claimed.' },
   { icon: <Hotel size={36} className="text-terracotta" />, title:'Hotel Bookings',         desc:'Book hotels and short-lets with full date/guest/room management and price calculator.' },
 ]
 

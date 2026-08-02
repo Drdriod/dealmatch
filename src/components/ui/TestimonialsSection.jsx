@@ -105,7 +105,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
             onChange={e => setContent(e.target.value)}
             rows={4}
             maxLength={600}
-            placeholder="Tell other Nigerians about your experience finding a property with DealMatch..."
+            placeholder="Tell other Nigerians about your experience finding a match with DealMatch..."
             className="w-full rounded-2xl px-4 py-3 text-sm outline-none resize-none"
             style={{ backgroundColor: '#FAF6F0', border: '1px solid #E8DDD2', color: '#1A1210' }}
           />
@@ -162,7 +162,7 @@ export default function TestimonialsSection() {
           <div className="text-center mb-16">
             <p className="section-tag">Real Stories</p>
             <h2 className="section-title mb-4">What Nigerians Are Saying</h2>
-            <p className="section-sub mx-auto mb-6">Real experiences from people who found their property through DealMatch.</p>
+            <p className="section-sub mx-auto mb-6">Real experiences from people who found their match through DealMatch.</p>
             {isAuthenticated ? (
               ownStatus ? (
                 <p className="text-xs font-semibold inline-flex items-center gap-1.5" style={{ color: '#7A9E7E' }}>
