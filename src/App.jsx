@@ -48,6 +48,8 @@ const MessagesPage          = lazyWithRetry(() => import('@/pages/Messages/Messa
 const LenderDashboardPage   = lazyWithRetry(() => import('@/pages/LenderDashboard/LenderDashboardPage'))
 const AgentDashboardPage    = lazyWithRetry(() => import('@/pages/Agent/AgentDashboardPage'))
 const ReferralPage          = lazyWithRetry(() => import('@/pages/Referral/ReferralPage'))
+const ForumPage              = lazyWithRetry(() => import('@/pages/Forum/ForumPage'))
+const MarketplacePage        = lazyWithRetry(() => import('@/pages/Marketplace/MarketplacePage'))
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component {
@@ -246,6 +248,22 @@ function AnimatedRoutes() {
           <AppShell>
             <Suspense fallback={<PageSkeleton />}>
               <PageTransition><ProfessionalsPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/marketplace/*" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><MarketplacePage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/forum/*" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><ForumPage /></PageTransition>
             </Suspense>
           </AppShell>
         } />

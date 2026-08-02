@@ -5,6 +5,84 @@
       "destination": "/api/admin/[resource]"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/platform?render=sitemap"
+    },
+    {
+      "source": "/forum",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawl|spider|slurp|googlebot|bingbot|duckduckbot|baiduspider|yandex|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|chatgpt-user|oai-searchbot|ccbot|perplexitybot|claudebot|anthropic-ai|applebot|semrushbot|ahrefsbot|mj12bot|embedly|quora link preview|pinterest|redditbot).*"
+        }
+      ],
+      "destination": "/api/platform?render=html"
+    },
+    {
+      "source": "/forum/:path*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawl|spider|slurp|googlebot|bingbot|duckduckbot|baiduspider|yandex|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|chatgpt-user|oai-searchbot|ccbot|perplexitybot|claudebot|anthropic-ai|applebot|semrushbot|ahrefsbot|mj12bot|embedly|quora link preview|pinterest|redditbot).*"
+        }
+      ],
+      "destination": "/api/platform?render=html&slug=:path*"
+    },
+    {
+      "source": "/api/categories",
+      "destination": "/api/platform?resource=categories"
+    },
+    {
+      "source": "/api/categories/:slug",
+      "destination": "/api/platform?resource=category&slug=:slug"
+    },
+    {
+      "source": "/api/category-match",
+      "destination": "/api/platform?resource=category-match"
+    },
+    {
+      "source": "/api/listings",
+      "destination": "/api/platform?resource=listings"
+    },
+    {
+      "source": "/api/listings/:id",
+      "destination": "/api/platform?resource=listing-detail&id=:id"
+    },
+    {
+      "source": "/api/search",
+      "destination": "/api/platform?resource=search"
+    },
+    {
+      "source": "/api/events/listing-created",
+      "destination": "/api/platform?resource=listing-webhook"
+    },
+    {
+      "source": "/api/forum/categories",
+      "destination": "/api/platform?resource=forum-categories"
+    },
+    {
+      "source": "/api/forum/threads",
+      "destination": "/api/platform?resource=forum-threads"
+    },
+    {
+      "source": "/api/forum/thread",
+      "destination": "/api/platform?resource=forum-thread"
+    },
+    {
+      "source": "/api/forum/posts",
+      "destination": "/api/platform?resource=forum-posts"
+    },
+    {
+      "source": "/api/forum/accept-answer",
+      "destination": "/api/platform?resource=forum-accept-answer"
+    },
+    {
+      "source": "/api/forum/resolve",
+      "destination": "/api/platform?resource=forum-resolve"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

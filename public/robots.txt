@@ -27,25 +27,46 @@ Allow: /browse
 Allow: /hotels
 Allow: /shortlets
 Allow: /professionals
+Allow: /forum
 
-# Block AI training crawlers explicitly
+# Block AI training crawlers from the rest of the site, but allow the
+# Community Forum specifically — this is public discussion content written
+# to be found and cited by search and answer engines (ChatGPT, Perplexity,
+# Claude, etc). If you'd rather keep AI crawlers out entirely, remove the
+# five "Allow: /forum" lines below and accept that AEO for the forum won't
+# work — those two goals are in direct tension with a site-wide AI block.
+
 User-agent: GPTBot
 Disallow: /
+Allow: /forum
 
 User-agent: Google-Extended
 Disallow: /
+Allow: /forum
 
 User-agent: CCBot
 Disallow: /
+Allow: /forum
 
 User-agent: anthropic-ai
 Disallow: /
+Allow: /forum
 
 User-agent: Claude-Web
 Disallow: /
+Allow: /forum
+
+User-agent: ClaudeBot
+Disallow: /
+Allow: /forum
+
+User-agent: PerplexityBot
+Disallow: /
+Allow: /forum
 
 User-agent: cohere-ai
 Disallow: /
+Allow: /forum
 
 # Sitemap
 Sitemap: https://dealmatch.com.ng/sitemap.xml

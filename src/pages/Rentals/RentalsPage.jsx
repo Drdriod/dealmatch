@@ -244,8 +244,8 @@ export default function RentalsPage() {
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Rentals & Short-lets </h1>
-            <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Find your next home</p>
+            <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Rent Without the Runaround.</h1>
+            <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Real tenancy terms upfront — no surprise agent fees at the door.</p>
           </div>
           {/* View toggle */}
           <div className="flex rounded-xl overflow-hidden border" style={{ borderColor:'#E8DDD2' }}>

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ajv": "^8.17.1",
     "@pinecone-database/pinecone": "^2.2.2",
     "@react-google-maps/api": "^2.19.3",
     "@sentry/react": "^7.108.0",

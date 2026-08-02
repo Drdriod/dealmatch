@@ -366,8 +366,8 @@ export default function HotelsPage() {
       <div className="max-w-2xl mx-auto px-4">
 
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Hotels & Short-lets</h1>
-          <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Book directly: instant confirmation via WhatsApp</p>
+          <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Stay Somewhere Real.</h1>
+          <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Short stays with honest photos and hosts who confirm before you pay.</p>
         </div>
 
         {/* Search */}

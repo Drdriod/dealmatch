@@ -16,9 +16,21 @@ import { getProperties, supabase } from '@/lib/supabase'
 // numbers rather than invented traction figures.
 
 const HOW_IT_WORKS = [
-  { icon: <Search size={32} className="text-terracotta" />, step:'01', title:'Tell Us What You Want',  desc:'Set your preferences: location, budget, property type. Takes 2 minutes.' },
-  { icon: <Bot size={32} className="text-terracotta" />, step:'02', title:'AI Matches You',         desc:'Our AI scans thousands of listings and surfaces only the ones that truly fit.' },
-  { icon: <Handshake size={32} className="text-terracotta" />, step:'03', title:'Connect & Close',        desc:'Swipe through matches, connect with sellers, close deals securely via escrow.' },
+  { icon: <Search size={32} className="text-terracotta" />, step:'01', title:'Say What You Need, or What You Offer',  desc:'A flat, a freelancer, a flatbed truck. Anything. Takes 2 minutes.' },
+  { icon: <Bot size={32} className="text-terracotta" />, step:'02', title:'We Match You Against Verified Supply or Demand', desc:'Real people, checked and rated, not cold listings.' },
+  { icon: <Handshake size={32} className="text-terracotta" />, step:'03', title:'Talk Directly. Close the Deal.',        desc:'No middleman holding the conversation hostage.' },
+]
+
+const CATEGORY_STRIP = [
+  { label: 'Real Estate', to: '/browse' },
+  { label: 'Rentals', to: '/rentals' },
+  { label: 'Artisans', to: '/marketplace/artisans' },
+  { label: 'Automotive', to: '/marketplace/automotive' },
+  { label: 'Professional & Business Services', to: '/forum/professional-business-services' },
+  { label: 'Education & Tutoring', to: '/forum/education-tutoring-skill-exchange' },
+  { label: 'Logistics & Equipment', to: '/forum/logistics-haulage-equipment-rental' },
+  { label: 'Events & Hospitality', to: '/forum/events-hospitality-entertainment' },
+  { label: 'Health & Home Care', to: '/forum/health-wellness-home-care' },
 ]
 
 const FEATURES = [
@@ -86,37 +98,36 @@ export default function HomePage() {
           <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6 }}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
               style={{ backgroundColor:'rgba(201,106,58,0.12)', color:'#C96A3A' }}>
-              <Zap size={11} /> Nigeria's #1 AI Property Platform
+              <Zap size={11} /> Vetted Supply. Real Demand. Matched.
             </div>
           </motion.div>
 
           <motion.h1 initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.7, delay:0.1 }}
             className="font-display font-black leading-tight mb-4"
             style={{ fontSize:'clamp(2.4rem,7vw,5rem)', color:'#1A1210', letterSpacing:'-0.02em' }}>
-            Find Your Perfect<br />
-            <span style={{ color:'#C96A3A' }}>Nigerian Property</span><br />
-            With AI Precision
+            Tell Us What You Need.<br />
+            <span style={{ color:'#C96A3A' }}>We'll Find Who Has It.</span>
           </motion.h1>
 
           <motion.p initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.2 }}
             className="text-lg leading-relaxed mb-4 max-w-xl mx-auto"
             style={{ color:'rgba(26,18,16,0.55)' }}>
-            Smart matching for deals. The fastest way to find your perfect property. Our AI-powered platform connects you with verified listings that match your exact needs.
+            DealMatch matches real demand with vetted supply (property, talent, equipment, expertise) so you stop searching and start closing.
           </motion.p>
 
           {/* Tagline */}
           <motion.p initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.25 }}
             className="text-sm font-semibold mb-10 text-center"
             style={{ color:'#C96A3A' }}>
-            Every match is a connection, every connection is a home
+            Every listing matched, not just posted
           </motion.p>
 
           <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to={isAuthenticated ? '/browse' : '/auth?tab=signup'} className="btn-primary text-base px-8 py-4 flex items-center justify-center gap-2">
-              Start Matching Free <ArrowRight size={16} />
+              Get Matched <ArrowRight size={16} />
             </Link>
-            <Link to="/rentals" className="btn-secondary text-base px-8 py-4">Browse Rentals</Link>
+            <a href="#how-it-works" className="btn-secondary text-base px-8 py-4">See How It Works</a>
           </motion.div>
 
           {/* Stats */}
@@ -132,6 +143,24 @@ export default function HomePage() {
                   </div>
                 ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── Category Strip ──────────────────────────────── */}
+      <section className="py-10 px-6" style={{ backgroundColor:'#FFFFFF', borderTop:'1px solid #E8DDD2', borderBottom:'1px solid #E8DDD2' }}>
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-sm font-semibold mb-5" style={{ color:'#8A7E78' }}>
+            From a two-bedroom flat to a fleet of trucks: if it's a real deal, it's a DealMatch.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {CATEGORY_STRIP.map(c => (
+              <Link key={c.label} to={c.to}
+                className="text-xs font-semibold px-4 py-2 rounded-full transition-colors"
+                style={{ backgroundColor:'#FAF6F0', color:'#3a2f2a' }}>
+                {c.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -151,13 +180,13 @@ export default function HomePage() {
       )}
 
       {/* ── How It Works ─────────────────────────────────── */}
-      <section className="py-24 px-6" style={{ backgroundColor:'#FAF6F0' }}>
+      <section id="how-it-works" className="py-24 px-6" style={{ backgroundColor:'#FAF6F0' }}>
         <div className="max-w-4xl mx-auto">
           <FadeUp>
             <div className="text-center mb-16">
               <p className="section-tag">Simple Process</p>
-              <h2 className="section-title mb-4">A Smarter Way to Find Property</h2>
-              <p className="section-sub mx-auto">Three steps from preference to property.</p>
+              <h2 className="section-title mb-4">How DealMatch Works</h2>
+              <p className="section-sub mx-auto">Three steps from need to deal.</p>
             </div>
           </FadeUp>
           <StaggerChildren className="grid md:grid-cols-3 gap-8">
@@ -182,7 +211,7 @@ export default function HomePage() {
           <FadeUp>
             <div className="text-center mb-16">
               <p className="section-tag">Everything You Need</p>
-              <h2 className="section-title mb-4">Built for Nigerian Real Estate</h2>
+              <h2 className="section-title mb-4">Built to Match, Not Just List</h2>
             </div>
           </FadeUp>
           <StaggerChildren className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -219,13 +248,13 @@ export default function HomePage() {
                 <div className="flex justify-center mb-6"><Home size={48} className="text-terracotta" /></div>
                 <h2 className="font-display font-black text-4xl mb-3 text-white">Ready to Find Your Deal?</h2>
                 <p className="text-sm mb-2" style={{ color:'rgba(255,255,255,0.5)' }}>
-                  Join thousands of Nigerians who found their home through DealMatch.
+                  Join Nigerians who found their match through DealMatch: property, talent, equipment, and more.
                 </p>
                 <p className="text-sm font-semibold mb-8" style={{ color:'rgba(201,106,58,0.8)' }}>
-                  Every match is a connection, every connection is a home
+                  Every listing matched, not just posted
                 </p>
                 <Link to={isAuthenticated ? '/browse' : '/auth?tab=signup'} className="btn-primary text-base px-10 py-4 inline-flex items-center gap-2">
-                  Get Started Free <ArrowRight size={16} />
+                  Get Matched <ArrowRight size={16} />
                 </Link>
               </div>
             </div>

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "service_type": {
+      "type": "string",
+      "enum": ["LEGAL", "ACCOUNTING", "CONSULTING", "IT_SUPPORT", "MARKETING", "HR", "LOGISTICS"]
+    },
+    "company_size_served": {
+      "type": "string",
+      "enum": ["STARTUP", "SME", "ENTERPRISE"]
+    },
+    "engagement_model": { "type": "string", "enum": ["ONE_OFF", "RETAINER", "PROJECT_BASED"] },
+    "years_in_business": { "type": "integer", "minimum": 0 },
+    "cac_registered": { "type": "boolean" }
+  },
+  "required": ["service_type", "engagement_model"]
+}

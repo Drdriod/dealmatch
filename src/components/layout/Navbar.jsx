@@ -14,6 +14,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]     = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [moreOpen, setMoreOpen]     = useState(false)
+  const [exploreOpen, setExploreOpen] = useState(false)
   const location = useLocation()
   const navigate  = useNavigate()
   const isHome    = location.pathname === '/'
@@ -24,7 +25,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => { setMenuOpen(false); setMoreOpen(false) }, [location])
+  useEffect(() => { setMenuOpen(false); setMoreOpen(false); setExploreOpen(false) }, [location])
 
   useEffect(() => {
     const handler = (e) => {
@@ -49,12 +50,49 @@ export default function Navbar() {
     { to:'/rentals',          label:'Rent' },
     { to:'/hotels',           label:'Hotels' },
     { to:null, label:'Student Hostels', comingSoon:true, highlight: true },
+    { to:'/forum',            label:'Forum' },
   ]
   // Secondary nav - collapsed into "More" on medium screens, visible on large
   const SECONDARY = [
     { to:'/professionals', label:'For Pros' },
     { to:'/escrow',        label:'My Wallet' },
     { to:'/availability',  label:'Manage Listings' },
+  ]
+  // Every other vertical, grouped by the same three Intent Filters used
+  // throughout the site's copy (Need a Service / Buy or Rent / Get Matched).
+  // Leaf categories route to their marketplace pages now (schema-driven
+  // browse/composer, ADR-013). Group-level links elsewhere on the site
+  // (e.g. HomePage's category strip) still point at the forum, since the
+  // marketplace has no parent-hub view yet, only leaf-category pages.
+  const EXPLORE_GROUPS = [
+    {
+      title: 'Need a Service',
+      items: [
+        { to:'/marketplace/artisans', label:'Skilled Artisans' },
+        { to:'/marketplace/corporate-legal', label:'Corporate & Legal' },
+        { to:'/marketplace/tech-digital-services', label:'Tech & Digital Services' },
+        { to:'/marketplace/private-special-education', label:'Tutoring & Exam Prep' },
+        { to:'/marketplace/event-ecosystem', label:'Event Vendors' },
+        { to:'/marketplace/in-home-healthcare', label:'In-Home Healthcare' },
+        { to:'/marketplace/fitness-lifestyle', label:'Fitness & Wellness' },
+      ],
+    },
+    {
+      title: 'Buy or Rent',
+      items: [
+        { to:'/marketplace/automotive', label:'Automotive' },
+        { to:'/marketplace/heavy-machinery-asset-leasing', label:'Heavy Machinery & Equipment' },
+      ],
+    },
+    {
+      title: 'Get Matched',
+      items: [
+        { to:'/marketplace/interstate-haulage-freight', label:'Haulage & Freight' },
+        { to:'/marketplace/b2b-procurement', label:'B2B Procurement' },
+        { to:'/marketplace/agricultural-logistics', label:'Agricultural Logistics' },
+        { to:'/marketplace/vocational-training', label:'Vocational Training' },
+      ],
+    },
   ]
   // Mortgage hidden from nav until real Nigerian lender partnerships are
   // researched and confirmed - see /mortgage which shows a Coming Soon
@@ -119,6 +157,35 @@ export default function Navbar() {
               )
             ))}
             <div style={{ width:1, height:16, backgroundColor:'rgba(26,18,16,0.1)', margin:'0 4px' }} />
+            {/* Explore dropdown - every other category, grouped by intent */}
+            <div className="relative">
+              <button onClick={() => setExploreOpen(o => !o)}
+                className="flex items-center gap-1 hover:bg-black/5"
+                style={{ ...linkStyle(false), display:'flex', alignItems:'center', gap:4 }}>
+                Explore <ChevronDown size={12} style={{ transition:'transform .2s', transform: exploreOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
+              <AnimatePresence>
+                {exploreOpen && (
+                  <motion.div initial={{ opacity:0, y:6, scale:.97 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:.97 }}
+                    transition={{ duration:.15 }}
+                    style={{ position:'absolute', top:'calc(100% + 8px)', left:'50%', transform:'translateX(-50%)', width:640, backgroundColor:'#FFFAF5', borderRadius:20, border:'1px solid #E8DDD2', boxShadow:'0 20px 60px rgba(26,18,16,0.15)', overflow:'hidden', zIndex:60, padding:'20px 8px' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8 }}>
+                      {EXPLORE_GROUPS.map(group => (
+                        <div key={group.title} style={{ padding:'0 12px' }}>
+                          <p style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', color:'#C96A3A', marginBottom:8 }}>{group.title}</p>
+                          {group.items.map(item => (
+                            <Link key={item.to} to={item.to}
+                              style={{ display:'block', padding:'6px 8px', margin:'0 -8px', borderRadius:8, fontSize:13, color:'#3A2E28', fontWeight:500 }}
+                              className="hover:bg-[#F5EDE0] transition-colors">{item.label}</Link>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <div style={{ width:1, height:16, backgroundColor:'rgba(26,18,16,0.1)', margin:'0 4px' }} />
             {SECONDARY.map(l => (
               <Link key={l.label} to={l.to || "/"}
                 style={linkStyle(location.pathname === l.to)}
@@ -150,12 +217,24 @@ export default function Navbar() {
                 {moreOpen && (
                   <motion.div initial={{ opacity:0, y:6, scale:.97 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:.97 }}
                     transition={{ duration:.15 }}
-                    style={{ position:'absolute', top:'calc(100% + 8px)', left:'50%', transform:'translateX(-50%)', width:180, backgroundColor:'#FFFAF5', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 12px 40px rgba(26,18,16,0.12)', overflow:'hidden', zIndex:60 }}>
-                    {SECONDARY.map(l => (
-                      <Link key={l.label} to={l.to || "/"}
-                        style={{ display:'block', padding:'10px 16px', fontSize:13, color:'#3A2E28', fontWeight:500 }}
-                        className="hover:bg-[#F5EDE0] transition-colors">{l.label}</Link>
+                    style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:280, maxHeight:'70vh', overflowY:'auto', backgroundColor:'#FFFAF5', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 12px 40px rgba(26,18,16,0.12)', zIndex:60 }}>
+                    {EXPLORE_GROUPS.map(group => (
+                      <div key={group.title} style={{ padding:'10px 16px 4px' }}>
+                        <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', color:'#C96A3A', marginBottom:2 }}>{group.title}</p>
+                        {group.items.map(item => (
+                          <Link key={item.to} to={item.to}
+                            style={{ display:'block', padding:'7px 0', fontSize:13, color:'#3A2E28', fontWeight:500 }}
+                            className="hover:text-terracotta transition-colors">{item.label}</Link>
+                        ))}
+                      </div>
                     ))}
+                    <div style={{ borderTop:'1px solid #E8DDD2', marginTop:6 }}>
+                      {SECONDARY.map(l => (
+                        <Link key={l.label} to={l.to || "/"}
+                          style={{ display:'block', padding:'10px 16px', fontSize:13, color:'#3A2E28', fontWeight:500 }}
+                          className="hover:bg-[#F5EDE0] transition-colors">{l.label}</Link>
+                      ))}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -238,6 +317,16 @@ export default function Navbar() {
                   <Link key={l.label} to={l.to || "/"} style={{ padding:'11px 0', fontSize:15, fontWeight:500, color:'#1A1210', borderBottom:'1px solid #F0E6D6' }}>
                     {l.label}
                   </Link>
+                ))}
+                {EXPLORE_GROUPS.map(group => (
+                  <div key={group.title} style={{ paddingTop:10 }}>
+                    <p style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', color:'#C96A3A', padding:'6px 0 2px' }}>{group.title}</p>
+                    {group.items.map(item => (
+                      <Link key={item.to} to={item.to} style={{ display:'block', padding:'9px 0', fontSize:14, fontWeight:500, color:'#1A1210', borderBottom:'1px solid #F0E6D6' }}>
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
                 ))}
                 <Link to="/list" style={{ padding:'11px 0', fontSize:15, fontWeight:700, color:'#C96A3A', borderBottom:'1px solid #F0E6D6' }}>Sell</Link>
                 {isAuthenticated ? (

@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "years_experience": { "type": "integer", "minimum": 0 },
+    "qualification": { "type": "string", "enum": ["B.Ed", "B.Sc", "M.Ed", "PGDE"] },
+    "subject_specialities": { "type": "array", "items": { "type": "string" } },
+    "employment_type": { "type": "string", "enum": ["FULL_TIME", "PART_TIME", "CONTRACT"] }
+  },
+  "required": ["qualification", "years_experience"]
+}
