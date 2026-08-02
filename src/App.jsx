@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home } from 'lucide-react'
 
 import Navbar    from '@/components/layout/Navbar'
+import MobileTabBar from '@/components/layout/MobileTabBar'
 import Footer    from '@/components/layout/Footer'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import InstallPrompt  from '@/components/ui/InstallPrompt'
@@ -214,13 +215,14 @@ const PublicOnlyRoute = ({ children }) => {
 }
 
 // ─── App shell ────────────────────────────────────────────────────────────────
-const AppShell = ({ children, showNav=true, showFooter=true, showWhatsApp=true }) => (
+const AppShell = ({ children, showNav=true, showFooter=true, showWhatsApp=true, showTabBar=true }) => (
   <div className="min-h-screen flex flex-col">
     {showNav && <Navbar />}
-    <main className="flex-1">{children}</main>
+    <main className="flex-1 pb-16 md:pb-0">{children}</main>
     {showFooter && <Footer />}
     {showWhatsApp && <WhatsAppButton />}
     <InstallPrompt />
+    {showTabBar && <MobileTabBar />}
   </div>
 )
 
