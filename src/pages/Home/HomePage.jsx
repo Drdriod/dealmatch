@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Bot, Briefcase, CheckCircle, Handshake, Home, Hotel, Search, Shield, Users, Zap } from 'lucide-react'
+import { ArrowRight, Bot, Briefcase, CheckCircle, Handshake, Home, Hotel, Search, Shield, ShieldCheck, Users, Zap } from 'lucide-react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'
 import HeroBackground from '@/components/ui/HeroBackground'
@@ -45,11 +45,29 @@ const FEATURES = [
 export default function HomePage() {
   const { isAuthenticated } = useAuth()
   const [featuredProps, setFeaturedProps] = useState([])
+  const [featuredServices, setFeaturedServices] = useState([])
+  const [featuredAutos, setFeaturedAutos] = useState([])
   const [stats, setStats] = useState(null) // null while loading - avoids flashing 0s
 
+  // Shared fetch for any category rail: category slug in, active SUPPLY listings out.
+  const fetchCategoryRail = (slug, limit = 8) =>
+    fetch(`/api/categories/${slug}`)
+      .then(r => r.json())
+      .then(category => {
+        if (!category?.id) return []
+        return fetch('/api/category-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId: category.id, type: 'SUPPLY', limit }),
+        }).then(r => r.json()).then(d => d.matches || [])
+      })
+      .catch(() => [])
+
   useEffect(() => {
-    getProperties({ limit: 9 }).then(({ data }) => setFeaturedProps(data || []))
+    getProperties({ limit: 8 }).then(({ data }) => setFeaturedProps(data || []))
     loadRealStats()
+    fetchCategoryRail('artisans').then(setFeaturedServices)
+    fetchCategoryRail('automotive').then(setFeaturedAutos)
   }, [])
 
   // Real, honest platform numbers - pulled live, never invented.
@@ -163,6 +181,70 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Find a Place / Find a Provider fork ──────────── */}
+      <section className="py-16 px-6" style={{ backgroundColor:'#FFFFFF' }}>
+        <div className="max-w-5xl mx-auto grid gap-4 md:grid-cols-2">
+          <Link to="/browse" className="rounded-3xl p-8 flex flex-col justify-between transition-transform hover:-translate-y-1"
+            style={{ background: 'linear-gradient(135deg, #C96A3A, #D4A853)', minHeight: 220 }}>
+            <div>
+              <Home size={28} className="text-white mb-4" />
+              <h3 className="font-display text-2xl font-black text-white mb-2">Find a Place</h3>
+              <p className="text-sm text-white/85">Real estate, rentals & shortlets: vetted supply, matched to your brief.</p>
+            </div>
+            <span className="text-sm font-bold text-white flex items-center gap-1 mt-6">Browse listings <ArrowRight size={14} /></span>
+          </Link>
+
+          <Link to="/marketplace" className="rounded-3xl p-8 flex flex-col justify-between transition-transform hover:-translate-y-1 border"
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#E8DDD2', minHeight: 220 }}>
+            <div>
+              <Users size={28} className="text-terracotta mb-4" />
+              <h3 className="font-display text-2xl font-black mb-2" style={{ color:'#1A1210' }}>Find Help</h3>
+              <p className="text-sm" style={{ color:'#8A7E78' }}>Skilled artisans, pros & services: verified, rated, nearby.</p>
+            </div>
+            <span className="text-sm font-bold flex items-center gap-1 mt-6" style={{ color:'#C96A3A' }}>Browse the marketplace <ArrowRight size={14} /></span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Discovery rails, Netflix-style: one horizontally-scrolling row
+           per category, instead of one long vertical page ──────────────── */}
+      {[
+        { title: 'Real estate near you', seeAll: '/browse', items: featuredProps.map(p => ({
+            key: `p-${p.id}`, to: `/property/${p.id}`, title: p.title,
+            price: p.price ? `₦${Number(p.price).toLocaleString()}${p.category === 'rent' ? '/year' : ''}` : null,
+            meta: p.city })) },
+        { title: 'Skilled artisans', seeAll: '/marketplace/artisans', items: featuredServices.map(s => ({
+            key: `s-${s.id}`, to: `/marketplace/artisans/listing/${s.id}`, title: s.title,
+            price: s.price_cents ? `₦${(s.price_cents / 100).toLocaleString()}` : null,
+            meta: s.location_name })) },
+        { title: 'Automotive', seeAll: '/marketplace/automotive', items: featuredAutos.map(a => ({
+            key: `a-${a.id}`, to: `/marketplace/automotive/listing/${a.id}`, title: a.title,
+            price: a.price_cents ? `₦${(a.price_cents / 100).toLocaleString()}` : null,
+            meta: a.location_name })) },
+      ].filter(rail => rail.items.length > 0).map(rail => (
+        <section key={rail.title} className="py-10 px-6" style={{ backgroundColor:'#FAF6F0' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display text-xl font-black" style={{ color:'#1A1210' }}>{rail.title}</h2>
+              <Link to={rail.seeAll} className="text-sm font-semibold" style={{ color:'#C96A3A' }}>See all</Link>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 scroll-smooth" style={{ scrollSnapType: 'x mandatory' }}>
+              {rail.items.map(card => (
+                <Link key={card.key} to={card.to} className="card min-w-[220px] flex-shrink-0 p-4"
+                  style={{ scrollSnapAlign: 'start' }}>
+                  <div className="flex items-center gap-1 text-xs font-bold mb-2" style={{ color: '#7A9E7E' }}>
+                    <ShieldCheck size={13} /> Verified
+                  </div>
+                  <div className="font-semibold text-sm mb-1" style={{ color: '#1A1210' }}>{card.title}</div>
+                  {card.price && <div className="text-sm font-bold" style={{ color: '#C96A3A' }}>{card.price}</div>}
+                  {card.meta && <div className="text-xs mt-1" style={{ color: '#8A7E78' }}>{card.meta}</div>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
 
       {/* ── Featured Properties Carousel ─────────────────── */}
       {featuredProps.length > 0 && (

@@ -222,7 +222,7 @@ function CategoryBrowseView({ categorySlug }) {
           {['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: type === t ? '#C96A3A' : '#FFFAF5', color: type === t ? '#fff' : '#8A7E78' }}>
+              style={{ background: type === t ? '#C96A3A' : '#FAF6F0', color: type === t ? '#fff' : '#8A7E78' }}>
               {t === 'SUPPLY' ? 'Available now' : 'Looking for'}
             </button>
           ))}
@@ -324,7 +324,7 @@ function NewListingView({ categorySlug }) {
         {['SUPPLY', 'DEMAND'].map(t => (
           <button key={t} onClick={() => setType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: type === t ? '#C96A3A' : '#FFFAF5', color: type === t ? '#fff' : '#8A7E78' }}>
+            style={{ background: type === t ? '#C96A3A' : '#FAF6F0', color: type === t ? '#fff' : '#8A7E78' }}>
             {t === 'SUPPLY' ? 'I have this to offer' : 'I need this'}
           </button>
         ))}

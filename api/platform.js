@@ -133,8 +133,9 @@ const jsonResources = {
 
   async ['category-match'](req, res, supabase) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-    const { error: authError } = await getAuthedUser(req, supabase)
-    if (authError) return res.status(401).json({ error: authError })
+    // Public, matching category_listings' own RLS: "listings_public_read_active"
+    // already lets anyone read ACTIVE rows, so browsing/matching them needs no
+    // auth either, same as the forum-threads and categories resources.
 
     const { categoryId, type, lat, lng, radiusMeters, attributeFilter, limit } = req.body || {}
     try {

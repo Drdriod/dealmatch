@@ -34,7 +34,7 @@ export default function MobileTabBar() {
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch"
       style={{
-        backgroundColor: '#FFFAF5',
+        backgroundColor: '#FAF6F0',
         borderTop: '1px solid #E8DDD2',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}

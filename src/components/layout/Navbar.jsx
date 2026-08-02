@@ -168,7 +168,7 @@ export default function Navbar() {
                 {exploreOpen && (
                   <motion.div initial={{ opacity:0, y:6, scale:.97 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:.97 }}
                     transition={{ duration:.15 }}
-                    style={{ position:'absolute', top:'calc(100% + 8px)', left:'50%', transform:'translateX(-50%)', width:640, backgroundColor:'#FFFAF5', borderRadius:20, border:'1px solid #E8DDD2', boxShadow:'0 20px 60px rgba(26,18,16,0.15)', overflow:'hidden', zIndex:60, padding:'20px 8px' }}>
+                    style={{ position:'absolute', top:'calc(100% + 8px)', left:'50%', transform:'translateX(-50%)', width:640, backgroundColor:'#FAF6F0', borderRadius:20, border:'1px solid #E8DDD2', boxShadow:'0 20px 60px rgba(26,18,16,0.15)', overflow:'hidden', zIndex:60, padding:'20px 8px' }}>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8 }}>
                       {EXPLORE_GROUPS.map(group => (
                         <div key={group.title} style={{ padding:'0 12px' }}>
@@ -217,7 +217,7 @@ export default function Navbar() {
                 {moreOpen && (
                   <motion.div initial={{ opacity:0, y:6, scale:.97 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:.97 }}
                     transition={{ duration:.15 }}
-                    style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:280, maxHeight:'70vh', overflowY:'auto', backgroundColor:'#FFFAF5', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 12px 40px rgba(26,18,16,0.12)', zIndex:60 }}>
+                    style={{ position:'absolute', top:'calc(100% + 8px)', right:0, width:280, maxHeight:'70vh', overflowY:'auto', backgroundColor:'#FAF6F0', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 12px 40px rgba(26,18,16,0.12)', zIndex:60 }}>
                     {EXPLORE_GROUPS.map(group => (
                       <div key={group.title} style={{ padding:'10px 16px 4px' }}>
                         <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', color:'#C96A3A', marginBottom:2 }}>{group.title}</p>
@@ -265,7 +265,7 @@ export default function Navbar() {
                       ? <img src={profile.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       : <User size={14} style={{ color:'#C96A3A' }} />}
                   </button>
-                  <div style={{ position:'absolute', right:0, top:'calc(100% + 8px)', width:200, backgroundColor:'#FFFAF5', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 16px 48px rgba(26,18,16,0.13)', overflow:'hidden', zIndex:60 }}
+                  <div style={{ position:'absolute', right:0, top:'calc(100% + 8px)', width:200, backgroundColor:'#FAF6F0', borderRadius:16, border:'1px solid #E8DDD2', boxShadow:'0 16px 48px rgba(26,18,16,0.13)', overflow:'hidden', zIndex:60 }}
                     className="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 translate-y-1 group-hover:translate-y-0">
                     <div style={{ padding:'12px 16px', borderBottom:'1px solid #E8DDD2' }}>
                       <p style={{ fontSize:12, fontWeight:600, color:'#1A1210', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.full_name || 'Your Account'}</p>
@@ -311,7 +311,7 @@ export default function Navbar() {
         <AnimatePresence>
           {menuOpen && (
             <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:'auto' }} exit={{ opacity:0, height:0 }} transition={{ duration:.2 }}
-              style={{ backgroundColor:'#FFFAF5', borderTop:'1px solid #E8DDD2', overflow:'hidden' }}>
+              style={{ backgroundColor:'#FAF6F0', borderTop:'1px solid #E8DDD2', overflow:'hidden' }}>
               <div style={{ padding:'12px 20px 20px', display:'flex', flexDirection:'column', gap:2 }}>
                 {[...PRIMARY, ...SECONDARY].map(l => (
                   <Link key={l.label} to={l.to || "/"} style={{ padding:'11px 0', fontSize:15, fontWeight:500, color:'#1A1210', borderBottom:'1px solid #F0E6D6' }}>

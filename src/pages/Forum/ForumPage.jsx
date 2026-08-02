@@ -71,7 +71,7 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
           <button key={t} onClick={() => setThreadType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{
-              background: threadType === t ? '#C96A3A' : '#FFFAF5',
+              background: threadType === t ? '#C96A3A' : '#FAF6F0',
               color: threadType === t ? '#fff' : '#8A7E78',
             }}>
             {t === 'QUESTION' ? 'Ask a question' : 'Start a discussion'}
@@ -203,7 +203,7 @@ function IndexView({ tree }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#1A1210' }}>Ask the People Who've Actually Done the Deal</h1>
-      <p className="text-sm text-gray-500 mb-8">Real questions about real estate, business services, logistics, events, and more — answered by people who've been through it, not a chatbot guessing.</p>
+      <p className="text-sm text-gray-500 mb-8">Real questions about real estate, business services, logistics, events, and more. Answered by people who've been through it, not a chatbot guessing.</p>
       <div className="grid gap-4">
         {tree.map(cat => (
           <div key={cat.slug} className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
@@ -213,7 +213,7 @@ function IndexView({ tree }) {
               <div className="flex flex-wrap gap-2 mt-3">
                 {cat.children.map(child => (
                   <Link key={child.slug} to={`/forum/${cat.slug}/${child.slug}`}
-                    className="text-xs px-3 py-1 rounded-full" style={{ background: '#FFFAF5', color: '#8A7E78' }}>
+                    className="text-xs px-3 py-1 rounded-full" style={{ background: '#FAF6F0', color: '#8A7E78' }}>
                     {child.tagline || child.name}
                   </Link>
                 ))}
@@ -259,7 +259,7 @@ function CategoryView({ category, breadcrumb, threads, onCreated }) {
       <p className="text-sm text-gray-500 mb-6">{category.description}</p>
       <NewThreadForm categorySlugPath={slugPath} onCreated={onCreated} />
       {threads.length === 0 ? (
-        <p className="text-sm text-gray-400">Nobody's asked yet. Be the first — someone else searching this exact question will thank you.</p>
+        <p className="text-sm text-gray-400">Nobody's asked yet. Be the first, and someone else searching this exact question will thank you.</p>
       ) : (
         <div className="divide-y" style={{ borderColor: '#E8DDD2' }}>
           {threads.map(t => (
@@ -268,7 +268,7 @@ function CategoryView({ category, breadcrumb, threads, onCreated }) {
                 <div className="flex items-center gap-2 font-semibold" style={{ color: '#1A1210' }}>
                   {t.is_pinned && <Pin size={14} className="text-terracotta" />}
                   {t.title}
-                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFFAF5', color: '#C96A3A' }}>Q</span>}
+                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FAF6F0', color: '#C96A3A' }}>Q</span>}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">{timeAgo(t.last_activity_at)}</div>
               </div>
