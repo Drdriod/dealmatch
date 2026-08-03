@@ -150,7 +150,7 @@ export default function HomePage() {
 
           {/* Stats */}
           <motion.div initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.7, delay:0.5 }}
-            className="mt-20 rounded-3xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="mt-20 rounded-3xl px-2 py-6 sm:p-8 grid grid-cols-4 gap-2 sm:gap-8"
             style={{ backgroundColor:'#1A1210' }}>
             {stats
               ? stats.map((s, i) => <AnimatedStat key={i} value={s.value} suffix={s.suffix} label={s.label} />)

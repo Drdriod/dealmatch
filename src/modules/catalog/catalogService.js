@@ -25,6 +25,31 @@ export async function getCategoryBySlug(supabase, slug) {
   return data
 }
 
+/** Full nested tree: top-level categories with their children attached. Mirrors forumService.getForumCategoryTree. */
+export async function getCategoryTree(supabase) {
+  const all = await listCategories(supabase)
+  const byParent = new Map()
+  for (const cat of all) {
+    const key = cat.parent_id ?? 'root'
+    if (!byParent.has(key)) byParent.set(key, [])
+    byParent.get(key).push(cat)
+  }
+  const roots = byParent.get('root') || []
+  return roots.map(root => ({ ...root, children: byParent.get(root.id) || [] }))
+}
+
+export async function listChildCategories(supabase, parentId) {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .eq('parent_id', parentId)
+    .order('name')
+
+  if (error) throw new Error(`listChildCategories failed: ${error.message}`)
+  return data
+}
+
 export async function getCategoryById(supabase, id) {
   const { data, error } = await supabase
     .from('categories')

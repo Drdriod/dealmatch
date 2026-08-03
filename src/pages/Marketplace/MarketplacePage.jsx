@@ -6,11 +6,6 @@ import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
 const API_BASE = '/api'
-const INTENT_LABELS = {
-  SERVICE: 'Need a Service',
-  ASSET: 'Buy or Rent',
-  SUPPLY_DEMAND: 'Get Matched',
-}
 
 async function authHeader() {
   const { data: { session } } = await supabase.auth.getSession()
@@ -144,37 +139,37 @@ function SearchResultsView({ query }) {
 
 // ─── Marketplace index: search + categories grouped by intent ──────────────
 function IndexView() {
-  const [categories, setCategories] = useState([])
+  const [tree, setTree] = useState([])
 
   useEffect(() => {
-    fetch(`${API_BASE}/categories`).then(r => r.json()).then(d => setCategories(d.categories || []))
+    fetch(`${API_BASE}/categories`).then(r => r.json()).then(d => setTree(d.categories || []))
   }, [])
-
-  const groups = ['SERVICE', 'ASSET', 'SUPPLY_DEMAND'].map(intent => ({
-    intent,
-    label: INTENT_LABELS[intent],
-    items: categories.filter(c => c.intent_filter === intent),
-  })).filter(g => g.items.length > 0)
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#1A1210' }}>Tell Us What You Need</h1>
-      <p className="text-sm text-gray-500 mb-6">Search across every category, or browse by what you're trying to do.</p>
+      <p className="text-sm text-gray-500 mb-6">Search across every category, or browse by name below.</p>
       <SearchBar autoFocus />
-      {groups.map(g => (
-        <div key={g.intent} className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C96A3A' }}>{g.label}</h2>
-          <div className="grid gap-2">
-            {g.items.map(c => (
-              <Link key={c.slug} to={`/marketplace/${c.slug}`}
-                className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
-                <span className="font-semibold text-sm" style={{ color: '#1A1210' }}>{c.name}</span>
-                <ChevronRight size={16} className="text-gray-300" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      ))}
+      <div className="grid gap-3">
+        {tree.map(cat => (
+          <Link key={cat.slug} to={`/marketplace/${cat.slug}`}
+            className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-sm" style={{ color: '#1A1210' }}>{cat.name}</span>
+              <ChevronRight size={16} className="text-gray-300" />
+            </div>
+            {cat.children?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {cat.children.map(child => (
+                  <span key={child.slug} className="text-xs px-2.5 py-1 rounded-full" style={{ background: '#FAF6F0', color: '#8A7E78' }}>
+                    {child.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }
@@ -393,6 +388,44 @@ function ListingDetailView({ id }) {
   )
 }
 
+// ─── Parent group hub: shown when a category has children instead of listings ──
+function GroupHubView({ category, childCategories }) {
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-10">
+      <SearchBar />
+      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#1A1210' }}>{category.name}</h1>
+      <div className="grid gap-3">
+        {childCategories.map(c => (
+          <Link key={c.slug} to={`/marketplace/${c.slug}`}
+            className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+            <span className="font-semibold text-sm" style={{ color: '#1A1210' }}>{c.name}</span>
+            <ChevronRight size={16} className="text-gray-300" />
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Resolves a single-segment /marketplace/:slug URL: parent categories (with
+// children) get the hub view above, leaf categories get the real browse view.
+function CategoryOrGroupView({ categorySlug }) {
+  const [state, setState] = useState({ loading: true, category: null })
+
+  useEffect(() => {
+    setState({ loading: true, category: null })
+    fetch(`${API_BASE}/categories/${categorySlug}`).then(r => r.json()).then(category => setState({ loading: false, category }))
+  }, [categorySlug])
+
+  if (state.loading) return <div className="max-w-md mx-auto px-4 py-16 text-center text-gray-400 text-sm">Loading...</div>
+  if (!state.category?.id) return <div className="max-w-md mx-auto px-4 py-16 text-center text-gray-400 text-sm">Not found.</div>
+
+  if (state.category.children?.length > 0) {
+    return <GroupHubView category={state.category} childCategories={state.category.children} />
+  }
+  return <CategoryBrowseView categorySlug={categorySlug} />
+}
+
 // ─── Router ──────────────────────────────────────────────────────────────────
 export default function MarketplacePage() {
   const location = useLocation()
@@ -402,7 +435,7 @@ export default function MarketplacePage() {
 
   if (segments.length === 0) return <IndexView />
   if (segments[0] === 'search') return <SearchResultsView query={searchParams.get('q') || ''} />
-  if (segments.length === 1) return <CategoryBrowseView categorySlug={segments[0]} />
+  if (segments.length === 1) return <CategoryOrGroupView categorySlug={segments[0]} />
   if (segments.length === 2 && segments[1] === 'new') return <NewListingView categorySlug={segments[0]} />
   if (segments.length === 3 && segments[1] === 'listing') return <ListingDetailView id={segments[2]} />
 

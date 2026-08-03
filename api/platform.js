@@ -23,7 +23,7 @@ import { createServerClient, getAuthedUser } from '../src/lib/supabaseServer.js'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
 
-import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema } from '../src/modules/catalog/catalogService.js'
+import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
 import { findMatches, findCounterpartMatches } from '../src/modules/matching/matchingService.js'
 import { clearValidatorCache } from '../src/lib/schemaValidation.js'
@@ -102,7 +102,7 @@ const jsonResources = {
 
   // -- Dynamic listing catalog --
   async categories(req, res, supabase) {
-    if (req.method === 'GET') return res.status(200).json({ categories: await listCategories(supabase) })
+    if (req.method === 'GET') return res.status(200).json({ categories: await getCategoryTree(supabase) })
     if (req.method === 'POST') {
       const { slug, name, parentId, attributeSchema } = req.body || {}
       try {
@@ -115,7 +115,11 @@ const jsonResources = {
   async category(req, res, supabase) {
     const { slug } = req.query
     if (req.method === 'GET') {
-      try { return res.status(200).json(await getCategoryBySlug(supabase, slug)) }
+      try {
+        const category = await getCategoryBySlug(supabase, slug)
+        const children = await listChildCatalogCategories(supabase, category.id)
+        return res.status(200).json({ ...category, children })
+      }
       catch { return res.status(404).json({ error: 'Category not found' }) }
     }
     if (req.method === 'PATCH') {
