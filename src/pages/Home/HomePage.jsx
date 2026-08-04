@@ -262,8 +262,8 @@ export default function HomePage() {
               <HeroBackground />
               <div className="absolute inset-0 pointer-events-none" style={{ background:'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,106,58,0.25) 0%, transparent 70%)' }} />
               <div className="relative">
-                <div className="flex justify-center mb-6"><Home size={48} className="text-terracotta" /></div>
-                <h2 className="font-display font-black text-4xl mb-3 text-white">Ready to Find Your Deal?</h2>
+                <div className="flex justify-center mb-6"><Handshake size={48} className="text-terracotta" /></div>
+                <h2 className="font-display font-black text-4xl mb-3 text-white">Your Next Match Is Waiting</h2>
                 <p className="text-sm mb-2" style={{ color:'rgba(255,255,255,0.5)' }}>
                   Join Nigerians who found their match through DealMatch: property, talent, equipment, and more.
                 </p>
@@ -271,7 +271,7 @@ export default function HomePage() {
                   Every listing matched, not just posted
                 </p>
                 <Link to={isAuthenticated ? '/browse' : '/auth?tab=signup'} className="btn-primary text-base px-10 py-4 inline-flex items-center gap-2">
-                  Get Matched <ArrowRight size={16} />
+                  Join DealMatch <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
