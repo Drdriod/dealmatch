@@ -42,13 +42,14 @@ export async function findMatches(supabase, {
 export async function findCounterpartMatches(supabase, listing, { radiusMeters = 10000, limit = 20 } = {}) {
   const counterpartType = listing.type === 'SUPPLY' ? 'DEMAND' : 'SUPPLY'
 
-  let lat = null, lng = null
-  // listing.location comes back from PostgREST as GeoJSON when selected with the right format;
-  // callers that already have lat/lng (e.g. from the create-listing request) should pass those
-  // in directly instead of relying on this fallback.
-  if (listing.location?.coordinates) {
-    [lng, lat] = listing.location.coordinates
-  }
+  // listing.lat/listing.lng come from getListing(), which now calls the
+  // get_listing_with_latlng RPC (explicit ST_Y/ST_X) rather than returning
+  // a raw PostGIS geography value. This replaces an earlier version that
+  // tried to read listing.location.coordinates directly, an assumption
+  // about PostgREST's geography serialization that was never actually
+  // verified against a live database.
+  const lat = typeof listing.lat === 'number' ? listing.lat : null
+  const lng = typeof listing.lng === 'number' ? listing.lng : null
 
   return findMatches(supabase, {
     categoryId: listing.category_id,

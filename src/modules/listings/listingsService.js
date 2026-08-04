@@ -44,9 +44,7 @@ export async function createListing(supabase, {
 
 export async function getListing(supabase, id) {
   const { data, error } = await supabase
-    .from('category_listings')
-    .select('*')
-    .eq('id', id)
+    .rpc('get_listing_with_latlng', { p_id: id })
     .single()
 
   if (error) throw new Error(`getListing(${id}) failed: ${error.message}`)

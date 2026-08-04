@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
-import { Search, MapPin, ChevronRight, Loader2 } from 'lucide-react'
+import { MarketplaceMap } from '@/components/ui/MarketplaceMap'
+import { Search, MapPin, ChevronRight, Loader2, Map as MapIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
@@ -181,6 +182,7 @@ function CategoryBrowseView({ categorySlug }) {
   const [type, setType] = useState('SUPPLY')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showMobileMap, setShowMobileMap] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE}/categories/${categorySlug}`).then(r => r.json()).then(setCategory)
@@ -209,10 +211,10 @@ function CategoryBrowseView({ categorySlug }) {
   const properties = category?.attribute_schema?.properties || {}
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-6xl mx-auto px-4 py-10">
       <SearchBar />
       <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#1A1210' }}>{category?.name || '...'}</h1>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div className="flex gap-2">
           {['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
@@ -221,6 +223,11 @@ function CategoryBrowseView({ categorySlug }) {
               {t === 'SUPPLY' ? 'Available now' : 'Looking for'}
             </button>
           ))}
+          <button onClick={() => setShowMobileMap(m => !m)}
+            className="lg:hidden flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full"
+            style={{ background: showMobileMap ? '#C96A3A' : '#FAF6F0', color: showMobileMap ? '#fff' : '#8A7E78' }}>
+            <MapIcon size={12} /> Map
+          </button>
         </div>
         <Link to={`/marketplace/${categorySlug}/new`} className="btn-primary text-sm px-5 py-2">Post a listing</Link>
       </div>
@@ -234,22 +241,38 @@ function CategoryBrowseView({ categorySlug }) {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-gray-400 text-sm py-8"><Loader2 size={16} className="animate-spin" /> Loading...</div>
-      ) : results.length === 0 ? (
-        <p className="text-sm text-gray-400 py-8">No listings match yet. Be the first to post one.</p>
-      ) : (
-        <div className="grid gap-3">
-          {results.map(item => (
-            <Link key={item.id} to={`/marketplace/${categorySlug}/listing/${item.id}`}
-              className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
-              <div className="font-semibold" style={{ color: '#1A1210' }}>{item.title}</div>
-              {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C96A3A' }}>{formatPrice(item.price_cents)}</div>}
-              {item.location_name && <div className="text-xs text-gray-400 mt-1 flex items-center gap-1"><MapPin size={11} />{item.location_name}</div>}
-            </Link>
-          ))}
+      {/* Collapsible map strip, mobile only */}
+      {showMobileMap && (
+        <div className="lg:hidden mb-6">
+          <MarketplaceMap listings={results} height="200px" />
         </div>
       )}
+
+      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
+        <div>
+          {loading ? (
+            <div className="flex items-center gap-2 text-gray-400 text-sm py-8"><Loader2 size={16} className="animate-spin" /> Loading...</div>
+          ) : results.length === 0 ? (
+            <p className="text-sm text-gray-400 py-8">No listings match yet. Be the first to post one.</p>
+          ) : (
+            <div className="grid gap-3">
+              {results.map(item => (
+                <Link key={item.id} to={`/marketplace/${categorySlug}/listing/${item.id}`}
+                  className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+                  <div className="font-semibold" style={{ color: '#1A1210' }}>{item.title}</div>
+                  {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C96A3A' }}>{formatPrice(item.price_cents)}</div>}
+                  {item.location_name && <div className="text-xs text-gray-400 mt-1 flex items-center gap-1"><MapPin size={11} />{item.location_name}</div>}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Persistent map pane, desktop only (Screen 02 pattern: list and map stay in sync side by side) */}
+        <div className="hidden lg:block sticky top-24">
+          <MarketplaceMap listings={results} height="520px" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -374,6 +397,11 @@ function ListingDetailView({ id }) {
       {listing.price_cents != null && <p className="text-lg font-bold mb-3" style={{ color: '#1A1210' }}>{formatPrice(listing.price_cents)}</p>}
       <p className="text-sm mb-4" style={{ color: '#3a2f2a' }}>{listing.description}</p>
       {listing.location_name && <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={11} />{listing.location_name}</p>}
+      {typeof listing.lat === 'number' && typeof listing.lng === 'number' && (
+        <div className="mt-4">
+          <MarketplaceMap listings={[listing]} height="220px" zoom={13} />
+        </div>
+      )}
       {Object.entries(listing.attributes || {}).length > 0 && (
         <div className="mt-6 p-4 rounded-2xl border grid grid-cols-2 gap-3" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
           {Object.entries(listing.attributes).map(([k, v]) => (

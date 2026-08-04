@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Bot, Briefcase, CheckCircle, Handshake, Home, Hotel, Search, Shield, ShieldCheck, Users, Zap } from 'lucide-react'
-import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
+import { ArrowRight, Bot, Handshake, Home, Search, ShieldCheck, Users, Zap } from 'lucide-react'
+import { FadeUp } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'
 import HeroBackground from '@/components/ui/HeroBackground'
 import PropertyCarousel from '@/components/ui/PropertyCarousel'
@@ -19,26 +19,6 @@ const HOW_IT_WORKS = [
   { icon: <Search size={32} className="text-terracotta" />, step:'01', title:'Say What You Need, or What You Offer',  desc:'A flat, a freelancer, a flatbed truck. Anything. Takes 2 minutes.' },
   { icon: <Bot size={32} className="text-terracotta" />, step:'02', title:'We Match You Against Verified Supply or Demand', desc:'Real people, checked and rated, not cold listings.' },
   { icon: <Handshake size={32} className="text-terracotta" />, step:'03', title:'Talk Directly. Close the Deal.',        desc:'No middleman holding the conversation hostage.' },
-]
-
-const CATEGORY_STRIP = [
-  { label: 'Real Estate', to: '/browse' },
-  { label: 'Rentals', to: '/rentals' },
-  { label: 'Artisans', to: '/marketplace/artisans' },
-  { label: 'Automotive', to: '/marketplace/automotive' },
-  { label: 'Professional & Business Services', to: '/forum/professional-business-services' },
-  { label: 'Education & Tutoring', to: '/forum/education-tutoring-skill-exchange' },
-  { label: 'Logistics & Equipment', to: '/forum/logistics-haulage-equipment-rental' },
-  { label: 'Events & Hospitality', to: '/forum/events-hospitality-entertainment' },
-  { label: 'Health & Home Care', to: '/forum/health-wellness-home-care' },
-]
-
-const FEATURES = [
-  { icon: <Bot size={32} className="text-terracotta" />, title:'AI-Powered Matching',   desc:'Vector-based matching finds real fits across property, skills, and services: not just keyword filters.' },
-  { icon: <Shield size={36} className="text-terracotta" />, title:'Escrow Protection',      desc:'Pay for any deal safely. Funds held until you confirm delivery: the other side cannot touch it early.' },
-  { icon: <CheckCircle size={36} className="text-terracotta" />, title:'Verified Listings',      desc:'Every listing reviewed by our team. Fake listings and scams blocked before they reach you.' },
-  { icon: <Briefcase size={36} className="text-terracotta" />, title:'Verified Providers',      desc:'Surveyors, inspectors, lawyers, artisans, and more: verified and rated, not just claimed.' },
-  { icon: <Hotel size={36} className="text-terracotta" />, title:'Hotel Bookings',         desc:'Book hotels and short-lets with full date/guest/room management and price calculator.' },
 ]
 
 
@@ -164,24 +144,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Category Strip ──────────────────────────────── */}
-      <section className="py-10 px-6" style={{ backgroundColor:'#FFFFFF', borderTop:'1px solid #E8DDD2', borderBottom:'1px solid #E8DDD2' }}>
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-sm font-semibold mb-5" style={{ color:'#8A7E78' }}>
-            From a two-bedroom flat to a fleet of trucks: if it's a real deal, it's a DealMatch.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {CATEGORY_STRIP.map(c => (
-              <Link key={c.label} to={c.to}
-                className="text-xs font-semibold px-4 py-2 rounded-full transition-colors"
-                style={{ backgroundColor:'#FAF6F0', color:'#3a2f2a' }}>
-                {c.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Find a Place / Find a Provider fork ──────────── */}
       <section className="py-16 px-6" style={{ backgroundColor:'#FFFFFF' }}>
         <div className="max-w-5xl mx-auto grid gap-4 md:grid-cols-2">
@@ -261,9 +223,9 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── How It Works ─────────────────────────────────── */}
+      {/* ── How It Works, Netflix-style tiles ────────────── */}
       <section id="how-it-works" className="py-24 px-6" style={{ backgroundColor:'#FAF6F0' }}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <FadeUp>
             <div className="text-center mb-16">
               <p className="section-tag">Simple Process</p>
@@ -271,46 +233,19 @@ export default function HomePage() {
               <p className="section-sub mx-auto">Three steps from need to deal.</p>
             </div>
           </FadeUp>
-          <StaggerChildren className="grid md:grid-cols-3 gap-8">
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-6" style={{ scrollSnapType: 'x mandatory' }}>
             {HOW_IT_WORKS.map((item, i) => (
-              <StaggerItem key={i}>
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5"
-                    style={{ backgroundColor:'rgba(201,106,58,0.08)' }}>{item.icon}</div>
-                  <p className="text-xs font-bold tracking-widest mb-2" style={{ color:'#C96A3A' }}>STEP {item.step}</p>
-                  <h3 className="font-display font-black text-xl mb-3" style={{ color:'#1A1210' }}>{item.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color:'#8A7E78' }}>{item.desc}</p>
-                </div>
-              </StaggerItem>
+              <div key={i} className="card min-w-[240px] sm:min-w-0 flex-shrink-0 p-6 text-center" style={{ scrollSnapAlign: 'start' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5"
+                  style={{ backgroundColor:'rgba(201,106,58,0.08)' }}>{item.icon}</div>
+                <p className="text-xs font-bold tracking-widest mb-2" style={{ color:'#C96A3A' }}>STEP {item.step}</p>
+                <h3 className="font-display font-black text-xl mb-3" style={{ color:'#1A1210' }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color:'#8A7E78' }}>{item.desc}</p>
+              </div>
             ))}
-          </StaggerChildren>
+          </div>
         </div>
       </section>
-
-      {/* ── Features ─────────────────────────────────────── */}
-      <section className="py-24 px-6" style={{ backgroundColor:'#FFFFFF' }}>
-        <div className="max-w-5xl mx-auto">
-          <FadeUp>
-            <div className="text-center mb-16">
-              <p className="section-tag">Everything You Need</p>
-              <h2 className="section-title mb-4">Built to Match, Not Just List</h2>
-            </div>
-          </FadeUp>
-          <StaggerChildren className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {FEATURES.map((f, i) => (
-              <StaggerItem key={i}>
-                <div className="rounded-3xl p-6 h-full border transition-all hover:-translate-y-1"
-                  style={{ backgroundColor:'#FAF6F0', borderColor:'#E8DDD2', boxShadow:'0 4px 20px rgba(26,18,16,0.04)' }}>
-                  <div className="flex justify-center mb-4">{f.icon}</div>
-                  <h3 className="font-display font-black text-lg mb-2" style={{ color:'#1A1210' }}>{f.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color:'#8A7E78' }}>{f.desc}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
-
 
 
       {/* ── Testimonials ─────────────────────────────────── */}
