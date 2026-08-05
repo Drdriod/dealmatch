@@ -122,10 +122,15 @@ export default function HomePage() {
 
           <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to={isAuthenticated ? '/browse' : '/auth?tab=signup'} className="btn-primary text-base px-8 py-4 flex items-center justify-center gap-2">
-              Get Matched <ArrowRight size={16} />
+            <Link to={isAuthenticated ? '/marketplace' : '/auth?tab=signup'} className="btn-primary text-base px-8 py-4 flex items-center justify-center gap-2">
+              Find What I Need <ArrowRight size={16} />
             </Link>
-            <a href="#how-it-works" className="btn-secondary text-base px-8 py-4">See How It Works</a>
+            <Link to={isAuthenticated ? '/marketplace' : '/auth?tab=signup'} className="btn-secondary text-base px-8 py-4">
+              List What I Offer
+            </Link>
+          </motion.div>
+          <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.35 }} className="mt-3">
+            <a href="#how-it-works" className="text-xs font-semibold" style={{ color:'#8A7E78' }}>See how it works</a>
           </motion.div>
 
           {/* Stats */}
