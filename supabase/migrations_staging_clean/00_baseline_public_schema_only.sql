@@ -1,978 +1,18 @@
 -- ============================================================================
--- STAGING-SAFE APPLICATION SCHEMA
--- Extracted from 20260711000000_production_baseline_schema.sql, which is a
--- raw `pg_dump` of the entire production database (including Supabase's
--- own internal auth/storage/realtime/extensions system schemas, and psql
--- meta-commands like \restrict/\unrestrict that only work in the psql CLI,
--- not the SQL Editor). This file keeps ONLY the objects whose dump header
--- said "Schema: public" -- i.e. DealMatch's actual application tables,
--- indexes, constraints, functions, triggers, and RLS policies. Everything
--- Supabase-internal is dropped, since a fresh Supabase project already has
--- all of that provisioned automatically; recreating it would either
--- conflict or fail on permissions.
+-- STAGING-SAFE APPLICATION SCHEMA (dependency-ordered)
+-- Extracted from 20260711000000_production_baseline_schema.sql (a raw
+-- pg_dump of the whole production database). Keeps only "Schema: public"
+-- objects, strips Supabase-internal system schemas and psql meta-commands,
+-- AND reorders those kept objects into a dependency-safe sequence:
+-- types -> sequences -> tables -> defaults -> functions -> constraints ->
+-- FK constraints -> indexes -> views -> triggers -> RLS -> policies ->
+-- comments. The original pg_dump's literal file order is NOT dependency-safe
+-- once you subset it: a LANGUAGE sql function referencing a table dumped
+-- later in the file (pg_dump does not track table references inside
+-- function bodies) fails at CREATE time, since LANGUAGE sql functions,
+-- unlike plpgsql, are validated against referenced objects immediately.
 -- ============================================================================
 
--- Name: calculate_lead_score(text, text, text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.calculate_lead_score(p_intent text, p_timeline text, p_budget text) RETURNS integer
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  RETURN (
-    CASE p_intent
-      WHEN 'urgent_buyer'     THEN 40
-      WHEN 'make_offer'       THEN 35
-      WHEN 'schedule_viewing' THEN 25
-      WHEN 'interested'       THEN 15
-      ELSE 5
-    END
-    +
-    CASE p_timeline
-      WHEN 'immediate' THEN 30
-      WHEN '1_month'   THEN 20
-      WHEN '3_months'  THEN 10
-      WHEN '6_months'  THEN 5
-      ELSE 0
-    END
-    +
-    CASE WHEN p_budget IS NOT NULL AND p_budget <> '' THEN 10 ELSE 0 END
-  );
-END;$$;
-
-
---
--- Name: check_booking_availability(uuid, date, date, integer, uuid); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_booking_availability(p_property_id uuid, p_checkin date, p_checkout date, p_rooms integer DEFAULT 1, p_category_id uuid DEFAULT NULL::uuid) RETURNS boolean
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  v_available int;
-  v_booked    int;
-BEGIN
-  IF p_category_id IS NOT NULL THEN
-    SELECT available_rooms INTO v_available
-      FROM public.room_categories WHERE id = p_category_id AND is_active = true;
-  ELSE
-    SELECT COALESCE(SUM(available_rooms), 0) INTO v_available
-      FROM public.room_categories WHERE property_id = p_property_id AND is_active = true;
-  END IF;
-  IF v_available IS NULL THEN v_available := 0; END IF;
-  SELECT COALESCE(SUM(rooms_booked), 0) INTO v_booked
-    FROM public.bookings
-   WHERE property_id = p_property_id
-     AND status NOT IN ('cancelled','no_show')
-     AND checkin_date < p_checkout
-     AND checkout_date > p_checkin
-     AND (p_category_id IS NULL OR category_id = p_category_id);
-  RETURN (v_available - v_booked) >= p_rooms;
-END;$$;
-
-
---
--- Name: check_device_exists(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_device_exists(p_fingerprint text) RETURNS TABLE(exists_count integer, existing_email text)
-    LANGUAGE sql SECURITY DEFINER
-    AS $$
-  SELECT COUNT(*)::int, MIN(p.email)
-  FROM public.profiles p
-  WHERE p.device_fingerprint = p_fingerprint
-    AND p_fingerprint IS NOT NULL
-    AND p_fingerprint != '';
-$$;
-
-
---
--- Name: check_email_exists(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_email_exists(p_email text) RETURNS boolean
-    LANGUAGE sql SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM auth.users WHERE lower(email) = lower(p_email)
-  );
-$$;
-
-
---
--- Name: check_phone_exists(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_phone_exists(p_phone text) RETURNS boolean
-    LANGUAGE sql SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles WHERE phone = p_phone
-  );
-$$;
-
-
---
--- Name: check_signup_conflicts(text, text, text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_signup_conflicts(p_email text, p_phone text DEFAULT NULL::text, p_username text DEFAULT NULL::text) RETURNS json
-    LANGUAGE plpgsql STABLE SECURITY DEFINER
-    AS $$
-DECLARE
-  v_email_taken    boolean := false;
-  v_phone_taken    boolean := false;
-  v_username_taken boolean := false;
-BEGIN
-  -- Check email in auth.users (catches ALL signup methods)
-  SELECT EXISTS (
-    SELECT 1 FROM auth.users 
-    WHERE LOWER(email) = LOWER(p_email) AND deleted_at IS NULL
-  ) INTO v_email_taken;
-
-  -- Check phone in profiles
-  IF p_phone IS NOT NULL AND p_phone <> '' THEN
-    SELECT EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE phone = p_phone AND phone IS NOT NULL AND phone <> ''
-    ) INTO v_phone_taken;
-  END IF;
-
-  -- Check username in profiles
-  IF p_username IS NOT NULL AND p_username <> '' THEN
-    SELECT EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE LOWER(username) = LOWER(p_username) AND username IS NOT NULL
-    ) INTO v_username_taken;
-  END IF;
-
-  RETURN json_build_object(
-    'email_taken',    v_email_taken,
-    'phone_taken',    v_phone_taken,
-    'username_taken', v_username_taken,
-    'any_conflict',   v_email_taken OR v_phone_taken OR v_username_taken
-  );
-END;
-$$;
-
-
---
--- Name: check_username_exists(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_username_exists(p_username text) RETURNS boolean
-    LANGUAGE sql SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles WHERE lower(username) = lower(p_username)
-  );
-$$;
-
-
---
--- Name: confirm_referral_earning(uuid, text, text, numeric, numeric); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.confirm_referral_earning(p_referee_id uuid, p_payment_id text, p_transaction_type text, p_deal_amount numeric, p_platform_fee numeric) RETURNS void
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-DECLARE
-  v_referrer_id      uuid;
-  v_referral_rate    numeric := 0.10;
-  v_referral_earning numeric;
-BEGIN
-  SELECT invited_by INTO v_referrer_id
-  FROM public.profiles WHERE id = p_referee_id;
-
-  IF v_referrer_id IS NULL THEN RETURN; END IF;
-
-  IF EXISTS (
-    SELECT 1 FROM public.referral_transactions WHERE payment_id = p_payment_id
-  ) THEN RETURN; END IF;
-
-  v_referral_earning := ROUND(p_platform_fee * v_referral_rate, 2);
-
-  INSERT INTO public.referral_transactions (
-    referrer_id, referee_id, payment_id, transaction_type,
-    deal_amount, referral_rate, platform_fee, referral_earning, status, confirmed_at
-  ) VALUES (
-    v_referrer_id, p_referee_id, p_payment_id, p_transaction_type,
-    p_deal_amount, v_referral_rate, p_platform_fee, v_referral_earning, 'confirmed', NOW()
-  );
-
-  UPDATE public.profiles
-  SET referral_earnings = COALESCE(referral_earnings, 0) + v_referral_earning
-  WHERE id = v_referrer_id;
-END;
-$$;
-
-
---
--- Name: fn_audit_admin_action(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_audit_admin_action() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  INSERT INTO public.admin_audit_log (action, metadata, performed_by)
-  VALUES (
-    TG_ARGV[0],
-    jsonb_build_object(
-      'table', TG_TABLE_NAME,
-      'record_id', NEW.id,
-      'new_status', CASE TG_TABLE_NAME
-        WHEN 'properties' THEN NEW.status
-        WHEN 'profiles'   THEN NEW.identity_verification_status
-        ELSE NULL
-      END
-    ),
-    auth.uid()
-  );
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_auto_release_expired_escrows(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_auto_release_expired_escrows() RETURNS integer
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  released integer := 0;
-  esc_row  public.escrow_transactions%ROWTYPE;
-BEGIN
-  FOR esc_row IN
-    SELECT * FROM public.escrow_transactions
-    WHERE status = 'funded'
-      AND transaction_type = 'rental'
-      AND auto_release_at IS NOT NULL
-      AND auto_release_at <= now()
-      AND dispute_filed_at IS NULL
-      AND confirmed_at IS NULL
-    FOR UPDATE SKIP LOCKED
-  LOOP
-    UPDATE public.escrow_transactions
-    SET status = 'released', released_at = now()
-    WHERE id = esc_row.id;
-
-    -- Write audit entry
-    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
-    VALUES ('escrow_auto_released_72h',
-      jsonb_build_object('escrow_id', esc_row.id, 'property_id', esc_row.property_id),
-      NULL);
-
-    -- Trigger payout split
-    PERFORM public.fn_calculate_revenue_split(esc_row.id);
-
-    released := released + 1;
-  END LOOP;
-  RETURN released;
-END;
-$$;
-
-
---
--- Name: fn_calculate_revenue_split(uuid); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_calculate_revenue_split(p_escrow_id uuid) RETURNS void
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  esc         public.escrow_transactions%ROWTYPE;
-  plat_amt    numeric;
-  agent_amt   numeric;
-  ref_amt     numeric;
-  owner_amt   numeric;
-  ref_id      uuid;
-BEGIN
-  -- Lock the row to prevent concurrent execution
-  SELECT * INTO esc
-  FROM public.escrow_transactions
-  WHERE id = p_escrow_id
-  FOR UPDATE;
-
-  -- Guard: only process once
-  IF esc.payout_locked THEN
-    RAISE EXCEPTION 'Payout already processed for escrow %', p_escrow_id;
-  END IF;
-
-  -- Mark as locked immediately
-  UPDATE public.escrow_transactions
-  SET payout_locked = true
-  WHERE id = p_escrow_id;
-
-  -- ── RENTAL: 7.5% total (3.75% each side) ──────────────────
-  IF esc.transaction_type = 'rental' THEN
-    -- Total fee pool = gross * 0.075
-    -- Split: 65% platform, 25% agent, 10% referrer
-    plat_amt  := ROUND(esc.gross_amount * 0.075 * 0.65, 2);
-    agent_amt := ROUND(esc.gross_amount * 0.075 * 0.25, 2);
-    ref_amt   := ROUND(esc.gross_amount * 0.075 * 0.10, 2);
-    owner_amt := esc.gross_amount - ROUND(esc.gross_amount * 0.0375, 2); -- landlord net
-
-    UPDATE public.escrow_transactions SET
-      platform_pct      = 0.075,
-      platform_amount   = plat_amt,
-      agent_pct         = 0.25,
-      agent_payout      = agent_amt,
-      referral_pct      = 0.10,
-      referral_payout   = ref_amt,
-      landlord_receives = owner_amt,
-      fee_from_tenant   = ROUND(esc.gross_amount * 0.0375, 2),
-      fee_from_landlord = ROUND(esc.gross_amount * 0.0375, 2)
-    WHERE id = p_escrow_id;
-
-  -- ── SALE: 3.0% total (1.5% each side) ──────────────────────
-  ELSIF esc.transaction_type = 'sale' THEN
-    plat_amt  := ROUND(esc.gross_amount * 0.030 * 0.60, 2);
-    agent_amt := ROUND(esc.gross_amount * 0.030 * 0.30, 2);
-    ref_amt   := ROUND(esc.gross_amount * 0.030 * 0.10, 2);
-    owner_amt := esc.gross_amount - ROUND(esc.gross_amount * 0.015, 2); -- seller net
-
-    UPDATE public.escrow_transactions SET
-      platform_pct      = 0.030,
-      platform_amount   = plat_amt,
-      agent_pct         = 0.30,
-      agent_payout      = agent_amt,
-      referral_pct      = 0.10,
-      referral_payout   = ref_amt,
-      landlord_receives = owner_amt,
-      fee_from_tenant   = ROUND(esc.gross_amount * 0.015, 2),
-      fee_from_landlord = ROUND(esc.gross_amount * 0.015, 2)
-    WHERE id = p_escrow_id;
-
-  -- ── HOTEL: 12% commission built into price ──────────────────
-  ELSIF esc.transaction_type = 'hotel' THEN
-    plat_amt  := ROUND(esc.gross_amount * 0.10, 2);  -- 10% platform
-    ref_amt   := ROUND(esc.gross_amount * 0.02, 2);  -- 2% referrer
-    owner_amt := esc.gross_amount - plat_amt - ref_amt; -- 88% hotel owner
-
-    UPDATE public.escrow_transactions SET
-      platform_pct      = 0.10,
-      platform_amount   = plat_amt,
-      agent_pct         = 0,
-      agent_payout      = 0,
-      referral_pct      = 0.02,
-      referral_payout   = ref_amt,
-      landlord_receives = owner_amt
-    WHERE id = p_escrow_id;
-  END IF;
-
-  -- Re-fetch updated row
-  SELECT * INTO esc FROM public.escrow_transactions WHERE id = p_escrow_id;
-
-  -- Get referrer id from property's seller referral tracking
-  SELECT p.referred_by INTO ref_id
-  FROM public.properties pr
-  JOIN public.profiles p ON p.id = pr.seller_id
-  WHERE pr.id = esc.property_id
-  LIMIT 1;
-
-  -- Write immutable ledger entries
-  -- Platform
-  INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
-  SELECT p_escrow_id, id, 'platform', esc.platform_amount,
-    'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-PLT'
-  FROM public.profiles
-  WHERE email IN ('divineandbassey@gmail.com','prosperwithbassey@gmail.com')
-  LIMIT 1;
-
-  -- Agent
-  IF esc.agent_id IS NOT NULL AND esc.agent_payout > 0 THEN
-    INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
-    VALUES (p_escrow_id, esc.agent_id, 'agent', esc.agent_payout,
-      'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-AGT');
-  END IF;
-
-  -- Referrer
-  IF ref_id IS NOT NULL AND esc.referral_payout > 0 THEN
-    INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
-    VALUES (p_escrow_id, ref_id,
-      CASE esc.transaction_type WHEN 'hotel' THEN 'referrer' ELSE 'referrer' END,
-      esc.referral_payout,
-      'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-REF');
-  END IF;
-
-  -- Owner / Landlord / Seller / Hotel
-  DECLARE
-    owner_uid uuid := COALESCE(esc.seller_id,
-      (SELECT seller_id FROM public.properties WHERE id = esc.property_id LIMIT 1));
-  BEGIN
-    IF owner_uid IS NOT NULL THEN
-      INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
-      VALUES (p_escrow_id, owner_uid,
-        CASE esc.transaction_type
-          WHEN 'rental' THEN 'landlord'
-          WHEN 'sale'   THEN 'seller'
-          ELSE 'hotel_owner'
-        END,
-        esc.landlord_receives,
-        'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-OWN');
-    END IF;
-  END;
-
-  -- Mark split complete
-  UPDATE public.escrow_transactions
-  SET payout_processed_at = now()
-  WHERE id = p_escrow_id;
-
-END;
-$$;
-
-
---
--- Name: fn_check_deed_completion(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_check_deed_completion() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  buyer_deed  public.deed_submissions%ROWTYPE;
-  seller_deed public.deed_submissions%ROWTYPE;
-BEGIN
-  SELECT * INTO buyer_deed  FROM public.deed_submissions
-  WHERE escrow_id = NEW.escrow_id AND party_role = 'buyer'  LIMIT 1;
-  SELECT * INTO seller_deed FROM public.deed_submissions
-  WHERE escrow_id = NEW.escrow_id AND party_role = 'seller' LIMIT 1;
-
-  -- Both submitted — attempt auto-verify (basic metadata match)
-  IF buyer_deed.id IS NOT NULL AND seller_deed.id IS NOT NULL THEN
-    -- In production: call OCR edge function here
-    -- For now: mark deed_verified_at and release if both have legal stamp
-    IF buyer_deed.has_legal_stamp AND seller_deed.has_legal_stamp THEN
-      UPDATE public.escrow_transactions
-      SET deed_verified_at = now(),
-          deed_buyer_url   = buyer_deed.document_path,
-          deed_seller_url  = seller_deed.document_path,
-          status           = 'released',
-          released_at      = now()
-      WHERE id = NEW.escrow_id AND status = 'funded';
-
-      INSERT INTO public.admin_audit_log (action, metadata)
-      VALUES ('deed_auto_verified',
-        jsonb_build_object('escrow_id', NEW.escrow_id));
-    END IF;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_generate_checkin_token(uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_generate_checkin_token(p_escrow_id uuid, p_guest_id uuid, p_property_id uuid) RETURNS text
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  token text;
-BEGIN
-  -- Generate 6-digit numeric token
-  token := lpad(floor(random() * 1000000)::text, 6, '0');
-
-  INSERT INTO public.checkin_tokens
-    (escrow_id, property_id, guest_id, token, expires_at)
-  VALUES
-    (p_escrow_id, p_property_id, p_guest_id, token, now() + interval '24 hours');
-
-  -- Store on escrow record too
-  UPDATE public.escrow_transactions
-  SET checkin_token = token
-  WHERE id = p_escrow_id;
-
-  RETURN token;
-END;
-$$;
-
-
---
--- Name: fn_init_agent_score(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_init_agent_score() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  IF NEW.role = 'agent' THEN
-    INSERT INTO public.agent_scores (agent_id)
-    VALUES (NEW.id)
-    ON CONFLICT (agent_id) DO NOTHING;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_populate_complaint_agent(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_populate_complaint_agent() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  -- Set 48-hour response deadline
-  NEW.response_deadline := NEW.created_at + interval '48 hours';
-
-  -- Find the agent who verified this property
-  IF NEW.agent_id IS NULL AND NEW.property_id IS NOT NULL THEN
-    SELECT agent_id INTO NEW.agent_id
-    FROM public.agent_verifications
-    WHERE property_id = NEW.property_id
-      AND verdict = 'verified'
-    ORDER BY submitted_at DESC
-    LIMIT 1;
-
-    -- Also link verification record
-    IF NEW.verification_id IS NULL AND NEW.agent_id IS NOT NULL THEN
-      SELECT id INTO NEW.verification_id
-      FROM public.agent_verifications
-      WHERE property_id = NEW.property_id
-        AND agent_id = NEW.agent_id
-        AND verdict = 'verified'
-      ORDER BY submitted_at DESC
-      LIMIT 1;
-    END IF;
-  END IF;
-
-  -- Increment complaints_received on agent score
-  IF NEW.agent_id IS NOT NULL THEN
-    INSERT INTO public.agent_scores (agent_id, complaints_received)
-    VALUES (NEW.agent_id, 1)
-    ON CONFLICT (agent_id) DO UPDATE
-      SET complaints_received = agent_scores.complaints_received + 1,
-          updated_at = now();
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_post_release_split(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_post_release_split() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  IF NEW.status = 'released' AND OLD.status <> 'released'
-     AND NOT NEW.payout_locked THEN
-    PERFORM public.fn_calculate_revenue_split(NEW.id);
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_process_complaint_resolution(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_process_complaint_resolution() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  new_strikes integer;
-BEGIN
-  -- Only act when status changes TO 'upheld'
-  IF NEW.status = 'upheld' AND OLD.status <> 'upheld' AND NEW.agent_id IS NOT NULL THEN
-
-    UPDATE public.agent_scores
-    SET
-      complaints_upheld = complaints_upheld + 1,
-      strike_count      = strike_count + 1,
-      rating            = GREATEST(1.00, rating - 0.50),
-      updated_at        = now()
-    WHERE agent_id = NEW.agent_id
-    RETURNING strike_count INTO new_strikes;
-
-    -- 3 strikes → auto-suspend
-    IF new_strikes >= 3 THEN
-      UPDATE public.agent_scores
-      SET status = 'suspended', updated_at = now()
-      WHERE agent_id = NEW.agent_id;
-
-      UPDATE public.profiles
-      SET role = 'suspended'
-      WHERE id = NEW.agent_id;
-
-      INSERT INTO public.admin_audit_log (action, metadata, performed_by)
-      VALUES (
-        'agent_auto_suspended',
-        jsonb_build_object(
-          'agent_id', NEW.agent_id,
-          'strike_count', new_strikes,
-          'triggered_by_complaint', NEW.id
-        ),
-        NEW.resolved_by
-      );
-    END IF;
-
-    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
-    VALUES (
-      'agent_strike_issued',
-      jsonb_build_object(
-        'agent_id', NEW.agent_id,
-        'complaint_id', NEW.id,
-        'strike_number', new_strikes,
-        'complaint_category', NEW.category
-      ),
-      NEW.resolved_by
-    );
-
-  END IF;
-
-  IF NEW.status = 'dismissed' AND OLD.status <> 'dismissed' AND NEW.agent_id IS NOT NULL THEN
-    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
-    VALUES (
-      'complaint_dismissed',
-      jsonb_build_object('complaint_id', NEW.id, 'agent_id', NEW.agent_id),
-      NEW.resolved_by
-    );
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_release_on_move_in_confirm(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_release_on_move_in_confirm() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  IF NEW.confirmed_at IS NOT NULL AND OLD.confirmed_at IS NULL
-     AND NEW.transaction_type = 'rental' AND NEW.status = 'funded'
-     AND NEW.dispute_filed_at IS NULL THEN
-    NEW.status      := 'released';
-    NEW.released_at := now();
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_sanitize_property_inputs(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_sanitize_property_inputs() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  NEW.title       := public.fn_sanitize_text(COALESCE(NEW.title, ''));
-  NEW.description := public.fn_sanitize_text(COALESCE(NEW.description, ''));
-  NEW.address     := public.fn_sanitize_text(COALESCE(NEW.address, ''));
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_sanitize_testimonial_inputs(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_sanitize_testimonial_inputs() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-BEGIN
-  NEW.name       := public.fn_sanitize_text(COALESCE(NEW.name, ''));
-  NEW.role_label := public.fn_sanitize_text(COALESCE(NEW.role_label, ''));
-  NEW.content    := public.fn_sanitize_text(COALESCE(NEW.content, ''));
-  -- Hard length caps regardless of what the client sends
-  NEW.name       := left(NEW.name, 80);
-  NEW.role_label := left(NEW.role_label, 80);
-  NEW.content    := left(NEW.content, 600);
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_sanitize_text(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_sanitize_text(input text) RETURNS text
-    LANGUAGE plpgsql IMMUTABLE STRICT
-    AS $$
-BEGIN
-  -- Remove script tags, SQL comment sequences, null bytes
-  input := regexp_replace(input, '<[^>]+>', '', 'g');
-  input := regexp_replace(input, '--', '', 'g');
-  input := regexp_replace(input, chr(0), '', 'g');
-  input := regexp_replace(input, '(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC)\s', '', 'gi');
-  RETURN trim(input);
-END;
-$$;
-
-
---
--- Name: fn_set_auto_release(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_set_auto_release() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  IF NEW.move_in_date IS NOT NULL AND NEW.status = 'funded'
-     AND NEW.transaction_type = 'rental' THEN
-    NEW.auto_release_at := (NEW.move_in_date::timestamptz + interval '72 hours');
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_update_agent_score_on_verification(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_update_agent_score_on_verification() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  INSERT INTO public.agent_scores (agent_id, total_verifications, verified_count, rejected_count, last_activity)
-  VALUES (
-    NEW.agent_id, 1,
-    CASE WHEN NEW.verdict = 'verified' THEN 1 ELSE 0 END,
-    CASE WHEN NEW.verdict = 'rejected' THEN 1 ELSE 0 END,
-    now()
-  )
-  ON CONFLICT (agent_id) DO UPDATE SET
-    total_verifications = agent_scores.total_verifications + 1,
-    verified_count      = agent_scores.verified_count + CASE WHEN NEW.verdict = 'verified' THEN 1 ELSE 0 END,
-    rejected_count      = agent_scores.rejected_count + CASE WHEN NEW.verdict = 'rejected' THEN 1 ELSE 0 END,
-    last_activity       = now(),
-    updated_at          = now();
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: fn_validate_checkin_token(text, uuid); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.fn_validate_checkin_token(p_token text, p_validator uuid) RETURNS jsonb
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-DECLARE
-  tok public.checkin_tokens%ROWTYPE;
-BEGIN
-  SELECT * INTO tok FROM public.checkin_tokens
-  WHERE token = p_token AND expires_at > now() AND validated_at IS NULL
-  FOR UPDATE;
-
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('success', false, 'reason', 'Invalid or expired token');
-  END IF;
-
-  -- Mark validated
-  UPDATE public.checkin_tokens
-  SET validated_at = now(), validated_by = p_validator
-  WHERE id = tok.id;
-
-  UPDATE public.escrow_transactions
-  SET token_validated_at = now()
-  WHERE id = tok.escrow_id;
-
-  -- Schedule release for next morning 06:00
-  UPDATE public.escrow_transactions
-  SET auto_release_at = date_trunc('day', now() + interval '1 day') + interval '6 hours'
-  WHERE id = tok.escrow_id AND status = 'funded';
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'escrow_id', tok.escrow_id,
-    'release_at', date_trunc('day', now() + interval '1 day') + interval '6 hours'
-  );
-END;
-$$;
-
-
---
--- Name: generate_mortgage_ticket_id(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.generate_mortgage_ticket_id() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  NEW.ticket_id := 'MTG-' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8));
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: get_my_role(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.get_my_role() RETURNS text
-    LANGUAGE sql STABLE SECURITY DEFINER
-    AS $$
-  SELECT role FROM public.profiles WHERE id = auth.uid()
-$$;
-
-
---
--- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.handle_new_user() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, email, role)
-    VALUES (
-        new.id,
-            new.raw_user_meta_data->>'full_name',
-                new.email,
-                    COALESCE(new.raw_user_meta_data->>'role', 'buyer')
-                      )
-                        ON CONFLICT (id) DO NOTHING;
-                          RETURN new;
-                          END;
-                          $$;
-
-
---
--- Name: handle_new_user_earnings(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.handle_new_user_earnings() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-begin
-  insert into public.user_earnings (user_id)
-  values (new.id)
-  on conflict (user_id) do nothing;
-  return new;
-end;
-$$;
-
-
---
--- Name: is_admin(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.is_admin() RETURNS boolean
-    LANGUAGE sql STABLE SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND (role = 'admin' OR email = 'divineandbassey@gmail.com')
-  )
-$$;
-
-
---
--- Name: is_admin_staff(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.is_admin_staff() RETURNS boolean
-    LANGUAGE sql STABLE SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND role IN ('admin','agent','verifier')
-  ) OR EXISTS (
-    SELECT 1 FROM auth.users
-    WHERE id = auth.uid()
-      AND email IN ('divineandbassey@gmail.com','prosperwithbassey@gmail.com')
-  )
-$$;
-
-
---
--- Name: is_staff(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.is_staff() RETURNS boolean
-    LANGUAGE sql STABLE SECURITY DEFINER
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND role IN ('admin','agent')
-  ) OR EXISTS (
-    SELECT 1 FROM auth.users
-    WHERE id = auth.uid()
-      AND email = 'divineandbassey@gmail.com'
-  )
-$$;
-
-
---
--- Name: trigger_initialize_escrow(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.trigger_initialize_escrow() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-  IF NEW.status = 'executed' AND (OLD.status IS DISTINCT FROM 'executed') THEN
-    INSERT INTO public.escrow_transactions (
-      property_id, amount, platform_fee, status, payment_ref, created_at
-    ) VALUES (
-      NEW.property_id,
-      NEW.amount,
-      ROUND(NEW.amount * 0.025, 2),
-      'awaiting_payment',
-      'ESC-' || upper(substring(NEW.id::text, 1, 8)),
-      now()
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: update_updated_at(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.update_updated_at() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-
---
--- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-
---
 -- Name: admin_announcements; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2043,41 +1083,6 @@ CREATE TABLE public.user_earnings (
 
 
 --
--- Name: v_agent_scorecard; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.v_agent_scorecard AS
- SELECT p.id,
-    p.full_name,
-    p.email,
-    p.phone,
-    s.total_verifications,
-    s.verified_count,
-    s.rejected_count,
-    s.complaints_received,
-    s.complaints_upheld,
-    s.strike_count,
-    s.rating,
-    s.status,
-    s.last_activity,
-    round(
-        CASE
-            WHEN (s.total_verifications = 0) THEN (100)::numeric
-            ELSE (((s.verified_count)::numeric / (s.total_verifications)::numeric) * (100)::numeric)
-        END, 1) AS success_rate_pct,
-    round(
-        CASE
-            WHEN (s.complaints_received = 0) THEN (0)::numeric
-            ELSE (((s.complaints_upheld)::numeric / (s.complaints_received)::numeric) * (100)::numeric)
-        END, 1) AS complaint_uphold_rate_pct,
-    GREATEST(0, (3 - s.strike_count)) AS strikes_remaining
-   FROM (public.profiles p
-     JOIN public.agent_scores s ON ((s.agent_id = p.id)))
-  WHERE (p.role = ANY (ARRAY['agent'::text, 'suspended'::text]))
-  ORDER BY s.rating DESC, s.total_verifications DESC;
-
-
---
 -- Name: wallet_ledger; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2096,6 +1101,967 @@ CREATE TABLE public.wallet_ledger (
     CONSTRAINT wallet_ledger_recipient_role_check CHECK ((recipient_role = ANY (ARRAY['platform'::text, 'agent'::text, 'referrer'::text, 'landlord'::text, 'seller'::text, 'hotel_owner'::text, 'refund'::text]))),
     CONSTRAINT wallet_ledger_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'paid'::text, 'failed'::text])))
 );
+
+
+--
+-- Name: calculate_lead_score(text, text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.calculate_lead_score(p_intent text, p_timeline text, p_budget text) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN (
+    CASE p_intent
+      WHEN 'urgent_buyer'     THEN 40
+      WHEN 'make_offer'       THEN 35
+      WHEN 'schedule_viewing' THEN 25
+      WHEN 'interested'       THEN 15
+      ELSE 5
+    END
+    +
+    CASE p_timeline
+      WHEN 'immediate' THEN 30
+      WHEN '1_month'   THEN 20
+      WHEN '3_months'  THEN 10
+      WHEN '6_months'  THEN 5
+      ELSE 0
+    END
+    +
+    CASE WHEN p_budget IS NOT NULL AND p_budget <> '' THEN 10 ELSE 0 END
+  );
+END;$$;
+
+
+--
+-- Name: check_booking_availability(uuid, date, date, integer, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_booking_availability(p_property_id uuid, p_checkin date, p_checkout date, p_rooms integer DEFAULT 1, p_category_id uuid DEFAULT NULL::uuid) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  v_available int;
+  v_booked    int;
+BEGIN
+  IF p_category_id IS NOT NULL THEN
+    SELECT available_rooms INTO v_available
+      FROM public.room_categories WHERE id = p_category_id AND is_active = true;
+  ELSE
+    SELECT COALESCE(SUM(available_rooms), 0) INTO v_available
+      FROM public.room_categories WHERE property_id = p_property_id AND is_active = true;
+  END IF;
+  IF v_available IS NULL THEN v_available := 0; END IF;
+  SELECT COALESCE(SUM(rooms_booked), 0) INTO v_booked
+    FROM public.bookings
+   WHERE property_id = p_property_id
+     AND status NOT IN ('cancelled','no_show')
+     AND checkin_date < p_checkout
+     AND checkout_date > p_checkin
+     AND (p_category_id IS NULL OR category_id = p_category_id);
+  RETURN (v_available - v_booked) >= p_rooms;
+END;$$;
+
+
+--
+-- Name: check_device_exists(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_device_exists(p_fingerprint text) RETURNS TABLE(exists_count integer, existing_email text)
+    LANGUAGE sql SECURITY DEFINER
+    AS $$
+  SELECT COUNT(*)::int, MIN(p.email)
+  FROM public.profiles p
+  WHERE p.device_fingerprint = p_fingerprint
+    AND p_fingerprint IS NOT NULL
+    AND p_fingerprint != '';
+$$;
+
+
+--
+-- Name: check_email_exists(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_email_exists(p_email text) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users WHERE lower(email) = lower(p_email)
+  );
+$$;
+
+
+--
+-- Name: check_phone_exists(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_phone_exists(p_phone text) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles WHERE phone = p_phone
+  );
+$$;
+
+
+--
+-- Name: check_signup_conflicts(text, text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_signup_conflicts(p_email text, p_phone text DEFAULT NULL::text, p_username text DEFAULT NULL::text) RETURNS json
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    AS $$
+DECLARE
+  v_email_taken    boolean := false;
+  v_phone_taken    boolean := false;
+  v_username_taken boolean := false;
+BEGIN
+  -- Check email in auth.users (catches ALL signup methods)
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE LOWER(email) = LOWER(p_email) AND deleted_at IS NULL
+  ) INTO v_email_taken;
+
+  -- Check phone in profiles
+  IF p_phone IS NOT NULL AND p_phone <> '' THEN
+    SELECT EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE phone = p_phone AND phone IS NOT NULL AND phone <> ''
+    ) INTO v_phone_taken;
+  END IF;
+
+  -- Check username in profiles
+  IF p_username IS NOT NULL AND p_username <> '' THEN
+    SELECT EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE LOWER(username) = LOWER(p_username) AND username IS NOT NULL
+    ) INTO v_username_taken;
+  END IF;
+
+  RETURN json_build_object(
+    'email_taken',    v_email_taken,
+    'phone_taken',    v_phone_taken,
+    'username_taken', v_username_taken,
+    'any_conflict',   v_email_taken OR v_phone_taken OR v_username_taken
+  );
+END;
+$$;
+
+
+--
+-- Name: check_username_exists(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_username_exists(p_username text) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles WHERE lower(username) = lower(p_username)
+  );
+$$;
+
+
+--
+-- Name: confirm_referral_earning(uuid, text, text, numeric, numeric); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.confirm_referral_earning(p_referee_id uuid, p_payment_id text, p_transaction_type text, p_deal_amount numeric, p_platform_fee numeric) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_referrer_id      uuid;
+  v_referral_rate    numeric := 0.10;
+  v_referral_earning numeric;
+BEGIN
+  SELECT invited_by INTO v_referrer_id
+  FROM public.profiles WHERE id = p_referee_id;
+
+  IF v_referrer_id IS NULL THEN RETURN; END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.referral_transactions WHERE payment_id = p_payment_id
+  ) THEN RETURN; END IF;
+
+  v_referral_earning := ROUND(p_platform_fee * v_referral_rate, 2);
+
+  INSERT INTO public.referral_transactions (
+    referrer_id, referee_id, payment_id, transaction_type,
+    deal_amount, referral_rate, platform_fee, referral_earning, status, confirmed_at
+  ) VALUES (
+    v_referrer_id, p_referee_id, p_payment_id, p_transaction_type,
+    p_deal_amount, v_referral_rate, p_platform_fee, v_referral_earning, 'confirmed', NOW()
+  );
+
+  UPDATE public.profiles
+  SET referral_earnings = COALESCE(referral_earnings, 0) + v_referral_earning
+  WHERE id = v_referrer_id;
+END;
+$$;
+
+
+--
+-- Name: fn_audit_admin_action(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_audit_admin_action() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.admin_audit_log (action, metadata, performed_by)
+  VALUES (
+    TG_ARGV[0],
+    jsonb_build_object(
+      'table', TG_TABLE_NAME,
+      'record_id', NEW.id,
+      'new_status', CASE TG_TABLE_NAME
+        WHEN 'properties' THEN NEW.status
+        WHEN 'profiles'   THEN NEW.identity_verification_status
+        ELSE NULL
+      END
+    ),
+    auth.uid()
+  );
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_auto_release_expired_escrows(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_auto_release_expired_escrows() RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  released integer := 0;
+  esc_row  public.escrow_transactions%ROWTYPE;
+BEGIN
+  FOR esc_row IN
+    SELECT * FROM public.escrow_transactions
+    WHERE status = 'funded'
+      AND transaction_type = 'rental'
+      AND auto_release_at IS NOT NULL
+      AND auto_release_at <= now()
+      AND dispute_filed_at IS NULL
+      AND confirmed_at IS NULL
+    FOR UPDATE SKIP LOCKED
+  LOOP
+    UPDATE public.escrow_transactions
+    SET status = 'released', released_at = now()
+    WHERE id = esc_row.id;
+
+    -- Write audit entry
+    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
+    VALUES ('escrow_auto_released_72h',
+      jsonb_build_object('escrow_id', esc_row.id, 'property_id', esc_row.property_id),
+      NULL);
+
+    -- Trigger payout split
+    PERFORM public.fn_calculate_revenue_split(esc_row.id);
+
+    released := released + 1;
+  END LOOP;
+  RETURN released;
+END;
+$$;
+
+
+--
+-- Name: fn_calculate_revenue_split(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_calculate_revenue_split(p_escrow_id uuid) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  esc         public.escrow_transactions%ROWTYPE;
+  plat_amt    numeric;
+  agent_amt   numeric;
+  ref_amt     numeric;
+  owner_amt   numeric;
+  ref_id      uuid;
+BEGIN
+  -- Lock the row to prevent concurrent execution
+  SELECT * INTO esc
+  FROM public.escrow_transactions
+  WHERE id = p_escrow_id
+  FOR UPDATE;
+
+  -- Guard: only process once
+  IF esc.payout_locked THEN
+    RAISE EXCEPTION 'Payout already processed for escrow %', p_escrow_id;
+  END IF;
+
+  -- Mark as locked immediately
+  UPDATE public.escrow_transactions
+  SET payout_locked = true
+  WHERE id = p_escrow_id;
+
+  -- ── RENTAL: 7.5% total (3.75% each side) ──────────────────
+  IF esc.transaction_type = 'rental' THEN
+    -- Total fee pool = gross * 0.075
+    -- Split: 65% platform, 25% agent, 10% referrer
+    plat_amt  := ROUND(esc.gross_amount * 0.075 * 0.65, 2);
+    agent_amt := ROUND(esc.gross_amount * 0.075 * 0.25, 2);
+    ref_amt   := ROUND(esc.gross_amount * 0.075 * 0.10, 2);
+    owner_amt := esc.gross_amount - ROUND(esc.gross_amount * 0.0375, 2); -- landlord net
+
+    UPDATE public.escrow_transactions SET
+      platform_pct      = 0.075,
+      platform_amount   = plat_amt,
+      agent_pct         = 0.25,
+      agent_payout      = agent_amt,
+      referral_pct      = 0.10,
+      referral_payout   = ref_amt,
+      landlord_receives = owner_amt,
+      fee_from_tenant   = ROUND(esc.gross_amount * 0.0375, 2),
+      fee_from_landlord = ROUND(esc.gross_amount * 0.0375, 2)
+    WHERE id = p_escrow_id;
+
+  -- ── SALE: 3.0% total (1.5% each side) ──────────────────────
+  ELSIF esc.transaction_type = 'sale' THEN
+    plat_amt  := ROUND(esc.gross_amount * 0.030 * 0.60, 2);
+    agent_amt := ROUND(esc.gross_amount * 0.030 * 0.30, 2);
+    ref_amt   := ROUND(esc.gross_amount * 0.030 * 0.10, 2);
+    owner_amt := esc.gross_amount - ROUND(esc.gross_amount * 0.015, 2); -- seller net
+
+    UPDATE public.escrow_transactions SET
+      platform_pct      = 0.030,
+      platform_amount   = plat_amt,
+      agent_pct         = 0.30,
+      agent_payout      = agent_amt,
+      referral_pct      = 0.10,
+      referral_payout   = ref_amt,
+      landlord_receives = owner_amt,
+      fee_from_tenant   = ROUND(esc.gross_amount * 0.015, 2),
+      fee_from_landlord = ROUND(esc.gross_amount * 0.015, 2)
+    WHERE id = p_escrow_id;
+
+  -- ── HOTEL: 12% commission built into price ──────────────────
+  ELSIF esc.transaction_type = 'hotel' THEN
+    plat_amt  := ROUND(esc.gross_amount * 0.10, 2);  -- 10% platform
+    ref_amt   := ROUND(esc.gross_amount * 0.02, 2);  -- 2% referrer
+    owner_amt := esc.gross_amount - plat_amt - ref_amt; -- 88% hotel owner
+
+    UPDATE public.escrow_transactions SET
+      platform_pct      = 0.10,
+      platform_amount   = plat_amt,
+      agent_pct         = 0,
+      agent_payout      = 0,
+      referral_pct      = 0.02,
+      referral_payout   = ref_amt,
+      landlord_receives = owner_amt
+    WHERE id = p_escrow_id;
+  END IF;
+
+  -- Re-fetch updated row
+  SELECT * INTO esc FROM public.escrow_transactions WHERE id = p_escrow_id;
+
+  -- Get referrer id from property's seller referral tracking
+  SELECT p.referred_by INTO ref_id
+  FROM public.properties pr
+  JOIN public.profiles p ON p.id = pr.seller_id
+  WHERE pr.id = esc.property_id
+  LIMIT 1;
+
+  -- Write immutable ledger entries
+  -- Platform
+  INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
+  SELECT p_escrow_id, id, 'platform', esc.platform_amount,
+    'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-PLT'
+  FROM public.profiles
+  WHERE email IN ('divineandbassey@gmail.com','prosperwithbassey@gmail.com')
+  LIMIT 1;
+
+  -- Agent
+  IF esc.agent_id IS NOT NULL AND esc.agent_payout > 0 THEN
+    INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
+    VALUES (p_escrow_id, esc.agent_id, 'agent', esc.agent_payout,
+      'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-AGT');
+  END IF;
+
+  -- Referrer
+  IF ref_id IS NOT NULL AND esc.referral_payout > 0 THEN
+    INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
+    VALUES (p_escrow_id, ref_id,
+      CASE esc.transaction_type WHEN 'hotel' THEN 'referrer' ELSE 'referrer' END,
+      esc.referral_payout,
+      'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-REF');
+  END IF;
+
+  -- Owner / Landlord / Seller / Hotel
+  DECLARE
+    owner_uid uuid := COALESCE(esc.seller_id,
+      (SELECT seller_id FROM public.properties WHERE id = esc.property_id LIMIT 1));
+  BEGIN
+    IF owner_uid IS NOT NULL THEN
+      INSERT INTO public.wallet_ledger (escrow_id, recipient_id, recipient_role, amount, reference)
+      VALUES (p_escrow_id, owner_uid,
+        CASE esc.transaction_type
+          WHEN 'rental' THEN 'landlord'
+          WHEN 'sale'   THEN 'seller'
+          ELSE 'hotel_owner'
+        END,
+        esc.landlord_receives,
+        'LED-' || upper(substring(p_escrow_id::text,1,8)) || '-OWN');
+    END IF;
+  END;
+
+  -- Mark split complete
+  UPDATE public.escrow_transactions
+  SET payout_processed_at = now()
+  WHERE id = p_escrow_id;
+
+END;
+$$;
+
+
+--
+-- Name: fn_check_deed_completion(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_check_deed_completion() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  buyer_deed  public.deed_submissions%ROWTYPE;
+  seller_deed public.deed_submissions%ROWTYPE;
+BEGIN
+  SELECT * INTO buyer_deed  FROM public.deed_submissions
+  WHERE escrow_id = NEW.escrow_id AND party_role = 'buyer'  LIMIT 1;
+  SELECT * INTO seller_deed FROM public.deed_submissions
+  WHERE escrow_id = NEW.escrow_id AND party_role = 'seller' LIMIT 1;
+
+  -- Both submitted — attempt auto-verify (basic metadata match)
+  IF buyer_deed.id IS NOT NULL AND seller_deed.id IS NOT NULL THEN
+    -- In production: call OCR edge function here
+    -- For now: mark deed_verified_at and release if both have legal stamp
+    IF buyer_deed.has_legal_stamp AND seller_deed.has_legal_stamp THEN
+      UPDATE public.escrow_transactions
+      SET deed_verified_at = now(),
+          deed_buyer_url   = buyer_deed.document_path,
+          deed_seller_url  = seller_deed.document_path,
+          status           = 'released',
+          released_at      = now()
+      WHERE id = NEW.escrow_id AND status = 'funded';
+
+      INSERT INTO public.admin_audit_log (action, metadata)
+      VALUES ('deed_auto_verified',
+        jsonb_build_object('escrow_id', NEW.escrow_id));
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_generate_checkin_token(uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_generate_checkin_token(p_escrow_id uuid, p_guest_id uuid, p_property_id uuid) RETURNS text
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  token text;
+BEGIN
+  -- Generate 6-digit numeric token
+  token := lpad(floor(random() * 1000000)::text, 6, '0');
+
+  INSERT INTO public.checkin_tokens
+    (escrow_id, property_id, guest_id, token, expires_at)
+  VALUES
+    (p_escrow_id, p_property_id, p_guest_id, token, now() + interval '24 hours');
+
+  -- Store on escrow record too
+  UPDATE public.escrow_transactions
+  SET checkin_token = token
+  WHERE id = p_escrow_id;
+
+  RETURN token;
+END;
+$$;
+
+
+--
+-- Name: fn_init_agent_score(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_init_agent_score() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  IF NEW.role = 'agent' THEN
+    INSERT INTO public.agent_scores (agent_id)
+    VALUES (NEW.id)
+    ON CONFLICT (agent_id) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_populate_complaint_agent(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_populate_complaint_agent() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Set 48-hour response deadline
+  NEW.response_deadline := NEW.created_at + interval '48 hours';
+
+  -- Find the agent who verified this property
+  IF NEW.agent_id IS NULL AND NEW.property_id IS NOT NULL THEN
+    SELECT agent_id INTO NEW.agent_id
+    FROM public.agent_verifications
+    WHERE property_id = NEW.property_id
+      AND verdict = 'verified'
+    ORDER BY submitted_at DESC
+    LIMIT 1;
+
+    -- Also link verification record
+    IF NEW.verification_id IS NULL AND NEW.agent_id IS NOT NULL THEN
+      SELECT id INTO NEW.verification_id
+      FROM public.agent_verifications
+      WHERE property_id = NEW.property_id
+        AND agent_id = NEW.agent_id
+        AND verdict = 'verified'
+      ORDER BY submitted_at DESC
+      LIMIT 1;
+    END IF;
+  END IF;
+
+  -- Increment complaints_received on agent score
+  IF NEW.agent_id IS NOT NULL THEN
+    INSERT INTO public.agent_scores (agent_id, complaints_received)
+    VALUES (NEW.agent_id, 1)
+    ON CONFLICT (agent_id) DO UPDATE
+      SET complaints_received = agent_scores.complaints_received + 1,
+          updated_at = now();
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_post_release_split(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_post_release_split() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  IF NEW.status = 'released' AND OLD.status <> 'released'
+     AND NOT NEW.payout_locked THEN
+    PERFORM public.fn_calculate_revenue_split(NEW.id);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_process_complaint_resolution(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_process_complaint_resolution() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  new_strikes integer;
+BEGIN
+  -- Only act when status changes TO 'upheld'
+  IF NEW.status = 'upheld' AND OLD.status <> 'upheld' AND NEW.agent_id IS NOT NULL THEN
+
+    UPDATE public.agent_scores
+    SET
+      complaints_upheld = complaints_upheld + 1,
+      strike_count      = strike_count + 1,
+      rating            = GREATEST(1.00, rating - 0.50),
+      updated_at        = now()
+    WHERE agent_id = NEW.agent_id
+    RETURNING strike_count INTO new_strikes;
+
+    -- 3 strikes → auto-suspend
+    IF new_strikes >= 3 THEN
+      UPDATE public.agent_scores
+      SET status = 'suspended', updated_at = now()
+      WHERE agent_id = NEW.agent_id;
+
+      UPDATE public.profiles
+      SET role = 'suspended'
+      WHERE id = NEW.agent_id;
+
+      INSERT INTO public.admin_audit_log (action, metadata, performed_by)
+      VALUES (
+        'agent_auto_suspended',
+        jsonb_build_object(
+          'agent_id', NEW.agent_id,
+          'strike_count', new_strikes,
+          'triggered_by_complaint', NEW.id
+        ),
+        NEW.resolved_by
+      );
+    END IF;
+
+    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
+    VALUES (
+      'agent_strike_issued',
+      jsonb_build_object(
+        'agent_id', NEW.agent_id,
+        'complaint_id', NEW.id,
+        'strike_number', new_strikes,
+        'complaint_category', NEW.category
+      ),
+      NEW.resolved_by
+    );
+
+  END IF;
+
+  IF NEW.status = 'dismissed' AND OLD.status <> 'dismissed' AND NEW.agent_id IS NOT NULL THEN
+    INSERT INTO public.admin_audit_log (action, metadata, performed_by)
+    VALUES (
+      'complaint_dismissed',
+      jsonb_build_object('complaint_id', NEW.id, 'agent_id', NEW.agent_id),
+      NEW.resolved_by
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_release_on_move_in_confirm(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_release_on_move_in_confirm() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  IF NEW.confirmed_at IS NOT NULL AND OLD.confirmed_at IS NULL
+     AND NEW.transaction_type = 'rental' AND NEW.status = 'funded'
+     AND NEW.dispute_filed_at IS NULL THEN
+    NEW.status      := 'released';
+    NEW.released_at := now();
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_sanitize_property_inputs(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_sanitize_property_inputs() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.title       := public.fn_sanitize_text(COALESCE(NEW.title, ''));
+  NEW.description := public.fn_sanitize_text(COALESCE(NEW.description, ''));
+  NEW.address     := public.fn_sanitize_text(COALESCE(NEW.address, ''));
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_sanitize_testimonial_inputs(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_sanitize_testimonial_inputs() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  NEW.name       := public.fn_sanitize_text(COALESCE(NEW.name, ''));
+  NEW.role_label := public.fn_sanitize_text(COALESCE(NEW.role_label, ''));
+  NEW.content    := public.fn_sanitize_text(COALESCE(NEW.content, ''));
+  -- Hard length caps regardless of what the client sends
+  NEW.name       := left(NEW.name, 80);
+  NEW.role_label := left(NEW.role_label, 80);
+  NEW.content    := left(NEW.content, 600);
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_sanitize_text(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_sanitize_text(input text) RETURNS text
+    LANGUAGE plpgsql IMMUTABLE STRICT
+    AS $$
+BEGIN
+  -- Remove script tags, SQL comment sequences, null bytes
+  input := regexp_replace(input, '<[^>]+>', '', 'g');
+  input := regexp_replace(input, '--', '', 'g');
+  input := regexp_replace(input, chr(0), '', 'g');
+  input := regexp_replace(input, '(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC)\s', '', 'gi');
+  RETURN trim(input);
+END;
+$$;
+
+
+--
+-- Name: fn_set_auto_release(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_set_auto_release() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  IF NEW.move_in_date IS NOT NULL AND NEW.status = 'funded'
+     AND NEW.transaction_type = 'rental' THEN
+    NEW.auto_release_at := (NEW.move_in_date::timestamptz + interval '72 hours');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_update_agent_score_on_verification(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_update_agent_score_on_verification() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.agent_scores (agent_id, total_verifications, verified_count, rejected_count, last_activity)
+  VALUES (
+    NEW.agent_id, 1,
+    CASE WHEN NEW.verdict = 'verified' THEN 1 ELSE 0 END,
+    CASE WHEN NEW.verdict = 'rejected' THEN 1 ELSE 0 END,
+    now()
+  )
+  ON CONFLICT (agent_id) DO UPDATE SET
+    total_verifications = agent_scores.total_verifications + 1,
+    verified_count      = agent_scores.verified_count + CASE WHEN NEW.verdict = 'verified' THEN 1 ELSE 0 END,
+    rejected_count      = agent_scores.rejected_count + CASE WHEN NEW.verdict = 'rejected' THEN 1 ELSE 0 END,
+    last_activity       = now(),
+    updated_at          = now();
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: fn_validate_checkin_token(text, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_validate_checkin_token(p_token text, p_validator uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  tok public.checkin_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO tok FROM public.checkin_tokens
+  WHERE token = p_token AND expires_at > now() AND validated_at IS NULL
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'reason', 'Invalid or expired token');
+  END IF;
+
+  -- Mark validated
+  UPDATE public.checkin_tokens
+  SET validated_at = now(), validated_by = p_validator
+  WHERE id = tok.id;
+
+  UPDATE public.escrow_transactions
+  SET token_validated_at = now()
+  WHERE id = tok.escrow_id;
+
+  -- Schedule release for next morning 06:00
+  UPDATE public.escrow_transactions
+  SET auto_release_at = date_trunc('day', now() + interval '1 day') + interval '6 hours'
+  WHERE id = tok.escrow_id AND status = 'funded';
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'escrow_id', tok.escrow_id,
+    'release_at', date_trunc('day', now() + interval '1 day') + interval '6 hours'
+  );
+END;
+$$;
+
+
+--
+-- Name: generate_mortgage_ticket_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_mortgage_ticket_id() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.ticket_id := 'MTG-' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8));
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: get_my_role(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_my_role() RETURNS text
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid()
+$$;
+
+
+--
+-- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.handle_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email, role)
+    VALUES (
+        new.id,
+            new.raw_user_meta_data->>'full_name',
+                new.email,
+                    COALESCE(new.raw_user_meta_data->>'role', 'buyer')
+                      )
+                        ON CONFLICT (id) DO NOTHING;
+                          RETURN new;
+                          END;
+                          $$;
+
+
+--
+-- Name: handle_new_user_earnings(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.handle_new_user_earnings() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+begin
+  insert into public.user_earnings (user_id)
+  values (new.id)
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+
+--
+-- Name: is_admin(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.is_admin() RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+      AND (role = 'admin' OR email = 'divineandbassey@gmail.com')
+  )
+$$;
+
+
+--
+-- Name: is_admin_staff(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.is_admin_staff() RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+      AND role IN ('admin','agent','verifier')
+  ) OR EXISTS (
+    SELECT 1 FROM auth.users
+    WHERE id = auth.uid()
+      AND email IN ('divineandbassey@gmail.com','prosperwithbassey@gmail.com')
+  )
+$$;
+
+
+--
+-- Name: is_staff(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.is_staff() RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+      AND role IN ('admin','agent')
+  ) OR EXISTS (
+    SELECT 1 FROM auth.users
+    WHERE id = auth.uid()
+      AND email = 'divineandbassey@gmail.com'
+  )
+$$;
+
+
+--
+-- Name: trigger_initialize_escrow(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.trigger_initialize_escrow() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  IF NEW.status = 'executed' AND (OLD.status IS DISTINCT FROM 'executed') THEN
+    INSERT INTO public.escrow_transactions (
+      property_id, amount, platform_fee, status, payment_ref, created_at
+    ) VALUES (
+      NEW.property_id,
+      NEW.amount,
+      ROUND(NEW.amount * 0.025, 2),
+      'awaiting_payment',
+      'ESC-' || upper(substring(NEW.id::text, 1, 8)),
+      now()
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: update_updated_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.update_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+
+--
+-- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
 
 
 --
@@ -2640,524 +2606,6 @@ ALTER TABLE ONLY public.wallet_ledger
 
 ALTER TABLE ONLY public.wallet_ledger
     ADD CONSTRAINT wallet_ledger_reference_key UNIQUE (reference);
-
-
---
--- Name: idx_agent_payments_agent; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_agent_payments_agent ON public.agent_payments USING btree (agent_id, status);
-
-
---
--- Name: idx_agent_verifications_agent; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_agent_verifications_agent ON public.agent_verifications USING btree (agent_id);
-
-
---
--- Name: idx_agent_verifications_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_agent_verifications_property ON public.agent_verifications USING btree (property_id);
-
-
---
--- Name: idx_audit_log_action; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_audit_log_action ON public.admin_audit_log USING btree (action, created_at DESC);
-
-
---
--- Name: idx_audit_log_created; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_audit_log_created ON public.admin_audit_log USING btree (created_at DESC);
-
-
---
--- Name: idx_bookings_category; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bookings_category ON public.bookings USING btree (category_id, checkin_date);
-
-
---
--- Name: idx_bookings_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bookings_property ON public.bookings USING btree (property_id, checkin_date, checkout_date);
-
-
---
--- Name: idx_bookings_status_checkin; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_bookings_status_checkin ON public.bookings USING btree (status, checkin_date);
-
-
---
--- Name: idx_complaints_agent; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_complaints_agent ON public.complaints USING btree (agent_id);
-
-
---
--- Name: idx_complaints_complainant; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_complaints_complainant ON public.complaints USING btree (complainant_id);
-
-
---
--- Name: idx_complaints_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_complaints_property ON public.complaints USING btree (property_id);
-
-
---
--- Name: idx_complaints_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_complaints_status ON public.complaints USING btree (status);
-
-
---
--- Name: idx_escrow_auto_rel; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_escrow_auto_rel ON public.escrow_transactions USING btree (auto_release_at) WHERE (status = 'funded'::text);
-
-
---
--- Name: idx_escrow_idem; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_escrow_idem ON public.escrow_transactions USING btree (idempotency_key) WHERE (idempotency_key IS NOT NULL);
-
-
---
--- Name: idx_escrow_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_escrow_type ON public.escrow_transactions USING btree (transaction_type);
-
-
---
--- Name: idx_hostel_enquiries_hostel; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_hostel_enquiries_hostel ON public.hostel_enquiries USING btree (hostel_id);
-
-
---
--- Name: idx_inspections_buyer_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_inspections_buyer_property ON public.property_inspections USING btree (buyer_id, property_id, status);
-
-
---
--- Name: idx_loyalty_points_user; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_loyalty_points_user ON public.loyalty_points USING btree (user_id);
-
-
---
--- Name: idx_matches_user; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_matches_user ON public.matches USING btree (user_id);
-
-
---
--- Name: idx_notifications_user_unread; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id, read, created_at DESC);
-
-
---
--- Name: idx_pro_activation_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_pro_activation_status ON public.pro_activation_requests USING btree (status);
-
-
---
--- Name: idx_pro_activation_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_pro_activation_user_id ON public.pro_activation_requests USING btree (user_id);
-
-
---
--- Name: idx_pro_reviews_pro; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_pro_reviews_pro ON public.professional_reviews USING btree (professional_id);
-
-
---
--- Name: idx_profiles_account_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_profiles_account_status ON public.profiles USING btree (account_status);
-
-
---
--- Name: idx_profiles_device_fp; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_profiles_device_fp ON public.profiles USING btree (device_fingerprint);
-
-
---
--- Name: idx_profiles_email_unique; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_profiles_email_unique ON public.profiles USING btree (email) WHERE (email IS NOT NULL);
-
-
---
--- Name: idx_profiles_identity_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_profiles_identity_status ON public.profiles USING btree (identity_verification_status) WHERE (identity_verification_status = 'submitted'::text);
-
-
---
--- Name: idx_profiles_invite_code; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_profiles_invite_code ON public.profiles USING btree (invite_code);
-
-
---
--- Name: idx_profiles_invited_by; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_profiles_invited_by ON public.profiles USING btree (invited_by);
-
-
---
--- Name: idx_profiles_phone_unique; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_profiles_phone_unique ON public.profiles USING btree (phone) WHERE ((phone IS NOT NULL) AND (phone <> ''::text));
-
-
---
--- Name: idx_profiles_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_profiles_role ON public.profiles USING btree (role);
-
-
---
--- Name: idx_properties_assigned_agent; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_properties_assigned_agent ON public.properties USING btree (assigned_agent_id);
-
-
---
--- Name: idx_properties_category; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_properties_category ON public.properties USING btree (category, status);
-
-
---
--- Name: idx_properties_occupancy; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_properties_occupancy ON public.properties USING btree (category, occupancy_status) WHERE (category = ANY (ARRAY['rental'::text, 'shortlet'::text]));
-
-
---
--- Name: idx_properties_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_properties_status ON public.properties USING btree (status);
-
-
---
--- Name: idx_property_interest_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_property_interest_property ON public.property_interest USING btree (property_id, status);
-
-
---
--- Name: idx_property_interest_referred; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_property_interest_referred ON public.property_interest USING btree (referred_by);
-
-
---
--- Name: idx_referral_txn_payment; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txn_payment ON public.referral_transactions USING btree (payment_id);
-
-
---
--- Name: idx_referral_txn_referee; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txn_referee ON public.referral_transactions USING btree (referee_id);
-
-
---
--- Name: idx_referral_txn_referrer; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txn_referrer ON public.referral_transactions USING btree (referrer_id, status);
-
-
---
--- Name: idx_referral_txns_buyer; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txns_buyer ON public.referral_transactions USING btree (buyer_id);
-
-
---
--- Name: idx_referral_txns_referrer; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txns_referrer ON public.referral_transactions USING btree (referrer_id, status);
-
-
---
--- Name: idx_referral_txns_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_referral_txns_type ON public.referral_transactions USING btree (payout_type, status);
-
-
---
--- Name: idx_room_categories_property; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_room_categories_property ON public.room_categories USING btree (property_id);
-
-
---
--- Name: idx_student_hostels_institution; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_student_hostels_institution ON public.student_hostels USING btree (institution_id);
-
-
---
--- Name: idx_student_hostels_state; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_student_hostels_state ON public.student_hostels USING btree (state);
-
-
---
--- Name: idx_student_hostels_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_student_hostels_status ON public.student_hostels USING btree (status);
-
-
---
--- Name: idx_student_verifications_user; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_student_verifications_user ON public.student_verifications USING btree (user_id);
-
-
---
--- Name: idx_swipes_user_action; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_swipes_user_action ON public.swipes USING btree (user_id, action);
-
-
---
--- Name: idx_testimonials_status; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_testimonials_status ON public.testimonials USING btree (status);
-
-
---
--- Name: idx_testimonials_user; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_testimonials_user ON public.testimonials USING btree (user_id);
-
-
---
--- Name: idx_user_earnings_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_user_earnings_user_id ON public.user_earnings USING btree (user_id);
-
-
---
--- Name: matches_user_id_match_score_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX matches_user_id_match_score_idx ON public.matches USING btree (user_id, match_score DESC);
-
-
---
--- Name: professionals_professional_type_is_active_is_verified_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX professionals_professional_type_is_active_is_verified_idx ON public.professionals USING btree (professional_type, is_active, is_verified);
-
-
---
--- Name: properties_price_status_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX properties_price_status_idx ON public.properties USING btree (price, status);
-
-
---
--- Name: properties_property_type_status_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX properties_property_type_status_idx ON public.properties USING btree (property_type, status);
-
-
---
--- Name: properties_seller_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX properties_seller_id_idx ON public.properties USING btree (seller_id);
-
-
---
--- Name: properties_state_status_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX properties_state_status_idx ON public.properties USING btree (state, status);
-
-
---
--- Name: swipes_user_id_action_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX swipes_user_id_action_idx ON public.swipes USING btree (user_id, action);
-
-
---
--- Name: agent_verifications trg_agent_score_on_verification; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_agent_score_on_verification AFTER INSERT OR UPDATE OF verdict ON public.agent_verifications FOR EACH ROW WHEN ((new.verdict = ANY (ARRAY['verified'::text, 'rejected'::text]))) EXECUTE FUNCTION public.fn_update_agent_score_on_verification();
-
-
---
--- Name: profiles trg_audit_identity_status; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_audit_identity_status AFTER UPDATE OF identity_verification_status ON public.profiles FOR EACH ROW WHEN ((old.identity_verification_status IS DISTINCT FROM new.identity_verification_status)) EXECUTE FUNCTION public.fn_audit_admin_action('identity_status_change');
-
-
---
--- Name: properties trg_audit_property_status; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_audit_property_status AFTER UPDATE OF status ON public.properties FOR EACH ROW WHEN ((old.status IS DISTINCT FROM new.status)) EXECUTE FUNCTION public.fn_audit_admin_action('property_status_change');
-
-
---
--- Name: deed_submissions trg_check_deed_completion; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_check_deed_completion AFTER INSERT OR UPDATE OF has_legal_stamp ON public.deed_submissions FOR EACH ROW EXECUTE FUNCTION public.fn_check_deed_completion();
-
-
---
--- Name: mortgage_applications trg_generate_mortgage_ticket_id; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_generate_mortgage_ticket_id BEFORE INSERT ON public.mortgage_applications FOR EACH ROW WHEN ((new.ticket_id IS NULL)) EXECUTE FUNCTION public.generate_mortgage_ticket_id();
-
-
---
--- Name: profiles trg_init_agent_score; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_init_agent_score AFTER INSERT OR UPDATE OF role ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.fn_init_agent_score();
-
-
---
--- Name: contracts trg_initialize_escrow; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_initialize_escrow AFTER UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.trigger_initialize_escrow();
-
-
---
--- Name: complaints trg_populate_complaint_agent; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_populate_complaint_agent BEFORE INSERT ON public.complaints FOR EACH ROW EXECUTE FUNCTION public.fn_populate_complaint_agent();
-
-
---
--- Name: escrow_transactions trg_post_release_split; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_post_release_split AFTER UPDATE OF status ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_post_release_split();
-
-
---
--- Name: complaints trg_process_complaint_resolution; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_process_complaint_resolution AFTER UPDATE OF status ON public.complaints FOR EACH ROW EXECUTE FUNCTION public.fn_process_complaint_resolution();
-
-
---
--- Name: escrow_transactions trg_release_on_confirm; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_release_on_confirm BEFORE UPDATE OF confirmed_at ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_release_on_move_in_confirm();
-
-
---
--- Name: properties trg_sanitize_property; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_sanitize_property BEFORE INSERT OR UPDATE ON public.properties FOR EACH ROW EXECUTE FUNCTION public.fn_sanitize_property_inputs();
-
-
---
--- Name: testimonials trg_sanitize_testimonial; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_sanitize_testimonial BEFORE INSERT OR UPDATE ON public.testimonials FOR EACH ROW EXECUTE FUNCTION public.fn_sanitize_testimonial_inputs();
-
-
---
--- Name: escrow_transactions trg_set_auto_release; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trg_set_auto_release BEFORE INSERT OR UPDATE OF move_in_date ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_set_auto_release();
-
-
---
--- Name: user_earnings user_earnings_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER user_earnings_updated_at BEFORE UPDATE ON public.user_earnings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
@@ -3943,6 +3391,853 @@ ALTER TABLE ONLY public.wallet_ledger
 ALTER TABLE ONLY public.wallet_ledger
     ADD CONSTRAINT wallet_ledger_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES public.profiles(id);
 
+
+--
+-- Name: idx_agent_payments_agent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_agent_payments_agent ON public.agent_payments USING btree (agent_id, status);
+
+
+--
+-- Name: idx_agent_verifications_agent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_agent_verifications_agent ON public.agent_verifications USING btree (agent_id);
+
+
+--
+-- Name: idx_agent_verifications_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_agent_verifications_property ON public.agent_verifications USING btree (property_id);
+
+
+--
+-- Name: idx_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_action ON public.admin_audit_log USING btree (action, created_at DESC);
+
+
+--
+-- Name: idx_audit_log_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_log_created ON public.admin_audit_log USING btree (created_at DESC);
+
+
+--
+-- Name: idx_bookings_category; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_bookings_category ON public.bookings USING btree (category_id, checkin_date);
+
+
+--
+-- Name: idx_bookings_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_bookings_property ON public.bookings USING btree (property_id, checkin_date, checkout_date);
+
+
+--
+-- Name: idx_bookings_status_checkin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_bookings_status_checkin ON public.bookings USING btree (status, checkin_date);
+
+
+--
+-- Name: idx_complaints_agent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_complaints_agent ON public.complaints USING btree (agent_id);
+
+
+--
+-- Name: idx_complaints_complainant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_complaints_complainant ON public.complaints USING btree (complainant_id);
+
+
+--
+-- Name: idx_complaints_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_complaints_property ON public.complaints USING btree (property_id);
+
+
+--
+-- Name: idx_complaints_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_complaints_status ON public.complaints USING btree (status);
+
+
+--
+-- Name: idx_escrow_auto_rel; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_escrow_auto_rel ON public.escrow_transactions USING btree (auto_release_at) WHERE (status = 'funded'::text);
+
+
+--
+-- Name: idx_escrow_idem; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_escrow_idem ON public.escrow_transactions USING btree (idempotency_key) WHERE (idempotency_key IS NOT NULL);
+
+
+--
+-- Name: idx_escrow_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_escrow_type ON public.escrow_transactions USING btree (transaction_type);
+
+
+--
+-- Name: idx_hostel_enquiries_hostel; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hostel_enquiries_hostel ON public.hostel_enquiries USING btree (hostel_id);
+
+
+--
+-- Name: idx_inspections_buyer_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_inspections_buyer_property ON public.property_inspections USING btree (buyer_id, property_id, status);
+
+
+--
+-- Name: idx_loyalty_points_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_loyalty_points_user ON public.loyalty_points USING btree (user_id);
+
+
+--
+-- Name: idx_matches_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_matches_user ON public.matches USING btree (user_id);
+
+
+--
+-- Name: idx_notifications_user_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id, read, created_at DESC);
+
+
+--
+-- Name: idx_pro_activation_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_pro_activation_status ON public.pro_activation_requests USING btree (status);
+
+
+--
+-- Name: idx_pro_activation_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_pro_activation_user_id ON public.pro_activation_requests USING btree (user_id);
+
+
+--
+-- Name: idx_pro_reviews_pro; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_pro_reviews_pro ON public.professional_reviews USING btree (professional_id);
+
+
+--
+-- Name: idx_profiles_account_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_account_status ON public.profiles USING btree (account_status);
+
+
+--
+-- Name: idx_profiles_device_fp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_device_fp ON public.profiles USING btree (device_fingerprint);
+
+
+--
+-- Name: idx_profiles_email_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_profiles_email_unique ON public.profiles USING btree (email) WHERE (email IS NOT NULL);
+
+
+--
+-- Name: idx_profiles_identity_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_identity_status ON public.profiles USING btree (identity_verification_status) WHERE (identity_verification_status = 'submitted'::text);
+
+
+--
+-- Name: idx_profiles_invite_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_profiles_invite_code ON public.profiles USING btree (invite_code);
+
+
+--
+-- Name: idx_profiles_invited_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_invited_by ON public.profiles USING btree (invited_by);
+
+
+--
+-- Name: idx_profiles_phone_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_profiles_phone_unique ON public.profiles USING btree (phone) WHERE ((phone IS NOT NULL) AND (phone <> ''::text));
+
+
+--
+-- Name: idx_profiles_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_role ON public.profiles USING btree (role);
+
+
+--
+-- Name: idx_properties_assigned_agent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_properties_assigned_agent ON public.properties USING btree (assigned_agent_id);
+
+
+--
+-- Name: idx_properties_category; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_properties_category ON public.properties USING btree (category, status);
+
+
+--
+-- Name: idx_properties_occupancy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_properties_occupancy ON public.properties USING btree (category, occupancy_status) WHERE (category = ANY (ARRAY['rental'::text, 'shortlet'::text]));
+
+
+--
+-- Name: idx_properties_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_properties_status ON public.properties USING btree (status);
+
+
+--
+-- Name: idx_property_interest_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_property_interest_property ON public.property_interest USING btree (property_id, status);
+
+
+--
+-- Name: idx_property_interest_referred; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_property_interest_referred ON public.property_interest USING btree (referred_by);
+
+
+--
+-- Name: idx_referral_txn_payment; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txn_payment ON public.referral_transactions USING btree (payment_id);
+
+
+--
+-- Name: idx_referral_txn_referee; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txn_referee ON public.referral_transactions USING btree (referee_id);
+
+
+--
+-- Name: idx_referral_txn_referrer; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txn_referrer ON public.referral_transactions USING btree (referrer_id, status);
+
+
+--
+-- Name: idx_referral_txns_buyer; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txns_buyer ON public.referral_transactions USING btree (buyer_id);
+
+
+--
+-- Name: idx_referral_txns_referrer; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txns_referrer ON public.referral_transactions USING btree (referrer_id, status);
+
+
+--
+-- Name: idx_referral_txns_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_referral_txns_type ON public.referral_transactions USING btree (payout_type, status);
+
+
+--
+-- Name: idx_room_categories_property; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_room_categories_property ON public.room_categories USING btree (property_id);
+
+
+--
+-- Name: idx_student_hostels_institution; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_student_hostels_institution ON public.student_hostels USING btree (institution_id);
+
+
+--
+-- Name: idx_student_hostels_state; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_student_hostels_state ON public.student_hostels USING btree (state);
+
+
+--
+-- Name: idx_student_hostels_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_student_hostels_status ON public.student_hostels USING btree (status);
+
+
+--
+-- Name: idx_student_verifications_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_student_verifications_user ON public.student_verifications USING btree (user_id);
+
+
+--
+-- Name: idx_swipes_user_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_swipes_user_action ON public.swipes USING btree (user_id, action);
+
+
+--
+-- Name: idx_testimonials_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_testimonials_status ON public.testimonials USING btree (status);
+
+
+--
+-- Name: idx_testimonials_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_testimonials_user ON public.testimonials USING btree (user_id);
+
+
+--
+-- Name: idx_user_earnings_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_earnings_user_id ON public.user_earnings USING btree (user_id);
+
+
+--
+-- Name: matches_user_id_match_score_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX matches_user_id_match_score_idx ON public.matches USING btree (user_id, match_score DESC);
+
+
+--
+-- Name: professionals_professional_type_is_active_is_verified_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX professionals_professional_type_is_active_is_verified_idx ON public.professionals USING btree (professional_type, is_active, is_verified);
+
+
+--
+-- Name: properties_price_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX properties_price_status_idx ON public.properties USING btree (price, status);
+
+
+--
+-- Name: properties_property_type_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX properties_property_type_status_idx ON public.properties USING btree (property_type, status);
+
+
+--
+-- Name: properties_seller_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX properties_seller_id_idx ON public.properties USING btree (seller_id);
+
+
+--
+-- Name: properties_state_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX properties_state_status_idx ON public.properties USING btree (state, status);
+
+
+--
+-- Name: swipes_user_id_action_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX swipes_user_id_action_idx ON public.swipes USING btree (user_id, action);
+
+
+--
+-- Name: v_agent_scorecard; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.v_agent_scorecard AS
+ SELECT p.id,
+    p.full_name,
+    p.email,
+    p.phone,
+    s.total_verifications,
+    s.verified_count,
+    s.rejected_count,
+    s.complaints_received,
+    s.complaints_upheld,
+    s.strike_count,
+    s.rating,
+    s.status,
+    s.last_activity,
+    round(
+        CASE
+            WHEN (s.total_verifications = 0) THEN (100)::numeric
+            ELSE (((s.verified_count)::numeric / (s.total_verifications)::numeric) * (100)::numeric)
+        END, 1) AS success_rate_pct,
+    round(
+        CASE
+            WHEN (s.complaints_received = 0) THEN (0)::numeric
+            ELSE (((s.complaints_upheld)::numeric / (s.complaints_received)::numeric) * (100)::numeric)
+        END, 1) AS complaint_uphold_rate_pct,
+    GREATEST(0, (3 - s.strike_count)) AS strikes_remaining
+   FROM (public.profiles p
+     JOIN public.agent_scores s ON ((s.agent_id = p.id)))
+  WHERE (p.role = ANY (ARRAY['agent'::text, 'suspended'::text]))
+  ORDER BY s.rating DESC, s.total_verifications DESC;
+
+
+--
+-- Name: agent_verifications trg_agent_score_on_verification; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_agent_score_on_verification AFTER INSERT OR UPDATE OF verdict ON public.agent_verifications FOR EACH ROW WHEN ((new.verdict = ANY (ARRAY['verified'::text, 'rejected'::text]))) EXECUTE FUNCTION public.fn_update_agent_score_on_verification();
+
+
+--
+-- Name: profiles trg_audit_identity_status; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_audit_identity_status AFTER UPDATE OF identity_verification_status ON public.profiles FOR EACH ROW WHEN ((old.identity_verification_status IS DISTINCT FROM new.identity_verification_status)) EXECUTE FUNCTION public.fn_audit_admin_action('identity_status_change');
+
+
+--
+-- Name: properties trg_audit_property_status; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_audit_property_status AFTER UPDATE OF status ON public.properties FOR EACH ROW WHEN ((old.status IS DISTINCT FROM new.status)) EXECUTE FUNCTION public.fn_audit_admin_action('property_status_change');
+
+
+--
+-- Name: deed_submissions trg_check_deed_completion; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_check_deed_completion AFTER INSERT OR UPDATE OF has_legal_stamp ON public.deed_submissions FOR EACH ROW EXECUTE FUNCTION public.fn_check_deed_completion();
+
+
+--
+-- Name: mortgage_applications trg_generate_mortgage_ticket_id; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_generate_mortgage_ticket_id BEFORE INSERT ON public.mortgage_applications FOR EACH ROW WHEN ((new.ticket_id IS NULL)) EXECUTE FUNCTION public.generate_mortgage_ticket_id();
+
+
+--
+-- Name: profiles trg_init_agent_score; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_init_agent_score AFTER INSERT OR UPDATE OF role ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.fn_init_agent_score();
+
+
+--
+-- Name: contracts trg_initialize_escrow; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_initialize_escrow AFTER UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.trigger_initialize_escrow();
+
+
+--
+-- Name: complaints trg_populate_complaint_agent; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_populate_complaint_agent BEFORE INSERT ON public.complaints FOR EACH ROW EXECUTE FUNCTION public.fn_populate_complaint_agent();
+
+
+--
+-- Name: escrow_transactions trg_post_release_split; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_post_release_split AFTER UPDATE OF status ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_post_release_split();
+
+
+--
+-- Name: complaints trg_process_complaint_resolution; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_process_complaint_resolution AFTER UPDATE OF status ON public.complaints FOR EACH ROW EXECUTE FUNCTION public.fn_process_complaint_resolution();
+
+
+--
+-- Name: escrow_transactions trg_release_on_confirm; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_release_on_confirm BEFORE UPDATE OF confirmed_at ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_release_on_move_in_confirm();
+
+
+--
+-- Name: properties trg_sanitize_property; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_sanitize_property BEFORE INSERT OR UPDATE ON public.properties FOR EACH ROW EXECUTE FUNCTION public.fn_sanitize_property_inputs();
+
+
+--
+-- Name: testimonials trg_sanitize_testimonial; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_sanitize_testimonial BEFORE INSERT OR UPDATE ON public.testimonials FOR EACH ROW EXECUTE FUNCTION public.fn_sanitize_testimonial_inputs();
+
+
+--
+-- Name: escrow_transactions trg_set_auto_release; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_set_auto_release BEFORE INSERT OR UPDATE OF move_in_date ON public.escrow_transactions FOR EACH ROW EXECUTE FUNCTION public.fn_set_auto_release();
+
+
+--
+-- Name: user_earnings user_earnings_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER user_earnings_updated_at BEFORE UPDATE ON public.user_earnings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: admin_announcements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.admin_announcements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: admin_audit_log; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: agent_accounts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.agent_accounts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: agent_assignments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.agent_assignments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: agent_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.agent_payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: agent_scores; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.agent_scores ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: agent_verifications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.agent_verifications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: bank_details; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.bank_details ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: bookings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: checkin_tokens; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.checkin_tokens ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: complaints; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: contracts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: crypto_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.crypto_payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: crypto_wallets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.crypto_wallets ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: deal_agreements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.deal_agreements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: deed_submissions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.deed_submissions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: disputes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: escrow_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.escrow_transactions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: hostel_enquiries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.hostel_enquiries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: hostel_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.hostel_payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: institutions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.institutions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: loyalty_points; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.loyalty_points ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: matches; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mortgage_applications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mortgage_applications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: notifications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: pinecone_index_status; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.pinecone_index_status ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: platform_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: pro_activation_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.pro_activation_requests ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: professional_applications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.professional_applications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: professional_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.professional_requests ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: professional_reviews; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.professional_reviews ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: professionals; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: properties; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: property_images; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.property_images ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: property_inspections; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.property_inspections ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: property_interest; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.property_interest ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: property_reviews; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.property_reviews ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: referral_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.referral_transactions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: rental_enquiries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.rental_enquiries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: room_categories; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.room_categories ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: student_hostels; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.student_hostels ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: student_verifications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.student_verifications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: swipes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.swipes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: testimonials; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_earnings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_earnings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wallet_ledger; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wallet_ledger ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: professionals Active professionals are public; Type: POLICY; Schema: public; Owner: -
@@ -5067,162 +5362,6 @@ CREATE POLICY admin_all_profiles ON public.profiles USING (public.is_admin());
 
 
 --
--- Name: admin_announcements; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.admin_announcements ENABLE ROW LEVEL SECURITY;
-
---
--- Name: admin_audit_log; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
-
---
--- Name: agent_accounts; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.agent_accounts ENABLE ROW LEVEL SECURITY;
-
---
--- Name: agent_assignments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.agent_assignments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: agent_payments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.agent_payments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: agent_scores; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.agent_scores ENABLE ROW LEVEL SECURITY;
-
---
--- Name: agent_verifications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.agent_verifications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: bank_details; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.bank_details ENABLE ROW LEVEL SECURITY;
-
---
--- Name: bookings; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
-
---
--- Name: checkin_tokens; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.checkin_tokens ENABLE ROW LEVEL SECURITY;
-
---
--- Name: complaints; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
-
---
--- Name: contracts; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
-
---
--- Name: crypto_payments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.crypto_payments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: crypto_wallets; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.crypto_wallets ENABLE ROW LEVEL SECURITY;
-
---
--- Name: deal_agreements; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.deal_agreements ENABLE ROW LEVEL SECURITY;
-
---
--- Name: deed_submissions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.deed_submissions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: disputes; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
-
---
--- Name: escrow_transactions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.escrow_transactions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: hostel_enquiries; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.hostel_enquiries ENABLE ROW LEVEL SECURITY;
-
---
--- Name: hostel_payments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.hostel_payments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: institutions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.institutions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: loyalty_points; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.loyalty_points ENABLE ROW LEVEL SECURITY;
-
---
--- Name: matches; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
-
---
--- Name: messages; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-
---
--- Name: mortgage_applications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.mortgage_applications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: notifications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: profiles own_profile_insert; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5235,24 +5374,6 @@ CREATE POLICY own_profile_insert ON public.profiles FOR INSERT WITH CHECK ((id =
 
 CREATE POLICY own_profile_update ON public.profiles FOR UPDATE USING ((id = auth.uid()));
 
-
---
--- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: pinecone_index_status; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.pinecone_index_status ENABLE ROW LEVEL SECURITY;
-
---
--- Name: platform_settings; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: pro_activation_requests pro_activation: owner can insert; Type: POLICY; Schema: public; Owner: -
@@ -5276,125 +5397,11 @@ CREATE POLICY "pro_activation: service role can update" ON public.pro_activation
 
 
 --
--- Name: pro_activation_requests; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.pro_activation_requests ENABLE ROW LEVEL SECURITY;
-
---
--- Name: professional_applications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.professional_applications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: professional_requests; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.professional_requests ENABLE ROW LEVEL SECURITY;
-
---
--- Name: professional_reviews; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.professional_reviews ENABLE ROW LEVEL SECURITY;
-
---
--- Name: professionals; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
-
---
--- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: profiles profiles_select_policy; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY profiles_select_policy ON public.profiles FOR SELECT USING (((auth.uid() = id) OR (public.get_my_role() = ANY (ARRAY['admin'::text, 'agent'::text, 'verifier'::text]))));
 
-
---
--- Name: properties; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
-
---
--- Name: property_images; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.property_images ENABLE ROW LEVEL SECURITY;
-
---
--- Name: property_inspections; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.property_inspections ENABLE ROW LEVEL SECURITY;
-
---
--- Name: property_interest; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.property_interest ENABLE ROW LEVEL SECURITY;
-
---
--- Name: property_reviews; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.property_reviews ENABLE ROW LEVEL SECURITY;
-
---
--- Name: referral_transactions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.referral_transactions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: rental_enquiries; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.rental_enquiries ENABLE ROW LEVEL SECURITY;
-
---
--- Name: room_categories; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.room_categories ENABLE ROW LEVEL SECURITY;
-
---
--- Name: student_hostels; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.student_hostels ENABLE ROW LEVEL SECURITY;
-
---
--- Name: student_verifications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.student_verifications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: swipes; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.swipes ENABLE ROW LEVEL SECURITY;
-
---
--- Name: testimonials; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
-
---
--- Name: user_earnings; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.user_earnings ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: user_earnings user_earnings: owner can insert; Type: POLICY; Schema: public; Owner: -
@@ -5416,12 +5423,6 @@ CREATE POLICY "user_earnings: owner can select" ON public.user_earnings FOR SELE
 
 CREATE POLICY "user_earnings: service role can update" ON public.user_earnings FOR UPDATE USING ((auth.role() = 'service_role'::text));
 
-
---
--- Name: wallet_ledger; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.wallet_ledger ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: supabase_realtime notifications; Type: PUBLICATION TABLE; Schema: public; Owner: -
