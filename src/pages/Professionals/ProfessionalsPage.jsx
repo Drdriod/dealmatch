@@ -414,7 +414,7 @@ export default function ProfessionalsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Work With Someone Who's Actually Vetted.</h1>
+            <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>Work With Someone Who's Actually Trusted.</h1>
             <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Agents and inspectors with a track record you can check, not just a business card.</p>
           </div>
           {/* View mode toggle */}

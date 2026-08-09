@@ -1,6 +1,6 @@
 # DealMatch: Matched, Not Just Posted
 
-> DealMatch matches real demand with vetted supply across property, skilled trades, professional services, logistics, and more. Not a directory, a matching engine.
+> DealMatch matches real demand with trusted supply across property, skilled trades, professional services, logistics, and more. Not a directory, a matching engine.
 
 **Live:** https://www.dealmatch.com.ng
 **Company:** DealMatch Technology Limited (CAC Registration in Progress)

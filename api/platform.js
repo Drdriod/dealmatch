@@ -25,7 +25,7 @@ import { redisRateLimit } from '../src/lib/redis.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
-import { findMatches, findCounterpartMatches } from '../src/modules/matching/matchingService.js'
+import { findMatches, findCounterpartMatches, universalMatch } from '../src/modules/matching/matchingService.js'
 import { clearValidatorCache } from '../src/lib/schemaValidation.js'
 import { universalSearch } from '../src/modules/search/searchService.js'
 
@@ -143,7 +143,34 @@ const jsonResources = {
 
     const { categoryId, type, lat, lng, radiusMeters, attributeFilter, limit } = req.body || {}
     try {
-      const matches = await findMatches(supabase, { categoryId, type, lat, lng, radiusMeters, attributeFilter, limit })
+      // Hybrid model (ADR-002): a category with source_table set is a legacy
+      // vertical (properties/student_hostels/professionals), matched via
+      // universal_match() instead of match_category_listings. universal_match
+      // returns a different column shape (item_id, source) than
+      // match_category_listings (id) -- normalized here so MarketplacePage
+      // never needs to know which path it's hitting, and each result gets a
+      // detailUrl pointing at wherever that source's REAL detail page lives
+      // (only /property/:id actually exists today; student-hostels and
+      // professionals don't have per-item pages yet, so those link to their
+      // section's landing page instead of a URL that would 404).
+      const category = await getCategoryById(supabase, categoryId)
+      let matches
+      if (category.source_table) {
+        const raw = await universalMatch(supabase, category.slug, { lat, lng, radiusMeters, attributeFilter, limit })
+        const detailUrl = (source, id) => {
+          if (source === 'properties') return `/property/${id}`
+          if (source === 'student_hostels') return '/student-hostels'
+          if (source === 'professionals') return '/professionals'
+          return '/marketplace'
+        }
+        matches = raw.map(r => ({
+          id: r.item_id, title: r.title, price_cents: r.price_cents, location_name: r.location_name,
+          lat: r.lat, lng: r.lng, attributes: r.attributes, created_at: r.created_at,
+          source: r.source, detailUrl: detailUrl(r.source, r.item_id),
+        }))
+      } else {
+        matches = await findMatches(supabase, { categoryId, type, lat, lng, radiusMeters, attributeFilter, limit })
+      }
       return res.status(200).json({ matches })
     } catch (err) { return res.status(400).json({ error: err.message }) }
   },
@@ -159,6 +186,26 @@ const jsonResources = {
     }
     if (req.method === 'POST') {
       const { categoryId, type, title, description, priceCents, lat, lng, locationName, attributes } = req.body || {}
+
+      // Hybrid model (ADR-002): a category with source_table set is a legacy
+      // vertical. Its listings live on that legacy table, created through
+      // that table's own existing flow (e.g. /list for properties), not
+      // through this generic composer, which only ever writes to
+      // category_listings. universal_match() never looks at category_listings
+      // for a hybrid category, so a listing created here for one would be
+      // silently invisible everywhere. Reject it explicitly instead.
+      let category
+      try {
+        category = await getCategoryById(supabase, categoryId)
+      } catch {
+        return res.status(400).json({ error: 'Unknown category' })
+      }
+      if (category.source_table) {
+        return res.status(400).json({
+          error: `${category.name} listings are created through its own page, not this composer.`,
+        })
+      }
+
       const { valid, errors } = await validateAttributes(supabase, categoryId, attributes)
       if (!valid) return res.status(400).json({ error: 'Invalid attributes', details: errors })
       try {

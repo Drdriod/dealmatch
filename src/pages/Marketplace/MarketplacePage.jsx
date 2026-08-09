@@ -8,6 +8,16 @@ import toast from 'react-hot-toast'
 
 const API_BASE = '/api'
 
+// Hybrid model (ADR-002): these three categories are backed by legacy tables,
+// not category_listings. Posting to them happens on their own existing page,
+// not the generic schema-driven composer (the backend rejects the composer
+// POST for these categories too, see api/platform.js's listings resource).
+const HYBRID_POST_ROUTES = {
+  'real-estate': '/list',
+  'student-hostels': '/list-hostel',
+  'professionals': '/apply-professional',
+}
+
 async function authHeader() {
   const { data: { session } } = await supabase.auth.getSession()
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
@@ -216,7 +226,7 @@ function CategoryBrowseView({ categorySlug }) {
       <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#1A1210' }}>{category?.name || '...'}</h1>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div className="flex gap-2">
-          {['SUPPLY', 'DEMAND'].map(t => (
+          {!category?.source_table && ['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
               style={{ background: type === t ? '#C96A3A' : '#FAF6F0', color: type === t ? '#fff' : '#8A7E78' }}>
@@ -229,7 +239,9 @@ function CategoryBrowseView({ categorySlug }) {
             <MapIcon size={12} /> Map
           </button>
         </div>
-        <Link to={`/marketplace/${categorySlug}/new`} className="btn-primary text-sm px-5 py-2">Post a listing</Link>
+        <Link to={HYBRID_POST_ROUTES[categorySlug] || `/marketplace/${categorySlug}/new`} className="btn-primary text-sm px-5 py-2">
+          Post a listing
+        </Link>
       </div>
 
       {Object.keys(properties).length > 0 && (
@@ -257,7 +269,7 @@ function CategoryBrowseView({ categorySlug }) {
           ) : (
             <div className="grid gap-3">
               {results.map(item => (
-                <Link key={item.id} to={`/marketplace/${categorySlug}/listing/${item.id}`}
+                <Link key={item.id} to={item.detailUrl || `/marketplace/${categorySlug}/listing/${item.id}`}
                   className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
                   <div className="font-semibold" style={{ color: '#1A1210' }}>{item.title}</div>
                   {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C96A3A' }}>{formatPrice(item.price_cents)}</div>}

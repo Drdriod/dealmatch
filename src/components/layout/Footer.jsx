@@ -19,7 +19,7 @@ export default function Footer() {
               Deal<span className="text-terracotta">Match</span>
             </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
-              DealMatch matches real demand with vetted supply: property, talent, equipment, expertise. Every listing matched, not just posted.
+              DealMatch matches real demand with trusted supply: property, talent, equipment, expertise. Every listing matched, not just posted.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex gap-3 mt-6">

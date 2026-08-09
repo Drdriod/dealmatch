@@ -96,7 +96,7 @@ export default function HomePage() {
           <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6 }}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
               style={{ backgroundColor:'rgba(201,106,58,0.12)', color:'#C96A3A' }}>
-              <Zap size={11} /> Vetted Supply. Real Demand. Matched.
+              <Zap size={11} /> Trusted Supply. Real Demand. Matched.
             </div>
           </motion.div>
 
@@ -110,7 +110,7 @@ export default function HomePage() {
           <motion.p initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.2 }}
             className="text-lg leading-relaxed mb-4 max-w-xl mx-auto"
             style={{ color:'rgba(26,18,16,0.55)' }}>
-            DealMatch matches real demand with vetted supply (property, talent, equipment, expertise) so you stop searching and start closing.
+            DealMatch matches real demand with trusted supply (property, talent, equipment, expertise) so you stop searching and start closing.
           </motion.p>
 
           {/* Tagline */}
@@ -157,7 +157,7 @@ export default function HomePage() {
             <div>
               <Home size={28} className="text-white mb-4" />
               <h3 className="font-display text-2xl font-black text-white mb-2">Find a Place</h3>
-              <p className="text-sm text-white/85">Real estate, rentals & shortlets: vetted supply, matched to your brief.</p>
+              <p className="text-sm text-white/85">Real estate, rentals & shortlets: trusted supply, matched to your brief.</p>
             </div>
             <span className="text-sm font-bold text-white flex items-center gap-1 mt-6">Browse listings <ArrowRight size={14} /></span>
           </Link>

@@ -8,6 +8,29 @@
  * Real Estate for now — see src/lib/pinecone.js and api/match.js.
  */
 
+/**
+ * Hybrid model (ADR-002). Unified browse/filter/geo-match across
+ * category_listings and every legacy vertical (properties, student_hostels,
+ * professionals), dispatched server-side by categories.source_table.
+ * Takes a category slug, not an id, since universal_match() looks the
+ * category up itself.
+ */
+export async function universalMatch(supabase, categorySlug, {
+  lat = null, lng = null, radiusMeters = 10000, attributeFilter = {}, limit = 50,
+} = {}) {
+  const { data, error } = await supabase.rpc('universal_match', {
+    p_category_slug: categorySlug,
+    p_lat: lat,
+    p_lng: lng,
+    p_radius_m: radiusMeters,
+    p_attribute_filter: attributeFilter,
+    p_limit: limit,
+  })
+
+  if (error) throw new Error(`universalMatch failed: ${error.message}`)
+  return data
+}
+
 export async function findMatches(supabase, {
   categoryId,
   type, // the type you're searching FOR — e.g. searching for SUPPLY to fill a DEMAND
