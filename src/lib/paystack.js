@@ -1,5 +1,6 @@
 // Paystack: Nigerian payment gateway
 // Handles professional listing subscription fees + student hostel listing fees
+// + escrow funding for marketplace transactions (ADR-009).
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
 
@@ -199,6 +200,46 @@ export const payHostelListingFee = async ({
       owner_name:   ownerName,
     },
     onSuccess,
+    onClose,
+  })
+}
+
+// ─── Fund escrow on a marketplace transaction (ADR-009) ────
+// Applies to any transaction model (NEAREST_AVAILABLE or
+// MULTI_ATTRIBUTE_REVERSE) once it's in PENDING status (a bid was
+// accepted / a direct request was accepted, awaiting payment).
+//
+// IMPORTANT: this only opens the Paystack popup. It does NOT flip the
+// transaction to FUNDED on the client -- same reasoning as
+// subscribeProfessional above, that flip must happen in the Paystack
+// webhook after real server-side verification, keyed off
+// metadata.type === 'transaction_escrow'. See src/lib/events.js's
+// escrow.funded handler for what fires once that webhook case exists
+// (it doesn't yet -- see the note in JobPostingPage.jsx).
+export const fundTransactionEscrow = async ({
+  email,
+  transactionId,
+  amountCents,
+  requesterId,
+  onSuccess,
+  onClose,
+}) => {
+  if (!amountCents) return
+  const reference = generateReference()
+
+  await initializePaystackPayment({
+    email,
+    amount:    amountCents / 100, // this function takes naira, not cents
+    reference,
+    metadata: {
+      type:           'transaction_escrow', // matches webhook TYPE_MAP key -- add this case server-side
+      transaction_id: transactionId,
+      user_id:        requesterId,
+    },
+    onSuccess: async (response) => {
+      await verifyPayment(response.reference)
+      onSuccess?.(response)
+    },
     onClose,
   })
 }
