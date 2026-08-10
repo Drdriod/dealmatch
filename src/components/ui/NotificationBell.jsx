@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Bell, CheckCircle, Star, TrendingUp, X } from 'lucide-react'
+import { AlertTriangle, Bell, CheckCircle, Mail, Star, TrendingUp, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 
 const ICONS = {
-  referral_cash:   TrendingUp,
-  referral_points: Star,
-  points_redeemed: CheckCircle,
+  referral_cash:    TrendingUp,
+  referral_points:  Star,
+  points_redeemed:  CheckCircle,
+  listing_approved: CheckCircle,
+  booking_conflict: AlertTriangle,
+  general:          Mail,
 }
 const COLORS = {
-  referral_cash:   '#7A9E7E',
-  referral_points: '#5B8DEF',
-  points_redeemed: '#D4A853',
+  referral_cash:    '#7A9E7E',
+  referral_points:  '#5B8DEF',
+  points_redeemed:  '#D4A853',
+  listing_approved: '#7A9E7E',
+  booking_conflict: '#C94A3A',
+  general:          '#C96A3A',
 }
 
 const ago = (ts) => {

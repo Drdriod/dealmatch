@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Bath, Bed, Flag, Frown, Heart, Home, Key, Map, MapPin, Maximize, MessageCircle, Share2, Shield, User } from 'lucide-react'
 import { getProperty, recordSwipe } from '@/lib/supabase'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { PropertyMap } from '@/components/ui/PropertyMap'
 import ImageGallery from '@/components/ui/ImageGallery'
+import ReportModal from '@/components/ui/ReportModal'
 import toast from 'react-hot-toast'
 
 const formatPrice = (n) => {
@@ -21,9 +21,7 @@ export default function PropertyPage() {
   const [property, setProperty] = useState(null)
   const [loading,  setLoading]  = useState(true)
   const [liked,    setLiked]    = useState(false)
-  const [showComplaint,   setShowComplaint]   = useState(false)
-  const [filingComplaint, setFilingComplaint] = useState(false)
-  const [complaintForm,   setComplaintForm]   = useState({ category:'', description:'' })
+  const [showComplaint, setShowComplaint] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -38,26 +36,6 @@ export default function PropertyPage() {
     await recordSwipe({ userId: user.id, propertyId: id, action: 'like' })
     setLiked(true)
     toast.success('Added to matches!')
-  }
-
-  const submitComplaint = async () => {
-    if (!user) { toast.error('Sign in to report a listing'); return }
-    if (!complaintForm.category) { toast.error('Select an issue category'); return }
-    if (!complaintForm.description.trim()) { toast.error('Describe the problem'); return }
-    setFilingComplaint(true)
-    const { error } = await supabase.from('complaints').insert({
-      property_id:    property.id,
-      complainant_id: user.id,
-      category:       complaintForm.category,
-      description:    complaintForm.description.trim(),
-    })
-    if (error) toast.error('Could not submit report. Try again.')
-    else {
-      toast.success('Report submitted. Our team will investigate within 24 hours.')
-      setShowComplaint(false)
-      setComplaintForm({ category:'', description:'' })
-    }
-    setFilingComplaint(false)
   }
 
   const handleContact = () => {
@@ -254,7 +232,8 @@ export default function PropertyPage() {
           </button>
         </div>
 
-        {/* Report / Complaint button */}
+        {/* Report button — now opens the generalized ReportModal (writes to
+            `reports`, not the old property-only `complaints` table) */}
         <button onClick={() => setShowComplaint(true)}
           className="w-full mt-2 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
           style={{ backgroundColor:'rgba(201,74,58,0.05)', color:'#C94A3A', border:'1px solid rgba(201,74,58,0.15)' }}>
@@ -262,68 +241,13 @@ export default function PropertyPage() {
         </button>
       </div>
 
-      {/* ── Complaint Modal ─────────────────────────────────── */}
       {showComplaint && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor:'rgba(0,0,0,0.5)' }}
-          onClick={e => { if (e.target === e.currentTarget) setShowComplaint(false) }}>
-          <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10" style={{ backgroundColor:'#FFFAF5', maxHeight:'85vh', overflowY:'auto' }}>
-            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor:'#E8DDD2' }} />
-            <h3 className="font-display text-lg font-black mb-1" style={{ color:'#1A1210' }}>Report a Problem</h3>
-            <p className="text-xs mb-4" style={{ color:'#8A7E78' }}>
-              Your report goes directly to our team. The agent who verified this listing will be held accountable.
-            </p>
-
-            {/* Category */}
-            <p className="text-xs font-bold mb-2" style={{ color:'#1A1210' }}>What's the issue? *</p>
-            <div className="space-y-2 mb-4">
-              {[
-                { id:'fake_listing',      label:'Fake listing — property does not exist' },
-                { id:'misrepresentation', label:'Property looks different from photos/description' },
-                { id:'wrong_address',     label:'Wrong or misleading address given' },
-                { id:'structural_damage', label:'Serious structural damage not disclosed' },
-                { id:'fraud',             label:'Fraud or scam attempt' },
-                { id:'agent_misconduct',  label:'Agent behaved unprofessionally or dishonestly' },
-                { id:'other',             label:'Other issue' },
-              ].map(cat => (
-                <button key={cat.id}
-                  onClick={() => setComplaintForm(f => ({ ...f, category: cat.id }))}
-                  className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all"
-                  style={{
-                    backgroundColor: complaintForm.category === cat.id ? 'rgba(201,74,58,0.06)' : 'rgba(26,18,16,0.03)',
-                    border: `1.5px solid ${complaintForm.category === cat.id ? '#C94A3A' : '#E8DDD2'}`,
-                  }}>
-                  <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
-                    style={{ border: `2px solid ${complaintForm.category === cat.id ? '#C94A3A' : '#E8DDD2'}`, backgroundColor: complaintForm.category === cat.id ? '#C94A3A' : 'transparent' }}>
-                    {complaintForm.category === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                  <span className="text-xs" style={{ color:'#1A1210' }}>{cat.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Description */}
-            <p className="text-xs font-bold mb-1" style={{ color:'#1A1210' }}>Describe what happened *</p>
-            <textarea
-              value={complaintForm.description}
-              onChange={e => setComplaintForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Provide as much detail as possible — dates, what you were told vs reality, any money lost..."
-              rows={4}
-              className="w-full rounded-2xl px-4 py-3 text-xs resize-none outline-none mb-4"
-              style={{ backgroundColor:'rgba(26,18,16,0.03)', border:'1.5px solid #E8DDD2', color:'#1A1210' }}
-            />
-
-            <button onClick={submitComplaint} disabled={filingComplaint || !complaintForm.category || !complaintForm.description.trim()}
-              className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
-              style={{ backgroundColor:'#C94A3A', color:'white' }}>
-              <Flag size={16} />
-              {filingComplaint ? 'Submitting...' : 'Submit Report'}
-            </button>
-            <button onClick={() => setShowComplaint(false)}
-              className="w-full mt-2 py-2.5 text-xs" style={{ color:'#8A7E78' }}>
-              Cancel
-            </button>
-          </div>
-        </div>
+        <ReportModal
+          entityType="property"
+          entityId={property.id}
+          listingSource="properties"
+          onClose={() => setShowComplaint(false)}
+        />
       )}
     </div>
   )
