@@ -38,6 +38,16 @@ const calcCashReferral = (dmCommission, level) => {
 const calcPoints = (level) => POINTS_PER_LEVEL[level] || POINTS_DEFAULT
 
 // Map Paystack payment_type metadata to a DealMatch transaction type + fee rate
+//
+// 'transaction_escrow' (ADR-009 marketplace jobs) is deliberately NOT in
+// this map. Architecture v3 Section 4.3 is explicit that the DealMatch
+// commission rate for marketplace transactions is a separate business
+// decision still pending -- adding a feeRate here would mean inventing
+// a number nobody has approved yet. Once a rate is decided, add it here
+// and referral payout + commission capture will work the same way it
+// does for every other type. Until then, escrow funding still works
+// (see the transaction_escrow case below), it just doesn't trigger
+// referral payout or set transactions.commission_rate_applied.
 const TYPE_MAP = {
   property_purchase:         { txnType: 'property_sale', feeRate: 0.015 },
   rental:                    { txnType: 'rental',         feeRate: 0.03  },
@@ -286,6 +296,60 @@ export default async function handler(req, res) {
             }
           }
 
+          // ── ADR-009 marketplace transaction escrow (Nearest-Available /
+          // Multi-Attribute Reverse jobs) ─────────────────────────────
+          // Same resolve-by-payment_ref pattern as escrow_payment above,
+          // for the same reason: metadata.transaction_id is client-supplied
+          // at Paystack widget init and must not be trusted to pick which
+          // row to mark FUNDED. payment_ref was written server-side (via
+          // the authorization-checked start_escrow_payment RPC,
+          // 20260731000020) before this payment ever started, so resolving
+          // by it here means an attacker paying a real but wrong amount
+          // against a fabricated transaction_id cannot mark someone else's
+          // job funded -- there is no row to find unless payment_ref
+          // actually matches, and that value was never attacker-writable.
+          if (metadata?.type === 'transaction_escrow') {
+            const { data: matchedTx, error: txErr } = await supabase
+              .from('transactions')
+              .select('id, requester_id, provider_id, amount_cents, status')
+              .eq('payment_ref', reference)
+              .single()
+
+            if (txErr || !matchedTx) {
+              console.error('Transaction escrow payment with no matching payment_ref, refusing to confirm:', reference)
+            } else if (matchedTx.status !== 'PENDING') {
+              console.error('Transaction', matchedTx.id, 'is not PENDING (status=' + matchedTx.status + '), refusing to mark funded:', reference)
+            } else if (Math.round(matchedTx.amount_cents / 100) !== Math.round(amountNgn)) {
+              // Defense in depth: the amount actually charged (verified via
+              // HMAC signature above) should match what the transaction
+              // expected. A mismatch means something is wrong upstream --
+              // refuse rather than silently accepting a different amount.
+              console.error('Transaction', matchedTx.id, 'amount mismatch: expected', matchedTx.amount_cents / 100, 'got', amountNgn, 'ref:', reference)
+            } else {
+              await supabase.from('transactions')
+                .update({ status: 'FUNDED', updated_at: new Date().toISOString() })
+                .eq('id', matchedTx.id)
+              console.log('Transaction escrow funded:', matchedTx.id, 'amount:', amountNgn)
+
+              // Notify the provider directly -- not via src/lib/events.js,
+              // that module is written for the browser (imports the
+              // anon-key client) and isn't safe to import into this
+              // service-role serverless function. Same raw-insert pattern
+              // the referral payout code above already uses.
+              if (matchedTx.provider_id) {
+                await supabase.from('notifications').insert({
+                  user_id:    matchedTx.provider_id,
+                  type:       'escrow_funded',
+                  title:      '🔒 Escrow funded',
+                  message:    `₦${amountNgn.toLocaleString()} is now held in escrow. Contact details have been unlocked.`,
+                  amount:     amountNgn,
+                  link:       `/jobs/${matchedTx.id}`,
+                  created_at: new Date().toISOString(),
+                })
+              }
+            }
+          }
+
           // Log every charge.success to payments table
           // Column names match the live payments schema exactly.
           await supabase.from('payments').upsert({
@@ -334,6 +398,10 @@ export default async function handler(req, res) {
                 )
               }
             }
+            // transaction_escrow is intentionally absent from TYPE_MAP
+            // (see comment above it), so it falls through here with no
+            // mapping and no referral payout -- correct for now, revisit
+            // once a marketplace commission rate is decided.
           } catch (refErr) {
             // Referral payout failures must never block payment confirmation
             console.error('Referral automation failed (non-fatal):', refErr.message)

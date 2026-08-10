@@ -209,28 +209,29 @@ export const payHostelListingFee = async ({
 // MULTI_ATTRIBUTE_REVERSE) once it's in PENDING status (a bid was
 // accepted / a direct request was accepted, awaiting payment).
 //
-// IMPORTANT: this only opens the Paystack popup. It does NOT flip the
-// transaction to FUNDED on the client -- same reasoning as
-// subscribeProfessional above, that flip must happen in the Paystack
-// webhook after real server-side verification, keyed off
-// metadata.type === 'transaction_escrow'. See src/lib/events.js's
-// escrow.funded handler for what fires once that webhook case exists
-// (it doesn't yet -- see the note in JobPostingPage.jsx).
+// The reference passed in must already be bound to the transaction via
+// the start_escrow_payment RPC (20260731000020) BEFORE this is called --
+// see JobPostingPage.jsx's fundEscrow(). The webhook (paystack-webhook.js)
+// resolves which transaction to mark FUNDED strictly by that reference,
+// not by metadata.transaction_id, so a reference that was never bound
+// server-side won't match anything and the payment will be logged but
+// nothing will be marked funded.
 export const fundTransactionEscrow = async ({
   email,
   transactionId,
   amountCents,
   requesterId,
+  reference,
   onSuccess,
   onClose,
 }) => {
   if (!amountCents) return
-  const reference = generateReference()
+  const ref = reference || generateReference()
 
   await initializePaystackPayment({
     email,
     amount:    amountCents / 100, // this function takes naira, not cents
-    reference,
+    reference: ref,
     metadata: {
       type:           'transaction_escrow', // matches webhook TYPE_MAP key -- add this case server-side
       transaction_id: transactionId,

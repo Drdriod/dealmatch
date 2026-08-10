@@ -4,7 +4,7 @@ import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap }
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { emitEvent } from '@/lib/events'
-import { fundTransactionEscrow, formatNaira } from '@/lib/paystack'
+import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/paystack'
 import toast from 'react-hot-toast'
 
 const MODEL_BY_TOGGLE = {
@@ -169,17 +169,33 @@ export default function JobPostingPage() {
     toast.success('Counter sent — awaiting provider response')
   }
 
-  // Opens the Paystack popup. Does NOT flip status to FUNDED itself --
-  // that happens in the payment webhook once it's wired for
-  // metadata.type === 'transaction_escrow' (not done yet, see paystack.js).
-  // The realtime subscription above will pick up the change once it is.
+  // Binds a payment reference to this transaction server-side (via RPC,
+  // authorization-checked) BEFORE opening Paystack -- the webhook resolves
+  // which row to mark FUNDED strictly by that reference (20260731000020),
+  // the same pattern already used for escrow_transactions.payment_ref.
+  // Does NOT flip status to FUNDED itself -- that happens in the webhook
+  // after real payment verification. The realtime subscription above
+  // picks up the change once it does.
   const fundEscrow = async () => {
     setFundingEscrow(true)
+    const reference = generateReference()
+
+    const { error: refErr } = await supabase.rpc('start_escrow_payment', {
+      p_transaction_id: transaction.id,
+      p_reference: reference,
+    })
+    if (refErr) {
+      toast.error(refErr.message || 'Could not start payment')
+      setFundingEscrow(false)
+      return
+    }
+
     await fundTransactionEscrow({
       email: user.email,
       transactionId: transaction.id,
       amountCents: transaction.amount_cents,
       requesterId: user.id,
+      reference,
       onSuccess: () => {
         toast.success('Payment received — confirming escrow, this updates automatically')
       },
