@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { AlertTriangle, Bell, CheckCircle, Mail, Star, TrendingUp, X } from 'lucide-react'
+import { AlertTriangle, Bell, CheckCircle, Gavel, Lock, Mail, Star, TrendingUp, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
@@ -11,6 +11,11 @@ const ICONS = {
   points_redeemed:  CheckCircle,
   listing_approved: CheckCircle,
   booking_conflict: AlertTriangle,
+  bid_received:     Mail,
+  bid_accepted:     CheckCircle,
+  escrow_funded:    Lock,
+  job_completed:    CheckCircle,
+  dispute_opened:   AlertTriangle,
   general:          Mail,
 }
 const COLORS = {
@@ -19,6 +24,11 @@ const COLORS = {
   points_redeemed:  '#D4A853',
   listing_approved: '#7A9E7E',
   booking_conflict: '#C94A3A',
+  bid_received:     '#C96A3A',
+  bid_accepted:     '#7A9E7E',
+  escrow_funded:    '#5C8060',
+  job_completed:    '#7A9E7E',
+  dispute_opened:   '#C94A3A',
   general:          '#C96A3A',
 }
 
@@ -35,14 +45,11 @@ export default function NotificationBell() {
   const { user } = useAuth()
   const [open, setOpen]               = useState(false)
   const [notifications, setNotifications] = useState([])
-  const [toast, setToast]             = useState(null) // most recent unread, shown as a popup
+  const [toast, setToast]             = useState(null)
   const ref = useRef(null)
 
   useEffect(() => {
     if (!user?.id) return
-
-    // Wrap everything in try/catch so a missing notifications table
-    // (SQL not yet run in Supabase) never crashes the whole app.
     let channel = null
 
     const init = async () => {
@@ -65,8 +72,6 @@ export default function NotificationBell() {
           })
           .subscribe()
       } catch (err) {
-        // Likely: notifications table doesn't exist yet in this Supabase project.
-        // Fail silently - the bell just shows 0 notifications until the SQL is run.
         console.warn('NotificationBell: notifications table not ready yet:', err.message)
       }
     }
@@ -138,7 +143,6 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -188,7 +192,6 @@ export default function NotificationBell() {
         )}
       </AnimatePresence>
 
-      {/* Realtime popup toast - appears instantly when a payout/points award lands */}
       <AnimatePresence>
         {toast && (
           <motion.div
