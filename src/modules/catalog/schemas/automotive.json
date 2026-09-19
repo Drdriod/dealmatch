@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "vehicle_type": { "type": "string", "enum": ["SEDAN", "SUV", "TRUCK", "BUS", "MOTORCYCLE", "TRICYCLE"] },
+    "make": { "type": "string" },
+    "model": { "type": "string" },
+    "year": { "type": "integer", "minimum": 1980, "maximum": 2027 },
+    "mileage_km": { "type": "integer", "minimum": 0 },
+    "transmission": { "type": "string", "enum": ["MANUAL", "AUTOMATIC"] },
+    "fuel_type": { "type": "string", "enum": ["PETROL", "DIESEL", "HYBRID", "ELECTRIC"] },
+    "condition": { "type": "string", "enum": ["NEW", "FOREIGN_USED", "NIGERIAN_USED"] }
+  },
+  "required": ["vehicle_type", "make", "model", "year"]
+}

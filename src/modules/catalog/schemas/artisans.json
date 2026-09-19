@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "trade": {
+      "type": "string",
+      "enum": ["PLUMBER", "ELECTRICIAN", "CARPENTER", "PAINTER", "MASON", "WELDER", "AC_TECHNICIAN", "GENERAL_CONTRACTOR"]
+    },
+    "years_experience": { "type": "integer", "minimum": 0 },
+    "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+    "has_tools": { "type": "boolean" },
+    "availability": { "type": "string", "enum": ["IMMEDIATE", "WITHIN_WEEK", "SCHEDULED"] },
+    "certifications": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["trade", "years_experience"]
+}
