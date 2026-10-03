@@ -21,6 +21,7 @@
 import { withSecurity, honeypotHandler } from '../src/lib/apiMiddleware.js'
 import { createServerClient, getAuthedUser } from '../src/lib/supabaseServer.js'
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
 
@@ -90,6 +91,58 @@ async function handleRenderPublic(req, res) {
 
 // ─── JSON API resources ─────────────────────────────────────────────────────
 const jsonResources = {
+  // ── Account deletion (Google Play / App Store requirement) ───────────
+  // POST { confirm: 'DELETE' } with the user's bearer token. GET returns
+  // what is currently blocking deletion. Personal data is erased in
+  // public.erase_account_data(); the auth user is then anonymised and
+  // banned (never hard-deleted: financial records reference it, see
+  // 20261003000001_account_deletion.sql). Lives here to stay inside the
+  // serverless function count budget.
+  async ['delete-account'](req, res, supabase) {
+    if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(503).json({ error: 'Account deletion is temporarily unavailable. Please contact support.' })
+    }
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+
+    if (req.method === 'GET') {
+      const { data, error } = await svc.rpc('account_deletion_blockers', { p_user: user.id })
+      if (error) return res.status(500).json({ error: 'Could not check your account' })
+      return res.status(200).json({ blockers: data || [] })
+    }
+
+    if ((req.body || {}).confirm !== 'DELETE') {
+      return res.status(400).json({ error: 'Type DELETE to confirm' })
+    }
+
+    const { data, error } = await svc.rpc('erase_account_data', { p_user: user.id })
+    if (error) {
+      console.error('[platform:delete-account] erase failed', error.message)
+      return res.status(500).json({ error: 'Could not delete your account. Please try again or contact support.' })
+    }
+    if (!data?.ok) return res.status(409).json({ error: 'Your account cannot be deleted yet.', blockers: data?.blockers || [] })
+
+    // Anonymise and lock the login. A random placeholder email frees the
+    // real address for re-registration and removes the personal data.
+    const { error: authErr } = await svc.auth.admin.updateUserById(user.id, {
+      email: `deleted+${user.id}@deleted.dealmatch.com.ng`,
+      phone: '',
+      password: randomUUID() + randomUUID(),
+      ban_duration: '876000h',
+      user_metadata: {},
+      app_metadata: { deleted: true },
+    })
+    if (authErr) {
+      console.error('[platform:delete-account] auth anonymise failed', authErr.message)
+      // Data is already erased; still try to at least lock the login.
+      await svc.auth.admin.updateUserById(user.id, { ban_duration: '876000h' }).catch(() => {})
+    }
+    return res.status(200).json({ ok: true })
+  },
+
   // ── Automated payouts (item 8 of the fix request) ─────────────────────
   // Three resources, all folded in here rather than given their own
   // files to stay under the serverless function count budget:

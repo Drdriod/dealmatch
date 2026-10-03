@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 import { uploadAvatar, supabase } from '@/lib/supabase'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import DeleteAccountPanel from '@/components/DeleteAccountPanel'
 
 const NIGERIAN_STATES = [
   'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
@@ -425,6 +426,8 @@ export default function ProfilePage() {
           <LogOut size={16} />
           {signingOut ? 'Signing out...' : 'Sign Out'}
         </button>
+
+        <div className="mt-4"><DeleteAccountPanel /></div>
       </div>
     </div>
   )
