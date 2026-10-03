@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -37,11 +38,24 @@
 
     <!-- Permissions -->
     <!-- CAMERA: the WebView's file-input chooser (identity verification
-         selfie/ID upload, provider portfolio photos -- see
+         selfie/ID upload, provider portfolio photos - see
          VerifyIdentityPage.jsx, SkillVerificationPage.jsx) can invoke the
          device camera directly. Without this, some devices/OEM camera
          apps fail to launch from that chooser rather than falling back
          to gallery-only, which would break a core verification flow. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Location: the web app calls navigator.geolocation (useUserLocation.js)
+         for "near me" matching. Inside a WebView that only works if the
+         Android runtime permission is declared here; otherwise it silently fails. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Camera/location are optional features. Without required="false", Play
+         hides the app from devices lacking them. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 </manifest>
