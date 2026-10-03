@@ -7,3 +7,8 @@ build/
 *.log
 .DS_Store
 .vercel
+
+# Android signing secrets
+*.keystore
+*.jks
+keystore.properties

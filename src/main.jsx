@@ -275,8 +275,11 @@ import('@capacitor/core').then(({ Capacitor }) => {
       // the single most common one-star-review complaint for wrapped web
       // apps. Mirror normal Android app behavior instead: go back through
       // history if possible, otherwise exit.
-      NativeApp.addListener('backButton', () => {
-        if (window.history.length > 1) {
+      // Use the WebView's own canGoBack (passed in the event) rather than
+      // window.history.length, which stays > 1 for the whole session and
+      // would trap the user on the first screen.
+      NativeApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
           window.history.back()
         } else {
           NativeApp.exitApp()

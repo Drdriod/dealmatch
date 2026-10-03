@@ -7,6 +7,13 @@ import { analytics } from '@/lib/posthog'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
+// Google blocks OAuth inside embedded WebViews (403 disallowed_useragent), and
+// Capacitor would bounce the flow out to the system browser, leaving the app
+// signed out. Hide the Google button inside the native app shell; email/password
+// and OTP sign-in still work. Re-enable once native Google Sign-In is added.
+const IS_NATIVE_APP = typeof window !== 'undefined' &&
+  !!window.Capacitor?.isNativePlatform?.()
+
 // ─── Google Icon ──────────────────────────────────────────────────────────────
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -604,21 +611,25 @@ export default function AuthPage() {
               ))}
             </div>
 
-            {/* Google */}
-            <button onClick={handleGoogle} type="button"
-              className="w-full py-3 px-4 rounded-2xl border-2 flex items-center justify-center gap-3 font-semibold transition-all hover:bg-gray-50 mb-5"
-              style={{ borderColor:'#E8DDD2', color:'#1A1210' }}>
-              <GoogleIcon /> Continue with Google
-            </button>
+            {/* Google (web only -- see IS_NATIVE_APP above) */}
+            {!IS_NATIVE_APP && (
+              <>
+                <button onClick={handleGoogle} type="button"
+                  className="w-full py-3 px-4 rounded-2xl border-2 flex items-center justify-center gap-3 font-semibold transition-all hover:bg-gray-50 mb-5"
+                  style={{ borderColor:'#E8DDD2', color:'#1A1210' }}>
+                  <GoogleIcon /> Continue with Google
+                </button>
 
-            <div className="relative mb-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t" style={{ borderColor:'#E8DDD2' }} />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(26,18,16,0.4)' }}>or with email</span>
-              </div>
-            </div>
+                <div className="relative mb-5">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t" style={{ borderColor:'#E8DDD2' }} />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(26,18,16,0.4)' }}>or with email</span>
+                  </div>
+                </div>
+              </>
+            )}
 
           {/* ── Sign Up ── */}
           {tab === 'signup' ? (
