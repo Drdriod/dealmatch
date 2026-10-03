@@ -52,6 +52,7 @@ const ListPropertyPage      = lazyWithRetry(() => import('@/pages/List/ListPrope
 const AvailabilityPage      = lazyWithRetry(() => import('@/pages/Availability/AvailabilityPage'))
 const PrivacyPage           = lazyWithRetry(() => import('@/pages/Legal/PrivacyPage'))
 const TermsPage             = lazyWithRetry(() => import('@/pages/Legal/TermsPage'))
+const DeleteAccountPage     = lazyWithRetry(() => import('@/pages/Account/DeleteAccountPage'))
 const MortgagePage          = lazyWithRetry(() => import('@/pages/Mortgage/MortgagePage'))
 const VerificationPage      = lazyWithRetry(() => import('@/pages/Verification/VerificationPage'))
 const MessagesPage          = lazyWithRetry(() => import('@/pages/Messages/MessagesPage'))
@@ -344,6 +345,14 @@ function AnimatedRoutes() {
           <AppShell>
             <Suspense fallback={<PageSkeleton />}>
               <PageTransition><PrivacyPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/delete-account" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><DeleteAccountPage /></PageTransition>
             </Suspense>
           </AppShell>
         } />
