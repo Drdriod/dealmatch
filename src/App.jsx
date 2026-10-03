@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import React, { Suspense, Component, useEffect, useRef } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
@@ -20,6 +20,7 @@ const HomePage              = lazyWithRetry(() => import('@/pages/Home/HomePage'
 const AuthPage              = lazyWithRetry(() => import('@/pages/Auth/AuthPage'))
 const OnboardingPage        = lazyWithRetry(() => import('@/pages/Onboarding/OnboardingPage'))
 const VerifyIdentityPage    = lazyWithRetry(() => import('@/pages/PostVerification/VerifyIdentityPage'))
+const WhatsAppLinkPage      = lazyWithRetry(() => import('@/pages/WhatsApp/WhatsAppLinkPage'))
 const PayoutSetupPage       = lazyWithRetry(() => import('@/pages/Payouts/PayoutSetupPage'))
 const DashboardPage         = lazyWithRetry(() => import('@/pages/Dashboard/DashboardPage'))
 const BrowsePage            = lazyWithRetry(() => import('@/pages/Browse/BrowsePage'))
@@ -628,6 +629,17 @@ function AnimatedRoutes() {
           </ProtectedRoute>
         } />
 
+        {/* ── WhatsApp account linking (link sent by the DealMatch WhatsApp bot) ──
+            Public on purpose: the page handles signed-out visitors itself and
+            keeps the single-use token across sign-in / sign-up. */}
+        <Route path="/wa/link" element={
+          <AppShell showNav={false} showFooter={false} showWhatsApp={false}>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><WhatsAppLinkPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
         <Route path="/payout-setup" element={
           <ProtectedRoute requireOnboarding={false}>
             <AppShell showNav={false} showFooter={false} showWhatsApp={false}>
@@ -716,6 +728,27 @@ function AnimatedRoutes() {
   )
 }
 
+// ─── WhatsApp link resume ─────────────────────────────────────────────────────
+// The "Verify on DealMatch" link from WhatsApp carries a single-use token that
+// WhatsAppLinkPage parks in localStorage while the person signs in or signs up
+// (AuthPage and onboarding do not know about it). Once they are signed in and
+// onboarded, bring them back to finish linking. Renders nothing.
+const WaLinkResume = () => {
+  const { isAuthenticated, hasCompletedOnboarding, loading } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (loading || !isAuthenticated || !hasCompletedOnboarding) return
+    if (location.pathname.startsWith('/wa/link')) return
+    try {
+      const v = JSON.parse(localStorage.getItem('dm_wa_link_token') || 'null')
+      if (v?.t && v.exp > Date.now()) navigate('/wa/link', { replace: true })
+      else if (v) localStorage.removeItem('dm_wa_link_token')
+    } catch { /* storage unavailable */ }
+  }, [loading, isAuthenticated, hasCompletedOnboarding, location.pathname, navigate])
+  return null
+}
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 const basename = import.meta.env.BASE_URL
 
@@ -737,6 +770,7 @@ export default function App() {
                 error:   { iconTheme:{ primary:'#C96A3A', secondary:'#FAF6F0' } },
               }}
             />
+            <WaLinkResume />
             <AnimatedRoutes />
           </AuthProvider>
         </ThemeProvider>
