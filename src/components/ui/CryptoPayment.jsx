@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { sanitizeText } from '@/lib/sanitize'
 import toast from 'react-hot-toast'
+import { CRYPTO_PAYMENTS_ENABLED } from '@/lib/features'
 
 const WHATSAPP = '2347057392060'
 
@@ -64,7 +65,7 @@ function NetworkRow({ netKey, selected, onSelect, baseAmount, wallets }) {
 }
 
 // ── Main Component ────────────────────────────────────────
-export default function CryptoPayment({
+function CryptoPaymentInner({
   usdtAmount,
   description,
   metadata = {},
@@ -443,4 +444,10 @@ export default function CryptoPayment({
       </motion.div>
     </div>
   )
+}
+
+// Crypto is on hold (see src/lib/features.js): render nothing unless explicitly enabled.
+export default function CryptoPayment(props) {
+  if (!CRYPTO_PAYMENTS_ENABLED) return null
+  return <CryptoPaymentInner {...props} />
 }
