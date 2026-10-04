@@ -3,7 +3,7 @@
 > DealMatch matches real demand with trusted supply across property, skilled trades, professional services, logistics, and more. Not a directory, a matching engine.
 
 **Live:** https://www.dealmatch.com.ng
-**Company:** DealMatch Technology Limited, CAC registered (RC 9655308)
+**Company:** DealMatch (dealmatch.com.ng) is a product of **DEALMATCH TECHNOLOGY LIMITED**, CAC registered (RC 9655308)
 **Founded:** 2026 | Uyo, Akwa Ibom State, Nigeria
 
 ---
@@ -12,7 +12,7 @@
 
 | | |
 |---|---|
-| Legal entity | DealMatch Technology Limited |
+| Legal entity | DEALMATCH TECHNOLOGY LIMITED, which owns and operates dealmatch.com.ng and the DealMatch apps |
 | Corporate Affairs Commission | Registered, **RC 9655308** |
 | Data protection | Registered with the Nigeria Data Protection Commission (NDPC) as a **Data Controller of Major Importance** |
 | Startup status | Labelled startup under the **Nigeria Startup Act 2022** |
