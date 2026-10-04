@@ -3,8 +3,29 @@
 > DealMatch matches real demand with trusted supply across property, skilled trades, professional services, logistics, and more. Not a directory, a matching engine.
 
 **Live:** https://www.dealmatch.com.ng
-**Company:** DealMatch Technology Limited (CAC Registration in Progress)
+**Company:** DealMatch (dealmatch.com.ng) is a product of **DEALMATCH TECHNOLOGY LIMITED**, CAC registered (RC 9655308)
 **Founded:** 2026 | Uyo, Akwa Ibom State, Nigeria
+
+---
+
+## Company and Compliance
+
+| | |
+|---|---|
+| Legal entity | DEALMATCH TECHNOLOGY LIMITED, which owns and operates dealmatch.com.ng and the DealMatch apps |
+| Corporate Affairs Commission | Registered, **RC 9655308** |
+| Data protection | Registered with the Nigeria Data Protection Commission (NDPC) as a **Data Controller of Major Importance** |
+| Startup status | Labelled startup under the **Nigeria Startup Act 2022** |
+| Location | Uyo, Akwa Ibom State, Nigeria |
+
+**Crypto payments are on hold.** USDT/USDC payment is built but disabled until we have confirmed, with regulatory and compliance advice, that it is acceptable to offer. While on hold:
+- Website: the option appears as "Coming soon" with an explanation and cannot be used.
+- Android/iOS app: the option is not shown at all.
+- Database: new `crypto_payments` rows from users are refused (migration `20261004000002_crypto_payments_on_hold.sql`).
+
+To re-enable after clearance: set `CRYPTO_PAYMENTS_ENABLED = true` in `src/lib/features.js` and follow the re-enable note in that migration.
+
+User data deletion: users can delete their own account in the app (Profile) or at `/delete-account`. See `supabase/migrations/20261003000001_account_deletion.sql`.
 
 ---
 
@@ -26,7 +47,7 @@ DealMatch is a multi-category, intent-driven matching platform. A user says what
 | Matching | Pinecone Vector Search (Real Estate) + PostGIS/JSONB RPC (all other categories) |
 | Search | Postgres full-text search, federated across every category in one RPC |
 | Maps | Google Maps (`@react-google-maps/api`) |
-| Payments | Paystack (card/bank) + USDT crypto |
+| Payments | Paystack (card/bank). USDT/USDC crypto is on hold, coming soon (see Compliance) |
 | Hosting | Vercel (CI/CD via GitHub) |
 | PWA | Service Worker + Web App Manifest |
 | Analytics | PostHog |
@@ -165,7 +186,7 @@ Note: the bot-facing render path (`?render=html`, used for search/AEO crawlers) 
 - **Wallet**: one view of escrow funds in flight, completed job payments, and referral earnings across every category.
 - **Verified Listings**: every Real Estate listing physically inspected by a DealMatch agent; other categories use identity + evidence-based verification.
 - **3-Level Referral**: 8% / 4% / 2% cash + loyalty points for deeper network.
-- **Crypto Payments**: USDT on TRC20, BEP20, ERC20 alongside Paystack.
+- **Crypto Payments (on hold, coming soon)**: USDT/USDC support is built but switched off while we confirm it meets Nigerian regulation and compliance requirements. Shown as "Coming soon" on the website and hidden in the Android/iOS app. Switch: `CRYPTO_PAYMENTS_ENABLED` in `src/lib/features.js`.
 - **Availability Manager**: real-time hotel room sync prevents double bookings.
 - **Admin Panel**: listing approval, identity + skill verification queues, unified deal pipeline (Enquiry → Negotiation → Paid Escrow → Completed → Commissioned), crypto verification, agent management.
 - **PWA**: installs on any phone, works offline.

@@ -1,3 +1,13 @@
+# DealMatch - Crypto Payments On Hold, Company Details (October 2026)
+
+- Crypto (USDT/USDC) payment is switched off while we confirm it meets Nigerian
+  regulation and compliance requirements. Website: "Coming soon" with the
+  reason, not usable. Android/iOS app: hidden. Database: user inserts into
+  `crypto_payments` revoked. Single switch: `CRYPTO_PAYMENTS_ENABLED` in
+  `src/lib/features.js`.
+- README now records CAC RC 9655308, NDPC registration (Data Controller of
+  Major Importance) and Nigeria Startup Act 2022 labelled-startup status.
+
 # DealMatch - How It Works Brought Back, as Motion (September 2026)
 
 Re-added a "How DealMatch Works" section, cut a few passes ago for being
