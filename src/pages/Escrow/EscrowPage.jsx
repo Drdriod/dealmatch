@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, ShieldCheck, X, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { initializePaystackPayment, generateReference } from '@/lib/paystack'
-import { CRYPTO_HOLD_MESSAGE, isNativeApp } from '@/lib/features'
 import toast from 'react-hot-toast'
 
 const WHATSAPP = '2347057392060'
@@ -179,19 +178,6 @@ function EscrowRequestModal({ onClose }) {
             </div>
 
             <button type="submit" className="btn-primary w-full py-4">Pay with Card / Bank →</button>
-            {/* Crypto is on hold (see src/lib/features.js). Hidden in the app, "Coming soon" on the website. */}
-            {!isNativeApp() && (
-              <div>
-                <button type="button" disabled aria-disabled="true"
-                  className="w-full py-4 rounded-2xl text-sm font-semibold border-2 flex items-center justify-center gap-2 cursor-not-allowed"
-                  style={{ borderColor:'rgba(26,18,16,0.10)', color:'rgba(26,18,16,0.45)', backgroundColor:'rgba(26,18,16,0.03)' }}>
-                  Pay with USDT / Crypto
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor:'rgba(201,106,58,0.15)', color:'#C96A3A' }}>Coming soon</span>
-                </button>
-                <p className="text-[11px] text-center mt-1.5" style={{ color:'#8A7E78' }}>{CRYPTO_HOLD_MESSAGE}</p>
-              </div>
-            )}
             <p className="text-xs text-center" style={{ color:'#8A7E78' }}>Funds held securely until move-in confirmed.</p>
           </form>
         )}
@@ -258,7 +244,6 @@ function ActiveEscrowSection() {
 
 export default function EscrowPage() {
   const [showModal, setShowModal] = useState(false)
-  // FIX: removed showCrypto from here: it was causing crash (undefined var in render)
 
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>

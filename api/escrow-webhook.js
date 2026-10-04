@@ -1,5 +1,5 @@
 // Escrow Webhook Handler
-// Handles escrow state transitions triggered by crypto payment confirmations
+// Handles escrow state transitions (funded / released / refunded) from signed payment events
 // Deployed as Vercel serverless function at /api/escrow-webhook
 
 import crypto from 'crypto'
