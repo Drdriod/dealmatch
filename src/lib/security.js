@@ -421,7 +421,7 @@ export const ALLOWED = {
   propertyType: ['apartment', 'house', 'land', 'commercial', 'duplex', 'bungalow', 'mansion'],
   status:       ['active', 'pending_review', 'inactive', 'sold', 'rented'],
   planType:     ['monthly', 'annual'],
-  paymentMethod:['paystack', 'crypto'],
+  paymentMethod:['paystack'],
 }
 
 // ─── 10. postMessage Origin Guard ────────────────────────────────────────────

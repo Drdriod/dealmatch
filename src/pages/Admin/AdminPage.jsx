@@ -70,7 +70,7 @@ async function auditLog(_action, _meta={}) {
 }
 
 // ── Reauthentication gate for high-impact admin settings ────────────────────────
-// Checklist item 16: bank/crypto wallet destinations change "live, no code
+// Checklist item 16: bank destinations change "live, no code
 // deploy needed" per the copy shown on this page - exactly the kind of
 // change that should require a fresh password check, not just an active
 // admin session. requireReauth() re-verifies the current password via
@@ -1040,28 +1040,27 @@ function TransactionsTab() {
         // for an admin transactions list).
         const{data}=await supabase.from('escrow_transactions').select('id,amount:gross_amount,platform_fee:platform_amount,status,payment_ref,created_at,properties(title),profiles:profiles!escrow_transactions_seller_id_fkey(full_name)').order('created_at',{ascending:false}).limit(200);setItems(data||[])
       }
-      else{const{data}=await supabase.from('crypto_payments').select('id,reference,description,coin,usdt_amount,network_label,status,created_at,user_name').order('created_at',{ascending:false}).limit(200);setItems(data||[])}
     }catch(e){console.error(e)}
     setLoading(false)
   },[tab])
   useEffect(()=>{load()},[load])
 
   const filtered=items.filter(i=>!search||i.reference?.toLowerCase().includes(search.toLowerCase())||i.email?.toLowerCase().includes(search.toLowerCase())||i.description?.toLowerCase().includes(search.toLowerCase())||i.user_name?.toLowerCase().includes(search.toLowerCase())||i.properties?.title?.toLowerCase().includes(search.toLowerCase()))
-  const total=items.reduce((s,i)=>s+(i.amount||i.usdt_amount||0),0)
+  const total=items.reduce((s,i)=>s+(i.amount||0),0)
 
   return(
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-2">
-          {[['payments','Paystack'],['escrow','Escrow'],['crypto','Crypto']].map(([k,l])=>(
+          {[['payments','Paystack'],['escrow','Escrow']].map(([k,l])=>(
             <button key={k} onClick={()=>setTab(k)} className="px-4 py-2 rounded-xl text-xs font-bold transition-all" style={{backgroundColor:tab===k?'#D4A853':'rgba(255,255,255,0.06)',color:tab===k?'#1A1210':'rgba(255,255,255,0.5)'}}>{l}</button>
           ))}
         </div>
         <SearchBar value={search} onChange={setSearch} placeholder="Search reference, email…"/>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} records · Total: {tab==='crypto'?`$${total.toFixed(2)} USDT`:fmt(total)}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} records · Total: {fmt(total)}</div>
       {loading?<Spinner/>:(
-        <TableWrap cols={tab==='payments'?['Reference','Amount','Type','Email','Status','Date']:tab==='escrow'?['Property','User','Amount','Fee','Status','Date']:['Reference','Description','USDT','Network','Status','Date']}>
+        <TableWrap cols={tab==='payments'?['Reference','Amount','Type','Email','Status','Date']:['Property','User','Amount','Fee','Status','Date']}>
           {filtered.map(item=>(
             <TR key={item.id}>
               {tab==='payments'&&<>
@@ -1077,14 +1076,6 @@ function TransactionsTab() {
                 <td className="px-4 py-3 text-white text-xs">{item.profiles?.full_name||'N/A'}</td>
                 <td className="px-4 py-3 font-semibold text-white">{fmt(item.amount||0)}</td>
                 <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{fmt(item.platform_fee||0)}</td>
-                <td className="px-4 py-3"><Badge label={item.status||'N/A'} color={SC[item.status]||'#888'}/></td>
-                <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(item.created_at)}</td>
-              </>}
-              {tab==='crypto'&&<>
-                <td className="px-4 py-3 font-mono text-xs text-white">{(item.reference||'N/A').slice(0,16)}…</td>
-                <td className="px-4 py-3 text-xs text-white truncate max-w-[140px]">{item.description||'N/A'}</td>
-                <td className="px-4 py-3 font-semibold text-white">${item.usdt_amount||0}</td>
-                <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{item.network_label||'N/A'}</td>
                 <td className="px-4 py-3"><Badge label={item.status||'N/A'} color={SC[item.status]||'#888'}/></td>
                 <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(item.created_at)}</td>
               </>}
@@ -2108,7 +2099,6 @@ function SettingsTab({isSuperAdmin}) {
         {[
           {id:'general', label:'General'},
           {id:'bank',    label:'Bank Details'},
-          {id:'crypto',  label:'Crypto Wallets'},
         ].map(s=>(
           <button key={s.id} onClick={()=>setSection(s.id)}
             className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
@@ -2120,7 +2110,6 @@ function SettingsTab({isSuperAdmin}) {
 
       {section==='general'&&<GeneralSettingsSection isSuperAdmin={isSuperAdmin}/>}
       {section==='bank'   &&<BankDetailsSection      isSuperAdmin={isSuperAdmin}/>}
-      {section==='crypto' &&<CryptoWalletsSection     isSuperAdmin={isSuperAdmin}/>}
     </div>
   )
 }
@@ -2392,125 +2381,6 @@ function BankDetailsSection({isSuperAdmin}) {
               {!acc.is_primary&&<button onClick={()=>setPrimary(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}>Set Primary</button>}
               <button onClick={()=>toggleActive(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>{acc.is_active?'Deactivate':'Activate'}</button>
               <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(201,106,58,0.1)',color:'#C96A3A'}}>Delete</button>
-            </div>
-          )}
-        </div>
-      ))}
-      {ReauthModalEl}
-    </div>
-  )
-}
-
-// ── Settings: Crypto Wallets ─────────────────────────────────────────────────────
-function CryptoWalletsSection({isSuperAdmin}) {
-  const [wallets,setWallets]=useState([])
-  const [loading,setLoading]=useState(true)
-  const [saving,setSaving]=useState({})
-  const [edits,setEdits]=useState({}) // id -> address being typed
-  const {user:admin}=useAuth()
-  const {requireReauth,ReauthModalEl}=useReauthGate(admin?.email)
-
-  const load=async()=>{
-    setLoading(true)
-    const {data,error}=await supabase.from('crypto_wallets').select('*').order('sort_order',{ascending:true})
-    if(error){console.error(error.message);setWallets([]);setLoading(false);return}
-    setWallets(data||[])
-    const map={}
-    for(const w of data||[]) map[w.id]=w.address||''
-    setEdits(map)
-    setLoading(false)
-  }
-  useEffect(()=>{load()},[])
-
-  const saveAddress=async(walletId)=>{
-    if(!isSuperAdmin){toast.error('Only the superadmin can edit wallet addresses');return}
-    if(!(await requireReauth()))return
-    setSaving(s=>({...s,[walletId]:true}))
-    const {error}=await supabase.from('crypto_wallets').update({
-      address:(edits[walletId]||'').trim(), updated_by:admin?.id, updated_at:new Date().toISOString(),
-    }).eq('id',walletId)
-    setSaving(s=>({...s,[walletId]:false}))
-    if(error){toast.error('Could not save: '+error.message);return}
-    await auditLog('crypto_wallet_updated',{walletId,by:admin?.id})
-    toast.success('Saved')
-    load()
-  }
-
-  const toggleActive=async(w)=>{
-    if(!isSuperAdmin)return
-    if(!(await requireReauth()))return
-    await supabase.from('crypto_wallets').update({is_active:!w.is_active}).eq('id',w.id)
-    await auditLog('crypto_wallet_'+(w.is_active?'deactivated':'activated'),{id:w.id,by:admin?.id})
-    load()
-  }
-
-  // Group by network so TRC20/BEP20/etc share one address field
-  // (USDT and USDC on the same network use the same wallet address)
-  const byNetwork={}
-  for(const w of wallets){
-    if(!byNetwork[w.network]) byNetwork[w.network]=[]
-    byNetwork[w.network].push(w)
-  }
-
-  const configuredCount=wallets.filter(w=>w.address).length
-
-  if(loading) return <Spinner/>
-
-  return(
-    <div className="space-y-4">
-      <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:configuredCount>0?'rgba(122,158,126,0.06)':'rgba(201,106,58,0.06)',border:'1px solid '+(configuredCount>0?'rgba(122,158,126,0.15)':'rgba(201,106,58,0.15)')}}>
-        <Shield size={14} style={{color:configuredCount>0?'#7A9E7E':'#C96A3A',flexShrink:0,marginTop:2}}/>
-        <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>
-          {configuredCount>0
-            ? configuredCount+' of '+wallets.length+' wallet addresses configured. Crypto payment is visible to users.'
-            : 'No wallet addresses configured yet. The crypto payment option is hidden from users until at least one address is set.'}
-        </p>
-      </div>
-
-      {Object.entries(byNetwork).map(([network,nets])=>(
-        <div key={network} className="rounded-2xl p-5" style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">{nets[0].icon}</span>
-            <p className="text-sm font-bold text-white">{network}</p>
-          </div>
-          <p className="text-xs mb-4" style={{color:'rgba(255,255,255,0.35)'}}>
-            Used for: {nets.map(n=>n.coin).join(' & ')} · {nets[0].fee_label}
-          </p>
-          <label className="text-xs font-semibold block mb-1.5" style={{color:'rgba(255,255,255,0.6)'}}>Wallet Address</label>
-          <div className="flex gap-2">
-            <input
-              value={edits[nets[0].id]||''}
-              onChange={e=>{
-                const v=e.target.value
-                setEdits(ed=>{
-                  const next={...ed}
-                  // Same address applies to all coins on this network (USDT + USDC share one wallet)
-                  for(const n of nets) next[n.id]=v
-                  return next
-                })
-              }}
-              placeholder="Paste wallet address"
-              disabled={!isSuperAdmin}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-mono"
-              style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}
-            />
-            {isSuperAdmin&&(
-              <button onClick={async()=>{for(const n of nets) await saveAddress(n.id)}} disabled={saving[nets[0].id]}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all"
-                style={{backgroundColor:'#D4A853',color:'#1A1210'}}>
-                <Save size={12}/> {saving[nets[0].id]?'Saving…':'Save'}
-              </button>
-            )}
-          </div>
-          {isSuperAdmin&&(
-            <div className="flex items-center gap-2 mt-3">
-              {nets.map(n=>(
-                <button key={n.id} onClick={()=>toggleActive(n)}
-                  className="text-[10px] font-bold px-2 py-1 rounded-full transition-all"
-                  style={{backgroundColor:n.is_active?'rgba(122,158,126,0.12)':'rgba(255,255,255,0.06)',color:n.is_active?'#7A9E7E':'rgba(255,255,255,0.4)'}}>
-                  {n.coin}: {n.is_active?'Active':'Disabled'}
-                </button>
-              ))}
             </div>
           )}
         </div>

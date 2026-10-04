@@ -1,3 +1,15 @@
+# DealMatch - Crypto Payments Removed (October 2026)
+
+- Cryptocurrency (USDT/USDC) payment removed entirely: payment component and
+  library, Escrow page option, admin Crypto transactions tab and Crypto Wallets
+  settings, `CRYPTO_PAYMENTS_ENABLED` flag, `paymentMethod` allow-list entry.
+  Card and bank (Paystack) payments are unchanged.
+- Database: migration `20261004000003_remove_crypto_payments.sql` revokes all
+  client access to `crypto_payments` and `crypto_wallets`, clears wallet
+  addresses and keeps existing rows as financial history. Dropping the tables
+  is left as an optional, commented step.
+- README and docs updated. This supersedes the "on hold" entry below.
+
 # DealMatch - Crypto Payments On Hold, Company Details (October 2026)
 
 - Crypto (USDT/USDC) payment is switched off while we confirm it meets Nigerian
