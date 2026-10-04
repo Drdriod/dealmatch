@@ -103,6 +103,10 @@
       "destination": "/api/platform?resource=forum-resolve"
     },
     {
+      "source": "/api/whatsapp",
+      "destination": "/api/send-whatsapp"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

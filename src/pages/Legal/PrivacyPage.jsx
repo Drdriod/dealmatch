@@ -5,7 +5,7 @@ export default function PrivacyPage() {
         <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#1A1210' }}>Privacy Policy</h1>
         <p className="text-xs mb-8" style={{ color: '#8A7E78' }}>Last updated: {new Date().getFullYear()}</p>
         {[
-          { title: '1. Information We Collect', body: 'We collect information you provide directly, including name, email address, phone number, and property preferences. We also collect usage data to improve our service.' },
+          { title: '1. Information We Collect', body: 'We collect information you provide directly, including name, email address, phone number, and property preferences. If you message DealMatch on WhatsApp, we also keep your WhatsApp number, first name and the service or home requests you make there, so we can match you and keep the platform safe. We also collect usage data to improve our service.' },
           { title: '2. How We Use Your Information', body: 'We use your information to match you with properties, connect you with professionals, process payments securely through Paystack, and send you relevant notifications via WhatsApp.' },
           { title: '3. Data Sharing', body: 'Contact details (phone, chat) stay locked and are never shown on public listing cards. They unlock only after an escrow payment is confirmed on both sides. We do not sell your personal data to third parties.' },
           { title: '4. Data Security', body: 'Your data is stored securely using Supabase with row-level security. Payments are processed by Paystack: we do not store card details.' },
