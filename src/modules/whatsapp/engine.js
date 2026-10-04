@@ -99,6 +99,9 @@ function parseInput(msg) {
   return { kind: 'media', text: '', id: null }
 }
 
+// One-line operational diagnostics. Shown in Vercel logs as level "info"; never logs message text or full numbers.
+function diag(msg) { console.log(`[wa] ${msg}`) }
+
 export function createEngine({ store, cloud, appUrl, allowedCountryCodes = ['234'], phoneNumberId = null }) {
   const url = path => `${appUrl}${path}`
 
@@ -380,17 +383,24 @@ export function createEngine({ store, cloud, appUrl, allowedCountryCodes = ['234
   // ── the single entry point per inbound message ────────────────────────────
   async function handleMessage(msg, waProfileName) {
     const waId = normalizeWaId(msg?.from)
-    if (!waId || !msg?.id) return
+    if (!waId || !msg?.id) { diag('ignored: message has no sender or id'); return }
+    const tag = `…${String(waId).slice(-3)}`   // masked number, never the full MSISDN
 
-    if (await store.isBlockedNumber(waId)) return
+    if (await store.isBlockedNumber(waId)) { diag(`ignored ${tag}: number is blocked`); return }
 
     let contact = await store.getContact(waId)
-    if (!contact && !isAllowedCountry(waId, allowedCountryCodes)) return
+    if (!contact && !isAllowedCountry(waId, allowedCountryCodes)) {
+      diag(`ignored ${tag}: country code not allowed (allowed: ${allowedCountryCodes.join(',')})`)
+      return
+    }
 
-    if (!(await store.logInbound({ wamid: msg.id, waId, msgType: msg.type }))) return   // Meta retry
+    if (!(await store.logInbound({ wamid: msg.id, waId, msgType: msg.type }))) {
+      diag(`ignored ${tag}: duplicate delivery or wa_message_log insert failed`)   // Meta retry, or DB problem
+      return
+    }
 
     if (!contact) contact = await store.createContact({ waId, waProfileName })
-    if (!contact) return
+    if (!contact) { diag(`ignored ${tag}: could not create wa_contacts row (check migration/service key)`); return }
     contact.last_inbound_at = iso()
     await store.updateContact(waId, { last_inbound_at: contact.last_inbound_at })
 
@@ -514,7 +524,12 @@ export function createEngine({ store, cloud, appUrl, allowedCountryCodes = ['234
       for (const change of entry?.changes || []) {
         const value = change?.value
         if (!value) continue
-        if (phoneNumberId && value?.metadata?.phone_number_id && value.metadata.phone_number_id !== phoneNumberId) continue
+        const gotId = value?.metadata?.phone_number_id
+        diag(`webhook change: field=${change?.field} messages=${(value.messages || []).length} statuses=${(value.statuses || []).length} phone_number_id=…${String(gotId || '').slice(-4)} configured=…${String(phoneNumberId || '').slice(-4)}`)
+        if (phoneNumberId && gotId && gotId !== phoneNumberId) {
+          diag('ignored: phone_number_id mismatch (WHATSAPP_PHONE_NUMBER_ID does not match the number that received this message)')
+          continue
+        }
         const names = {}
         for (const c of value.contacts || []) names[c.wa_id] = c.profile?.name
         for (const msg of value.messages || []) {
