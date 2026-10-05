@@ -1,99 +1,79 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Search } from 'lucide-react'
+import { ArrowRight, MapPin, Search, Users } from 'lucide-react'
 
-// Only things DealMatch actually supports today - Places (shortlet/house
-// rent) and People (skilled services). Never list a category that doesn't
-// exist yet (cars, land, logistics, etc per the brief's explicit "do not
-// add" list).
-const EXAMPLES = [
-  'Find a shortlet near you',
-  'Find a plumber',
-  'Find house rent',
-  'Find a home lesson teacher',
-  'Find an electrician',
-  'Find a cleaner',
-]
+// Only things DealMatch actually supports today: Places (shortlet / house
+// rent) and People (skilled services). Never list a category that does not
+// exist yet.
+const MODES = {
+  place: {
+    label: 'A place',
+    icon: MapPin,
+    placeholder: 'Shortlet, flat or house to rent',
+  },
+  person: {
+    label: 'A professional',
+    icon: Users,
+    placeholder: 'Electrician, plumber, cleaner or tutor',
+  },
+}
 
+/**
+ * Segmented hero search: what kind of thing (place / professional), what
+ * the need is, and where. Category and location are explicit instead of
+ * hidden in one free-text box. Always routes to the universal search page,
+ * which runs the real federated query and AI/location matching, so the
+ * results (not a client-side guess) decide what is shown.
+ */
 export default function HeroSearch({ className = '' }) {
   const navigate = useNavigate()
-  const [value, setValue] = useState('')
-  const [exampleIdx, setExampleIdx] = useState(0)
-  const [reducedMotion, setReducedMotion] = useState(false)
-  const inputRef = useRef(null)
+  const [mode, setMode] = useState('place')
+  const [what, setWhat] = useState('')
+  const [where, setWhere] = useState('')
 
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReducedMotion(mq.matches)
-    const onChange = () => setReducedMotion(mq.matches)
-    mq.addEventListener?.('change', onChange)
-    return () => mq.removeEventListener?.('change', onChange)
-  }, [])
-
-  useEffect(() => {
-    const t = setInterval(() => setExampleIdx(i => (i + 1) % EXAMPLES.length), 2600)
-    return () => clearInterval(t)
-  }, [])
-
-  // FIX (item 7-a of the trace): this used to keyword-guess whether the
-  // text was about a "place" or a "person" client-side and route straight
-  // to /places or /providers - no real search ever ran, and the guess was
-  // often wrong (e.g. "shortlet with a cleaner included"). Now it always
-  // routes to the universal search page, which runs the real
-  // universal_search() federated query plus AI/location matching across
-  // every category, and lets the results speak for themselves instead of
-  // a client-side guess deciding which single vertical to show.
   const submit = (e) => {
     e.preventDefault()
-    const text = value.trim()
+    const text = [what.trim(), where.trim()].filter(Boolean).join(' ')
     navigate(text ? `/search?q=${encodeURIComponent(text)}` : '/search')
   }
 
   return (
-    <form onSubmit={submit} className={`relative w-full max-w-[700px] ${className}`}>
-      <div className="relative flex items-center rounded-[20px] p-1.5 shadow-soft transition-shadow focus-within:ring-2 focus-within:ring-terracotta/30"
-        style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(23,33,27,0.08)' }}>
-        <Search size={18} className="ml-5 flex-shrink-0" style={{ color: '#647068' }} />
-
-        <div className="relative flex-1 min-w-0">
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            aria-label="What are you looking for?"
-            className="w-full bg-transparent outline-none px-3 py-4 text-sm sm:text-base"
-            style={{ color: '#17211B' }}
-          />
-          {value === '' && (
-            <div className="absolute inset-0 flex items-center px-3 pointer-events-none overflow-hidden">
-              {reducedMotion ? (
-                <span className="text-sm sm:text-base truncate" style={{ color: '#A89A8C' }}>{EXAMPLES[exampleIdx]}</span>
-              ) : (
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={exampleIdx}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.28, ease: 'easeOut' }}
-                    className="text-sm sm:text-base truncate"
-                    style={{ color: '#A89A8C' }}
-                  >
-                    {EXAMPLES[exampleIdx]}
-                  </motion.span>
-                </AnimatePresence>
-              )}
-            </div>
-          )}
+    <form onSubmit={submit} className={`w-full max-w-[700px] ${className}`}>
+      <div className="rounded-[20px] p-2 shadow-soft bg-white" style={{ border: '1px solid rgba(23,33,27,0.08)' }}>
+        <div className="flex gap-1 px-1 pb-2" role="tablist" aria-label="What are you looking for?">
+          {Object.entries(MODES).map(([key, m]) => {
+            const active = mode === key
+            return (
+              <button key={key} type="button" role="tab" aria-selected={active} onClick={() => setMode(key)}
+                className={`inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-xs font-bold transition-colors ${active ? 'bg-forest-pale text-forest' : 'text-deep/60 hover:text-deep'}`}>
+                <m.icon size={15} /> {m.label}
+              </button>
+            )
+          })}
         </div>
 
-        <button type="submit"
-          className="flex-shrink-0 flex items-center gap-1.5 px-4 sm:px-6 min-h-[52px] rounded-full text-sm font-bold transition hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]"
-          style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
-          Find a Match <ArrowRight size={14} />
-        </button>
+        <div className="grid sm:grid-cols-[1.4fr_0.8fr_auto] items-stretch">
+          <label className="px-4 py-2 sm:border-r border-line border-b sm:border-b-0">
+            <span className="block text-[10px] font-extrabold uppercase tracking-wider mb-1">What do you need?</span>
+            <span className="flex items-center gap-2 text-deep/60">
+              <Search size={16} className="flex-shrink-0" />
+              <input value={what} onChange={e => setWhat(e.target.value)} placeholder={MODES[mode].placeholder}
+                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/40" />
+            </span>
+          </label>
+          <label className="px-4 py-2 border-b sm:border-b-0 border-line">
+            <span className="block text-[10px] font-extrabold uppercase tracking-wider mb-1">Where?</span>
+            <span className="flex items-center gap-2 text-deep/60">
+              <MapPin size={16} className="flex-shrink-0" />
+              <input value={where} onChange={e => setWhere(e.target.value)} placeholder="City or area"
+                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/40" />
+            </span>
+          </label>
+          <button type="submit"
+            className="mt-2 sm:mt-0 sm:ml-2 self-center min-h-[52px] px-6 rounded-full text-sm font-bold inline-flex items-center justify-center gap-1.5 bg-terracotta text-white transition hover:bg-[#A8441D] hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]">
+            Search <ArrowRight size={14} />
+          </button>
+        </div>
       </div>
     </form>
   )

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Bot, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'
 import FAQSection from '@/components/ui/FAQSection'
@@ -96,20 +96,20 @@ export default function HomePage() {
            ~800x280 so they sit in a framed card (never full-bleed) where
            they stay sharp. Pauses on hover/focus, 6s autoplay. ───────── */}
       <section
-        className="grid lg:grid-cols-[1.05fr_0.95fr] max-w-[1440px] mx-auto lg:min-h-[640px]"
+        className="grid lg:grid-cols-[1.05fr_0.95fr] max-w-[1440px] mx-auto lg:min-h-[560px]"
         onMouseEnter={() => setHeroPaused(true)}
         onMouseLeave={() => setHeroPaused(false)}
         onFocus={() => setHeroPaused(true)}
         onBlur={() => setHeroPaused(false)}
       >
-        <div className="self-center px-5 pt-12 pb-10 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-20">
+        <div className="self-center px-5 pt-8 pb-8 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-14">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
             <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
-            <h1 className="mt-5 text-[clamp(44px,12vw,56px)] sm:text-[clamp(52px,5vw,78px)] leading-[1.0] max-w-[720px] text-deep">
-              Find what you need. Find who can <em className="not-italic text-terracotta">provide it.</em>
+            <h1 className="mt-4 text-[clamp(38px,10.5vw,50px)] sm:text-[clamp(48px,4.6vw,72px)] leading-[1.02] max-w-[720px] text-deep">
+              Find a trusted place<br className="hidden sm:block" /> or <em className="not-italic text-terracotta">professional near you.</em>
             </h1>
-            <p className="mt-6 mb-8 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
-              Places to stay, homes to rent, and people ready to help. Matched to what you need, where you need it.
+            <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
+              Search shortlets, rentals, artisans and home services, matched to what you need and where you are.
             </p>
           </motion.div>
 
@@ -118,9 +118,9 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.14 }}
-            className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/65">
-            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Verification shown clearly</span>
-            <span className="inline-flex items-center gap-2"><Check size={16} className="text-terracotta" /> Contact stays protected</span>
+            className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/65">
+            <span className="inline-flex items-center gap-2"><Check size={16} className="text-terracotta" /> Free to search</span>
+            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Phone numbers stay hidden until a protected deal step</span>
             <button onClick={() => setShowPostChoice(true)} type="button"
               className="inline-flex items-center gap-1.5 text-deep font-bold border-b border-deep pb-0.5 hover:text-terracotta hover:border-terracotta transition-colors">
               Offer something <ArrowRight size={13} />
@@ -128,11 +128,11 @@ export default function HomePage() {
           </motion.div>
         </div>
 
-        <div className="relative bg-forest-pale lg:bg-transparent px-5 py-8 sm:px-7 lg:p-0 min-h-[360px] lg:min-h-[640px] overflow-hidden">
+        <div className="relative bg-forest-pale lg:bg-transparent px-5 py-6 sm:px-7 lg:p-0 min-h-[260px] lg:min-h-[560px] overflow-hidden">
           <div className="hidden lg:block absolute inset-0 bg-forest-pale" />
           <div className="relative h-full flex items-center lg:px-10">
             <div className="relative w-full max-w-[560px] mx-auto">
-              <div className="relative rounded-[28px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3.4' }}>
+              <div className="relative rounded-[28px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3' }}>
                 {HERO_SLIDES.map((slide, i) => (
                   <img key={slide.src} src={slide.src} alt={i === heroIdx ? slide.alt : ''} aria-hidden={i !== heroIdx}
                     className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
@@ -163,14 +163,14 @@ export default function HomePage() {
            are true on day one regardless of how many people use it. ── */}
       <section className="bg-forest text-white" aria-label="DealMatch trust features">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-7 py-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/60">Know exactly who you&rsquo;re dealing with</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/60 max-w-[220px]">Every profile shows exactly which checks it has passed</p>
           {stats === 'mechanisms' ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-10 gap-y-4">
               {[
-                { icon: Lock,        label: 'Protection-backed' },
-                { icon: ShieldCheck, label: 'Identity + skill verified' },
-                { icon: Eye,         label: 'Physically inspected' },
-                { icon: Bot,         label: 'AI + location matched' },
+                { icon: ShieldCheck, label: 'Identity verified' },
+                { icon: Check,       label: 'Skill evidence reviewed' },
+                { icon: Eye,         label: 'Property inspected' },
+                { icon: Lock,        label: 'Escrow where available' },
               ].map((m, i) => (
                 <div key={i} className="flex items-center gap-2.5 text-xs">
                   <m.icon size={19} className="text-sun flex-shrink-0" />
@@ -280,7 +280,7 @@ export default function HomePage() {
           <span className="eyebrow">Start with one search</span>
           <h2 className="mt-4 mx-auto max-w-[720px] text-[40px] sm:text-6xl leading-[1.02] text-deep">Your next match is waiting.</h2>
           <p className="mx-auto mt-5 mb-2 max-w-[580px] text-deep/65 leading-relaxed">
-            Join Nigerians who found their match through DealMatch: property, talent, equipment, and more.
+            Be among the first to find your match on DealMatch. Free to search, with clear verification on every profile.
           </p>
           <p className="text-sm font-bold mb-8 text-terracotta">Every listing matched, not just posted</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
