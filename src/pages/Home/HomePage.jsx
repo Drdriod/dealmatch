@@ -35,9 +35,9 @@ export default function HomePage() {
   // rendered very large on a big desktop monitor. Swap for true
   // 2400x1350 photography when available; same array, same rotation logic.
   const HERO_SLIDES = [
-    { src: '/home/hero-place-shortlet.webp', title: 'Shortlets & serviced stays',  note: 'Places to stay in Uyo', alt: 'Bright shortlet apartment interior' },
+    { src: '/home/hero-place-shortlet.webp', title: 'Shortlets & serviced stays',  note: 'Places to stay near you', alt: 'Bright shortlet apartment interior' },
     { src: '/home/hero-person-plumber.webp', title: 'Plumbers & home repairs',     note: 'Skilled people nearby',   alt: 'Plumber at work' },
-    { src: '/home/hero-place-house.webp',    title: 'Houses & flats for rent',     note: 'Homes to rent in Uyo',  alt: 'House available for rent' },
+    { src: '/home/hero-place-house.webp',    title: 'Houses & flats for rent',     note: 'Homes to rent near you',  alt: 'House available for rent' },
     { src: '/home/hero-person-teacher.webp', title: 'Home lesson teachers',        note: 'Skilled people nearby',   alt: 'Teacher giving a home lesson' },
   ]
   const [heroIdx, setHeroIdx] = useState(0)
@@ -104,7 +104,7 @@ export default function HomePage() {
       >
         <div className="self-center px-5 pt-12 pb-10 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-20">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
-            <div className="eyebrow"><Sparkles size={15} /> Built for Uyo</div>
+            <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
             <h1 className="mt-5 text-[clamp(44px,12vw,56px)] sm:text-[clamp(52px,5vw,78px)] leading-[1.0] max-w-[720px] text-deep">
               Find what you need. Find who can <em className="not-italic text-terracotta">provide it.</em>
             </h1>

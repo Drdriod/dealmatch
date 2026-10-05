@@ -8,7 +8,7 @@ import { ArrowRight, Search } from 'lucide-react'
 // exist yet (cars, land, logistics, etc per the brief's explicit "do not
 // add" list).
 const EXAMPLES = [
-  'Find a shortlet in Uyo',
+  'Find a shortlet near you',
   'Find a plumber',
   'Find house rent',
   'Find a home lesson teacher',

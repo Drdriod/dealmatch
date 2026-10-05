@@ -435,7 +435,7 @@ export default function ListHostelPage() {
                 <input
                   value={form.institution_name}
                   onChange={e => setForm(f => ({ ...f, institution_name: e.target.value, institution_id: '' }))}
-                  placeholder="e.g. University of Uyo, Akwa Ibom State University..."
+                  placeholder="e.g. University of Lagos, University of Ibadan..."
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                   style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }}
                 />

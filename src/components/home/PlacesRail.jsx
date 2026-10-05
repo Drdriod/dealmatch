@@ -53,7 +53,7 @@ export default function PlacesRail() {
             </div>
             <div className="p-6 flex flex-col justify-center">
               <p className="font-display font-black text-lg mb-1" style={{ color: '#17211B' }}>No places listed here yet</p>
-              <p className="text-sm mb-4" style={{ color: '#647068' }}>Be the first to list a shortlet or house rent in Uyo.</p>
+              <p className="text-sm mb-4" style={{ color: '#647068' }}>Be the first to list a shortlet or house rent in your area.</p>
               <Link to="/list-rental" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold self-start"
                 style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
                 List a place <ArrowRight size={14} />
