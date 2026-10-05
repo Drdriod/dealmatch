@@ -19,7 +19,7 @@ export default function PlacesRail() {
         <div className="flex items-end justify-between mb-5">
           <div>
             <h2 className="font-display text-3xl" style={{ color: '#17211B' }}>Places near you</h2>
-            <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Shortlets and homes worth seeing.</p>
+            <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Places and homes worth seeing.</p>
           </div>
           <Link to="/places" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: '#C85F2D' }}>
             See all <ArrowRight size={13} />

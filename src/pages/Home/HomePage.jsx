@@ -35,10 +35,10 @@ export default function HomePage() {
   // rendered very large on a big desktop monitor. Swap for true
   // 2400x1350 photography when available; same array, same rotation logic.
   const HERO_SLIDES = [
-    { src: '/home/hero-place-shortlet.webp', title: 'Shortlets & serviced stays',  note: 'Places to stay near you', alt: 'Bright shortlet apartment interior' },
-    { src: '/home/hero-person-plumber.webp', title: 'Plumbers & home repairs',     note: 'Skilled people nearby',   alt: 'Plumber at work' },
-    { src: '/home/hero-place-house.webp',    title: 'Houses & flats for rent',     note: 'Homes to rent near you',  alt: 'House available for rent' },
-    { src: '/home/hero-person-teacher.webp', title: 'Home lesson teachers',        note: 'Skilled people nearby',   alt: 'Teacher giving a home lesson' },
+    { src: '/home/hero-place-shortlet.webp', title: 'Places to stay', note: 'Near you', alt: 'Bright shortlet apartment interior' },
+    { src: '/home/hero-person-plumber.webp', title: 'Home repairs and trades', note: 'Skilled people nearby',   alt: 'Plumber at work' },
+    { src: '/home/hero-place-house.webp',    title: 'Homes to rent', note: 'Near you',  alt: 'House available for rent' },
+    { src: '/home/hero-person-teacher.webp', title: 'Tutors and teachers', note: 'Skilled people nearby',   alt: 'Teacher giving a home lesson' },
   ]
   const [heroIdx, setHeroIdx] = useState(0)
   const [heroPaused, setHeroPaused] = useState(false)
@@ -109,7 +109,7 @@ export default function HomePage() {
               Find a trusted place<br className="hidden sm:block" /> or <em className="not-italic text-terracotta">professional near you.</em>
             </h1>
             <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
-              Search shortlets, rentals, artisans and home services, matched to what you need and where you are.
+              Search places to stay, homes to rent, artisans and home services, matched to what you need and where you are.
             </p>
           </motion.div>
 
