@@ -99,20 +99,20 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4"
-      style={{ backgroundColor: 'rgba(26,18,16,0.6)' }}
+      style={{ backgroundColor: 'rgba(23,33,27,0.6)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col" style={{ backgroundColor: '#FFFAF5', maxHeight: '92vh' }}>
-        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: '#E8DDD2' }}>
+        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: '#DEDDD6' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(122,158,126,0.15)' }}>
               <Shield size={18} style={{ color: '#7A9E7E' }} />
             </div>
             <div>
-              <h3 className="font-display text-lg font-black" style={{ color: '#1A1210' }}>Reserve this property</h3>
-              <p className="text-xs" style={{ color: '#8A7E78' }}>Held safely under DealMatch Protection</p>
+              <h3 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Reserve this property</h3>
+              <p className="text-xs" style={{ color: '#647068' }}>Held safely under DealMatch Protection</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(26,18,16,0.08)' }}>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
             <X size={14} style={{ color: '#5C4A3A' }} />
           </button>
         </div>
@@ -120,30 +120,30 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
         {done ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><ShieldCheck size={48} className="text-terracotta" /></div>
-            <h4 className="font-display font-black text-xl mb-2" style={{ color: '#1A1210' }}>Protection funded!</h4>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: '#8A7E78' }}>
+            <h4 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Protection funded!</h4>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: '#647068' }}>
               Your payment is held safely. The owner's contact details are now unlocked below.
             </p>
             <button onClick={onClose} className="btn-primary w-full py-3">Done</button>
           </div>
         ) : (
           <div className="overflow-y-auto flex-1 p-5 space-y-4">
-            <div className="rounded-2xl p-3 border" style={{ backgroundColor: '#FFF', borderColor: '#E8DDD2' }}>
-              <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>{property?.title}</p>
-              <p className="text-xs" style={{ color: '#8A7E78' }}>{property?.city}, {property?.state}</p>
+            <div className="rounded-2xl p-3 border" style={{ backgroundColor: '#FFF', borderColor: '#DEDDD6' }}>
+              <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{property?.title}</p>
+              <p className="text-xs" style={{ color: '#647068' }}>{property?.city}, {property?.state}</p>
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(26,18,16,0.5)' }}>Amount (₦)</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Amount (₦)</label>
               <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E8DDD2', color: '#1A1210' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
             </div>
 
             {property?.listing_type !== 'sale' && (
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(26,18,16,0.5)' }}>Preferred move-in date</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Preferred move-in date</label>
                 <input type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E8DDD2', color: '#1A1210' }} />
+                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
               </div>
             )}
 
@@ -154,7 +154,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <button onClick={handleReserve} disabled={submitting || confirming}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
-              style={{ backgroundColor: '#C96A3A' }}>
+              style={{ backgroundColor: '#C85F2D' }}>
               {submitting || confirming
                 ? <><Loader2 size={16} className="animate-spin" /> {confirming ? 'Confirming payment…' : 'Starting…'}</>
                 : `Pay ${formatNaira(youPay)} for protection`}

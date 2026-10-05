@@ -102,7 +102,7 @@ export default function AcceptStaffInvitePage() {
         <button
           onClick={submit} disabled={submitting}
           className="w-full py-3 rounded-2xl text-sm font-bold disabled:opacity-50"
-          style={{ backgroundColor: '#D4A853', color: '#1A1210' }}
+          style={{ backgroundColor: '#D4A853', color: '#17211B' }}
         >
           {submitting ? 'Activating...' : 'Activate account'}
         </button>

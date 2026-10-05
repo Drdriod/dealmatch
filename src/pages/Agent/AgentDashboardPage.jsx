@@ -13,7 +13,7 @@ const STATUS_CFG = {
   pending_review:     { bg:'rgba(212,168,83,0.12)',  color:'#8A6A20', label:'Pending Review' },
   under_verification: { bg:'rgba(91,141,239,0.12)',  color:'#4A72C4', label:'Verifying' },
   active:             { bg:'rgba(122,158,126,0.12)', color:'#4A7A4E', label:'Active' },
-  rejected:           { bg:'rgba(201,106,58,0.12)',  color:'#8A4A20', label:'Rejected' },
+  rejected:           { bg:'rgba(200,95,45,0.12)',  color:'#8A4A20', label:'Rejected' },
 }
 
 const CHECKLIST_LABELS = {
@@ -217,7 +217,7 @@ export default function AgentDashboardPage() {
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor:'#FFFAF5' }}>
       {/* Header */}
-      <div className="px-4 pt-10 pb-6" style={{ backgroundColor:'#1A1210' }}>
+      <div className="px-4 pt-10 pb-6" style={{ backgroundColor:'#17211B' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs mb-0.5" style={{ color:'rgba(255,255,255,0.45)' }}>Agent Portal</p>
@@ -242,8 +242,8 @@ export default function AgentDashboardPage() {
             {[
               { label:'Total',     value: score.total_verifications },
               { label:'Verified',  value: score.verified_count,   color:'#7A9E7E' },
-              { label:'Complaints',value: score.complaints_received, color: score.complaints_received > 0 ? '#C96A3A' : undefined },
-              { label:'Strikes',   value: `${score.strike_count}/3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C96A3A' : undefined },
+              { label:'Complaints',value: score.complaints_received, color: score.complaints_received > 0 ? '#C85F2D' : undefined },
+              { label:'Strikes',   value: `${score.strike_count}/3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C85F2D' : undefined },
             ].map(s => (
               <div key={s.label} className="rounded-xl p-2 text-center" style={{ backgroundColor:'rgba(255,255,255,0.05)' }}>
                 <p className="text-lg font-black" style={{ color: s.color || 'white' }}>{s.value}</p>
@@ -269,9 +269,9 @@ export default function AgentDashboardPage() {
       </div>
 
       {/* Liability declaration notice */}
-      <div className="mx-4 mt-4 rounded-2xl p-3 flex items-start gap-2.5" style={{ backgroundColor:'rgba(201,106,58,0.06)', border:'1px solid rgba(201,106,58,0.15)' }}>
-        <Shield size={15} style={{ color:'#C96A3A', flexShrink:0, marginTop:1 }} />
-        <p className="text-xs leading-relaxed" style={{ color:'#8A7E78' }}>
+      <div className="mx-4 mt-4 rounded-2xl p-3 flex items-start gap-2.5" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.15)' }}>
+        <Shield size={15} style={{ color:'#C85F2D', flexShrink:0, marginTop:1 }} />
+        <p className="text-xs leading-relaxed" style={{ color:'#647068' }}>
           As a DealMatch agent you are legally accountable for every verification you submit. False or negligent verifications will result in strikes, suspension, and potential legal referral. All submissions are GPS-stamped, photo-evidenced, and permanently audit-logged.
         </p>
       </div>
@@ -282,12 +282,12 @@ export default function AgentDashboardPage() {
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-2.5 rounded-2xl text-xs font-bold transition-all relative"
             style={{
-              backgroundColor: tab === t.id ? '#1A1210' : 'rgba(26,18,16,0.05)',
-              color: tab === t.id ? 'white' : '#8A7E78',
+              backgroundColor: tab === t.id ? '#17211B' : 'rgba(23,33,27,0.05)',
+              color: tab === t.id ? 'white' : '#647068',
             }}>
             {t.label}
             {t.count > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs" style={{ backgroundColor: tab === t.id ? 'rgba(212,168,83,0.3)' : 'rgba(201,106,58,0.15)', color: tab === t.id ? '#D4A853' : '#C96A3A' }}>
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs" style={{ backgroundColor: tab === t.id ? 'rgba(212,168,83,0.3)' : 'rgba(200,95,45,0.15)', color: tab === t.id ? '#D4A853' : '#C85F2D' }}>
                 {t.count}
               </span>
             )}
@@ -301,7 +301,7 @@ export default function AgentDashboardPage() {
           {visibleListings.length === 0 && (
             <div className="text-center py-16">
               <ClipboardList size={40} className="mx-auto mb-3 text-muted opacity-40" />
-              <p className="text-sm" style={{ color:'#8A7E78' }}>No {tab} listings</p>
+              <p className="text-sm" style={{ color:'#647068' }}>No {tab} listings</p>
             </div>
           )}
           {visibleListings.map(property => {
@@ -311,7 +311,7 @@ export default function AgentDashboardPage() {
             const alreadyDone = property.agent_verifications?.some(v => v.verdict !== 'pending')
 
             return (
-              <div key={property.id} className="rounded-3xl overflow-hidden" style={{ backgroundColor:'white', border:'1px solid #E8DDD2', boxShadow:'0 2px 12px rgba(26,18,16,0.06)' }}>
+              <div key={property.id} className="rounded-3xl overflow-hidden" style={{ backgroundColor:'white', border:'1px solid #DEDDD6', boxShadow:'0 2px 12px rgba(23,33,27,0.06)' }}>
                 {/* Property image */}
                 {property.images?.[0] && (
                   <img src={property.images[0]} alt={property.title} className="w-full h-36 object-cover" />
@@ -320,8 +320,8 @@ export default function AgentDashboardPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1">
-                      <h3 className="font-bold text-sm leading-snug" style={{ color:'#1A1210' }}>{property.title}</h3>
-                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color:'#8A7E78' }}>
+                      <h3 className="font-bold text-sm leading-snug" style={{ color:'#17211B' }}>{property.title}</h3>
+                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color:'#647068' }}>
                         <MapPin size={11} /> {property.city}, {property.state}
                       </p>
                     </div>
@@ -331,9 +331,9 @@ export default function AgentDashboardPage() {
                   </div>
 
                   {/* Landlord contact */}
-                  <div className="rounded-xl p-2.5 mb-3" style={{ backgroundColor:'rgba(26,18,16,0.03)' }}>
-                    <p className="text-xs font-semibold mb-0.5" style={{ color:'#1A1210' }}>{property.profiles?.full_name}</p>
-                    <p className="text-xs" style={{ color:'#8A7E78' }}>{property.profiles?.phone} · {property.profiles?.email}</p>
+                  <div className="rounded-xl p-2.5 mb-3" style={{ backgroundColor:'rgba(23,33,27,0.03)' }}>
+                    <p className="text-xs font-semibold mb-0.5" style={{ color:'#17211B' }}>{property.profiles?.full_name}</p>
+                    <p className="text-xs" style={{ color:'#647068' }}>{property.profiles?.phone} · {property.profiles?.email}</p>
                   </div>
 
                   {/* Already verified badge */}
@@ -348,7 +348,7 @@ export default function AgentDashboardPage() {
                   {tab === 'assigned' && !alreadyDone && (
                     <button onClick={() => initForm(property.id)}
                       className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
-                      style={{ backgroundColor:'rgba(201,106,58,0.08)', color:'#C96A3A', border:'1px solid rgba(201,106,58,0.2)' }}>
+                      style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D', border:'1px solid rgba(200,95,45,0.2)' }}>
                       <FileText size={14} />
                       {isOpen ? 'Close Evidence Form' : 'Submit Verification Evidence'}
                       {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -361,7 +361,7 @@ export default function AgentDashboardPage() {
 
                       {/* GPS */}
                       <div>
-                        <p className="text-xs font-bold mb-2" style={{ color:'#1A1210' }}>GPS Location *</p>
+                        <p className="text-xs font-bold mb-2" style={{ color:'#17211B' }}>GPS Location *</p>
                         {ev.gps ? (
                           <div className="rounded-xl p-2.5 flex items-center gap-2" style={{ backgroundColor:'rgba(122,158,126,0.08)', border:'1px solid rgba(122,158,126,0.2)' }}>
                             <CheckCircle size={14} style={{ color:'#7A9E7E' }} />
@@ -380,12 +380,12 @@ export default function AgentDashboardPage() {
 
                       {/* Photos */}
                       <div>
-                        <p className="text-xs font-bold mb-1" style={{ color:'#1A1210' }}>
-                          Site Photos * <span style={{ color:'#8A7E78', fontWeight:400 }}>(min 3 required - {(ev.photos||[]).length} uploaded)</span>
+                        <p className="text-xs font-bold mb-1" style={{ color:'#17211B' }}>
+                          Site Photos * <span style={{ color:'#647068', fontWeight:400 }}>(min 3 required - {(ev.photos||[]).length} uploaded)</span>
                         </p>
                         <button onClick={() => fileRef.current?.click()}
                           className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2"
-                          style={{ backgroundColor:'rgba(201,106,58,0.06)', color:'#C96A3A', border:'1.5px dashed rgba(201,106,58,0.3)' }}>
+                          style={{ backgroundColor:'rgba(200,95,45,0.06)', color:'#C85F2D', border:'1.5px dashed rgba(200,95,45,0.3)' }}>
                           <Camera size={14} /> Take / Upload Photos
                         </button>
                         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
@@ -393,8 +393,8 @@ export default function AgentDashboardPage() {
                         {(ev.photos||[]).length > 0 && (
                           <div className="flex gap-2 mt-2 flex-wrap">
                             {ev.photos.map((p,i) => (
-                              <div key={i} className="w-16 h-16 rounded-xl overflow-hidden" style={{ border:'1px solid #E8DDD2' }}>
-                                <div className="w-full h-full flex items-center justify-center text-xs" style={{ backgroundColor:'rgba(201,106,58,0.08)', color:'#C96A3A' }}>
+                              <div key={i} className="w-16 h-16 rounded-xl overflow-hidden" style={{ border:'1px solid #DEDDD6' }}>
+                                <div className="w-full h-full flex items-center justify-center text-xs" style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D' }}>
                                   <Camera size={18} />
                                 </div>
                               </div>
@@ -405,7 +405,7 @@ export default function AgentDashboardPage() {
 
                       {/* Checklist */}
                       <div>
-                        <p className="text-xs font-bold mb-2" style={{ color:'#1A1210' }}>Physical Inspection Checklist *</p>
+                        <p className="text-xs font-bold mb-2" style={{ color:'#17211B' }}>Physical Inspection Checklist *</p>
                         <div className="space-y-2">
                           {Object.entries(CHECKLIST_LABELS).map(([key, label]) => {
                             const checked = ev.checklist?.[key] || false
@@ -420,11 +420,11 @@ export default function AgentDashboardPage() {
                                 }))}
                                 className="w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all"
                                 style={{
-                                  backgroundColor: checked ? 'rgba(122,158,126,0.08)' : 'rgba(26,18,16,0.03)',
-                                  border: `1px solid ${checked ? 'rgba(122,158,126,0.3)' : '#E8DDD2'}`
+                                  backgroundColor: checked ? 'rgba(122,158,126,0.08)' : 'rgba(23,33,27,0.03)',
+                                  border: `1px solid ${checked ? 'rgba(122,158,126,0.3)' : '#DEDDD6'}`
                                 }}>
                                 <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
-                                  style={{ backgroundColor: checked ? '#7A9E7E' : 'white', border:`1.5px solid ${checked ? '#7A9E7E' : '#E8DDD2'}` }}>
+                                  style={{ backgroundColor: checked ? '#7A9E7E' : 'white', border:`1.5px solid ${checked ? '#7A9E7E' : '#DEDDD6'}` }}>
                                   {checked && <CheckCircle size={12} style={{ color:'white' }} />}
                                 </div>
                                 <span className="text-xs" style={{ color: checked ? '#4A7A4E' : '#5C4A3A' }}>{label}</span>
@@ -436,14 +436,14 @@ export default function AgentDashboardPage() {
 
                       {/* Notes */}
                       <div>
-                        <p className="text-xs font-bold mb-1" style={{ color:'#1A1210' }}>Additional Notes</p>
+                        <p className="text-xs font-bold mb-1" style={{ color:'#17211B' }}>Additional Notes</p>
                         <textarea
                           value={ev.notes || ''}
                           onChange={e => setEvidenceForm(f => ({ ...f, [property.id]: { ...f[property.id], notes: e.target.value } }))}
                           placeholder="Any observations, discrepancies, or notes about the property..."
                           rows={3}
                           className="w-full rounded-2xl px-3 py-2.5 text-xs resize-none outline-none"
-                          style={{ backgroundColor:'rgba(26,18,16,0.03)', border:'1.5px solid #E8DDD2', color:'#1A1210' }}
+                          style={{ backgroundColor:'rgba(23,33,27,0.03)', border:'1.5px solid #DEDDD6', color:'#17211B' }}
                         />
                       </div>
 
@@ -492,7 +492,7 @@ export default function AgentDashboardPage() {
         <div className="px-4 space-y-4">
           {/* Score card */}
           {score && (
-            <div className="rounded-3xl p-4" style={{ backgroundColor:'#1A1210' }}>
+            <div className="rounded-3xl p-4" style={{ backgroundColor:'#17211B' }}>
               <div className="flex items-center gap-2 mb-4">
                 <Award size={20} style={{ color:'#D4A853' }} />
                 <h2 className="font-bold text-white">Performance Record</h2>
@@ -501,8 +501,8 @@ export default function AgentDashboardPage() {
                 {[
                   { label:'Success Rate', value:`${score.total_verifications === 0 ? 100 : Math.round(score.verified_count/score.total_verifications*100)}%`, color:'#7A9E7E' },
                   { label:'Rating',       value:`${score.rating?.toFixed(1)} / 5.0`, color:'#D4A853' },
-                  { label:'Complaints',   value:`${score.complaints_upheld} upheld / ${score.complaints_received} total`, color: score.complaints_upheld > 0 ? '#C96A3A' : '#7A9E7E' },
-                  { label:'Strikes',      value:`${score.strike_count} of 3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C96A3A' : '#7A9E7E' },
+                  { label:'Complaints',   value:`${score.complaints_upheld} upheld / ${score.complaints_received} total`, color: score.complaints_upheld > 0 ? '#C85F2D' : '#7A9E7E' },
+                  { label:'Strikes',      value:`${score.strike_count} of 3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C85F2D' : '#7A9E7E' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3" style={{ backgroundColor:'rgba(255,255,255,0.05)' }}>
                     <p className="text-xs mb-0.5" style={{ color:'rgba(255,255,255,0.4)' }}>{s.label}</p>
@@ -519,18 +519,18 @@ export default function AgentDashboardPage() {
 
           {/* Complaints against this agent */}
           <div>
-            <h3 className="font-bold text-sm mb-3" style={{ color:'#1A1210' }}>Complaints Filed Against You</h3>
+            <h3 className="font-bold text-sm mb-3" style={{ color:'#17211B' }}>Complaints Filed Against You</h3>
             {complaints.length === 0 ? (
               <div className="text-center py-10">
                 <Shield size={36} className="mx-auto mb-3" style={{ color:'#7A9E7E', opacity:0.5 }} />
-                <p className="text-sm" style={{ color:'#8A7E78' }}>No complaints on record</p>
+                <p className="text-sm" style={{ color:'#647068' }}>No complaints on record</p>
               </div>
             ) : complaints.map(c => (
-              <div key={c.id} className="rounded-2xl p-4 mb-3" style={{ backgroundColor:'white', border:'1px solid #E8DDD2' }}>
+              <div key={c.id} className="rounded-2xl p-4 mb-3" style={{ backgroundColor:'white', border:'1px solid #DEDDD6' }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <p className="text-xs font-bold" style={{ color:'#1A1210' }}>{c.properties?.title || 'Property'}</p>
-                    <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>{c.category?.replace(/_/g,' ')}</p>
+                    <p className="text-xs font-bold" style={{ color:'#17211B' }}>{c.properties?.title || 'Property'}</p>
+                    <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{c.category?.replace(/_/g,' ')}</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{
                     backgroundColor: c.status==='upheld' ? 'rgba(201,74,58,0.1)' : c.status==='dismissed' ? 'rgba(122,158,126,0.1)' : 'rgba(212,168,83,0.1)',
@@ -551,7 +551,7 @@ export default function AgentDashboardPage() {
                       placeholder="Your response to this complaint..."
                       rows={2}
                       className="w-full rounded-xl px-2.5 py-2 text-xs resize-none outline-none"
-                      style={{ backgroundColor:'white', border:'1px solid #E8DDD2', color:'#1A1210' }}
+                      style={{ backgroundColor:'white', border:'1px solid #DEDDD6', color:'#17211B' }}
                       id={`response-${c.id}`}
                     />
                     <button
@@ -562,13 +562,13 @@ export default function AgentDashboardPage() {
                         toast.success('Response submitted'); loadComplaints()
                       }}
                       className="mt-2 w-full py-2 rounded-xl text-xs font-bold"
-                      style={{ backgroundColor:'#D4A853', color:'#1A1210' }}>
+                      style={{ backgroundColor:'#D4A853', color:'#17211B' }}>
                       Submit Response
                     </button>
                   </div>
                 )}
                 {c.agent_response && (
-                  <p className="text-xs mt-2 italic" style={{ color:'#8A7E78' }}>Your response: {c.agent_response}</p>
+                  <p className="text-xs mt-2 italic" style={{ color:'#647068' }}>Your response: {c.agent_response}</p>
                 )}
               </div>
             ))}

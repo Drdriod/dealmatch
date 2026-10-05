@@ -12,11 +12,11 @@ import { ArrowRight } from 'lucide-react'
 export default function FindOfferCard({ variant, icon: Icon, title, description, ctaLabel, to, onClick }) {
   const content = (
     <motion.div variants={{ rest: { y: 0 }, hover: { y: -4 } }} transition={{ duration: 0.25, ease: 'easeOut' }}>
-      <Icon size={26} className="mb-4" style={{ color: variant === 'offering' ? '#FFFFFF' : '#1A1A1A' }} />
-      <h3 className="font-display text-2xl font-black mb-2" style={{ color: variant === 'offering' ? '#FFFFFF' : '#1A1A1A' }}>{title}</h3>
-      <p className="text-sm mb-5" style={{ color: variant === 'offering' ? 'rgba(255,255,255,0.6)' : '#5A4F49' }}>{description}</p>
+      <Icon size={26} className="mb-4" style={{ color: variant === 'offering' ? '#FFFFFF' : '#17211B' }} />
+      <h3 className="font-display text-3xl mb-2" style={{ color: variant === 'offering' ? '#FFFFFF' : '#17211B' }}>{title}</h3>
+      <p className="text-sm mb-5" style={{ color: variant === 'offering' ? 'rgba(255,255,255,0.6)' : '#536058' }}>{description}</p>
       <span className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold"
-        style={{ backgroundColor: variant === 'offering' ? '#C45C26' : '#1A1A1A', color: '#FFFFFF' }}>
+        style={{ backgroundColor: variant === 'offering' ? '#C85F2D' : '#234C3A', color: '#FFFFFF' }}>
         {ctaLabel}
         <motion.span variants={{ rest: { x: 0 }, hover: { x: 3 } }} transition={{ duration: 0.2 }} className="inline-flex">
           <ArrowRight size={14} />
@@ -26,8 +26,8 @@ export default function FindOfferCard({ variant, icon: Icon, title, description,
   )
 
   const sharedProps = {
-    className: 'group relative block w-full text-left rounded-3xl overflow-hidden p-8 h-full',
-    style: { backgroundColor: variant === 'offering' ? '#1A1A1A' : '#FFFFFF', border: variant === 'offering' ? 'none' : '1px solid #E4DCD3', minHeight: 200 },
+    className: 'group relative block w-full text-left rounded-[22px] overflow-hidden p-8 sm:p-10 h-full',
+    style: { backgroundColor: variant === 'offering' ? '#234C3A' : '#FFFFFF', border: variant === 'offering' ? 'none' : '1px solid #DEDDD6', minHeight: 200 },
   }
 
   return (

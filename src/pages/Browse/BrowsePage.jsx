@@ -82,16 +82,16 @@ export default function BrowsePage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="font-display text-2xl font-black" style={{ color: '#1A1210' }}>
+              <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
                 Browse Deals
               </h1>
-              <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>
+              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                 {queue.length} propert{queue.length === 1 ? 'y' : 'ies'} matching your profile
               </p>
             </div>
             <button onClick={loadProperties}
               className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(26,18,16,0.08)' }}>
+              style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
               <RefreshCw size={16} style={{ color: '#5C4A3A' }} />
             </button>
           </div>
@@ -102,9 +102,9 @@ export default function BrowsePage() {
               <button key={f} onClick={() => setFilter(f)}
                 className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border transition-all flex-shrink-0"
                 style={{
-                  backgroundColor: filter === f ? '#1A1210' : '#FFFFFF',
+                  backgroundColor: filter === f ? '#17211B' : '#FFFFFF',
                   color:           filter === f ? '#FFFFFF'  : '#5C4A3A',
-                  borderColor:     filter === f ? '#1A1210'  : '#E8DDD2',
+                  borderColor:     filter === f ? '#17211B'  : '#DEDDD6',
                 }}>
                 {f}
               </button>
@@ -116,7 +116,7 @@ export default function BrowsePage() {
             <div className="flex items-center justify-center h-80">
               <div className="text-center">
                 <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta animate-bounce" /></div>
-                <p className="text-sm" style={{ color: '#8A7E78' }}>Finding your matches...</p>
+                <p className="text-sm" style={{ color: '#647068' }}>Finding your matches...</p>
               </div>
             </div>
           )}
@@ -125,10 +125,10 @@ export default function BrowsePage() {
           {!loading && empty && (
             <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
               <div className="flex justify-center mb-4">{queue.length === 0 && !hasSeenAny ? <Home size={48} className="text-terracotta" /> : <PartyPopper size={48} className="text-gold" />}</div>
-              <h3 className="font-display font-black text-xl mb-2" style={{ color: '#1A1210' }}>
+              <h3 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
                 {hasSeenAny ? "You've seen everything!" : 'No listings yet'}
               </h3>
-              <p className="text-sm mb-6" style={{ color: '#8A7E78' }}>
+              <p className="text-sm mb-6" style={{ color: '#647068' }}>
                 {hasSeenAny
                   ? 'Check your matches or refresh for new listings.'
                   : 'New properties are added regularly. Check back soon, or be the first to list one.'}
@@ -173,10 +173,10 @@ export default function BrowsePage() {
 
           {/* Swipe hint */}
           {!loading && !empty && queue.length > 0 && (
-            <div className="flex items-center justify-center gap-8 mt-6 text-xs" style={{ color: '#8A7E78' }}>
+            <div className="flex items-center justify-center gap-8 mt-6 text-xs" style={{ color: '#647068' }}>
               <div className="flex items-center gap-1.5">
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
-                  style={{ borderColor: '#C96A3A', color: '#C96A3A' }}><X size={18} /></div>
+                  style={{ borderColor: '#C85F2D', color: '#C85F2D' }}><X size={18} /></div>
                 <span>Pass</span>
               </div>
               <div className="flex items-center gap-1.5">

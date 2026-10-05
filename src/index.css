@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -21,6 +21,8 @@
 
   h1, h2, h3, h4 {
     @apply font-display;
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -28,7 +30,7 @@
   .btn-primary {
     @apply bg-terracotta text-white font-semibold px-8 py-4 rounded-full
            shadow-glow transition-all duration-200
-           hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(201,106,58,0.45)]
+           hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(200,95,45,0.45)]
            active:translate-y-0 active:shadow-glow
            disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
@@ -84,10 +86,24 @@
     @apply text-deep/50 text-lg leading-relaxed max-w-lg;
   }
 
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-terracotta text-xs font-extrabold tracking-[0.14em] uppercase;
+  }
+
+  .btn-forest {
+    @apply bg-forest text-white font-bold px-7 py-3.5 rounded-full transition-all duration-200
+           hover:bg-forest-dark hover:-translate-y-px;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-deep font-bold px-7 py-3.5 rounded-full border border-deep
+           transition-all duration-200 hover:bg-deep hover:text-white hover:-translate-y-px;
+  }
+
   /* Swipe card */
   .swipe-card {
     @apply bg-white rounded-[2rem] overflow-hidden cursor-grab active:cursor-grabbing;
-    box-shadow: 0 24px 80px rgba(26,18,16,0.18);
+    box-shadow: 0 24px 80px rgba(23,33,27,0.18);
     user-select: none;
     touch-action: none;
   }
@@ -95,14 +111,26 @@
   /* Match badge */
   .match-pill {
     @apply bg-terracotta text-white text-sm font-bold px-3 py-1.5 rounded-full;
-    box-shadow: 0 4px 16px rgba(201,106,58,0.5);
+    box-shadow: 0 4px 16px rgba(200,95,45,0.5);
   }
 }
 
 @layer utilities {
+  /* DM Serif Display ships a single (regular) weight. Existing markup
+     uses font-black/font-bold on display headings; without this the
+     browser would synthesise a smeared faux-bold. */
+  .font-display.font-black,
+  .font-display.font-extrabold,
+  .font-display.font-bold,
+  .font-display.font-semibold,
+  h1.font-black, h2.font-black, h3.font-black, h4.font-black,
+  h1.font-extrabold, h2.font-extrabold, h3.font-extrabold, h4.font-extrabold,
+  h1.font-bold, h2.font-bold, h3.font-bold, h4.font-bold,
+  h1.font-semibold, h2.font-semibold, h3.font-semibold, h4.font-semibold { font-weight: 400; }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #C96A3A, #D4A853);
+    background-image: linear-gradient(135deg, #C85F2D, #D4A853);
   }
 
   .bg-noise {
@@ -140,9 +168,9 @@
 .dark body {
   @apply bg-charcoal text-cream;
 }
-.dark .bg-white    { background-color: #2D2420; }
-.dark .bg-cream    { background-color: #1A1210; }
-.dark .text-deep   { color: #FAF6F0; }
+.dark .bg-white    { background-color: #1F2B24; }
+.dark .bg-cream    { background-color: #17211B; }
+.dark .text-deep   { color: #F7F4ED; }
 .dark .border-deep\/5  { border-color: rgba(250,246,240,0.05); }
 .dark .border-deep\/8  { border-color: rgba(250,246,240,0.08); }
 .dark .border-deep\/10 { border-color: rgba(250,246,240,0.10); }

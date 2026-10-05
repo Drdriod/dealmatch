@@ -183,27 +183,27 @@ export default function OnboardingPage() {
         <div className="space-y-3">
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3"><Hand size={48} className="text-terracotta" /></div>
-            <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>Welcome to DealMatch!</h2>
-            <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>What are you here to do?</p>
+            <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>Welcome to DealMatch!</h2>
+            <p className="text-sm mt-1" style={{ color:'#647068' }}>What are you here to do?</p>
           </div>
 
           <button onClick={() => chooseIntent('seeking')}
             className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all"
-            style={{ borderColor: data.intent === 'seeking' ? '#C96A3A' : '#E8DDD2', backgroundColor: data.intent === 'seeking' ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}>
+            style={{ borderColor: data.intent === 'seeking' ? '#C85F2D' : '#DEDDD6', backgroundColor: data.intent === 'seeking' ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
             <Compass size={22} className="text-terracotta flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>Find a Place or Get Help</p>
-              <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Buy, rent, invest, find student housing, or hire a skilled professional.</p>
+              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>Find a Place or Get Help</p>
+              <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Buy, rent, invest, find student housing, or hire a skilled professional.</p>
             </div>
           </button>
 
           <button onClick={() => chooseIntent('providing')}
             className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all"
-            style={{ borderColor: data.intent === 'providing' ? '#C96A3A' : '#E8DDD2', backgroundColor: data.intent === 'providing' ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}>
+            style={{ borderColor: data.intent === 'providing' ? '#C85F2D' : '#DEDDD6', backgroundColor: data.intent === 'providing' ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
             <Briefcase size={22} className="text-terracotta flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>List a Property or Offer a Service</p>
-              <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Landlords, sellers, and skilled professionals - verification required before going live.</p>
+              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>List a Property or Offer a Service</p>
+              <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Landlords, sellers, and skilled professionals - verification required before going live.</p>
             </div>
           </button>
         </div>
@@ -218,27 +218,27 @@ export default function OnboardingPage() {
       content: (
         <div className="space-y-3">
           <div className="mb-6">
-            <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>What are you offering?</h2>
-            <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>This decides what we'll ask you to verify.</p>
+            <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>What are you offering?</h2>
+            <p className="text-sm mt-1" style={{ color:'#647068' }}>This decides what we'll ask you to verify.</p>
           </div>
 
           <button onClick={() => chooseProviderType('place')}
             className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all"
-            style={{ borderColor: data.provider_type === 'place' ? '#C96A3A' : '#E8DDD2', backgroundColor: data.provider_type === 'place' ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}>
+            style={{ borderColor: data.provider_type === 'place' ? '#C85F2D' : '#DEDDD6', backgroundColor: data.provider_type === 'place' ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
             <Home size={22} className="text-terracotta flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>A Place</p>
-              <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Land, apartments, houses, or short-lets you own or manage.</p>
+              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>A Place</p>
+              <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Land, apartments, houses, or short-lets you own or manage.</p>
             </div>
           </button>
 
           <button onClick={() => chooseProviderType('skill')}
             className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all"
-            style={{ borderColor: data.provider_type === 'skill' ? '#C96A3A' : '#E8DDD2', backgroundColor: data.provider_type === 'skill' ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}>
+            style={{ borderColor: data.provider_type === 'skill' ? '#C85F2D' : '#DEDDD6', backgroundColor: data.provider_type === 'skill' ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
             <Wrench size={22} className="text-terracotta flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>A Skill or Service</p>
-              <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>Surveying, legal, engineering, trades, and other professional services.</p>
+              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>A Skill or Service</p>
+              <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Surveying, legal, engineering, trades, and other professional services.</p>
             </div>
           </button>
         </div>
@@ -253,8 +253,8 @@ export default function OnboardingPage() {
       content: (
         <div className="text-center space-y-4">
           <div className="flex justify-center"><Wrench size={48} className="text-terracotta" /></div>
-          <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>You're joining as a Professional</h2>
-          <p className="text-sm" style={{ color:'#8A7E78' }}>
+          <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>You're joining as a Professional</h2>
+          <p className="text-sm" style={{ color:'#647068' }}>
             Next, we'll verify your identity, then ask about your profession and experience.
             Your profile only goes live once both are confirmed - that's what keeps clients trusting the people they hire here.
           </p>
@@ -268,10 +268,10 @@ export default function OnboardingPage() {
         content: (
           <div className="space-y-3">
             <div className="mb-6">
-              <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>
+              <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>
                 {data.provider_type === 'place' ? 'Tell us about your property' : "What's your role?"}
               </h2>
-              <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>You can select more than one.</p>
+              <p className="text-sm mt-1" style={{ color:'#647068' }}>You can select more than one.</p>
             </div>
             {visibleRoles.map(r => (
             <button key={r.id}
@@ -279,14 +279,14 @@ export default function OnboardingPage() {
               onClick={() => { if (r.comingSoon) return; toggleRole(r.id) }}
               className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
               style={{
-                borderColor: data.roles.includes(r.id) ? '#C96A3A' : '#E8DDD2',
-                backgroundColor: data.roles.includes(r.id) ? 'rgba(201,106,58,0.05)' : '#FFFFFF',
+                borderColor: data.roles.includes(r.id) ? '#C85F2D' : '#DEDDD6',
+                backgroundColor: data.roles.includes(r.id) ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                 opacity: r.comingSoon ? 0.55 : 1,
                 cursor: r.comingSoon ? 'not-allowed' : 'pointer',
               }}>
               <span className="flex-shrink-0">{r.icon}</span>
               <div className="flex-1">
-                <p className="font-semibold text-sm flex items-center gap-2" style={{ color:'#1A1210' }}>
+                <p className="font-semibold text-sm flex items-center gap-2" style={{ color:'#17211B' }}>
                   {r.label}
                   {r.comingSoon && (
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
@@ -295,9 +295,9 @@ export default function OnboardingPage() {
                     </span>
                   )}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>{r.desc}</p>
+                <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{r.desc}</p>
               </div>
-              {data.roles.includes(r.id) && <Check size={16} style={{ color:'#C96A3A', flexShrink:0 }} />}
+              {data.roles.includes(r.id) && <Check size={16} style={{ color:'#C85F2D', flexShrink:0 }} />}
             </button>
           ))}
         </div>
@@ -311,17 +311,17 @@ export default function OnboardingPage() {
       content: (
         <div>
           <div className="mb-5">
-            <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>What's your goal?</h2>
-            <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>This helps us match you with the right properties.</p>
+            <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>What's your goal?</h2>
+            <p className="text-sm mt-1" style={{ color:'#647068' }}>This helps us match you with the right properties.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {goalsForRole.map(g => (
               <button key={g.id} onClick={() => set('property_goal', g.id)}
                 className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all"
-                style={{ borderColor: data.property_goal === g.id ? '#C96A3A' : '#E8DDD2', backgroundColor: data.property_goal === g.id ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}>
+                style={{ borderColor: data.property_goal === g.id ? '#C85F2D' : '#DEDDD6', backgroundColor: data.property_goal === g.id ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                 <span className="text-3xl">{g.icon}</span>
-                <span className="text-xs font-semibold text-center" style={{ color:'#1A1210' }}>{g.label}</span>
-                {data.property_goal === g.id && <Check size={12} style={{ color:'#C96A3A' }} />}
+                <span className="text-xs font-semibold text-center" style={{ color:'#17211B' }}>{g.label}</span>
+                {data.property_goal === g.id && <Check size={12} style={{ color:'#C85F2D' }} />}
               </button>
             ))}
           </div>
@@ -340,39 +340,39 @@ export default function OnboardingPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>
+            <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>
               {isLister ? 'Listing Preferences' : 'Your preferences'}
             </h2>
-            <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>
+            <p className="text-sm mt-1" style={{ color:'#647068' }}>
               {isLister ? 'Tell us where your properties are located.' : 'Tell us where and what you\'re looking for.'}
             </p>
           </div>
 
           {/* States */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>
               {isLister ? 'Primary States of Operation' : 'Preferred States'}
             </label>
-            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 border rounded-2xl" style={{ borderColor:'#E8DDD2' }}>
+            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 border rounded-2xl" style={{ borderColor:'#DEDDD6' }}>
               {ALL_STATES.map(s => (
                 <button key={s} onClick={() => toggleArr('preferred_states', s)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all"
-                  style={{ borderColor: data.preferred_states.includes(s) ? '#C96A3A' : '#E8DDD2', backgroundColor: data.preferred_states.includes(s) ? '#C96A3A' : '#FFFFFF', color: data.preferred_states.includes(s) ? '#FFFFFF' : '#5C4A3A' }}>
+                  style={{ borderColor: data.preferred_states.includes(s) ? '#C85F2D' : '#DEDDD6', backgroundColor: data.preferred_states.includes(s) ? '#C85F2D' : '#FFFFFF', color: data.preferred_states.includes(s) ? '#FFFFFF' : '#5C4A3A' }}>
                   {s}
                 </button>
               ))}
             </div>
-            <p className="text-[10px] mt-1.5" style={{ color:'#8A7E78' }}>You can select multiple states.</p>
+            <p className="text-[10px] mt-1.5" style={{ color:'#647068' }}>You can select multiple states.</p>
           </div>
 
           {/* Property types */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>Property Types</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Property Types</label>
             <div className="flex flex-wrap gap-2">
               {PROP_TYPES.map(t => (
                 <button key={t} onClick={() => toggleArr('property_types', t)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all"
-                  style={{ borderColor: data.property_types.includes(t) ? '#7A9E7E' : '#E8DDD2', backgroundColor: data.property_types.includes(t) ? '#7A9E7E' : '#FFFFFF', color: data.property_types.includes(t) ? '#FFFFFF' : '#5C4A3A' }}>
+                  style={{ borderColor: data.property_types.includes(t) ? '#7A9E7E' : '#DEDDD6', backgroundColor: data.property_types.includes(t) ? '#7A9E7E' : '#FFFFFF', color: data.property_types.includes(t) ? '#FFFFFF' : '#5C4A3A' }}>
                   {t}
                 </button>
               ))}
@@ -382,11 +382,11 @@ export default function OnboardingPage() {
           {/* Budget - buyers/investors/renters only */}
           {isBuyer && (
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color:'rgba(26,18,16,0.5)' }}>Budget Range (₦) *</label>
+              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color:'rgba(23,33,27,0.5)' }}>Budget Range (₦) *</label>
               <div className="grid grid-cols-2 gap-3">
                 {/* Min budget */}
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color:'#8A7E78' }}>Min Budget</label>
+                  <label className="text-[11px] mb-1 block" style={{ color:'#647068' }}>Min Budget</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -394,7 +394,7 @@ export default function OnboardingPage() {
                     placeholder="e.g. 5000000"
                     value={data.budget_min}
                     onChange={e => handleBudgetChange('budget_min', e.target.value)}
-                    style={{ backgroundColor:'#FFFFFF', color:'#1A1210', borderColor: budgetError ? '#C96A3A' : '#E8DDD2' }}
+                    style={{ backgroundColor:'#FFFFFF', color:'#17211B', borderColor: budgetError ? '#C85F2D' : '#DEDDD6' }}
                   />
                   {data.budget_min && (
                     <p className="text-[10px] mt-1 font-semibold" style={{ color:'#7A9E7E' }}>
@@ -404,7 +404,7 @@ export default function OnboardingPage() {
                 </div>
                 {/* Max budget */}
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color:'#8A7E78' }}>Max Budget *</label>
+                  <label className="text-[11px] mb-1 block" style={{ color:'#647068' }}>Max Budget *</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -412,10 +412,10 @@ export default function OnboardingPage() {
                     placeholder="e.g. 50000000"
                     value={data.budget_max}
                     onChange={e => handleBudgetChange('budget_max', e.target.value)}
-                    style={{ backgroundColor:'#FFFFFF', color:'#1A1210', borderColor: budgetError ? '#C96A3A' : '#E8DDD2' }}
+                    style={{ backgroundColor:'#FFFFFF', color:'#17211B', borderColor: budgetError ? '#C85F2D' : '#DEDDD6' }}
                   />
                   {data.budget_max && (
-                    <p className="text-[10px] mt-1 font-semibold" style={{ color: budgetError ? '#C96A3A' : '#7A9E7E' }}>
+                    <p className="text-[10px] mt-1 font-semibold" style={{ color: budgetError ? '#C85F2D' : '#7A9E7E' }}>
                       {budgetError ? budgetError : formatBudgetPreview(data.budget_max)}
                     </p>
                   )}
@@ -424,23 +424,23 @@ export default function OnboardingPage() {
               {/* Budget error banner */}
               {budgetError && (
                 <div className="flex items-center gap-2 p-3 rounded-xl"
-                  style={{ backgroundColor:'rgba(201,106,58,0.08)', border:'1px solid rgba(201,106,58,0.25)' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C96A3A" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  <p className="text-xs" style={{ color:'#C96A3A' }}>{budgetError}</p>
+                  style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.25)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C85F2D" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <p className="text-xs" style={{ color:'#C85F2D' }}>{budgetError}</p>
                 </div>
               )}
               {/* Mortgage toggle */}
               {(data.roles.includes('buyer') || data.roles.includes('investor')) && (
                 <div className="flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all"
-                  style={{ borderColor: data.needs_financing ? '#C96A3A' : '#E8DDD2', backgroundColor: data.needs_financing ? 'rgba(201,106,58,0.05)' : '#FFFFFF' }}
+                  style={{ borderColor: data.needs_financing ? '#C85F2D' : '#DEDDD6', backgroundColor: data.needs_financing ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}
                   onClick={() => set('needs_financing', !data.needs_financing)}>
                   <div className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all"
-                    style={{ borderColor: data.needs_financing ? '#C96A3A' : '#E8DDD2', backgroundColor: data.needs_financing ? '#C96A3A' : '#FFFFFF' }}>
+                    style={{ borderColor: data.needs_financing ? '#C85F2D' : '#DEDDD6', backgroundColor: data.needs_financing ? '#C85F2D' : '#FFFFFF' }}>
                     {data.needs_financing && <Check size={10} color="white" />}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color:'#1A1210' }}>I'd be interested in mortgage financing</p>
-                    <p className="text-xs" style={{ color:'#8A7E78' }}>Mortgage matching is coming soon - we'll notify you when it's ready</p>
+                    <p className="text-sm font-semibold" style={{ color:'#17211B' }}>I'd be interested in mortgage financing</p>
+                    <p className="text-xs" style={{ color:'#647068' }}>Mortgage matching is coming soon - we'll notify you when it's ready</p>
                   </div>
                 </div>
               )}
@@ -450,7 +450,7 @@ export default function OnboardingPage() {
           {isLister && (
             <div className="rounded-2xl p-4 border" style={{ backgroundColor:'rgba(122,158,126,0.06)', borderColor:'rgba(122,158,126,0.25)' }}>
               <p className="text-sm font-semibold mb-1" style={{ color:'#5C8060' }}>Listing Focus</p>
-              <p className="text-xs" style={{ color:'#8A7E78' }}>We'll prioritize showing your listings to buyers in your selected states.</p>
+              <p className="text-xs" style={{ color:'#647068' }}>We'll prioritize showing your listings to buyers in your selected states.</p>
             </div>
           )}
         </div>
@@ -465,12 +465,12 @@ export default function OnboardingPage() {
         <div className="space-y-5">
           <div className="text-center">
             <div className="flex justify-center mb-3"><PartyPopper size={48} className="text-gold" /></div>
-            <h2 className="font-display font-black text-2xl" style={{ color:'#1A1210' }}>You're all set!</h2>
-            <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>Here's a summary of your profile setup.</p>
+            <h2 className="font-display font-black text-2xl" style={{ color:'#17211B' }}>You're all set!</h2>
+            <p className="text-sm mt-1" style={{ color:'#647068' }}>Here's a summary of your profile setup.</p>
           </div>
 
           {/* Summary card */}
-          <div className="rounded-2xl border divide-y overflow-hidden" style={{ borderColor:'#E8DDD2' }}>
+          <div className="rounded-2xl border divide-y overflow-hidden" style={{ borderColor:'#DEDDD6' }}>
             {[
               { label:'Role',        value: data.roles.map(id => ROLES.find(r => r.id === id)?.label).filter(Boolean).join(', ') },
               { label:'Goal',        value: goalsForRole.find(g => g.id === data.property_goal)?.label },
@@ -480,16 +480,16 @@ export default function OnboardingPage() {
             ].map(row => (
               <div key={row.label} className="flex items-center justify-between px-4 py-3"
                 style={{ backgroundColor:'#FFFFFF' }}>
-                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color:'#8A7E78' }}>{row.label}</p>
-                <p className="text-sm font-semibold" style={{ color:'#1A1210' }}>{row.value || 'N/A'}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color:'#647068' }}>{row.label}</p>
+                <p className="text-sm font-semibold" style={{ color:'#17211B' }}>{row.value || 'N/A'}</p>
               </div>
             ))}
           </div>
 
           {/* Identity verification notice */}
           <div className="rounded-2xl p-4 border-2" style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
-            <p className="text-sm font-semibold mb-1" style={{ color:'#1A1210' }}>Next: Identity Verification</p>
-            <p className="text-xs leading-relaxed" style={{ color:'#8A7E78' }}>
+            <p className="text-sm font-semibold mb-1" style={{ color:'#17211B' }}>Next: Identity Verification</p>
+            <p className="text-xs leading-relaxed" style={{ color:'#647068' }}>
               After setup, you'll be asked to upload a valid ID and complete a live face check. This keeps DealMatch scam-free and unlocks all features.
             </p>
           </div>
@@ -594,13 +594,13 @@ export default function OnboardingPage() {
       <div className="w-full max-w-md">
         {/* Progress */}
         <div className="mb-8">
-          <div className="flex items-center justify-between text-xs mb-3" style={{ color:'#8A7E78' }}>
+          <div className="flex items-center justify-between text-xs mb-3" style={{ color:'#647068' }}>
             <span>Step {stepIndex + 1} of {steps.length}</span>
             <span>{current.title}</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor:'rgba(26,18,16,0.08)' }}>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
             <div className="h-full rounded-full transition-all duration-500"
-              style={{ width:`${((stepIndex + 1) / steps.length) * 100}%`, backgroundColor:'#C96A3A' }} />
+              style={{ width:`${((stepIndex + 1) / steps.length) * 100}%`, backgroundColor:'#C85F2D' }} />
           </div>
         </div>
 
@@ -610,7 +610,7 @@ export default function OnboardingPage() {
           {stepIndex > 0 && (
             <button onClick={() => setStep(s => Math.min(s, steps.length - 1) - 1)} disabled={saving}
               className="px-5 py-4 rounded-2xl text-sm font-semibold border"
-              style={{ borderColor:'#E8DDD2', color:'#8A7E78', backgroundColor:'#FFFFFF' }}>
+              style={{ borderColor:'#DEDDD6', color:'#647068', backgroundColor:'#FFFFFF' }}>
               ←
             </button>
           )}

@@ -29,7 +29,7 @@ export default function WhatsAppButton() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             className="rounded-2xl overflow-hidden shadow-2xl w-64"
-            style={{ backgroundColor: '#FFFAF5', border: '1px solid #E8DDD2' }}
+            style={{ backgroundColor: '#FFFAF5', border: '1px solid #DEDDD6' }}
           >
             <div className="p-4 flex items-center gap-3" style={{ backgroundColor: '#25D366' }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-sm"
@@ -43,7 +43,7 @@ export default function WhatsAppButton() {
             </div>
             <div className="p-4">
               <div className="rounded-2xl rounded-tl-none p-3 mb-3 text-sm"
-                style={{ backgroundColor: 'rgba(37,211,102,0.1)', color: '#1A1210' }}>
+                style={{ backgroundColor: 'rgba(37,211,102,0.1)', color: '#17211B' }}>
                 Hi! How can we help you today?
               </div>
               <button onClick={openChat}

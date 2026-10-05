@@ -87,7 +87,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
     <>
       <button onClick={handleUnlock} disabled={busy}
         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
-        style={{ backgroundColor: '#1A1210', color: '#FFF' }}>
+        style={{ backgroundColor: '#17211B', color: '#FFF' }}>
         <Lock size={14} />
         {balance > 0 ? `Unlock contact (${balance} credit${balance !== 1 ? 's' : ''} left)` : 'Unlock contact'}
       </button>
@@ -96,25 +96,25 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
           <div className="rounded-2xl p-5 w-full max-w-sm" style={{ backgroundColor: '#FFF' }}>
             <div className="flex items-center justify-between mb-1">
-              <p className="font-display font-black text-lg" style={{ color: '#1A1210' }}>Unlock contact details</p>
-              <button onClick={() => setShowPacks(false)}><X size={18} style={{ color: '#8A7E78' }} /></button>
+              <p className="font-display font-black text-lg" style={{ color: '#17211B' }}>Unlock contact details</p>
+              <button onClick={() => setShowPacks(false)}><X size={18} style={{ color: '#647068' }} /></button>
             </div>
-            <p className="text-xs mb-4" style={{ color: '#8A7E78' }}>
+            <p className="text-xs mb-4" style={{ color: '#647068' }}>
               Buy credits to see phone numbers without going through full escrow. One credit unlocks one contact, and it's yours for good.
             </p>
             <div className="space-y-2">
               {UNLOCK_CREDIT_PACKS.map(pack => (
                 <button key={pack.credits} onClick={() => handleBuy(pack)} disabled={busy}
                   className="w-full flex items-center justify-between p-3.5 rounded-xl border disabled:opacity-50"
-                  style={{ borderColor: pack.badge ? '#C45C26' : '#E8DDD2', backgroundColor: pack.badge ? 'rgba(196,92,38,0.06)' : '#FFF' }}>
+                  style={{ borderColor: pack.badge ? '#C85F2D' : '#DEDDD6', backgroundColor: pack.badge ? 'rgba(200,95,45,0.06)' : '#FFF' }}>
                   <div className="flex items-center gap-2">
-                    <Coins size={16} style={{ color: '#C45C26' }} />
+                    <Coins size={16} style={{ color: '#C85F2D' }} />
                     <div className="text-left">
-                      <p className="text-sm font-bold" style={{ color: '#1A1210' }}>{pack.label}</p>
-                      {pack.badge && <p className="text-[10px] font-bold" style={{ color: '#C45C26' }}>{pack.badge}</p>}
+                      <p className="text-sm font-bold" style={{ color: '#17211B' }}>{pack.label}</p>
+                      {pack.badge && <p className="text-[10px] font-bold" style={{ color: '#C85F2D' }}>{pack.badge}</p>}
                     </div>
                   </div>
-                  <p className="text-sm font-black" style={{ color: '#1A1210' }}>{'\u20a6'}{pack.price.toLocaleString()}</p>
+                  <p className="text-sm font-black" style={{ color: '#17211B' }}>{'\u20a6'}{pack.price.toLocaleString()}</p>
                 </button>
               ))}
             </div>

@@ -24,7 +24,7 @@ export default function PostChoiceModal({ open, onClose }) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 z-[100] flex items-center justify-center px-4"
-          style={{ backgroundColor: 'rgba(26,26,26,0.5)' }}
+          style={{ backgroundColor: 'rgba(23,33,27,0.5)' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -34,9 +34,9 @@ export default function PostChoiceModal({ open, onClose }) {
             style={{ backgroundColor: '#FFFFFF' }}
           >
             <div className="flex items-center justify-between mb-5">
-              <span className="font-display font-black text-lg" style={{ color: '#1A1A1A' }}>What do you want to post?</span>
-              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F8F1E9' }}>
-                <X size={15} style={{ color: '#1A1A1A' }} />
+              <span className="font-display font-black text-lg" style={{ color: '#17211B' }}>What do you want to post?</span>
+              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EEE9DE' }}>
+                <X size={15} style={{ color: '#17211B' }} />
               </button>
             </div>
             <div className="space-y-2.5">
@@ -44,14 +44,14 @@ export default function PostChoiceModal({ open, onClose }) {
                 const Icon = choice.icon
                 return (
                   <button key={choice.to} onClick={() => { onClose(); navigate(choice.to) }}
-                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-colors hover:bg-[#F8F1E9]"
-                    style={{ border: '1px solid #E9DECF' }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(196,92,38,0.1)' }}>
-                      <Icon size={18} style={{ color: '#C45C26' }} />
+                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-colors hover:bg-[#EEE9DE]"
+                    style={{ border: '1px solid #DEDDD6' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
+                      <Icon size={18} style={{ color: '#C85F2D' }} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold" style={{ color: '#1A1A1A' }}>{choice.label}</p>
-                      <p className="text-xs" style={{ color: '#8A7E78' }}>{choice.desc}</p>
+                      <p className="text-sm font-bold" style={{ color: '#17211B' }}>{choice.label}</p>
+                      <p className="text-xs" style={{ color: '#647068' }}>{choice.desc}</p>
                     </div>
                   </button>
                 )

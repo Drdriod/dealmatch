@@ -4,11 +4,11 @@ import { ShieldCheck, Search, MessageCircle, Lock, CheckCircle2, Home, Wrench } 
 
 // Spec palette - do not substitute the warm tones used elsewhere in the app.
 const C = {
-  bg:      '#F8F1E9',
-  primary: '#C45C26',
-  text:    '#1A1A1A',
+  bg:      '#EEE9DE',
+  primary: '#C85F2D',
+  text:    '#17211B',
   dark:    '#1C1410',
-  line:    '#E4D5C4',
+  line:    '#DEDDD6',
 }
 
 const STEPS = [
@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
         <div className="grid sm:grid-cols-2 gap-4 mb-12">
           {STEPS.map(({ icon: Icon, title, body }) => (
             <div key={title} className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}` }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(196,92,38,0.12)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(200,95,45,0.12)' }}>
                 <Icon size={18} style={{ color: C.primary }} />
               </div>
               <h2 className="font-display font-bold text-sm mb-1" style={{ color: C.dark }}>{title}</h2>

@@ -26,14 +26,14 @@ const COLORS = {
   points_redeemed:  '#D4A853',
   listing_approved: '#7A9E7E',
   booking_conflict: '#C94A3A',
-  bid_received:     '#C96A3A',
+  bid_received:     '#C85F2D',
   bid_accepted:     '#7A9E7E',
   escrow_funded:    '#5C8060',
   job_completed:    '#7A9E7E',
   dispute_opened:   '#C94A3A',
   identity_approved: '#7A9E7E',
   identity_rejected: '#C94A3A',
-  general:          '#C96A3A',
+  general:          '#C85F2D',
 }
 
 const ago = (ts) => {
@@ -137,11 +137,11 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button onClick={() => { setOpen(o => !o); if (!open) markAllRead() }}
         className="relative w-9 h-9 rounded-xl flex items-center justify-center"
-        style={{ backgroundColor: 'rgba(26,18,16,0.06)' }}>
+        style={{ backgroundColor: 'rgba(23,33,27,0.06)' }}>
         <Bell size={16} style={{ color: '#5C4A3A' }} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-            style={{ backgroundColor: '#C96A3A', color: '#fff' }}>
+            style={{ backgroundColor: '#C85F2D', color: '#fff' }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -155,37 +155,37 @@ export default function NotificationBell() {
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto rounded-2xl shadow-xl z-50"
-            style={{ backgroundColor: '#FFFAF5', border: '1px solid #E8DDD2' }}>
-            <div className="p-4 border-b" style={{ borderColor: '#E8DDD2' }}>
-              <p className="text-sm font-bold" style={{ color: '#1A1210' }}>Notifications</p>
+            style={{ backgroundColor: '#FFFAF5', border: '1px solid #DEDDD6' }}>
+            <div className="p-4 border-b" style={{ borderColor: '#DEDDD6' }}>
+              <p className="text-sm font-bold" style={{ color: '#17211B' }}>Notifications</p>
             </div>
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-xs" style={{ color: '#8A7E78' }}>No notifications yet</p>
+                <p className="text-xs" style={{ color: '#647068' }}>No notifications yet</p>
               </div>
             ) : (
               <div>
                 {notifications.map(n => {
                   const Icon  = ICONS[n.type] || Bell
-                  const color = COLORS[n.type] || '#8A7E78'
+                  const color = COLORS[n.type] || '#647068'
                   return (
                     <Link key={n.id} to={n.link || '#'} onClick={() => { markOneRead(n.id); setOpen(false) }}
                       className="flex items-start gap-3 p-4 border-b transition-colors"
                       style={{
                         borderColor: '#F0E8DC',
-                        backgroundColor: n.read ? 'transparent' : 'rgba(201,106,58,0.04)',
+                        backgroundColor: n.read ? 'transparent' : 'rgba(200,95,45,0.04)',
                       }}>
                       <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: color + '15' }}>
                         <Icon size={14} style={{ color }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold" style={{ color: '#1A1210' }}>{n.title}</p>
-                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#8A7E78' }}>{n.message}</p>
+                        <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{n.title}</p>
+                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#647068' }}>{n.message}</p>
                         <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>{ago(n.created_at)}</p>
                       </div>
                       {!n.read && (
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#C96A3A' }} />
+                        <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#C85F2D' }} />
                       )}
                     </Link>
                   )
@@ -203,9 +203,9 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.95 }}
             className="fixed top-20 right-4 left-4 sm:left-auto sm:w-80 rounded-2xl shadow-2xl z-[60] p-4 flex items-start gap-3"
-            style={{ backgroundColor: '#1A1210' }}>
+            style={{ backgroundColor: '#17211B' }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: (COLORS[toast.type] || '#8A7E78') + '20' }}>
+              style={{ backgroundColor: (COLORS[toast.type] || '#647068') + '20' }}>
               {React.createElement(ICONS[toast.type] || Bell, { size: 16, style: { color: COLORS[toast.type] || '#fff' } })}
             </div>
             <div className="flex-1 min-w-0">

@@ -12,14 +12,14 @@ export default function BookingReceipt({ booking, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(26,18,16,0.85)', backdropFilter: 'blur(8px)' }}
+      style={{ backgroundColor: 'rgba(23,33,27,0.85)', backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{ backgroundColor: '#FFFAF5' }}>
 
         {/* Header */}
-        <div className="p-5 text-center relative" style={{ backgroundColor: '#1A1210' }}>
+        <div className="p-5 text-center relative" style={{ backgroundColor: '#17211B' }}>
           <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
             <X size={14} color="white" />
@@ -46,8 +46,8 @@ export default function BookingReceipt({ booking, onClose }) {
           ].map(({ label, value }) => value && (
             <div key={label} className="flex justify-between items-center py-2 border-b"
               style={{ borderColor: '#F0E8DC' }}>
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8A7E78' }}>{label}</span>
-              <span className="text-sm font-semibold" style={{ color: '#1A1210' }}>{value}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#647068' }}>{label}</span>
+              <span className="text-sm font-semibold" style={{ color: '#17211B' }}>{value}</span>
             </div>
           ))}
         </div>
@@ -56,7 +56,7 @@ export default function BookingReceipt({ booking, onClose }) {
         <div className="flex gap-3 px-5 pb-5">
           <button onClick={handleShare}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold border"
-            style={{ borderColor: '#E8DDD2', color: '#5C4A3A' }}>
+            style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
             <Share2 size={14} /> Share
           </button>
           <button onClick={onClose} className="btn-primary flex-1 py-3 text-sm">Done</button>

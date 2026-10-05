@@ -111,30 +111,30 @@ export default function DashboardPage() {
 
         {/* Welcome */}
         <div className="mb-6">
-          <h1 className="font-display text-3xl font-black" style={{ color: '#1A1210' }}>
+          <h1 className="font-display text-3xl font-black" style={{ color: '#17211B' }}>
             Hey, {profile?.full_name?.split(' ')[0] || 'there'}
           </h1>
-          <p className="text-sm mt-1" style={{ color: '#8A7E78' }}>Here's your DealMatch overview</p>
+          <p className="text-sm mt-1" style={{ color: '#647068' }}>Here's your DealMatch overview</p>
         </div>
 
         {/* Verification alert */}
         {verificationLevel !== 'live' && (
           <Link to="/verify-identity"
             className="flex items-center gap-3 p-4 rounded-2xl mb-5 border-2"
-            style={{ backgroundColor: 'rgba(201,106,58,0.06)', borderColor: 'rgba(201,106,58,0.3)' }}>
+            style={{ backgroundColor: 'rgba(200,95,45,0.06)', borderColor: 'rgba(200,95,45,0.3)' }}>
             <span>{verificationLevel === 'none' ? <AlertTriangle size={22} className="text-amber-500" /> : <Camera size={22} className="text-terracotta" />}</span>
             <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: '#1A1210' }}>
+              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
                 {verificationLevel === 'none' ? 'Complete your verification' : 'Finish Live Verification'}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>
+              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                 {verificationLevel === 'none'
                   ? 'Upload photo + live check to list and buy properties'
                   : 'Photo uploaded! Complete the live check to unlock full access'}
               </p>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0"
-              style={{ backgroundColor: '#C96A3A', color: '#FFFFFF' }}>
+              style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
               Verify Now <ArrowRight size={12} />
             </div>
           </Link>
@@ -144,15 +144,15 @@ export default function DashboardPage() {
             visually prominent items on the page per spec */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <Link to="/rentals" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: '#1A1210', minHeight: 140 }}>
-            <Home size={28} style={{ color: '#C96A3A' }} />
+            style={{ backgroundColor: '#17211B', minHeight: 140 }}>
+            <Home size={28} style={{ color: '#C85F2D' }} />
             <div>
               <p className="font-display font-black text-lg text-white leading-tight">Find a Place</p>
               <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Shortlets, rentals & housing</p>
             </div>
           </Link>
           <Link to="/find-provider" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: '#C96A3A', minHeight: 140 }}>
+            style={{ backgroundColor: '#C85F2D', minHeight: 140 }}>
             <HardHat size={28} className="text-white" />
             <div>
               <p className="font-display font-black text-lg text-white leading-tight">Find a Provider</p>
@@ -170,49 +170,49 @@ export default function DashboardPage() {
             { label: 'Completed',     value: completedDeals,  link: '/wallet' },
           ].map(s => (
             <Link key={s.label} to={s.link}
-              className="rounded-2xl p-3 text-center border transition-all hover:border-[#C96A3A]"
-              style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
-              <p className="font-display font-black text-xl" style={{ color: '#C96A3A' }}>{loading ? ' - ' : s.value}</p>
-              <p className="text-[10px] mt-0.5 leading-tight" style={{ color: '#8A7E78' }}>{s.label}</p>
+              className="rounded-2xl p-3 text-center border transition-all hover:border-[#C85F2D]"
+              style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
+              <p className="font-display font-black text-xl" style={{ color: '#C85F2D' }}>{loading ? ' - ' : s.value}</p>
+              <p className="text-[10px] mt-0.5 leading-tight" style={{ color: '#647068' }}>{s.label}</p>
             </Link>
           ))}
         </div>
 
         {/* My Activity -- combined recent listings + requests */}
-        <div className="rounded-2xl border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
-          <div className="p-4 border-b" style={{ borderColor: '#E8DDD2' }}>
-            <h3 className="font-display font-black text-base" style={{ color: '#1A1210' }}>My Activity</h3>
+        <div className="rounded-2xl border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
+          <div className="p-4 border-b" style={{ borderColor: '#DEDDD6' }}>
+            <h3 className="font-display font-black text-base" style={{ color: '#17211B' }}>My Activity</h3>
           </div>
           {loading ? (
             <div className="p-8 flex justify-center">
-              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C96A3A' }} />
+              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C85F2D' }} />
             </div>
           ) : activity.length === 0 ? (
             <div className="p-8 text-center">
               <div className="flex justify-center mb-3"><ClipboardList size={36} className="text-terracotta" /></div>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#1A1210' }}>No activity yet</p>
-              <p className="text-xs mb-4" style={{ color: '#8A7E78' }}>Post what you need or list what you offer to get started.</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#17211B' }}>No activity yet</p>
+              <p className="text-xs mb-4" style={{ color: '#647068' }}>Post what you need or list what you offer to get started.</p>
               <div className="flex gap-2 justify-center">
                 <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Post a Request</Link>
-                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: '#E8DDD2', color: '#5C4A3A' }}>
+                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
                   List What I Offer
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: '#E8DDD2' }}>
+            <div className="divide-y" style={{ borderColor: '#DEDDD6' }}>
               {activity.map(item => {
                 const Wrapper = item.link ? Link : 'div'
                 return (
                   <Wrapper key={item.kind + item.id} {...(item.link ? { to: item.link } : {})}
                     className="p-4 flex items-center gap-4 hover:bg-[#F9F5F0] transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#1A1210' }}>{item.title}</p>
-                      <p className="text-xs mt-0.5 capitalize" style={{ color: '#8A7E78' }}>{item.sub}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>
+                      <p className="text-xs mt-0.5 capitalize" style={{ color: '#647068' }}>{item.sub}</p>
                     </div>
                     <span className="text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 capitalize"
                       style={{
-                        backgroundColor: ['active', 'ACTIVE', 'completed', 'COMPLETED'].includes(item.status) ? 'rgba(122,158,126,0.15)' : 'rgba(201,106,58,0.15)',
+                        backgroundColor: ['active', 'ACTIVE', 'completed', 'COMPLETED'].includes(item.status) ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)',
                         color: ['active', 'ACTIVE', 'completed', 'COMPLETED'].includes(item.status) ? '#5C8060' : '#8A6A20',
                       }}>
                       {item.status?.toLowerCase()}
@@ -231,17 +231,17 @@ export default function DashboardPage() {
               {onClick ? (
                 <button onClick={onClick} disabled={becomingProvider}
                   className="w-full flex flex-col items-center justify-center p-4 rounded-3xl border transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                  style={{ backgroundColor: 'white', borderColor: '#E8DDD2', minHeight: 90 }}>
+                  style={{ backgroundColor: 'white', borderColor: '#DEDDD6', minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#1A1210' }}>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#17211B' }}>
                     {becomingProvider ? 'Saving…' : label}
                   </span>
                 </button>
               ) : (
                 <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-3xl border transition-all hover:-translate-y-0.5"
-                  style={{ backgroundColor: 'white', borderColor: '#E8DDD2', minHeight: 90 }}>
+                  style={{ backgroundColor: 'white', borderColor: '#DEDDD6', minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#1A1210' }}>{label}</span>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#17211B' }}>{label}</span>
                 </Link>
               )}
             </div>
@@ -256,9 +256,9 @@ export default function DashboardPage() {
             { icon: <Landmark size={18} style={{ color: '#B5A99C' }} />,      label: 'Mortgages' },
           ].map(({ icon, label }) => (
             <div key={label} className="flex items-center gap-2 p-3 rounded-2xl border border-dashed opacity-60"
-              style={{ backgroundColor: 'rgba(26,18,16,0.02)', borderColor: '#E8DDD2' }}>
+              style={{ backgroundColor: 'rgba(23,33,27,0.02)', borderColor: '#DEDDD6' }}>
               {icon}
-              <span className="text-xs font-medium flex-1" style={{ color: '#8A7E78' }}>{label}</span>
+              <span className="text-xs font-medium flex-1" style={{ color: '#647068' }}>{label}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
                 style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: '#8A6A20' }}>Coming Soon</span>
             </div>

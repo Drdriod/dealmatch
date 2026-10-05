@@ -72,25 +72,25 @@ function EscrowRequestModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-      style={{ backgroundColor:'rgba(26,18,16,0.85)', backdropFilter:'blur(8px)' }}
+      style={{ backgroundColor:'rgba(23,33,27,0.85)', backdropFilter:'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity:0, y:40 }} animate={{ opacity:1, y:0 }}
         className="w-full max-w-lg rounded-3xl overflow-hidden flex flex-col"
         style={{ backgroundColor:'#FFFAF5', maxHeight:'92vh' }}>
 
         {/* Header */}
-        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor:'#E8DDD2' }}>
+        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor:'#DEDDD6' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor:'rgba(122,158,126,0.15)' }}>
               <Shield size={18} style={{ color:'#7A9E7E' }} />
             </div>
             <div>
-              <h3 className="font-display text-lg font-black" style={{ color:'#1A1210' }}>Request Protection</h3>
-              <p className="text-xs" style={{ color:'#8A7E78' }}>Protected transaction</p>
+              <h3 className="font-display text-lg font-black" style={{ color:'#17211B' }}>Request Protection</h3>
+              <p className="text-xs" style={{ color:'#647068' }}>Protected transaction</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor:'rgba(26,18,16,0.08)' }}>
+            style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
             <X size={14} style={{ color:'#5C4A3A' }} />
           </button>
         </div>
@@ -98,8 +98,8 @@ function EscrowRequestModal({ onClose }) {
         {submitted ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><ShieldCheck size={48} className="text-terracotta" /></div>
-            <h4 className="font-display font-black text-xl mb-2" style={{ color:'#1A1210' }}>Protection Initiated!</h4>
-            <p className="text-sm leading-relaxed mb-6" style={{ color:'#8A7E78' }}>
+            <h4 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>Protection Initiated!</h4>
+            <p className="text-sm leading-relaxed mb-6" style={{ color:'#647068' }}>
               Payment received. DealMatch will confirm your protection and notify both parties within 2 hours.
             </p>
             <button onClick={onClose} className="btn-primary w-full py-3">Done</button>
@@ -108,15 +108,15 @@ function EscrowRequestModal({ onClose }) {
           <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-5 space-y-4">
             {/* Transaction type */}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>Transaction Type</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Transaction Type</label>
               <div className="grid grid-cols-2 gap-2">
                 {[['rental','Monthly Rental'],['sale','Property Sale']].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setForm(f => ({ ...f, type:v }))}
                     className="py-3 rounded-2xl text-sm font-semibold border-2 transition-all"
                     style={{
-                      borderColor:     form.type === v ? '#C96A3A' : '#E8DDD2',
-                      backgroundColor: form.type === v ? 'rgba(201,106,58,0.05)' : '#FFFFFF',
-                      color:           form.type === v ? '#C96A3A' : '#8A7E78',
+                      borderColor:     form.type === v ? '#C85F2D' : '#DEDDD6',
+                      backgroundColor: form.type === v ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
+                      color:           form.type === v ? '#C85F2D' : '#647068',
                     }}>
                     {l}
                   </button>
@@ -134,24 +134,24 @@ function EscrowRequestModal({ onClose }) {
               { label:'Your Email',        key:'tenant_email',     type:'email',placeholder:'For payment receipt' },
             ].map(f => (
               <div key={f.key}>
-                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>{f.label}</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
               </div>
             ))}
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>Amount (₦) *</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Amount (₦) *</label>
               <input type="number" value={form.amount} onChange={set('amount')} placeholder="e.g. 1200000"
-                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
             </div>
 
             {form.amount && (
               <div className="rounded-2xl p-4" style={{ backgroundColor:'rgba(122,158,126,0.08)', border:'1px solid rgba(122,158,126,0.2)' }}>
                 <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Breakdown</p>
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Total</span><strong style={{ color:'#1A1210' }}>₦{Number(form.amount).toLocaleString()}</strong></div>
-                  <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Platform Fee (3.75% per side = 7.5% total)</span><strong style={{ color:'#C96A3A' }}>-₦{platform_fee.toLocaleString()}</strong></div>
+                  <div className="flex justify-between"><span style={{ color:'#647068' }}>Total</span><strong style={{ color:'#17211B' }}>₦{Number(form.amount).toLocaleString()}</strong></div>
+                  <div className="flex justify-between"><span style={{ color:'#647068' }}>Platform Fee (3.75% per side = 7.5% total)</span><strong style={{ color:'#C85F2D' }}>-₦{platform_fee.toLocaleString()}</strong></div>
                   <div className="flex justify-between border-t pt-1" style={{ borderColor:'rgba(122,158,126,0.2)' }}>
                     <span style={{ color:'#5C8060', fontWeight:700 }}>Landlord receives</span>
                     <strong style={{ color:'#5C8060' }}>₦{landlordReceives.toLocaleString()}</strong>
@@ -162,15 +162,15 @@ function EscrowRequestModal({ onClose }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>Move-in Date</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Move-in Date</label>
                 <input type="date" value={form.move_in_date} onChange={set('move_in_date')}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
               </div>
               {form.type === 'rental' && (
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(26,18,16,0.5)' }}>Duration</label>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Duration</label>
                   <select value={form.duration} onChange={set('duration')} className="select text-sm"
-                    style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }}>
+                    style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}>
                     {[1,3,6,12,24].map(n => <option key={n} value={n}>{n} month{n>1?'s':''}</option>)}
                   </select>
                 </div>
@@ -178,7 +178,7 @@ function EscrowRequestModal({ onClose }) {
             </div>
 
             <button type="submit" className="btn-primary w-full py-4">Pay with Card / Bank →</button>
-            <p className="text-xs text-center" style={{ color:'#8A7E78' }}>Funds held securely until move-in confirmed.</p>
+            <p className="text-xs text-center" style={{ color:'#647068' }}>Funds held securely until move-in confirmed.</p>
           </form>
         )}
       </motion.div>
@@ -217,13 +217,13 @@ function ActiveEscrowSection() {
   if (!escrows.length) return null
   return (
     <div className="mt-8 px-4 max-w-lg mx-auto">
-      <h3 className="font-display text-lg font-black mb-4" style={{color:'#1A1210'}}>Active Protection</h3>
+      <h3 className="font-display text-lg font-black mb-4" style={{color:'#17211B'}}>Active Protection</h3>
       {escrows.map(e => (
-        <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid #E8DDD2'}}>
-          <p className="font-bold text-sm" style={{color:'#1A1210'}}>{e.properties?.title}</p>
-          <p className="text-xs mb-3" style={{color:'#8A7E78'}}>{e.properties?.city} · ₦{Number(e.amount).toLocaleString()}</p>
+        <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid #DEDDD6'}}>
+          <p className="font-bold text-sm" style={{color:'#17211B'}}>{e.properties?.title}</p>
+          <p className="text-xs mb-3" style={{color:'#647068'}}>{e.properties?.city} · ₦{Number(e.amount).toLocaleString()}</p>
           {e.move_in_date && (
-            <p className="text-xs mb-2" style={{color:'#8A7E78'}}>
+            <p className="text-xs mb-2" style={{color:'#647068'}}>
               Move-in date: {new Date(e.move_in_date).toLocaleDateString()}
               {' · '}Auto-releases 72h after if no dispute filed
             </p>
@@ -233,7 +233,7 @@ function ActiveEscrowSection() {
             style={{backgroundColor:'#7A9E7E',color:'white'}}>
             <CheckCircle size={16} /> {confirming === e.id ? 'Confirming...' : 'Confirm Move-In & Release Funds'}
           </button>
-          <p className="text-xs text-center mt-2" style={{color:'rgba(26,18,16,0.35)'}}>
+          <p className="text-xs text-center mt-2" style={{color:'rgba(23,33,27,0.35)'}}>
             Only confirm after you have physically moved in and are satisfied with the property.
           </p>
         </div>
@@ -250,7 +250,7 @@ export default function EscrowPage() {
       <div className="max-w-2xl mx-auto px-4">
 
         {/* Hero */}
-        <div className="rounded-3xl p-8 mb-6 text-center relative overflow-hidden" style={{ backgroundColor:'#1A1210' }}>
+        <div className="rounded-3xl p-8 mb-6 text-center relative overflow-hidden" style={{ backgroundColor:'#17211B' }}>
           <div className="absolute inset-0 pointer-events-none"
             style={{ background:'radial-gradient(ellipse 60% 60% at 50% 0%, rgba(122,158,126,0.2) 0%, transparent 70%)' }} />
           <div className="relative">
@@ -271,18 +271,18 @@ export default function EscrowPage() {
         </div>
 
         {/* How it works */}
-        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
-          <h2 className="font-display font-black text-xl mb-5" style={{ color:'#1A1210' }}>How it works</h2>
+        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+          <h2 className="font-display font-black text-xl mb-5" style={{ color:'#17211B' }}>How it works</h2>
           <div className="space-y-4">
             {HOW_IT_WORKS.map((s, i) => (
               <div key={i} className="flex gap-4">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ backgroundColor:'rgba(26,18,16,0.04)', border:'1px solid #E8DDD2' }}>
+                  style={{ backgroundColor:'rgba(23,33,27,0.04)', border:'1px solid #DEDDD6' }}>
                   {s.icon}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>{s.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#8A7E78' }}>{s.desc}</p>
+                  <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{s.title}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -297,11 +297,11 @@ export default function EscrowPage() {
           { icon: <Zap size={22} className="text-terracotta" />, title:'Fast release',             desc:'Once you confirm move-in, landlord receives funds within 24 hours.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
-            style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
+            style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <span className="flex-shrink-0">{b.icon}</span>
             <div>
-              <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>{b.title}</p>
-              <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#8A7E78' }}>{b.desc}</p>
+              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{b.title}</p>
+              <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{b.desc}</p>
             </div>
           </div>
         ))}

@@ -36,7 +36,7 @@ const RULES = [
 
 function strength(p) {
   const passed = RULES.filter(r => r.test(p)).length
-  if (passed <= 1) return { score: 1, label: 'Very weak',  color: '#C96A3A' }
+  if (passed <= 1) return { score: 1, label: 'Very weak',  color: '#C85F2D' }
   if (passed === 2) return { score: 2, label: 'Weak',       color: '#E07B39' }
   if (passed === 3) return { score: 3, label: 'Fair',       color: '#D4A853' }
   if (passed === 4) return { score: 4, label: 'Strong',     color: '#7A9E7E' }
@@ -166,12 +166,12 @@ export default function ResetPasswordPage() {
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
-  const bgColor = isAdmin ? '#1A1210' : '#FFFAF5'
-  const accent  = isAdmin ? '#D4A853' : '#C96A3A'
-  const textPri = isAdmin ? '#FFFFFF' : '#1A1210'
-  const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#8A7E78'
+  const bgColor = isAdmin ? '#17211B' : '#FFFAF5'
+  const accent  = isAdmin ? '#D4A853' : '#C85F2D'
+  const textPri = isAdmin ? '#FFFFFF' : '#17211B'
+  const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#647068'
   const inputBg = isAdmin ? 'rgba(255,255,255,0.07)' : '#FFFFFF'
-  const inputBd = isAdmin ? 'rgba(255,255,255,0.12)' : '#E8DDD2'
+  const inputBd = isAdmin ? 'rgba(255,255,255,0.12)' : '#DEDDD6'
 
   return (
     <div
@@ -199,9 +199,9 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: 'rgba(201,106,58,0.12)', border: `1px solid rgba(201,106,58,0.25)` }}
+              style={{ backgroundColor: 'rgba(200,95,45,0.12)', border: `1px solid rgba(200,95,45,0.25)` }}
             >
-              <AlertTriangle size={28} style={{ color: '#C96A3A' }} />
+              <AlertTriangle size={28} style={{ color: '#C85F2D' }} />
             </div>
             <h2 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
               Link Expired
@@ -212,7 +212,7 @@ export default function ResetPasswordPage() {
             <button
               onClick={() => navigate(isAdmin ? '/staff-gate-7f3k' : '/auth', { replace: true })}
               className="w-full py-4 rounded-2xl text-sm font-bold"
-              style={{ backgroundColor: accent, color: isAdmin ? '#1A1210' : '#FFFFFF' }}
+              style={{ backgroundColor: accent, color: isAdmin ? '#17211B' : '#FFFFFF' }}
             >
               Request New Link
             </button>
@@ -280,7 +280,7 @@ export default function ResetPasswordPage() {
                   <div className="mt-2">
                     <div
                       className="h-1.5 rounded-full overflow-hidden mb-1.5"
-                      style={{ backgroundColor: isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(26,18,16,0.08)' }}
+                      style={{ backgroundColor: isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(23,33,27,0.08)' }}
                     >
                       <div
                         className="h-full rounded-full transition-all duration-300"
@@ -305,7 +305,7 @@ export default function ResetPasswordPage() {
                         <li key={r.id} className="flex items-center gap-2 text-xs">
                           {ok
                             ? <Check size={11} style={{ color: '#7A9E7E', flexShrink: 0 }} />
-                            : <X size={11} style={{ color: '#C96A3A', flexShrink: 0 }} />
+                            : <X size={11} style={{ color: '#C85F2D', flexShrink: 0 }} />
                           }
                           <span style={{ color: ok ? '#7A9E7E' : textSub }}>{r.label}</span>
                         </li>
@@ -335,7 +335,7 @@ export default function ResetPasswordPage() {
                       backgroundColor: inputBg,
                       border: `1px solid ${
                         confirm.length > 0
-                          ? matches ? '#7A9E7E' : '#C96A3A'
+                          ? matches ? '#7A9E7E' : '#C85F2D'
                           : inputBd
                       }`,
                       color: textPri,
@@ -351,7 +351,7 @@ export default function ResetPasswordPage() {
                   </button>
                 </div>
                 {confirm.length > 0 && !matches && (
-                  <p className="text-xs mt-1" style={{ color: '#C96A3A' }}>
+                  <p className="text-xs mt-1" style={{ color: '#C85F2D' }}>
                     Passwords do not match
                   </p>
                 )}
@@ -363,11 +363,11 @@ export default function ResetPasswordPage() {
                 className="w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 mt-2"
                 style={{
                   backgroundColor: (!allPassed || !matches || saving)
-                    ? isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(26,18,16,0.08)'
+                    ? isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(23,33,27,0.08)'
                     : accent,
                   color: (!allPassed || !matches || saving)
-                    ? isAdmin ? 'rgba(255,255,255,0.3)' : 'rgba(26,18,16,0.3)'
-                    : isAdmin ? '#1A1210' : '#FFFFFF',
+                    ? isAdmin ? 'rgba(255,255,255,0.3)' : 'rgba(23,33,27,0.3)'
+                    : isAdmin ? '#17211B' : '#FFFFFF',
                   cursor: (!allPassed || !matches) ? 'not-allowed' : 'pointer',
                 }}
               >

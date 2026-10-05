@@ -17,7 +17,7 @@ const STATUS_FLOW = {
   pending_review:      { label:'Awaiting Verification', color:'#D4A853', bg:'rgba(212,168,83,0.12)', next:'under_verification' },
   under_verification:  { label:'Agent Assigned',        color:'#5B8DEF', bg:'rgba(91,141,239,0.12)', next:'active' },
   active:              { label:'Verified & Live',        color:'#5C8060', bg:'rgba(122,158,126,0.12)', next:null },
-  rejected:            { label:'Rejected',               color:'#C96A3A', bg:'rgba(201,106,58,0.12)', next:null },
+  rejected:            { label:'Rejected',               color:'#C85F2D', bg:'rgba(200,95,45,0.12)', next:null },
 }
 
 export default function VerificationPage() {
@@ -96,14 +96,14 @@ export default function VerificationPage() {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color:'#1A1210' }}>
+            <h1 className="font-display text-2xl font-black" style={{ color:'#17211B' }}>
               Property Verification
             </h1>
-            <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>DealMatch Agent Dashboard</p>
+            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>DealMatch Agent Dashboard</p>
           </div>
           <button onClick={loadListings}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor:'rgba(26,18,16,0.08)' }}>
+            style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
             <RefreshCw size={16} style={{ color:'#5C4A3A' }} />
           </button>
         </div>
@@ -111,9 +111,9 @@ export default function VerificationPage() {
         {/* Workflow explainer */}
         <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor:'rgba(122,158,126,0.08)', borderColor:'rgba(122,158,126,0.25)' }}>
           <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Verification Workflow</p>
-          <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'#8A7E78' }}>
+          <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'#647068' }}>
             {['Landlord Submits','→','Agent Visits Location','→','Agent Verifies / Rejects','→','Property Goes Live'].map((s,i) => (
-              <span key={i} style={{ color: s === '→' ? '#C96A3A' : undefined }}>{s}</span>
+              <span key={i} style={{ color: s === '→' ? '#C85F2D' : undefined }}>{s}</span>
             ))}
           </div>
         </div>
@@ -126,9 +126,9 @@ export default function VerificationPage() {
               <button key={f.key} onClick={() => setFilter(f.key)}
                 className="px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                 style={{
-                  backgroundColor: filter === f.key ? '#1A1210' : '#FFFFFF',
+                  backgroundColor: filter === f.key ? '#17211B' : '#FFFFFF',
                   color:           filter === f.key ? '#FFFFFF'  : '#5C4A3A',
-                  borderColor:     filter === f.key ? '#1A1210'  : '#E8DDD2',
+                  borderColor:     filter === f.key ? '#17211B'  : '#DEDDD6',
                 }}>
                 {f.label}
               </button>
@@ -137,11 +137,11 @@ export default function VerificationPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#8A7E78' }}>Loading listings...</div>
+          <div className="text-center py-16" style={{ color:'#647068' }}>Loading listings...</div>
         ) : listings.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <div className="flex justify-center mb-3"><CheckCircle size={40} className="text-green-600" /></div>
-            <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>No listings in this category</p>
+            <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No listings in this category</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -153,7 +153,7 @@ export default function VerificationPage() {
               return (
                 <motion.div key={listing.id} layout
                   className="rounded-2xl border overflow-hidden cursor-pointer transition-all"
-                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? '#C96A3A' : '#E8DDD2' }}
+                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? '#C85F2D' : '#DEDDD6' }}
                   onClick={() => setSelected(isSelected ? null : listing)}>
 
                   <div className="flex gap-0">
@@ -161,28 +161,28 @@ export default function VerificationPage() {
                     <div className="w-24 flex-shrink-0" style={{ minHeight:96 }}>
                       {img
                         ? <img src={img} alt="" className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center text-3xl" style={{ backgroundColor:'rgba(201,106,58,0.08)' }}><Home size={24} className="text-terracotta" /></div>
+                        : <div className="w-full h-full flex items-center justify-center text-3xl" style={{ backgroundColor:'rgba(200,95,45,0.08)' }}><Home size={24} className="text-terracotta" /></div>
                       }
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 p-3">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <p className="font-semibold text-sm truncate" style={{ color:'#1A1210' }}>{listing.title}</p>
+                        <p className="font-semibold text-sm truncate" style={{ color:'#17211B' }}>{listing.title}</p>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
                           style={{ backgroundColor:s.bg, color:s.color }}>
                           {s.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs mb-1" style={{ color:'#8A7E78' }}>
-                        <MapPin size={10} style={{ color:'#C96A3A' }} />
+                      <div className="flex items-center gap-1 text-xs mb-1" style={{ color:'#647068' }}>
+                        <MapPin size={10} style={{ color:'#C85F2D' }} />
                         <span className="truncate">{listing.address || listing.city}, {listing.state}</span>
                       </div>
-                      <div className="text-xs" style={{ color:'#8A7E78' }}>
-                        Owner: <strong style={{ color:'#1A1210' }}>{listing.profiles?.full_name || 'Unknown'}</strong>
+                      <div className="text-xs" style={{ color:'#647068' }}>
+                        Owner: <strong style={{ color:'#17211B' }}>{listing.profiles?.full_name || 'Unknown'}</strong>
                         {listing.profiles?.phone && <span> · {listing.profiles.phone}</span>}
                       </div>
-                      <div className="flex items-center gap-1 text-xs mt-1" style={{ color:'rgba(26,18,16,0.4)' }}>
+                      <div className="flex items-center gap-1 text-xs mt-1" style={{ color:'rgba(23,33,27,0.4)' }}>
                         <Clock size={9} />
                         <span>Submitted {new Date(listing.created_at).toLocaleDateString('en-NG')}</span>
                       </div>
@@ -191,7 +191,7 @@ export default function VerificationPage() {
 
                   {/* Expanded actions */}
                   {isSelected && (
-                    <div className="p-4 border-t" style={{ borderColor:'#E8DDD2', backgroundColor:'rgba(201,106,58,0.02)' }}>
+                    <div className="p-4 border-t" style={{ borderColor:'#DEDDD6', backgroundColor:'rgba(200,95,45,0.02)' }}>
                       {/* Images */}
                       {listing.images?.length > 0 && (
                         <div className="flex gap-2 overflow-x-auto mb-3 pb-1" style={{ scrollbarWidth:'none' }}>
@@ -211,25 +211,25 @@ export default function VerificationPage() {
                           ['Documents', listing.documents?.join(', ') || 'None listed'],
                           ['Video',    listing.video_url ? 'Provided' : 'None'],
                         ].map(([k,v]) => (
-                          <div key={k} className="rounded-xl p-2" style={{ backgroundColor:'rgba(26,18,16,0.04)' }}>
-                            <span style={{ color:'#8A7E78' }}>{k}: </span>
+                          <div key={k} className="rounded-xl p-2" style={{ backgroundColor:'rgba(23,33,27,0.04)' }}>
+                            <span style={{ color:'#647068' }}>{k}: </span>
                             <strong>{v}</strong>
                           </div>
                         ))}
                       </div>
 
                       {listing.description && (
-                        <p className="text-xs mb-4 leading-relaxed" style={{ color:'#8A7E78' }}>{listing.description}</p>
+                        <p className="text-xs mb-4 leading-relaxed" style={{ color:'#647068' }}>{listing.description}</p>
                       )}
 
                       {/* Verification note */}
                       <div className="mb-4">
-                        <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(26,18,16,0.5)' }}>
+                        <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>
                           Verification Note (optional)
                         </label>
                         <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
                           placeholder="Add any notes from the site visit..."
-                          className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                          className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
                       </div>
 
                       {/* Action buttons */}
@@ -244,7 +244,7 @@ export default function VerificationPage() {
                         {listing.status !== 'rejected' && (
                           <button onClick={() => updateStatus(listing, 'rejected')} disabled={saving}
                             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                            style={{ backgroundColor:'rgba(201,106,58,0.08)', color:'#C96A3A', border:'2px solid rgba(201,106,58,0.2)' }}>
+                            style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D', border:'2px solid rgba(200,95,45,0.2)' }}>
                             <X size={14} /> Reject
                           </button>
                         )}

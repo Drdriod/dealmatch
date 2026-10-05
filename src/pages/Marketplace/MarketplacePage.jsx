@@ -35,9 +35,9 @@ function SchemaField({ name, schema, value, onChange }) {
   if (schema.enum) {
     return (
       <div>
-        <label className="block text-xs font-semibold mb-1" style={{ color: '#8A7E78' }}>{label}</label>
+        <label className="block text-xs font-semibold mb-1" style={{ color: '#647068' }}>{label}</label>
         <select value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}
-          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }}>
+          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }}>
           <option value="">Any</option>
           {schema.enum.map(opt => <option key={opt} value={opt}>{String(opt).replace(/_/g, ' ')}</option>)}
         </select>
@@ -55,28 +55,28 @@ function SchemaField({ name, schema, value, onChange }) {
   if (schema.type === 'integer' || schema.type === 'number') {
     return (
       <div>
-        <label className="block text-xs font-semibold mb-1" style={{ color: '#8A7E78' }}>{label}</label>
+        <label className="block text-xs font-semibold mb-1" style={{ color: '#647068' }}>{label}</label>
         <input type="number" value={value ?? ''} min={schema.minimum} max={schema.maximum}
           onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
-          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
       </div>
     )
   }
   if (schema.type === 'array') {
     return (
       <div>
-        <label className="block text-xs font-semibold mb-1" style={{ color: '#8A7E78' }}>{label}</label>
+        <label className="block text-xs font-semibold mb-1" style={{ color: '#647068' }}>{label}</label>
         <input type="text" placeholder="Comma-separated" value={(value || []).join(', ')}
           onChange={e => onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+          className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
       </div>
     )
   }
   return (
     <div>
-      <label className="block text-xs font-semibold mb-1" style={{ color: '#8A7E78' }}>{label}</label>
+      <label className="block text-xs font-semibold mb-1" style={{ color: '#647068' }}>{label}</label>
       <input type="text" value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}
-        className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+        className="w-full px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
     </div>
   )
 }
@@ -93,7 +93,7 @@ function SearchBar({ autoFocus }) {
 
   return (
     <form onSubmit={submit} className="flex gap-2 mb-8">
-      <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+      <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
         <Search size={18} className="text-gray-400" />
         <input autoFocus={autoFocus} value={q} onChange={e => setQ(e.target.value)}
           placeholder="Search everything: a flat, a plumber, a truck, a lawyer..."
@@ -120,7 +120,7 @@ function SearchResultsView({ query }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <SearchBar />
-      <h1 className="font-display text-xl font-black mb-1" style={{ color: '#1A1210' }}>
+      <h1 className="font-display text-xl font-black mb-1" style={{ color: '#17211B' }}>
         Results for "{query}"
       </h1>
       {state.loading ? (
@@ -128,16 +128,16 @@ function SearchResultsView({ query }) {
       ) : state.results.length === 0 ? (
         <p className="text-sm text-gray-400 py-8">Nothing matched that search. Try a broader term.</p>
       ) : (
-        <div className="divide-y mt-4" style={{ borderColor: '#E8DDD2' }}>
+        <div className="divide-y mt-4" style={{ borderColor: '#DEDDD6' }}>
           {state.results.map(r => (
             <Link key={`${r.source}-${r.item_id}`} to={r.url_path} className="flex items-center justify-between py-4">
               <div>
-                <div className="text-xs font-semibold mb-1" style={{ color: '#C96A3A' }}>{r.category_name}</div>
-                <div className="font-semibold" style={{ color: '#1A1210' }}>{r.title}</div>
+                <div className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{r.category_name}</div>
+                <div className="font-semibold" style={{ color: '#17211B' }}>{r.title}</div>
                 <div className="text-xs text-gray-400 mt-1">{r.snippet}</div>
               </div>
               <div className="text-right">
-                {r.price_cents != null && <div className="text-sm font-bold" style={{ color: '#1A1210' }}>{formatPrice(r.price_cents)}</div>}
+                {r.price_cents != null && <div className="text-sm font-bold" style={{ color: '#17211B' }}>{formatPrice(r.price_cents)}</div>}
                 {r.location_name && <div className="text-xs text-gray-400 flex items-center gap-1 justify-end"><MapPin size={11} />{r.location_name}</div>}
               </div>
             </Link>
@@ -158,21 +158,21 @@ function IndexView() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#1A1210' }}>Tell Us What You Need</h1>
+      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#17211B' }}>Tell Us What You Need</h1>
       <p className="text-sm text-gray-500 mb-6">Search across every category, or browse by name below.</p>
       <SearchBar autoFocus />
       <div className="grid gap-3">
         {tree.map(cat => (
           <Link key={cat.slug} to={`/marketplace/${cat.slug}`}
-            className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+            className="p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-sm" style={{ color: '#1A1210' }}>{cat.name}</span>
+              <span className="font-semibold text-sm" style={{ color: '#17211B' }}>{cat.name}</span>
               <ChevronRight size={16} className="text-gray-300" />
             </div>
             {cat.children?.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {cat.children.map(child => (
-                  <span key={child.slug} className="text-xs px-2.5 py-1 rounded-full" style={{ background: '#FAF6F0', color: '#8A7E78' }}>
+                  <span key={child.slug} className="text-xs px-2.5 py-1 rounded-full" style={{ background: '#F7F4ED', color: '#647068' }}>
                     {child.name}
                   </span>
                 ))}
@@ -223,19 +223,19 @@ function CategoryBrowseView({ categorySlug }) {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <SearchBar />
-      <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#1A1210' }}>{category?.name || '...'}</h1>
+      <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>{category?.name || '...'}</h1>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div className="flex gap-2">
           {!category?.source_table && ['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: type === t ? '#C96A3A' : '#FAF6F0', color: type === t ? '#fff' : '#8A7E78' }}>
+              style={{ background: type === t ? '#C85F2D' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
               {t === 'SUPPLY' ? 'Available now' : 'Looking for'}
             </button>
           ))}
           <button onClick={() => setShowMobileMap(m => !m)}
             className="lg:hidden flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: showMobileMap ? '#C96A3A' : '#FAF6F0', color: showMobileMap ? '#fff' : '#8A7E78' }}>
+            style={{ background: showMobileMap ? '#C85F2D' : '#F7F4ED', color: showMobileMap ? '#fff' : '#647068' }}>
             <MapIcon size={12} /> Map
           </button>
         </div>
@@ -245,7 +245,7 @@ function CategoryBrowseView({ categorySlug }) {
       </div>
 
       {Object.keys(properties).length > 0 && (
-        <div className="grid grid-cols-2 gap-3 mb-6 p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+        <div className="grid grid-cols-2 gap-3 mb-6 p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
           {Object.entries(properties).map(([name, schema]) => (
             <SchemaField key={name} name={name} schema={schema} value={filters[name]}
               onChange={v => setFilters(f => ({ ...f, [name]: v }))} />
@@ -270,9 +270,9 @@ function CategoryBrowseView({ categorySlug }) {
             <div className="grid gap-3">
               {results.map(item => (
                 <Link key={item.id} to={item.detailUrl || `/marketplace/${categorySlug}/listing/${item.id}`}
-                  className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
-                  <div className="font-semibold" style={{ color: '#1A1210' }}>{item.title}</div>
-                  {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C96A3A' }}>{formatPrice(item.price_cents)}</div>}
+                  className="p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
+                  <div className="font-semibold" style={{ color: '#17211B' }}>{item.title}</div>
+                  {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C85F2D' }}>{formatPrice(item.price_cents)}</div>}
                   {item.location_name && <div className="text-xs text-gray-400 mt-1 flex items-center gap-1"><MapPin size={11} />{item.location_name}</div>}
                 </Link>
               ))}
@@ -347,32 +347,32 @@ function NewListingView({ categorySlug }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#1A1210' }}>Post to {category?.name || '...'}</h1>
+      <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>Post to {category?.name || '...'}</h1>
       <p className="text-sm text-gray-500 mb-6">Fill in what you have, or what you need.</p>
 
       <div className="flex gap-2 mb-4">
         {['SUPPLY', 'DEMAND'].map(t => (
           <button key={t} onClick={() => setType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: type === t ? '#C96A3A' : '#FAF6F0', color: type === t ? '#fff' : '#8A7E78' }}>
+            style={{ background: type === t ? '#C85F2D' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
             {t === 'SUPPLY' ? 'I have this to offer' : 'I need this'}
           </button>
         ))}
       </div>
 
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" maxLength={255}
-        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
       <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" rows={3}
-        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
       <div className="grid grid-cols-2 gap-3 mb-3">
         <input value={priceCents} onChange={e => setPriceCents(e.target.value)} type="number" placeholder="Price (NGN, optional)"
-          className="px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+          className="px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
         <input value={locationName} onChange={e => setLocationName(e.target.value)} placeholder="Location"
-          className="px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }} />
+          className="px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }} />
       </div>
 
       {Object.keys(properties).length > 0 && (
-        <div className="grid grid-cols-2 gap-3 mb-4 p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+        <div className="grid grid-cols-2 gap-3 mb-4 p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
           {Object.entries(properties).map(([name, schema]) => (
             <SchemaField key={name} name={name} schema={schema} value={attributes[name]}
               onChange={v => setAttributes(a => ({ ...a, [name]: v }))} />
@@ -404,9 +404,9 @@ function ListingDetailView({ id }) {
   const { listing } = state
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <p className="text-xs font-semibold mb-1" style={{ color: '#C96A3A' }}>{state.category?.name}</p>
-      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#1A1210' }}>{listing.title}</h1>
-      {listing.price_cents != null && <p className="text-lg font-bold mb-3" style={{ color: '#1A1210' }}>{formatPrice(listing.price_cents)}</p>}
+      <p className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{state.category?.name}</p>
+      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{listing.title}</h1>
+      {listing.price_cents != null && <p className="text-lg font-bold mb-3" style={{ color: '#17211B' }}>{formatPrice(listing.price_cents)}</p>}
       <p className="text-sm mb-4" style={{ color: '#3a2f2a' }}>{listing.description}</p>
       {listing.location_name && <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={11} />{listing.location_name}</p>}
       {typeof listing.lat === 'number' && typeof listing.lng === 'number' && (
@@ -415,11 +415,11 @@ function ListingDetailView({ id }) {
         </div>
       )}
       {Object.entries(listing.attributes || {}).length > 0 && (
-        <div className="mt-6 p-4 rounded-2xl border grid grid-cols-2 gap-3" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+        <div className="mt-6 p-4 rounded-2xl border grid grid-cols-2 gap-3" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
           {Object.entries(listing.attributes).map(([k, v]) => (
             <div key={k}>
               <div className="text-xs text-gray-400">{k.replace(/_/g, ' ')}</div>
-              <div className="text-sm font-semibold" style={{ color: '#1A1210' }}>{Array.isArray(v) ? v.join(', ') : String(v)}</div>
+              <div className="text-sm font-semibold" style={{ color: '#17211B' }}>{Array.isArray(v) ? v.join(', ') : String(v)}</div>
             </div>
           ))}
         </div>
@@ -433,12 +433,12 @@ function GroupHubView({ category, childCategories }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <SearchBar />
-      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#1A1210' }}>{category.name}</h1>
+      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{category.name}</h1>
       <div className="grid gap-3">
         {childCategories.map(c => (
           <Link key={c.slug} to={`/marketplace/${c.slug}`}
-            className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
-            <span className="font-semibold text-sm" style={{ color: '#1A1210' }}>{c.name}</span>
+            className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
+            <span className="font-semibold text-sm" style={{ color: '#17211B' }}>{c.name}</span>
             <ChevronRight size={16} className="text-gray-300" />
           </Link>
         ))}

@@ -58,21 +58,21 @@ function FAQItem({ item, isOpen, onToggle }) {
   return (
     <div
       className="rounded-2xl overflow-hidden transition-colors"
-      style={{ backgroundColor: isOpen ? '#FFFFFF' : '#FAF6F0', border: `1px solid ${isOpen ? '#E4D5C4' : 'transparent'}` }}
+      style={{ backgroundColor: isOpen ? '#FFFFFF' : '#F7F4ED', border: `1px solid ${isOpen ? '#DEDDD6' : 'transparent'}` }}
     >
       <button
         onClick={onToggle}
         className="w-full py-4 px-4 sm:px-5 flex items-center gap-3.5 text-left"
       >
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(201,106,58,0.1)' }}>
-          <Icon size={16} style={{ color: '#C96A3A' }} />
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
+          <Icon size={16} style={{ color: '#C85F2D' }} />
         </div>
-        <span className="font-display font-bold text-[15px] sm:text-base flex-1" style={{ color: '#1A1210' }}>
+        <span className="font-display font-bold text-[15px] sm:text-base flex-1" style={{ color: '#17211B' }}>
           {item.q}
         </span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}
           className="flex-shrink-0">
-          <ChevronDown size={18} style={{ color: '#C96A3A' }} />
+          <ChevronDown size={18} style={{ color: '#C85F2D' }} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -84,7 +84,7 @@ function FAQItem({ item, isOpen, onToggle }) {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <p className="pb-5 px-4 sm:px-5 text-sm leading-relaxed" style={{ color: '#8A7E78', marginLeft: '2.85rem' }}>
+            <p className="pb-5 px-4 sm:px-5 text-sm leading-relaxed" style={{ color: '#647068', marginLeft: '2.85rem' }}>
               {item.a}
             </p>
           </motion.div>
@@ -102,9 +102,9 @@ export default function FAQSection() {
       <div className="max-w-3xl mx-auto">
         <FadeUp>
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#C96A3A' }}>Questions</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-black mb-4" style={{ color: '#1A1210' }}>Frequently Asked Questions</h2>
-            <p className="text-sm sm:text-base" style={{ color: '#8A7E78' }}>Everything you need to know before you get started.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#C85F2D' }}>Questions</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-black mb-4" style={{ color: '#17211B' }}>Frequently Asked Questions</h2>
+            <p className="text-sm sm:text-base" style={{ color: '#647068' }}>Everything you need to know before you get started.</p>
           </div>
         </FadeUp>
         <StaggerChildren className="space-y-2.5" stagger={0.06}>

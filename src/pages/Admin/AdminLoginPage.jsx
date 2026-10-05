@@ -110,7 +110,7 @@ function ForgotPassword({ onBack }) {
           className="w-full py-4 rounded-2xl text-sm font-bold mt-1 flex items-center justify-center gap-2 transition-all"
           style={{
             backgroundColor: (!email || loading) ? 'rgba(255,255,255,0.08)' : '#D4A853',
-            color:           (!email || loading) ? 'rgba(255,255,255,0.35)' : '#1A1210',
+            color:           (!email || loading) ? 'rgba(255,255,255,0.35)' : '#17211B',
           }}>
           {loading
             ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -201,7 +201,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ backgroundColor:'#1A1210' }}>
+      style={{ backgroundColor:'#17211B' }}>
       <motion.div
         initial={{ opacity:0, y:20 }}
         animate={{ opacity:1, y:0 }}
@@ -226,11 +226,11 @@ export default function AdminLoginPage() {
               {/* Lockout Banner */}
               {isLocked && (
                 <div className="rounded-2xl p-4 mb-5 flex items-start gap-3"
-                  style={{ backgroundColor:'rgba(201,106,58,0.15)', border:'1px solid rgba(201,106,58,0.3)' }}>
-                  <AlertTriangle size={16} style={{ color:'#C96A3A', flexShrink:0, marginTop:1 }} />
+                  style={{ backgroundColor:'rgba(200,95,45,0.15)', border:'1px solid rgba(200,95,45,0.3)' }}>
+                  <AlertTriangle size={16} style={{ color:'#C85F2D', flexShrink:0, marginTop:1 }} />
                   <div>
-                    <p className="text-sm font-semibold" style={{ color:'#C96A3A' }}>Too many failed attempts</p>
-                    <p className="text-xs mt-0.5" style={{ color:'rgba(201,106,58,0.8)' }}>
+                    <p className="text-sm font-semibold" style={{ color:'#C85F2D' }}>Too many failed attempts</p>
+                    <p className="text-xs mt-0.5" style={{ color:'rgba(200,95,45,0.8)' }}>
                       {lockedMsg}
                     </p>
                     <button onClick={() => setShowForgot(true)}
@@ -317,7 +317,7 @@ export default function AdminLoginPage() {
                   className="w-full py-4 rounded-2xl text-sm font-bold mt-2 transition-all flex items-center justify-center gap-2"
                   style={{
                     backgroundColor: isLocked ? 'rgba(255,255,255,0.06)' : '#D4A853',
-                    color:           isLocked ? 'rgba(255,255,255,0.3)'  : '#1A1210',
+                    color:           isLocked ? 'rgba(255,255,255,0.3)'  : '#17211B',
                     cursor:          isLocked ? 'not-allowed' : 'pointer',
                   }}>
                   {loading
