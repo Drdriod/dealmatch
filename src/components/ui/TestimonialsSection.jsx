@@ -92,22 +92,22 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(26,18,16,0.6)' }} onClick={onClose}>
+      style={{ backgroundColor: 'rgba(23,33,27,0.6)' }} onClick={onClose}>
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
         onClick={e => e.stopPropagation()}
         className="w-full max-w-md rounded-3xl p-6" style={{ backgroundColor: '#FFFFFF' }}>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-display font-black text-xl" style={{ color: '#1A1210' }}>Share Your Story</h3>
-          <button onClick={onClose}><X size={20} style={{ color: '#8A7E78' }} /></button>
+          <h3 className="font-display font-black text-xl" style={{ color: '#17211B' }}>Share Your Story</h3>
+          <button onClick={onClose}><X size={20} style={{ color: '#647068' }} /></button>
         </div>
 
         <div className="mb-4">
-          <label className="text-xs font-bold mb-2 block" style={{ color: '#8A7E78' }}>Your Rating</label>
+          <label className="text-xs font-bold mb-2 block" style={{ color: '#647068' }}>Your Rating</label>
           <Stars value={rating} onChange={setRating} size={26} />
         </div>
 
         <div className="mb-4">
-          <label className="text-xs font-bold mb-1.5 block" style={{ color: '#8A7E78' }}>
+          <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
             How would you describe yourself? <span style={{ opacity: 0.6 }}>(optional)</span>
           </label>
           <input
@@ -116,12 +116,12 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
             placeholder="e.g. Tenant in Lekki, First-time buyer"
             maxLength={80}
             className="w-full rounded-2xl px-4 py-3 text-sm outline-none"
-            style={{ backgroundColor: '#FAF6F0', border: '1px solid #E8DDD2', color: '#1A1210' }}
+            style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6', color: '#17211B' }}
           />
         </div>
 
         <div className="mb-5">
-          <label className="text-xs font-bold mb-1.5 block" style={{ color: '#8A7E78' }}>Your Experience</label>
+          <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>Your Experience</label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
@@ -129,14 +129,14 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
             maxLength={600}
             placeholder="Tell other Nigerians about your experience finding a match with DealMatch..."
             className="w-full rounded-2xl px-4 py-3 text-sm outline-none resize-none"
-            style={{ backgroundColor: '#FAF6F0', border: '1px solid #E8DDD2', color: '#1A1210' }}
+            style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6', color: '#17211B' }}
           />
           <p className="text-xs mt-1 text-right" style={{ color: '#C9BEB2' }}>{content.length}/600</p>
         </div>
 
         <button onClick={submit} disabled={saving}
           className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-          style={{ backgroundColor: '#D4A853', color: '#1A1210' }}>
+          style={{ backgroundColor: '#D4A853', color: '#17211B' }}>
           {saving
             ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
             : <><Send size={14} /> Submit for Review</>
@@ -178,7 +178,7 @@ export default function TestimonialsSection() {
   }, [isAuthenticated, user])
 
   return (
-    <section className="py-24 px-6" style={{ backgroundColor: '#FAF6F0' }}>
+    <section className="py-24 px-6" style={{ backgroundColor: '#F7F4ED' }}>
       <div className="max-w-6xl mx-auto">
         <FadeUp>
           <div className="text-center mb-16">
@@ -195,12 +195,12 @@ export default function TestimonialsSection() {
                 </p>
               ) : (
                 <button onClick={() => setShowModal(true)}
-                  className="text-sm font-bold underline" style={{ color: '#C96A3A' }}>
+                  className="text-sm font-bold underline" style={{ color: '#C85F2D' }}>
                   Share your own story →
                 </button>
               )
             ) : (
-              <p className="text-xs" style={{ color: '#8A7E78' }}>
+              <p className="text-xs" style={{ color: '#647068' }}>
                 Sign in to share your own experience.
               </p>
             )}
@@ -208,7 +208,7 @@ export default function TestimonialsSection() {
         </FadeUp>
 
         {loading ? null : testimonials.length === 0 ? (
-          <p className="text-center text-sm" style={{ color: '#8A7E78' }}>
+          <p className="text-center text-sm" style={{ color: '#647068' }}>
             Be the first to share your DealMatch story.
           </p>
         ) : (
@@ -216,16 +216,16 @@ export default function TestimonialsSection() {
             {testimonials.map(t => (
               <StaggerItem key={t.id}>
                 <div className="rounded-3xl p-6 h-full flex flex-col"
-                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8DDD2' }}>
-                  <Quote size={22} style={{ color: '#E8DDD2' }} className="mb-3" />
+                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+                  <Quote size={22} style={{ color: '#DEDDD6' }} className="mb-3" />
                   <Stars value={t.rating} size={14} />
-                  <p className="text-sm leading-relaxed mt-3 mb-4 flex-1" style={{ color: '#1A1210' }}>
+                  <p className="text-sm leading-relaxed mt-3 mb-4 flex-1" style={{ color: '#17211B' }}>
                     "{t.content}"
                   </p>
                   <div>
-                    <p className="text-sm font-bold" style={{ color: '#1A1210' }}>{t.name}</p>
+                    <p className="text-sm font-bold" style={{ color: '#17211B' }}>{t.name}</p>
                     {t.role_label && (
-                      <p className="text-xs" style={{ color: '#8A7E78' }}>{t.role_label}</p>
+                      <p className="text-xs" style={{ color: '#647068' }}>{t.role_label}</p>
                     )}
                   </div>
                 </div>

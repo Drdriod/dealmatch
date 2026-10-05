@@ -9,7 +9,7 @@ export default function ImageGallery({ images = [], title = '' }) {
   const filtered = images.filter(i => i?.url)
   if (!filtered.length) return (
     <div className="w-full h-64 rounded-3xl flex items-center justify-center text-6xl"
-      style={{ backgroundColor: 'rgba(201,106,58,0.08)' }}>
+      style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
       <Home size={48} className="text-terracotta" />
     </div>
   )
@@ -26,12 +26,12 @@ export default function ImageGallery({ images = [], title = '' }) {
           <>
             <button onClick={prev}
               className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
-              style={{ backgroundColor: 'rgba(26,18,16,0.5)' }}>
+              style={{ backgroundColor: 'rgba(23,33,27,0.5)' }}>
               <ChevronLeft size={16} color="white" />
             </button>
             <button onClick={next}
               className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
-              style={{ backgroundColor: 'rgba(26,18,16,0.5)' }}>
+              style={{ backgroundColor: 'rgba(23,33,27,0.5)' }}>
               <ChevronRight size={16} color="white" />
             </button>
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -41,7 +41,7 @@ export default function ImageGallery({ images = [], title = '' }) {
                   style={{
                     width: i === activeIdx ? 18 : 6,
                     height: 6,
-                    backgroundColor: i === activeIdx ? '#C96A3A' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: i === activeIdx ? '#C85F2D' : 'rgba(255,255,255,0.6)',
                   }} />
               ))}
             </div>
@@ -49,11 +49,11 @@ export default function ImageGallery({ images = [], title = '' }) {
         )}
         <button onClick={() => setLightbox(true)}
           className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(26,18,16,0.5)' }}>
+          style={{ backgroundColor: 'rgba(23,33,27,0.5)' }}>
           <Expand size={13} color="white" />
         </button>
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: 'rgba(26,18,16,0.6)', color: '#FFFFFF' }}>
+          style={{ backgroundColor: 'rgba(23,33,27,0.6)', color: '#FFFFFF' }}>
           {activeIdx + 1} / {filtered.length}
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function ImageGallery({ images = [], title = '' }) {
           {filtered.map((img, i) => (
             <button key={i} onClick={() => setActiveIdx(i)}
               className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all"
-              style={{ borderColor: i === activeIdx ? '#C96A3A' : 'transparent' }}>
+              style={{ borderColor: i === activeIdx ? '#C85F2D' : 'transparent' }}>
               <img src={img.url} alt="" className="w-full h-full object-cover" />
             </button>
           ))}

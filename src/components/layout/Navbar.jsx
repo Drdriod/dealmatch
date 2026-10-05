@@ -29,17 +29,17 @@ export default function Navbar() {
   }
 
   return (
-    <header className="w-full bg-[#FAF6F0] border-b border-[#E8DDD2] sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <header className="w-full bg-[#F7F4ED]/95 backdrop-blur-md border-b border-deep/10 sticky top-0 z-50">
+      <div className="max-w-[1240px] mx-auto px-5 md:px-7 h-[68px] md:h-[78px] flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-xl font-bold text-[#1A1210]">
           <img src="/brand/dealmatch-icon-transparent.png" alt="DealMatch" className="h-7 w-auto" />
           Deal<span className="text-[#C96A3A]">Match</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#1A1210]">
-          <Link to={PLACE_ROUTE} className="hover:text-[#C96A3A]">Find a Place</Link>
-          <Link to={PROVIDER_ROUTE} className="hover:text-[#C96A3A]">Find a Provider</Link>
-          <Link to={POST_ROUTE} className="hover:text-[#C96A3A]">Post a Request</Link>
+        <nav className="hidden md:flex items-center gap-9 text-sm font-semibold text-[#17211B]">
+          <Link to={PLACE_ROUTE} className="hover:text-[#C85F2D]">Find a Place</Link>
+          <Link to={PROVIDER_ROUTE} className="hover:text-[#C85F2D]">Find a Provider</Link>
+          <Link to={POST_ROUTE} className="hover:text-[#C85F2D]">Post a Request</Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -50,35 +50,35 @@ export default function Navbar() {
               </div>
               <div className="hidden md:block relative">
                 <button onClick={() => setProfileOpen(o => !o)}
-                  className="text-sm font-medium text-[#1A1210] hover:text-[#C96A3A]">
+                  className="text-sm font-medium text-[#17211B] hover:text-[#C85F2D]">
                   Profile
                 </button>
                 {profileOpen && (
-                  <div className="absolute right-0 top-8 w-48 bg-[#FAF6F0] border border-[#E8DDD2] rounded-xl shadow-lg py-2 text-sm">
-                    <Link to="/dashboard" className="block px-4 py-2 text-[#1A1210] hover:text-[#C96A3A]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
-                    <Link to="/wallet" className="block px-4 py-2 text-[#1A1210] hover:text-[#C96A3A]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
-                    <Link to="/manage-listings" className="block px-4 py-2 text-[#1A1210] hover:text-[#C96A3A]" onClick={() => setProfileOpen(false)}>Manage Listings</Link>
-                    <Link to="/profile" className="block px-4 py-2 text-[#1A1210] hover:text-[#C96A3A]" onClick={() => setProfileOpen(false)}>Profile Settings</Link>
-                    <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#C96A3A] hover:bg-black/5">Sign Out</button>
+                  <div className="absolute right-0 top-8 w-48 bg-[#F7F4ED] border border-[#DEDDD6] rounded-xl shadow-lg py-2 text-sm">
+                    <Link to="/dashboard" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
+                    <Link to="/wallet" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
+                    <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Manage Listings</Link>
+                    <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Profile Settings</Link>
+                    <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#C85F2D] hover:bg-black/5">Sign Out</button>
                   </div>
                 )}
               </div>
             </>
           ) : (
             <button onClick={() => navigate('/auth')}
-              className="hidden md:block text-sm font-medium text-[#1A1210] hover:text-[#C96A3A]">
+              className="hidden md:block text-sm font-medium text-[#17211B] hover:text-[#C85F2D]">
               Login
             </button>
           )}
 
           {!user && (
             <button onClick={() => navigate('/auth')}
-              className="bg-[#C96A3A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#B15A2E] transition">
+              className="bg-[#C85F2D] text-white text-[13px] font-bold px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
               Sign Up
             </button>
           )}
 
-          <button className="md:hidden p-2 text-[#1A1210]" onClick={() => navigate(PROVIDER_ROUTE)}>
+          <button className="md:hidden p-2 text-[#17211B]" onClick={() => navigate(PROVIDER_ROUTE)}>
             <Search className="w-5 h-5" />
           </button>
 
@@ -88,7 +88,7 @@ export default function Navbar() {
             </div>
           )}
 
-          <button className="md:hidden p-2 text-[#1A1210]" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="md:hidden p-2 text-[#17211B]" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -103,34 +103,34 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-[#FAF6F0] border-t border-[#E8DDD2] px-4 py-4 space-y-3">
-          <Link to={PLACE_ROUTE} className="block text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>
+        <div className="md:hidden bg-[#F7F4ED] border-t border-[#DEDDD6] px-4 py-4 space-y-3">
+          <Link to={PLACE_ROUTE} className="block text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>
             Find a Place
           </Link>
-          <Link to={PROVIDER_ROUTE} className="block text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>
+          <Link to={PROVIDER_ROUTE} className="block text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>
             Find a Provider
           </Link>
-          <Link to={POST_ROUTE} className="block text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>
+          <Link to={POST_ROUTE} className="block text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>
             Post a Request
           </Link>
 
-          <div className="pt-3 border-t border-[#E8DDD2] flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#DEDDD6] flex flex-col gap-2">
             {user ? (
               <>
-                <Link to="/dashboard" className="text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
-                <Link to="/wallet" className="text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
-                <Link to="/manage-listings" className="text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>Manage Listings</Link>
-                <Link to="/profile" className="text-[#1A1210] font-medium py-2" onClick={() => setMobileOpen(false)}>Profile Settings</Link>
-                <button onClick={handleSignOut} className="w-full text-left text-[#C96A3A] font-medium py-2">
+                <Link to="/dashboard" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                <Link to="/wallet" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
+                <Link to="/manage-listings" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Manage Listings</Link>
+                <Link to="/profile" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Profile Settings</Link>
+                <button onClick={handleSignOut} className="w-full text-left text-[#C85F2D] font-medium py-2">
                   Sign Out
                 </button>
               </>
             ) : (
               <>
-                <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-[#1A1210] font-medium py-2">
+                <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-[#17211B] font-medium py-2">
                   Login
                 </button>
-                <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#C96A3A] text-white font-medium py-2.5 rounded-full">
+                <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#C85F2D] text-white font-medium py-2.5 rounded-full">
                   Sign Up
                 </button>
               </>

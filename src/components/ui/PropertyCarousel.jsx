@@ -37,7 +37,7 @@ export default function PropertyCarousel({ properties = [], title, subtitle, emp
   }
 
   if (!properties.length) return (
-    <div className="text-center py-10" style={{ color:'#8A7E78' }}>
+    <div className="text-center py-10" style={{ color:'#647068' }}>
       <div className="flex justify-center mb-2"><Home size={40} className="text-terracotta" /></div>
       <p className="text-sm">{emptyText}</p>
     </div>
@@ -49,18 +49,18 @@ export default function PropertyCarousel({ properties = [], title, subtitle, emp
       {(title || subtitle) && (
         <div className="flex items-end justify-between mb-6">
           <div>
-            {title    && <h2 className="font-display font-black text-2xl md:text-3xl" style={{ color:'#1A1210' }}>{title}</h2>}
-            {subtitle && <p className="text-sm mt-1" style={{ color:'#8A7E78' }}>{subtitle}</p>}
+            {title    && <h2 className="font-display font-black text-2xl md:text-3xl" style={{ color:'#17211B' }}>{title}</h2>}
+            {subtitle && <p className="text-sm mt-1" style={{ color:'#647068' }}>{subtitle}</p>}
           </div>
           <div className="flex gap-2">
             <button onClick={prev} disabled={!canPrev}
               className="w-9 h-9 rounded-full border flex items-center justify-center transition-all"
-              style={{ borderColor: canPrev ? '#C96A3A' : '#E8DDD2', color: canPrev ? '#C96A3A' : '#C8C0B8', backgroundColor:'#FFFFFF' }}>
+              style={{ borderColor: canPrev ? '#C85F2D' : '#DEDDD6', color: canPrev ? '#C85F2D' : '#C8C0B8', backgroundColor:'#FFFFFF' }}>
               <ChevronLeft size={16} />
             </button>
             <button onClick={next} disabled={!canNext}
               className="w-9 h-9 rounded-full border flex items-center justify-center transition-all"
-              style={{ borderColor: canNext ? '#C96A3A' : '#E8DDD2', color: canNext ? '#C96A3A' : '#C8C0B8', backgroundColor:'#FFFFFF' }}>
+              style={{ borderColor: canNext ? '#C85F2D' : '#DEDDD6', color: canNext ? '#C85F2D' : '#C8C0B8', backgroundColor:'#FFFFFF' }}>
               <ChevronRight size={16} />
             </button>
           </div>
@@ -84,35 +84,35 @@ export default function PropertyCarousel({ properties = [], title, subtitle, emp
                 key={p.id}
                 to={`/property/${p.id}`}
                 className="flex-shrink-0 rounded-2xl overflow-hidden border group transition-all hover:-translate-y-1"
-                style={{ width:`calc(${100 / visible}% - ${(visible - 1) * 16 / visible}px)`, backgroundColor:'#FFFAF5', borderColor:'#E8DDD2', boxShadow:'0 2px 12px rgba(26,18,16,0.06)' }}>
+                style={{ width:`calc(${100 / visible}% - ${(visible - 1) * 16 / visible}px)`, backgroundColor:'#FFFAF5', borderColor:'#DEDDD6', boxShadow:'0 2px 12px rgba(23,33,27,0.06)' }}>
                 {/* Image */}
                 <div className="relative h-44 overflow-hidden">
                   {img
                     ? <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    : <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor:'rgba(201,106,58,0.08)' }}>{EMOJI[p.property_type] || 'home'}</div>
+                    : <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor:'rgba(200,95,45,0.08)' }}>{EMOJI[p.property_type] || 'home'}</div>
                   }
                   {/* Like button */}
                   <button onClick={e => handleLike(e, p)}
                     className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                    style={{ backgroundColor: isLiked ? 'rgba(201,106,58,0.9)' : 'rgba(255,255,255,0.85)', backdropFilter:'blur(4px)' }}>
-                    <Heart size={14} fill={isLiked ? '#FFFFFF' : 'none'} style={{ color: isLiked ? '#FFFFFF' : '#C96A3A' }} />
+                    style={{ backgroundColor: isLiked ? 'rgba(200,95,45,0.9)' : 'rgba(255,255,255,0.85)', backdropFilter:'blur(4px)' }}>
+                    <Heart size={14} fill={isLiked ? '#FFFFFF' : 'none'} style={{ color: isLiked ? '#FFFFFF' : '#C85F2D' }} />
                   </button>
                   {/* Category badge */}
                   <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                    style={{ backgroundColor:'rgba(26,18,16,0.7)', color:'#FFFFFF' }}>
+                    style={{ backgroundColor:'rgba(23,33,27,0.7)', color:'#FFFFFF' }}>
                     {p.listing_type || p.category}
                   </div>
                 </div>
 
                 {/* Info */}
                 <div className="p-4">
-                  <p className="font-display font-black text-base mb-0.5" style={{ color:'#C96A3A' }}>{formatPrice(p.price)}</p>
-                  <p className="font-semibold text-sm truncate mb-1" style={{ color:'#1A1210' }}>{p.title}</p>
-                  <div className="flex items-center gap-1 text-xs mb-2" style={{ color:'#8A7E78' }}>
-                    <MapPin size={10} style={{ color:'#C96A3A' }} />
+                  <p className="font-display font-black text-base mb-0.5" style={{ color:'#C85F2D' }}>{formatPrice(p.price)}</p>
+                  <p className="font-semibold text-sm truncate mb-1" style={{ color:'#17211B' }}>{p.title}</p>
+                  <div className="flex items-center gap-1 text-xs mb-2" style={{ color:'#647068' }}>
+                    <MapPin size={10} style={{ color:'#C85F2D' }} />
                     <span className="truncate">{p.city}, {p.state}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs" style={{ color:'#8A7E78' }}>
+                  <div className="flex items-center gap-3 text-xs" style={{ color:'#647068' }}>
                     {p.bedrooms  && <span className="flex items-center gap-0.5"><Bed size={10} /> {p.bedrooms}</span>}
                     {p.bathrooms && <span className="flex items-center gap-0.5"><Bath size={10} /> {p.bathrooms}</span>}
                     {p.size_sqm  && <span className="flex items-center gap-0.5"><Maximize size={10} /> {p.size_sqm}sqm</span>}

@@ -57,15 +57,15 @@ function FlipCard({ card, photo, index }) {
         {/* Front face - neutral: white card, dark text, no color */}
         <div
           className="absolute inset-0 rounded-3xl p-5 flex flex-col justify-between overflow-hidden"
-          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #E4DCD3' }}
+          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}
         >
-          <card.icon size={26} style={{ color: '#1A1210' }} strokeWidth={1.6} />
+          <card.icon size={26} style={{ color: '#17211B' }} strokeWidth={1.6} />
           <div>
-            <h3 className="font-display text-lg font-black leading-tight mb-1" style={{ color: '#1A1210' }}>
+            <h3 className="font-display text-lg font-black leading-tight mb-1" style={{ color: '#17211B' }}>
               {card.title}
             </h3>
-            <p className="text-xs max-w-[70%] mb-3" style={{ color: '#5A4F49' }}>{card.desc}</p>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#1A1210' }}>
+            <p className="text-xs max-w-[70%] mb-3" style={{ color: '#536058' }}>{card.desc}</p>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#17211B' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
             </div>
           </div>
@@ -79,13 +79,13 @@ function FlipCard({ card, photo, index }) {
           {photo ? (
             <>
               <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${photo})` }} />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(26,18,16,0.85) 0%, rgba(26,18,16,0.35) 60%, rgba(26,18,16,0.15) 100%)' }} />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(23,33,27,0.85) 0%, rgba(23,33,27,0.35) 60%, rgba(23,33,27,0.15) 100%)' }} />
             </>
           ) : (
-            <div className="absolute inset-0" style={{ backgroundColor: '#1A1210' }} />
+            <div className="absolute inset-0" style={{ backgroundColor: '#17211B' }} />
           )}
           <div className="relative h-full p-5 flex flex-col justify-end">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1" style={{ color: '#E4DCD3' }}>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1" style={{ color: '#DEDDD6' }}>
               <ShieldCheck size={12} /> Verified
             </div>
             <p className="text-white text-sm font-semibold leading-snug">{card.backLabel}</p>
@@ -106,10 +106,10 @@ export default function WhatIsDealMatchCarousel({ properties = [] }) {
   return (
     <section className="py-14 px-6" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="max-w-2xl mx-auto text-center mb-8">
-        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#5A4F49' }}>
+        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#536058' }}>
           What's on DealMatch
         </p>
-        <h2 className="font-display text-2xl sm:text-3xl font-black" style={{ color: '#1A1210' }}>
+        <h2 className="font-display text-2xl sm:text-3xl font-black" style={{ color: '#17211B' }}>
           One platform. Multi-category matching.
         </h2>
       </div>

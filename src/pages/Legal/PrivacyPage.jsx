@@ -2,8 +2,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="max-w-2xl mx-auto px-6">
-        <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#1A1210' }}>Privacy Policy</h1>
-        <p className="text-xs mb-8" style={{ color: '#8A7E78' }}>Last updated: {new Date().getFullYear()}</p>
+        <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#17211B' }}>Privacy Policy</h1>
+        <p className="text-xs mb-8" style={{ color: '#647068' }}>Last updated: {new Date().getFullYear()}</p>
         {[
           { title: '1. Information We Collect', body: 'We collect information you provide directly, including name, email address, phone number, and property preferences. If you message DealMatch on WhatsApp, we also keep your WhatsApp number, first name and the service or home requests you make there, so we can match you and keep the platform safe. We also collect usage data to improve our service.' },
           { title: '2. How We Use Your Information', body: 'We use your information to match you with properties, connect you with professionals, process payments securely through Paystack, and send you relevant notifications via WhatsApp.' },
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
           { title: '6. Contact Us', body: 'For privacy concerns, contact DealMatch via WhatsApp: +234 705 739 2060 or email: info@dealmatch.com.ng' },
         ].map(s => (
           <div key={s.title} className="mb-6">
-            <h2 className="font-display font-black text-lg mb-2" style={{ color: '#1A1210' }}>{s.title}</h2>
+            <h2 className="font-display font-black text-lg mb-2" style={{ color: '#17211B' }}>{s.title}</h2>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{s.body}</p>
           </div>
         ))}

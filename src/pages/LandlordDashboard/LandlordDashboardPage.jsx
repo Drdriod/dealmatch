@@ -8,8 +8,8 @@ import toast from 'react-hot-toast'
 const STATUS_STYLES = {
   active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
   pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20',  label: 'Under Review' },
-  paused:         { bg: 'rgba(26,18,16,0.08)',    color: '#8A7E78',  label: 'Paused' },
-  rejected:       { bg: 'rgba(201,106,58,0.12)',  color: '#C96A3A',  label: 'Rejected' },
+  paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#647068',  label: 'Paused' },
+  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#C85F2D',  label: 'Rejected' },
   sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
 }
 
@@ -67,14 +67,14 @@ export default function LandlordDashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color: '#1A1210' }}>
+            <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
               Landlord Dashboard
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>Manage your properties</p>
+            <p className="text-xs mt-0.5" style={{ color: '#647068' }}>Manage your properties</p>
           </div>
           <button onClick={loadAll}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(26,18,16,0.08)' }}>
+            style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
             <RefreshCw size={16} style={{ color: '#5C4A3A' }} />
           </button>
         </div>
@@ -87,10 +87,10 @@ export default function LandlordDashboardPage() {
             { label: 'Revenue',        value: `₦${(totalRevenue/1000).toFixed(0)}K`, icon: <Banknote size={24} className="text-terracotta" /> },
           ].map(s => (
             <div key={s.label} className="rounded-2xl p-4 text-center border"
-              style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+              style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
               <div className="flex justify-center mb-1">{s.icon}</div>
-              <p className="font-display font-black text-xl" style={{ color: '#C96A3A' }}>{s.value}</p>
-              <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>{s.label}</p>
+              <p className="font-display font-black text-xl" style={{ color: '#C85F2D' }}>{s.value}</p>
+              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>{s.label}</p>
             </div>
           ))}
         </div>
@@ -104,7 +104,7 @@ export default function LandlordDashboardPage() {
           ].map(l => (
             <Link key={l.to} to={l.to}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-dashed transition-all"
-              style={{ borderColor: 'rgba(201,106,58,0.3)', color: '#C96A3A', backgroundColor: 'rgba(201,106,58,0.03)' }}>
+              style={{ borderColor: 'rgba(200,95,45,0.3)', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.03)' }}>
               <span>{l.icon}</span>
               <span className="text-xs font-semibold">+ {l.label}</span>
             </Link>
@@ -117,35 +117,35 @@ export default function LandlordDashboardPage() {
             <button key={v} onClick={() => setTab(v)}
               className="px-5 py-2.5 rounded-full text-sm font-semibold border transition-all"
               style={{
-                backgroundColor: tab === v ? '#1A1210' : '#FFFFFF',
+                backgroundColor: tab === v ? '#17211B' : '#FFFFFF',
                 color:           tab === v ? '#FFFFFF'  : '#5C4A3A',
-                borderColor:     tab === v ? '#1A1210'  : '#E8DDD2',
+                borderColor:     tab === v ? '#17211B'  : '#DEDDD6',
               }}>
               {l}
             </button>
           ))}
         </div>
 
-        {loading && <div className="text-center py-12" style={{ color: '#8A7E78' }}>Loading...</div>}
+        {loading && <div className="text-center py-12" style={{ color: '#647068' }}>Loading...</div>}
 
         {/* Listings tab */}
         {!loading && tab === 'listings' && (
           <div className="space-y-3">
             {listings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                 <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>No listings yet</p>
+                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>No listings yet</p>
                 <Link to="/list" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">List Property →</Link>
               </div>
             ) : listings.map(l => {
               const s = STATUS_STYLES[l.status] || STATUS_STYLES.paused
               return (
                 <div key={l.id} className="rounded-2xl border p-4"
-                  style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+                  style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate" style={{ color: '#1A1210' }}>{l.title}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>
+                      <p className="font-semibold text-sm truncate" style={{ color: '#17211B' }}>{l.title}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                         {l.city}, {l.state} · ₦{Number(l.price).toLocaleString()}
                       </p>
                     </div>
@@ -157,20 +157,20 @@ export default function LandlordDashboardPage() {
                   <div className="flex gap-2">
                     <Link to={`/property/${l.id}`}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                      style={{ borderColor: '#E8DDD2', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
+                      style={{ borderColor: '#DEDDD6', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
                       <Eye size={12} /> View
                     </Link>
                     {(l.status === 'active' || l.status === 'paused') && (
                       <button onClick={() => togglePause(l)}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                        style={{ borderColor: '#E8DDD2', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
+                        style={{ borderColor: '#DEDDD6', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
                         <Pause size={12} /> {l.status === 'active' ? 'Pause' : 'Activate'}
                       </button>
                     )}
                     {(l.category === 'hotel' || l.category === 'shortlet' || l.category === 'rental') && (
                       <Link to="/availability"
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border"
-                        style={{ borderColor: '#C96A3A', color: '#C96A3A', backgroundColor: 'rgba(201,106,58,0.04)' }}>
+                        style={{ borderColor: '#C85F2D', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.04)' }}>
                         {l.category === 'rental' ? 'Occupancy' : 'Rooms'}
                       </Link>
                     )}
@@ -185,17 +185,17 @@ export default function LandlordDashboardPage() {
         {!loading && tab === 'bookings' && (
           <div className="space-y-3">
             {bookings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                 <div className="flex justify-center mb-3"><ClipboardList size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>No bookings yet</p>
+                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>No bookings yet</p>
               </div>
             ) : bookings.map(b => (
               <div key={b.id} className="rounded-2xl border p-4"
-                style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+                style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
-                    <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>{b.guest_name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>{b.properties?.title}</p>
+                    <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{b.guest_name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#647068' }}>{b.properties?.title}</p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0"
                     style={{
@@ -205,7 +205,7 @@ export default function LandlordDashboardPage() {
                     {b.status}
                   </span>
                 </div>
-                <div className="text-xs" style={{ color: '#8A7E78' }}>
+                <div className="text-xs" style={{ color: '#647068' }}>
                   {b.checkin_date} → {b.checkout_date} · {b.guest_phone}
                   {b.total_amount ? ` · ₦${Number(b.total_amount).toLocaleString()}` : ''}
                 </div>

@@ -280,7 +280,7 @@ export default function JobPostingPage() {
 
   if (loadingExisting) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <p className="text-sm" style={{ color: '#8A7E78' }}>Loading job...</p>
+      <p className="text-sm" style={{ color: '#647068' }}>Loading job...</p>
     </div>
   )
 
@@ -289,16 +289,16 @@ export default function JobPostingPage() {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
-        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #E8DDD2' }}>
+        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
         <button onClick={() => navigate(-1)}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: '#E8DDD2', backgroundColor: '#FFFFFF' }}>
-          <ArrowLeft size={16} style={{ color: '#1A1210' }} />
+          style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFFFF' }}>
+          <ArrowLeft size={16} style={{ color: '#17211B' }} />
         </button>
-        <span className="font-display font-black text-base" style={{ color: '#1A1210' }}>Post a Request</span>
+        <span className="font-display font-black text-base" style={{ color: '#17211B' }}>Post a Request</span>
         {transaction && (
           <span className="ml-auto text-[11px] font-bold px-2.5 py-1 rounded-full"
-            style={{ backgroundColor: 'rgba(201,106,58,0.1)', color: '#C96A3A' }}>
+            style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
             {STATUS_LABEL[transaction.status] || transaction.status}
           </span>
         )}
@@ -309,60 +309,60 @@ export default function JobPostingPage() {
         {!transaction && (
           <div className="md:grid md:grid-cols-[1fr,340px] md:gap-8 md:items-start">
           <div>
-            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E8DDD2' }}>
+            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
               <button onClick={() => setToggle('book')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'book' ? '#C45C26' : 'transparent',
-                  color: toggle === 'book' ? '#FFFFFF' : '#8A7E78',
+                  backgroundColor: toggle === 'book' ? '#C85F2D' : 'transparent',
+                  color: toggle === 'book' ? '#FFFFFF' : '#647068',
                 }}>
                 <Zap size={14} /> I need someone now
               </button>
               <button onClick={() => setToggle('bid')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'bid' ? '#C45C26' : 'transparent',
-                  color: toggle === 'bid' ? '#FFFFFF' : '#8A7E78',
+                  backgroundColor: toggle === 'bid' ? '#C85F2D' : 'transparent',
+                  color: toggle === 'bid' ? '#FFFFFF' : '#647068',
                 }}>
                 <Gavel size={14} /> Let providers bid
               </button>
             </div>
 
-            <p className="text-xs mb-4 px-1" style={{ color: '#8A7E78' }}>
+            <p className="text-xs mb-4 px-1" style={{ color: '#647068' }}>
               {toggle === 'book'
                 ? 'We notify the nearest available provider right away at your fixed budget. They can accept or decline - no back-and-forth.'
                 : 'Your job stays open and providers send in price offers. You compare and pick whichever works best for you.'}
             </p>
 
-            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: '#E8DDD2' }}>
+            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
               <div>
-                <p className="text-xs font-bold mb-1" style={{ color: '#1A1210' }}>What do you need? *</p>
+                <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>What do you need? *</p>
                 <input value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="I need a plumber around Ewet"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ backgroundColor: 'rgba(26,18,16,0.03)', border: '1.5px solid #E8DDD2', color: '#1A1210' }} />
+                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: '#17211B' }} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#1A1210' }}>Location *</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>Location *</p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(26,18,16,0.03)', border: '1.5px solid #E8DDD2' }}>
-                    <MapPin size={13} style={{ color: '#C45C26' }} />
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    <MapPin size={13} style={{ color: '#C85F2D' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
                       placeholder="Uyo, Akwa Ibom"
-                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#1A1210' }} />
+                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#1A1210' }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>
                     {toggle === 'book' ? 'Your fixed budget' : 'Starting budget (optional)'}
                   </p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(26,18,16,0.03)', border: '1.5px solid #E8DDD2' }}>
-                    <Wallet size={13} style={{ color: '#C45C26' }} />
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    <Wallet size={13} style={{ color: '#C85F2D' }} />
                     <input value={budget} onChange={e => setBudget(e.target.value)}
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
-                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#1A1210' }} />
+                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
                   </div>
                   <p className="text-[11px] mt-1" style={{ color: '#B5A99C' }}>
                     {toggle === 'book'
@@ -375,7 +375,7 @@ export default function JobPostingPage() {
 
             <button onClick={submit} disabled={posting}
               className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50"
-              style={{ backgroundColor: '#C45C26' }}>
+              style={{ backgroundColor: '#C85F2D' }}>
               {posting ? 'Posting...' : toggle === 'book' ? 'Send Request' : 'Post Job'}
             </button>
           </div>
@@ -388,7 +388,7 @@ export default function JobPostingPage() {
           <div className="hidden md:block rounded-3xl overflow-hidden mt-1"
             style={{ backgroundColor: '#1C1410' }}>
             <div className="h-44 relative flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(196,92,38,0.35), rgba(28,20,16,0.9))' }}>
+              style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.35), rgba(28,20,16,0.9))' }}>
               {invitedProvider?.avatar_url
                 ? <img src={invitedProvider.avatar_url} alt="" className="w-full h-full object-cover absolute inset-0" />
                 : <User size={40} style={{ color: 'rgba(255,255,255,0.4)' }} />}
@@ -414,18 +414,18 @@ export default function JobPostingPage() {
 
         {transaction && (
           <>
-            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E8DDD2' }}>
-              <p className="text-sm font-semibold" style={{ color: '#1A1210' }}>{transaction.attributes?.description}</p>
-              <p className="text-xs mt-1" style={{ color: '#8A7E78' }}>{transaction.attributes?.location}</p>
+            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>{transaction.attributes?.description}</p>
+              <p className="text-xs mt-1" style={{ color: '#647068' }}>{transaction.attributes?.location}</p>
             </div>
 
             {/* OPEN + reverse-bid: bids list */}
             {transaction.status === 'OPEN' && transaction.model === 'MULTI_ATTRIBUTE_REVERSE' && (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-black text-base" style={{ color: '#1A1210' }}>Bids coming in</h3>
+                  <h3 className="font-display font-black text-base" style={{ color: '#17211B' }}>Bids coming in</h3>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(201,106,58,0.1)', color: '#C96A3A' }}>
+                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
                     {bids.length} {bids.length === 1 ? 'bid' : 'bids'}
                   </span>
                 </div>
@@ -436,20 +436,20 @@ export default function JobPostingPage() {
                   <div className="space-y-2 mb-4">
                     {bids.map(b => (
                       <div key={b.id} className="rounded-2xl p-3 border flex items-center gap-3"
-                        style={{ backgroundColor: '#FFFFFF', borderColor: b.status === 'ACCEPTED' ? '#7A9E7E' : '#E8DDD2' }}>
+                        style={{ backgroundColor: '#FFFFFF', borderColor: b.status === 'ACCEPTED' ? '#7A9E7E' : '#DEDDD6' }}>
                         <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
-                          style={{ backgroundColor: 'rgba(201,106,58,0.1)' }}>
+                          style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                           {b.providerProfile?.avatar_url
                             ? <img src={b.providerProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                            : <User size={16} style={{ color: '#C96A3A' }} />}
+                            : <User size={16} style={{ color: '#C85F2D' }} />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold" style={{ color: '#1A1210' }}>{b.providerProfile?.full_name || 'Provider'}</p>
+                          <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{b.providerProfile?.full_name || 'Provider'}</p>
                           {b.attributes?.eta_minutes && (
-                            <p className="text-[11px]" style={{ color: '#8A7E78' }}>Can start today · {b.attributes.eta_minutes}m ETA</p>
+                            <p className="text-[11px]" style={{ color: '#647068' }}>Can start today · {b.attributes.eta_minutes}m ETA</p>
                           )}
                         </div>
-                        <p className="font-black text-sm flex-shrink-0" style={{ color: '#1A1210' }}>
+                        <p className="font-black text-sm flex-shrink-0" style={{ color: '#17211B' }}>
                           ₦{(b.amount_cents / 100).toLocaleString()}
                         </p>
                         {b.status === 'ACCEPTED' ? (
@@ -467,7 +467,7 @@ export default function JobPostingPage() {
                             </button>
                             <button onClick={() => counterBid(b)}
                               className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border"
-                              style={{ borderColor: '#E8DDD2', color: '#5C4A3A' }}>
+                              style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
                               Counter
                             </button>
                           </div>
@@ -496,14 +496,14 @@ export default function JobPostingPage() {
 
             {/* PENDING: bid/request accepted, awaiting escrow */}
             {transaction.status === 'PENDING' && isRequester && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E8DDD2' }}>
-                <p className="text-sm font-semibold mb-1" style={{ color: '#1A1210' }}>Accepted - pay for protection to proceed</p>
-                <p className="text-xs mb-3" style={{ color: '#8A7E78' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+                <p className="text-sm font-semibold mb-1" style={{ color: '#17211B' }}>Accepted - pay for protection to proceed</p>
+                <p className="text-xs mb-3" style={{ color: '#647068' }}>
                   {formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)} will be held until you confirm the job is done.
                 </p>
                 <button onClick={fundEscrow} disabled={fundingEscrow}
                   className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: '#C96A3A' }}>
+                  style={{ backgroundColor: '#C85F2D' }}>
                   <Lock size={14} /> {fundingEscrow ? 'Opening payment...' : `Pay for Protection - ${formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)}`}
                 </button>
               </div>
@@ -518,7 +518,7 @@ export default function JobPostingPage() {
             {isRequester && (transaction.status === 'OPEN' || transaction.status === 'PENDING') && (
               <button onClick={cancelJob} disabled={cancelling}
                 className="w-full py-3 rounded-2xl text-sm font-bold border disabled:opacity-50 mt-3"
-                style={{ borderColor: '#E8DDD2', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
+                style={{ borderColor: '#DEDDD6', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
                 {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
@@ -526,20 +526,20 @@ export default function JobPostingPage() {
             {/* FUNDED: work in progress, both sides confirm independently,
                 the transaction only reaches COMPLETED once both have. */}
             {transaction.status === 'FUNDED' && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E8DDD2' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Lock size={14} style={{ color: '#5C8060' }} />
-                  <p className="text-sm font-semibold" style={{ color: '#1A1210' }}>Protection funded</p>
+                  <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Protection funded</p>
                 </div>
 
-                <div className="flex items-center gap-2 mb-3 text-xs" style={{ color: '#8A7E78' }}>
+                <div className="flex items-center gap-2 mb-3 text-xs" style={{ color: '#647068' }}>
                   <span>{transaction.buyer_confirmed_at ? '✓' : '○'} Requester confirmed</span>
                   <span>·</span>
                   <span>{transaction.provider_confirmed_at ? '✓' : '○'} Provider confirmed</span>
                 </div>
 
                 {(isRequester && transaction.buyer_confirmed_at) || (!isRequester && transaction.provider_confirmed_at) ? (
-                  <p className="text-xs" style={{ color: '#8A7E78' }}>You've confirmed. Waiting on the other side before this releases.</p>
+                  <p className="text-xs" style={{ color: '#647068' }}>You've confirmed. Waiting on the other side before this releases.</p>
                 ) : (
                   <button onClick={markComplete} disabled={completing}
                     className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50"

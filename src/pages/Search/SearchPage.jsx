@@ -85,26 +85,26 @@ export default function SearchPage() {
   const keywordOnly = (results || []).filter(r => !(r.source === 'category_listings' && aiIds.has(r.item_id)))
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F8F1E9' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#1A1210' }}>Search DealMatch</h1>
-        <p className="text-xs mb-5" style={{ color: '#8A7E78' }}>
+        <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>Search DealMatch</h1>
+        <p className="text-xs mb-5" style={{ color: '#647068' }}>
           One search across every place and person on the platform.
         </p>
 
         <form onSubmit={submit} className="flex gap-2 mb-3">
           <div className="relative flex-1">
-            <SearchIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#8A7E78' }} />
+            <SearchIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#647068' }} />
             <input
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               placeholder="Find a shortlet, a plumber, house rent, a tutor..."
               className="w-full pl-11 pr-4 py-3.5 rounded-full text-sm outline-none"
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }}
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}
             />
           </div>
           <button type="submit" className="px-6 py-3.5 rounded-full text-sm font-bold flex-shrink-0"
-            style={{ backgroundColor: '#C45C26', color: '#FFFFFF' }}>
+            style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
             Search
           </button>
         </form>
@@ -117,46 +117,46 @@ export default function SearchPage() {
             {coords ? 'Using your location' : locStatus === 'requesting' ? 'Locating...' : 'Search near me'}
           </button>
           {coords && (
-            <label className="flex items-center gap-2 text-xs" style={{ color: '#8A7E78' }}>
+            <label className="flex items-center gap-2 text-xs" style={{ color: '#647068' }}>
               <SlidersHorizontal size={12} /> Within
               <select value={radiusKm} onChange={e => setRadiusKm(Number(e.target.value))}
-                className="text-xs rounded-lg px-1.5 py-1" style={{ border: '1px solid #E4D5C4', background: '#fff' }}>
+                className="text-xs rounded-lg px-1.5 py-1" style={{ border: '1px solid #DEDDD6', background: '#fff' }}>
                 {[5, 10, 15, 25, 50].map(km => <option key={km} value={km}>{km} km</option>)}
               </select>
             </label>
           )}
         </div>
 
-        {loading && <p className="text-sm" style={{ color: '#8A7E78' }}>Searching...</p>}
+        {loading && <p className="text-sm" style={{ color: '#647068' }}>Searching...</p>}
 
         {!loading && results !== null && aiResults.length === 0 && keywordOnly.length === 0 && (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
-            <p className="font-semibold text-sm mb-1" style={{ color: '#1A1210' }}>No matches yet</p>
-            <p className="text-xs" style={{ color: '#8A7E78' }}>Try a different word, or broaden your radius.</p>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
+            <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>No matches yet</p>
+            <p className="text-xs" style={{ color: '#647068' }}>Try a different word, or broaden your radius.</p>
           </div>
         )}
 
         {aiResults.length > 0 && (
           <div className="mb-8">
-            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#C45C26' }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#C85F2D' }}>
               Best matches {coords ? '(AI + location matched)' : '(AI matched)'}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {aiResults.map(r => (
                 <Link key={r.id} to={r.url_path || `/listing/${r.id}`}
                   className="block rounded-2xl p-4"
-                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #E9DECF' }}>
+                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>{r.title}</p>
+                    <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{r.title}</p>
                     {typeof r.score === 'number' && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(196,92,38,0.1)', color: '#C45C26' }}>
+                        style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
                         {Math.round(r.score * 100)}% match
                       </span>
                     )}
                   </div>
-                  {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#8A7E78' }}><MapPin size={10} />{r.location_name}</p>}
-                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C96A3A' }}>{formatPrice(r.price_cents)}</p>}
+                  {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
+                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C85F2D' }}>{formatPrice(r.price_cents)}</p>}
                 </Link>
               ))}
             </div>
@@ -165,21 +165,21 @@ export default function SearchPage() {
 
         {keywordOnly.length > 0 && (
           <div>
-            {aiResults.length > 0 && <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#8A7E78' }}>More results</p>}
+            {aiResults.length > 0 && <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#647068' }}>More results</p>}
             <div className="grid gap-3 sm:grid-cols-2">
               {keywordOnly.map(r => (
                 <motion.div key={`${r.source}-${r.item_id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                   <Link to={r.url_path} className="block rounded-2xl p-4"
-                    style={{ backgroundColor: '#FFFFFF', border: '1px solid #E9DECF' }}>
+                    style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
                         style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#5C4A3A' }}>
                         {SOURCE_LABEL[r.source] || r.category_name}
                       </span>
                     </div>
-                    <p className="font-semibold text-sm mb-1" style={{ color: '#1A1210' }}>{r.title}</p>
-                    {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#8A7E78' }}><MapPin size={10} />{r.location_name}</p>}
-                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C96A3A' }}>{formatPrice(r.price_cents)}</p>}
+                    <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>{r.title}</p>
+                    {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
+                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C85F2D' }}>{formatPrice(r.price_cents)}</p>}
                   </Link>
                 </motion.div>
               ))}

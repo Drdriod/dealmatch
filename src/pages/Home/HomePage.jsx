@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Bot, Building2, Eye, Handshake, Lock, Search, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Bot, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'
-import HeroBackground from '@/components/ui/HeroBackground'
 import FAQSection from '@/components/ui/FAQSection'
 import TestimonialsSection from '@/components/ui/TestimonialsSection'
 import HeroSearch from '@/components/home/HeroSearch'
@@ -35,17 +34,17 @@ export default function HomePage() {
   // not native photography) - fine for this rotation, but soft if
   // rendered very large on a big desktop monitor. Swap for true
   // 2400x1350 photography when available; same array, same rotation logic.
-  const HERO_IMAGES = [
-    '/home/hero-place-shortlet.webp',
-    '/home/hero-person-plumber.webp',
-    '/home/hero-place-house.webp',
-    '/home/hero-person-teacher.webp',
+  const HERO_SLIDES = [
+    { src: '/home/hero-place-shortlet.webp', title: 'Shortlets & serviced stays',  note: 'Places to stay in Uyo', alt: 'Bright shortlet apartment interior' },
+    { src: '/home/hero-person-plumber.webp', title: 'Plumbers & home repairs',     note: 'Skilled people nearby',   alt: 'Plumber at work' },
+    { src: '/home/hero-place-house.webp',    title: 'Houses & flats for rent',     note: 'Homes to rent in Uyo',  alt: 'House available for rent' },
+    { src: '/home/hero-person-teacher.webp', title: 'Home lesson teachers',        note: 'Skilled people nearby',   alt: 'Teacher giving a home lesson' },
   ]
   const [heroIdx, setHeroIdx] = useState(0)
   const [heroPaused, setHeroPaused] = useState(false)
   useEffect(() => {
-    if (HERO_IMAGES.length < 2 || heroPaused) return
-    const t = setInterval(() => setHeroIdx(i => (i + 1) % HERO_IMAGES.length), 6000)
+    if (HERO_SLIDES.length < 2 || heroPaused) return
+    const t = setInterval(() => setHeroIdx(i => (i + 1) % HERO_SLIDES.length), 6000)
     return () => clearInterval(t)
   }, [heroPaused])
 
@@ -90,108 +89,117 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ backgroundColor:'#FAF6F0' }}>
+    <div className="bg-cream">
 
-      {/* ── Hero: full-bleed photo, not a cream gradient, per the visual/
-           motion brief. Rotates through the 4 Place/Person reference
-           photos every 6s, pauses on hover/focus. Source images are
-           ~800x280 (extracted from a reference sheet, not native
-           photography) - fine for now, swap HERO_IMAGES for true
-           2400x1350 photography when available; same rotation logic. ── */}
+      {/* ── Hero: split layout. Copy + universal search on the left; a
+           rotating Place/Person photo card on the right. Source photos are
+           ~800x280 so they sit in a framed card (never full-bleed) where
+           they stay sharp. Pauses on hover/focus, 6s autoplay. ───────── */}
       <section
-        className="relative min-h-[92vh] flex items-end overflow-hidden"
+        className="grid lg:grid-cols-[1.05fr_0.95fr] max-w-[1440px] mx-auto lg:min-h-[640px]"
         onMouseEnter={() => setHeroPaused(true)}
         onMouseLeave={() => setHeroPaused(false)}
         onFocus={() => setHeroPaused(true)}
         onBlur={() => setHeroPaused(false)}
       >
-        <div className="absolute inset-0">
-          {HERO_IMAGES[heroIdx] ? (
-            <img src={HERO_IMAGES[heroIdx]} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <PhotoPlaceholder iconSize={64} />
-          )}
-        </div>
-        {/* Dark veil, 30-45% per the brief - enough for white text to stay
-            legible without hiding the photo entirely. */}
-        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(26,26,26,0.38)' }} />
+        <div className="self-center px-5 pt-12 pb-10 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-20">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
+            <div className="eyebrow"><Sparkles size={15} /> Built for Uyo</div>
+            <h1 className="mt-5 text-[clamp(44px,12vw,56px)] sm:text-[clamp(52px,5vw,78px)] leading-[1.0] max-w-[720px] text-deep">
+              Find what you need. Find who can <em className="not-italic text-terracotta">provide it.</em>
+            </h1>
+            <p className="mt-6 mb-8 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
+              Places to stay, homes to rent, and people ready to help. Matched to what you need, where you need it.
+            </p>
+          </motion.div>
 
-        <div className="relative w-full max-w-5xl mx-auto px-6 pb-16 pt-32">
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}
-            className="font-display font-black leading-tight mb-3"
-            style={{ fontSize: 'clamp(2.2rem,6vw,4rem)', color: '#FFFFFF' }}>
-            Find what you need. Find who can provide it.
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.06 }}
-            className="text-base sm:text-lg mb-8 max-w-lg"
-            style={{ color: 'rgba(255,255,255,0.85)' }}>
-            Places to stay, homes to rent, and people ready to help.
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.12 }} className="mb-6">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.08 }}>
             <HeroSearch />
           </motion.div>
 
-          {/* Single remaining CTA, per the homepage rework: the search bar
-              above is now the primary action (it goes to /search, the new
-              universal-search page - see HeroSearch.jsx). The old "Find a
-              Place" / "Find a Person" buttons are gone; this is the only
-              button left, and it opens the listing-choice modal rather
-              than linking anywhere directly. */}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.18 }}
-            className="flex justify-center max-w-xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.14 }}
+            className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/65">
+            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Verification shown clearly</span>
+            <span className="inline-flex items-center gap-2"><Check size={16} className="text-terracotta" /> Contact stays protected</span>
             <button onClick={() => setShowPostChoice(true)} type="button"
-              className="text-center py-3.5 px-8 rounded-full text-sm font-bold"
-              style={{ backgroundColor: '#C45C26', color: '#FFFFFF' }}>
-              Offer something →
+              className="inline-flex items-center gap-1.5 text-deep font-bold border-b border-deep pb-0.5 hover:text-terracotta hover:border-terracotta transition-colors">
+              Offer something <ArrowRight size={13} />
             </button>
           </motion.div>
         </div>
+
+        <div className="relative bg-forest-pale lg:bg-transparent px-5 py-8 sm:px-7 lg:p-0 min-h-[360px] lg:min-h-[640px] overflow-hidden">
+          <div className="hidden lg:block absolute inset-0 bg-forest-pale" />
+          <div className="relative h-full flex items-center lg:px-10">
+            <div className="relative w-full max-w-[560px] mx-auto">
+              <div className="relative rounded-[28px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3.4' }}>
+                {HERO_SLIDES.map((slide, i) => (
+                  <img key={slide.src} src={slide.src} alt={i === heroIdx ? slide.alt : ''} aria-hidden={i !== heroIdx}
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+                    style={{ opacity: i === heroIdx ? 1 : 0 }} />
+                ))}
+                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(17,27,21,0.5) 100%)' }} />
+                <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 rounded-full bg-forest text-white text-[11px] font-bold py-1.5 pl-1.5 pr-3.5">
+                  <span className="w-7 h-7 rounded-full bg-sun text-deep flex items-center justify-center"><Sparkles size={14} /></span>
+                  AI + location matched
+                </div>
+              </div>
+              <div className="absolute left-3 right-3 -bottom-5 sm:left-6 sm:right-auto flex items-center gap-3.5 rounded-2xl bg-white/95 backdrop-blur p-3 pr-5 shadow-card">
+                <span className="flex items-center gap-1 rounded-xl bg-forest text-white text-[10px] font-bold px-2.5 py-3">
+                  <Sparkles size={14} /> Nearby
+                </span>
+                <div className="min-w-0">
+                  <p className="font-bold text-[13px] text-deep truncate">{HERO_SLIDES[heroIdx].title}</p>
+                  <p className="flex items-center gap-1 text-[11px] text-deep/60"><MapPin size={12} /> {HERO_SLIDES[heroIdx].note}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Stats: real numbers once there's real volume to show; until
-          then, the mechanisms that make this platform actually safe,
-          which are true and worth stating on day one regardless of
-          how many people have used it yet. Kept as its own section
-          right after the hero rather than nested inside it. */}
-      <section className="px-6 -mt-10 relative z-10">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.4 }}
-            className="rounded-3xl px-2 py-6 sm:p-8 grid grid-cols-4 gap-2 sm:gap-8"
-            style={{ backgroundColor:'#1A1210' }}>
-            {stats === 'mechanisms' ? (
-              [
-                { icon: Lock,        label: 'Protection-Backed' },
-                { icon: ShieldCheck, label: 'Identity + Skill Verified' },
-                { icon: Eye,         label: 'Physically Inspected' },
-                { icon: Bot,         label: 'AI + Location Matched' },
+      {/* ── Trust bar: real numbers once there's real volume to show;
+           until then, the mechanisms that make the platform safe, which
+           are true on day one regardless of how many people use it. ── */}
+      <section className="bg-forest text-white" aria-label="DealMatch trust features">
+        <div className="max-w-[1240px] mx-auto px-5 sm:px-7 py-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/60">Know exactly who you&rsquo;re dealing with</p>
+          {stats === 'mechanisms' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-10 gap-y-4">
+              {[
+                { icon: Lock,        label: 'Protection-backed' },
+                { icon: ShieldCheck, label: 'Identity + skill verified' },
+                { icon: Eye,         label: 'Physically inspected' },
+                { icon: Bot,         label: 'AI + location matched' },
               ].map((m, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 text-center">
-                  <m.icon size={20} style={{ color: '#C96A3A' }} />
-                  <p className="text-[10px] sm:text-xs font-semibold leading-tight" style={{ color: 'rgba(255,255,255,0.7)' }}>{m.label}</p>
+                <div key={i} className="flex items-center gap-2.5 text-xs">
+                  <m.icon size={19} className="text-sun flex-shrink-0" />
+                  <span className="font-semibold leading-tight">{m.label}</span>
                 </div>
-              ))
-            ) : stats ? (
-              stats.map((s, i) => <AnimatedStat key={i} value={s.value} suffix={s.suffix} label={s.label} />)
-            ) : (
-              [0,1,2,3].map(i => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-8 w-16 mx-auto rounded-lg mb-2" style={{ backgroundColor:'rgba(255,255,255,0.08)' }} />
-                    <div className="h-3 w-20 mx-auto rounded-lg" style={{ backgroundColor:'rgba(255,255,255,0.05)' }} />
-                  </div>
-                ))
-            )}
-          </motion.div>
+              ))}
+            </div>
+          ) : stats ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-10">
+              {stats.map((s, i) => <AnimatedStat key={i} value={s.value} suffix={s.suffix} label={s.label} />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-10">
+              {[0,1,2,3].map(i => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-6 w-16 rounded-lg mb-2 bg-white/10" />
+                  <div className="h-3 w-20 rounded-lg bg-white/5" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* ── Two doors: "What are you here to do?" ───────────────────── */}
-      <section className="pt-16 pb-6 px-6" style={{ backgroundColor: '#F8F1E9' }}>
+      <section className="pt-20 pb-6 px-5 sm:px-7">
         <div className="max-w-4xl mx-auto">
           <FadeUp>
-            <p className="text-center font-display text-xl sm:text-2xl font-black mb-6" style={{ color: '#1A1A1A' }}>
+            <p className="text-center font-display text-3xl sm:text-4xl mb-8" style={{ color: '#17211B' }}>
               What are you here to do?
             </p>
           </FadeUp>
@@ -224,26 +232,25 @@ export default function HomePage() {
            being fixed here. The 4-badge stats grid above already covers
            the broader "why trust us" stats; this is the plain-language
            explanation underneath it. ────────────────────────────────── */}
-      <section className="py-16 px-6" style={{ backgroundColor: '#FFFFFF' }}>
-        <div className="max-w-4xl mx-auto">
+      <section className="py-16 px-5 sm:px-7">
+        <div className="max-w-[1184px] mx-auto rounded-[22px] bg-white border border-line p-8 sm:p-12">
           <FadeUp>
-            <p className="text-center font-display text-xl sm:text-2xl font-black mb-10" style={{ color: '#1A1A1A' }}>
-              Built for better connections.
-            </p>
+            <span className="eyebrow">Clear, not confusing</span>
+            <h2 className="mt-3 mb-10 text-3xl sm:text-5xl leading-[1.05] text-deep max-w-2xl">Built for better connections.</h2>
           </FadeUp>
-          <StaggerChildren className="grid sm:grid-cols-3 gap-6">
+          <StaggerChildren className="grid sm:grid-cols-3 gap-8">
             {[
               { icon: ShieldCheck, title: 'Verified providers', body: 'Find providers who have passed the required verification level.' },
               { icon: Lock,        title: 'Protected contact',  body: 'Where escrow is enabled, contact details remain protected until the required transaction step is completed.' },
               { icon: Handshake,   title: 'Secure payments',    body: 'When a DealMatch transaction uses escrow, payment is handled through the protected transaction flow.' },
             ].map((item, i) => (
               <StaggerItem key={i}>
-                <div className="text-center px-2">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(196,92,38,0.1)' }}>
-                    <item.icon size={22} style={{ color: '#C45C26' }} />
+                <div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-orange-pale">
+                    <item.icon size={22} className="text-terracotta" />
                   </div>
-                  <h3 className="font-display text-base font-black mb-1.5" style={{ color: '#1A1A1A' }}>{item.title}</h3>
-                  <p className="text-sm" style={{ color: '#5A4F49' }}>{item.body}</p>
+                  <h3 className="text-xl mb-1.5 text-deep">{item.title}</h3>
+                  <p className="text-sm leading-relaxed text-deep/65">{item.body}</p>
                 </div>
               </StaggerItem>
             ))}
@@ -268,28 +275,21 @@ export default function HomePage() {
       <FAQSection />
 
       {/* ── CTA ──────────────────────────────────────────── */}
-      <section className="py-24 px-6" style={{ backgroundColor:'#FFFFFF' }}>
-        <div className="max-w-3xl mx-auto">
-          <FadeUp>
-            <div className="rounded-3xl p-12 text-center relative overflow-hidden" style={{ backgroundColor:'#1A1210' }}>
-              <HeroBackground />
-              <div className="absolute inset-0 pointer-events-none" style={{ background:'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,106,58,0.25) 0%, transparent 70%)' }} />
-              <div className="relative">
-                <div className="flex justify-center mb-6"><Handshake size={48} className="text-terracotta" /></div>
-                <h2 className="font-display font-black text-4xl mb-3 text-white">Your Next Match Is Waiting</h2>
-                <p className="text-sm mb-2" style={{ color:'rgba(255,255,255,0.5)' }}>
-                  Join Nigerians who found their match through DealMatch: property, talent, equipment, and more.
-                </p>
-                <p className="text-sm font-semibold mb-8" style={{ color:'rgba(201,106,58,0.8)' }}>
-                  Every listing matched, not just posted
-                </p>
-                <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="btn-primary text-base px-10 py-4 inline-flex items-center gap-2">
-                  Join DealMatch <ArrowRight size={16} />
-                </Link>
-              </div>
-            </div>
-          </FadeUp>
-        </div>
+      <section className="py-20 sm:py-24 px-5 sm:px-7 bg-orange-pale text-center">
+        <FadeUp>
+          <span className="eyebrow">Start with one search</span>
+          <h2 className="mt-4 mx-auto max-w-[720px] text-[40px] sm:text-6xl leading-[1.02] text-deep">Your next match is waiting.</h2>
+          <p className="mx-auto mt-5 mb-2 max-w-[580px] text-deep/65 leading-relaxed">
+            Join Nigerians who found their match through DealMatch: property, talent, equipment, and more.
+          </p>
+          <p className="text-sm font-bold mb-8 text-terracotta">Every listing matched, not just posted</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
+            <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta text-white font-bold px-8 py-4 hover:bg-[#A8441D] transition-colors">
+              Join DealMatch <ArrowRight size={16} />
+            </Link>
+            <Link to="/search" className="btn-outline inline-flex items-center justify-center">Start searching</Link>
+          </div>
+        </FadeUp>
       </section>
     </div>
   )

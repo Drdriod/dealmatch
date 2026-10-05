@@ -128,12 +128,12 @@ export default function ProfilePage() {
       <div className="max-w-lg mx-auto px-4">
 
         {/* Profile hero card */}
-        <div className="rounded-3xl overflow-hidden mb-5" style={{ backgroundColor:'#1A1210' }}>
+        <div className="rounded-3xl overflow-hidden mb-5" style={{ backgroundColor:'#17211B' }}>
           <div className="p-6 flex flex-col items-center text-center">
             {/* Avatar */}
             <div className="relative mb-4">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4"
-                style={{ borderColor:'rgba(201,106,58,0.5)' }}>
+                style={{ borderColor:'rgba(200,95,45,0.5)' }}>
                 {uploading ? (
                   <div className="w-full h-full flex items-center justify-center"
                     style={{ backgroundColor:'rgba(255,255,255,0.1)' }}>
@@ -143,14 +143,14 @@ export default function ProfilePage() {
                   <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"
-                    style={{ backgroundColor:'rgba(201,106,58,0.2)' }}>
-                    <User size={32} style={{ color:'#C96A3A' }} />
+                    style={{ backgroundColor:'rgba(200,95,45,0.2)' }}>
+                    <User size={32} style={{ color:'#C85F2D' }} />
                   </div>
                 )}
               </div>
               <button onClick={() => fileRef.current?.click()}
                 className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor:'#C96A3A', border:'2px solid #1A1210' }}>
+                style={{ backgroundColor:'#C85F2D', border:'2px solid #17211B' }}>
                 <Camera size={13} color="white" />
               </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden"
@@ -174,9 +174,9 @@ export default function ProfilePage() {
                 style={{
                   backgroundColor: verificationLevel === 'live'  ? 'rgba(122,158,126,0.2)'  :
                                     verificationLevel === 'photo' ? 'rgba(212,168,83,0.2)'   :
-                                    'rgba(201,106,58,0.2)',
+                                    'rgba(200,95,45,0.2)',
                   color:           verificationLevel === 'live'  ? '#7A9E7E' :
-                                    verificationLevel === 'photo' ? '#D4A853' : '#C96A3A',
+                                    verificationLevel === 'photo' ? '#D4A853' : '#C85F2D',
                 }}>
                 <Shield size={12} />
                 <span className="text-xs font-bold">
@@ -218,7 +218,7 @@ export default function ProfilePage() {
               <div className="rounded-2xl p-4 mb-5 border"
                 style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
                 <p className="font-semibold text-sm mb-1" style={{ color:'#8A6A20' }}>Verification under review</p>
-                <p className="text-xs leading-relaxed" style={{ color:'#8A7E78' }}>
+                <p className="text-xs leading-relaxed" style={{ color:'#647068' }}>
                   Your ID and selfie have been submitted. Our team will review and notify you here (and by email) within 24-48 hours.
                 </p>
               </div>
@@ -227,15 +227,15 @@ export default function ProfilePage() {
           if (idStatus === 'rejected') {
             return (
               <div className="rounded-2xl p-4 mb-5 border-2"
-                style={{ backgroundColor:'rgba(201,106,58,0.06)', borderColor:'rgba(201,106,58,0.3)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color:'#C96A3A' }}>Verification not approved</p>
+                style={{ backgroundColor:'rgba(200,95,45,0.06)', borderColor:'rgba(200,95,45,0.3)' }}>
+                <p className="font-semibold text-sm mb-1" style={{ color:'#C85F2D' }}>Verification not approved</p>
                 {profile?.identity_rejection_note && (
-                  <p className="text-xs mb-2 leading-relaxed" style={{ color:'#8A7E78' }}>
+                  <p className="text-xs mb-2 leading-relaxed" style={{ color:'#647068' }}>
                     Reason: {profile.identity_rejection_note}
                   </p>
                 )}
                 <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                  style={{ backgroundColor:'#C96A3A', color:'#FFFFFF' }}>
+                  style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
                   <Shield size={14} /> Resubmit Verification
                 </Link>
               </div>
@@ -245,12 +245,12 @@ export default function ProfilePage() {
           return (
             <div className="rounded-2xl p-4 mb-5 border-2"
               style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
-              <p className="font-semibold text-sm mb-1" style={{ color:'#1A1210' }}>Verify your identity</p>
-              <p className="text-xs leading-relaxed mb-3" style={{ color:'#8A7E78' }}>
+              <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>Verify your identity</p>
+              <p className="text-xs leading-relaxed mb-3" style={{ color:'#647068' }}>
                 Upload your government-issued ID and take a selfie. Required for full buy/sell access.
               </p>
               <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                style={{ backgroundColor:'#C96A3A', color:'#FFFFFF' }}>
+                style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
                 <Shield size={14} /> Verify My Identity
               </Link>
             </div>
@@ -258,19 +258,19 @@ export default function ProfilePage() {
         })()}
 
         {/* Edit form */}
-        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
-          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'#E8DDD2' }}>
-            <h3 className="font-display font-black text-base" style={{ color:'#1A1210' }}>Profile Details</h3>
+        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'#DEDDD6' }}>
+            <h3 className="font-display font-black text-base" style={{ color:'#17211B' }}>Profile Details</h3>
             {editing ? (
               <button onClick={handleSave} disabled={saving}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor:'#C96A3A', color:'#FFFFFF' }}>
+                style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
                 <Save size={12} /> {saving ? 'Saving...' : 'Save'}
               </button>
             ) : (
               <button onClick={() => setEditing(true)}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border"
-                style={{ borderColor:'#E8DDD2', color:'#5C4A3A' }}>
+                style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>
                 <Edit3 size={12} /> Edit
               </button>
             )}
@@ -284,38 +284,38 @@ export default function ProfilePage() {
               ].map(field => (
                 <div key={field.key}>
                   <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color:'rgba(26,18,16,0.5)' }}>{field.label}</label>
+                    style={{ color:'rgba(23,33,27,0.5)' }}>{field.label}</label>
                   <input type={field.type} value={form[field.key]} onChange={set(field.key)}
                     disabled={!editing} placeholder={field.placeholder} className="input text-sm"
-                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(26,18,16,0.03)', color:'#1A1210' }} />
+                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'#17211B' }} />
                 </div>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>State</label>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>State</label>
                 <select value={form.state} onChange={set('state')} disabled={!editing}
                   className="select text-sm"
-                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(26,18,16,0.03)', color:'#1A1210' }}>
+                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'#17211B' }}>
                   <option value="">Select state...</option>
                   {NIGERIAN_STATES.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>City</label>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>City</label>
                 <input type="text" value={form.city} onChange={set('city')}
                   disabled={!editing} placeholder="Your city" className="input text-sm"
-                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(26,18,16,0.03)', color:'#1A1210' }} />
+                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'#17211B' }} />
               </div>
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                style={{ color:'rgba(26,18,16,0.5)' }}>Bio</label>
+                style={{ color:'rgba(23,33,27,0.5)' }}>Bio</label>
               <textarea value={form.bio} onChange={set('bio')}
                 disabled={!editing} placeholder="A short bio..." className="input text-sm min-h-[80px] py-2"
-                style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(26,18,16,0.03)', color:'#1A1210' }} />
+                style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'#17211B' }} />
             </div>
           </div>
         </div>
@@ -324,22 +324,22 @@ export default function ProfilePage() {
             wants to. Reuses the most recent Skill submission's data so
             they see what they already told us, rather than a blank form. */}
         {isProvider && (
-          <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
-            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'#E8DDD2' }}>
-              <h3 className="font-display font-black text-base flex items-center gap-2" style={{ color:'#1A1210' }}>
+          <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'#DEDDD6' }}>
+              <h3 className="font-display font-black text-base flex items-center gap-2" style={{ color:'#17211B' }}>
                 <Briefcase size={16} className="text-terracotta" /> Provider Details
               </h3>
               <Link to="/verify-skill" className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border"
-                style={{ borderColor:'#E8DDD2', color:'#5C4A3A' }}>
+                style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>
                 <Edit3 size={12} /> {skillLevel >= 2 ? 'Update' : 'Submit'}
               </Link>
             </div>
             <div className="p-4">
               {loadingProvider ? (
-                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C96A3A' }} /></div>
+                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C85F2D' }} /></div>
               ) : !providerInfo?.submission && skillLevel < 1 ? (
                 <div className="text-center py-3">
-                  <p className="text-xs mb-3" style={{ color:'#8A7E78' }}>
+                  <p className="text-xs mb-3" style={{ color:'#647068' }}>
                     You haven't submitted proof of your skills yet. Add photos of your work to get Skill Verified and start appearing in Find a Provider.
                   </p>
                   <Link to="/verify-skill" className="btn-primary text-sm px-5 py-2.5 inline-flex">Submit Verification →</Link>
@@ -347,16 +347,16 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-2 text-sm">
                   {providerInfo?.submission?.submission_data?.category && (
-                    <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Category</span><span className="font-semibold" style={{ color:'#1A1210' }}>{providerInfo.submission.submission_data.category}</span></div>
+                    <div className="flex justify-between"><span style={{ color:'#647068' }}>Category</span><span className="font-semibold" style={{ color:'#17211B' }}>{providerInfo.submission.submission_data.category}</span></div>
                   )}
                   {providerInfo?.submission?.submission_data?.years_experience != null && (
-                    <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Experience</span><span className="font-semibold" style={{ color:'#1A1210' }}>{providerInfo.submission.submission_data.years_experience} years</span></div>
+                    <div className="flex justify-between"><span style={{ color:'#647068' }}>Experience</span><span className="font-semibold" style={{ color:'#17211B' }}>{providerInfo.submission.submission_data.years_experience} years</span></div>
                   )}
                   {form.city && (
-                    <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Service area</span><span className="font-semibold" style={{ color:'#1A1210' }}>{form.city}{form.state ? `, ${form.state}` : ''}</span></div>
+                    <div className="flex justify-between"><span style={{ color:'#647068' }}>Service area</span><span className="font-semibold" style={{ color:'#17211B' }}>{form.city}{form.state ? `, ${form.state}` : ''}</span></div>
                   )}
                   {providerInfo?.submission?.submission_data?.portfolio_paths?.length > 0 && (
-                    <div className="flex justify-between"><span style={{ color:'#8A7E78' }}>Portfolio</span><span className="font-semibold" style={{ color:'#1A1210' }}>{providerInfo.submission.submission_data.portfolio_paths.length} photo{providerInfo.submission.submission_data.portfolio_paths.length === 1 ? '' : 's'} submitted</span></div>
+                    <div className="flex justify-between"><span style={{ color:'#647068' }}>Portfolio</span><span className="font-semibold" style={{ color:'#17211B' }}>{providerInfo.submission.submission_data.portfolio_paths.length} photo{providerInfo.submission.submission_data.portfolio_paths.length === 1 ? '' : 's'} submitted</span></div>
                   )}
                   {skillPending && (
                     <p className="text-xs mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(212,168,83,0.1)', color: '#8A6A20' }}>Your latest submission is under review.</p>
@@ -368,10 +368,10 @@ export default function ProfilePage() {
         )}
 
         {/* Bank Details */}
-        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
-          <div className="p-4 border-b" style={{ borderColor:'#E8DDD2' }}>
-            <h3 className="font-display font-black text-base" style={{ color:'#1A1210' }}>Payout Details</h3>
-            <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>For receiving payments from completed deals</p>
+        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+          <div className="p-4 border-b" style={{ borderColor:'#DEDDD6' }}>
+            <h3 className="font-display font-black text-base" style={{ color:'#17211B' }}>Payout Details</h3>
+            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>For receiving payments from completed deals</p>
           </div>
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -383,10 +383,10 @@ export default function ProfilePage() {
               ].map(field => (
                 <div key={field.key}>
                   <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color:'rgba(26,18,16,0.5)' }}>{field.label}</label>
+                    style={{ color:'rgba(23,33,27,0.5)' }}>{field.label}</label>
                   <input type={field.type} value={form[field.key]} onChange={set(field.key)}
                     disabled={!editing} placeholder={field.placeholder} className="input text-sm"
-                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(26,18,16,0.03)', color:'#1A1210' }} />
+                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'#17211B' }} />
                 </div>
               ))}
             </div>
@@ -404,16 +404,16 @@ export default function ProfilePage() {
             onClick ? (
               <button key={label} onClick={onClick} disabled={becomingProvider}
                 className="flex items-center gap-2 p-3.5 rounded-2xl border transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
+                style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
                 <span className="flex-shrink-0">{icon}</span>
-                <span className="text-sm font-semibold" style={{ color:'#1A1210' }}>{label}</span>
+                <span className="text-sm font-semibold" style={{ color:'#17211B' }}>{label}</span>
               </button>
             ) : (
               <Link key={to} to={to}
                 className="flex items-center gap-2 p-3.5 rounded-2xl border transition-all hover:-translate-y-0.5"
-                style={{ backgroundColor:'#FFFAF5', borderColor:'#E8DDD2' }}>
+                style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
                 <span className="flex-shrink-0">{icon}</span>
-                <span className="text-sm font-semibold" style={{ color:'#1A1210' }}>{label}</span>
+                <span className="text-sm font-semibold" style={{ color:'#17211B' }}>{label}</span>
               </Link>
             )
           ))}
@@ -422,7 +422,7 @@ export default function ProfilePage() {
         {/* Sign out button */}
         <button onClick={handleSignOut} disabled={signingOut}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold border-2 transition-all"
-          style={{ borderColor:'rgba(201,106,58,0.4)', color:'#C96A3A', backgroundColor:'rgba(201,106,58,0.05)' }}>
+          style={{ borderColor:'rgba(200,95,45,0.4)', color:'#C85F2D', backgroundColor:'rgba(200,95,45,0.05)' }}>
           <LogOut size={16} />
           {signingOut ? 'Signing out...' : 'Sign Out'}
         </button>

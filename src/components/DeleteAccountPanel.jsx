@@ -77,7 +77,7 @@ export default function DeleteAccountPanel() {
         and signs you out everywhere. You will not be able to log in again. Records of completed payments
         are kept without your personal details, as required for accounting and dispute handling.
       </p>
-      {blockers === null && <p className="text-xs" style={{ color: '#8A7E78' }}>Checking your account…</p>}
+      {blockers === null && <p className="text-xs" style={{ color: '#647068' }}>Checking your account…</p>}
       {blocked && (
         <div className="rounded-xl p-3 mb-3 text-xs" style={{ backgroundColor: '#FFE9E6', color: '#7A271A' }}>
           <p className="font-bold mb-1">You can't delete your account yet:</p>
@@ -86,7 +86,7 @@ export default function DeleteAccountPanel() {
       )}
       {blockers && !blocked && (
         <>
-          <label className="text-xs font-semibold block mb-1" style={{ color: '#1A1210' }}>
+          <label className="text-xs font-semibold block mb-1" style={{ color: '#17211B' }}>
             Type DELETE to confirm
           </label>
           <input value={confirmText} onChange={e => setConfirmText(e.target.value)}
@@ -100,7 +100,7 @@ export default function DeleteAccountPanel() {
         </>
       )}
       <button onClick={() => { setOpen(false); setConfirmText('') }}
-        className="w-full mt-2 py-2 text-xs font-semibold" style={{ color: '#8A7E78' }}>Cancel</button>
+        className="w-full mt-2 py-2 text-xs font-semibold" style={{ color: '#647068' }}>Cancel</button>
     </div>
   )
 }

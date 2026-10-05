@@ -62,14 +62,14 @@ export default function Rail({ children }) {
       {canPrev && (
         <button onClick={() => scrollByCard(-1)} aria-label="Previous"
           className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full items-center justify-center shadow-md"
-          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E9DECF', color: '#1A1A1A' }}>
+          style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}>
           <ChevronLeft size={16} />
         </button>
       )}
       {canNext && (
         <button onClick={() => scrollByCard(1)} aria-label="Next"
           className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full items-center justify-center shadow-md"
-          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E9DECF', color: '#1A1A1A' }}>
+          style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}>
           <ChevronRight size={16} />
         </button>
       )}

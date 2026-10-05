@@ -45,34 +45,34 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4"
-      style={{backgroundColor:'rgba(26,18,16,0.8)', backdropFilter:'blur(8px)'}}
+      style={{backgroundColor:'rgba(23,33,27,0.8)', backdropFilter:'blur(8px)'}}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
         className="w-full max-w-md rounded-3xl overflow-hidden"
         style={{backgroundColor:'#FFFAF5'}}>
         <div className="p-5 border-b flex items-center justify-between"
-          style={{borderColor:'#E8DDD2'}}>
-          <h3 className="font-display font-black text-lg" style={{color:'#1A1210'}}>
+          style={{borderColor:'#DEDDD6'}}>
+          <h3 className="font-display font-black text-lg" style={{color:'#17211B'}}>
             Add Room Category
           </h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{backgroundColor:'rgba(26,18,16,0.08)'}}>
+            style={{backgroundColor:'rgba(23,33,27,0.08)'}}>
             <X size={14} style={{color:'#5C4A3A'}} />
           </button>
         </div>
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-              style={{color:'rgba(26,18,16,0.5)'}}>Category Name *</label>
+              style={{color:'rgba(23,33,27,0.5)'}}>Category Name *</label>
             <div className="flex flex-wrap gap-2 mb-2">
               {CATEGORY_PRESETS.map(p => (
                 <button key={p} type="button"
                   onClick={() => setForm(f => ({...f, name: p}))}
                   className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
                   style={{
-                    borderColor: form.name === p ? '#C96A3A' : '#E8DDD2',
-                    backgroundColor: form.name === p ? 'rgba(201,106,58,0.08)' : '#FFFFFF',
-                    color: form.name === p ? '#C96A3A' : '#8A7E78',
+                    borderColor: form.name === p ? '#C85F2D' : '#DEDDD6',
+                    backgroundColor: form.name === p ? 'rgba(200,95,45,0.08)' : '#FFFFFF',
+                    color: form.name === p ? '#C85F2D' : '#647068',
                   }}>
                   {p}
                 </button>
@@ -80,31 +80,31 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
             </div>
             <input className="input text-sm" type="text" placeholder="Or type custom name..."
               value={form.name} onChange={set('name')}
-              style={{backgroundColor:'#FFFFFF', color:'#1A1210'}} />
+              style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-                style={{color:'rgba(26,18,16,0.5)'}}>Total Rooms *</label>
+                style={{color:'rgba(23,33,27,0.5)'}}>Total Rooms *</label>
               <input className="input text-sm" type="number" min="1" placeholder="e.g. 100"
                 value={form.total_rooms} onChange={set('total_rooms')}
-                style={{backgroundColor:'#FFFFFF', color:'#1A1210'}} />
+                style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-                style={{color:'rgba(26,18,16,0.5)'}}>Price/Night (₦)</label>
+                style={{color:'rgba(23,33,27,0.5)'}}>Price/Night (₦)</label>
               <input className="input text-sm" type="number" placeholder="e.g. 35000"
                 value={form.price_per_night} onChange={set('price_per_night')}
-                style={{backgroundColor:'#FFFFFF', color:'#1A1210'}} />
+                style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             </div>
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-              style={{color:'rgba(26,18,16,0.5)'}}>Description (optional)</label>
+              style={{color:'rgba(23,33,27,0.5)'}}>Description (optional)</label>
             <input className="input text-sm" type="text"
               placeholder="e.g. Air-conditioned, en-suite bathroom, king bed"
               value={form.description} onChange={set('description')}
-              style={{backgroundColor:'#FFFFFF', color:'#1A1210'}} />
+              style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
           </div>
           <button onClick={handleSave} disabled={saving} className="btn-primary w-full py-4">
             {saving ? 'Saving...' : 'Add Category →'}
@@ -121,7 +121,7 @@ function CategoryCard({ cat, onUpdate }) {
   const available  = cat.available_rooms
   const total      = cat.total_rooms
   const pct        = total > 0 ? (available / total) * 100 : 0
-  const statusColor = pct === 0 ? '#C96A3A' : pct < 30 ? '#D4A853' : '#7A9E7E'
+  const statusColor = pct === 0 ? '#C85F2D' : pct < 30 ? '#D4A853' : '#7A9E7E'
   const statusLabel = pct === 0 ? 'Fully Booked' : pct < 30 ? 'Almost Full' : 'Available'
 
   const adjust = async (delta) => {
@@ -174,13 +174,13 @@ function CategoryCard({ cat, onUpdate }) {
   }
 
   return (
-    <div className="rounded-2xl border p-5" style={{backgroundColor:'#FFFAF5', borderColor:'#E8DDD2'}}>
+    <div className="rounded-2xl border p-5" style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-display font-black text-lg" style={{color:'#1A1210'}}>{cat.name}</h3>
+          <h3 className="font-display font-black text-lg" style={{color:'#17211B'}}>{cat.name}</h3>
           {cat.price_per_night && (
-            <p className="text-xs mt-0.5" style={{color:'#8A7E78'}}>
+            <p className="text-xs mt-0.5" style={{color:'#647068'}}>
               ₦{Number(cat.price_per_night).toLocaleString()}/night
             </p>
           )}
@@ -193,11 +193,11 @@ function CategoryCard({ cat, onUpdate }) {
 
       {/* Progress bar */}
       <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1.5" style={{color:'#8A7E78'}}>
+        <div className="flex justify-between text-xs mb-1.5" style={{color:'#647068'}}>
           <span>{available} available</span>
           <span>{total} total</span>
         </div>
-        <div className="h-3 rounded-full overflow-hidden" style={{backgroundColor:'rgba(26,18,16,0.08)'}}>
+        <div className="h-3 rounded-full overflow-hidden" style={{backgroundColor:'rgba(23,33,27,0.08)'}}>
           <div className="h-full rounded-full transition-all duration-500"
             style={{width: pct + '%', backgroundColor: statusColor}} />
         </div>
@@ -205,27 +205,27 @@ function CategoryCard({ cat, onUpdate }) {
 
       {/* Counter */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold" style={{color:'#8A7E78'}}>
+        <p className="text-xs font-semibold" style={{color:'#647068'}}>
           Adjust available rooms:
         </p>
         <div className="flex items-center gap-3">
           <button onClick={() => adjust(-1)} disabled={updating || available === 0}
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-all"
             style={{
-              backgroundColor: available === 0 ? 'rgba(26,18,16,0.04)' : 'rgba(201,106,58,0.1)',
-              color: available === 0 ? '#8A7E78' : '#C96A3A',
+              backgroundColor: available === 0 ? 'rgba(23,33,27,0.04)' : 'rgba(200,95,45,0.1)',
+              color: available === 0 ? '#647068' : '#C85F2D',
             }}>
             <Minus size={16} />
           </button>
           <span className="font-display font-black text-2xl w-10 text-center"
-            style={{color:'#1A1210'}}>
+            style={{color:'#17211B'}}>
             {updating ? '...' : available}
           </span>
           <button onClick={() => adjust(+1)} disabled={updating || available === total}
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold transition-all"
             style={{
-              backgroundColor: available === total ? 'rgba(26,18,16,0.04)' : 'rgba(122,158,126,0.15)',
-              color: available === total ? '#8A7E78' : '#7A9E7E',
+              backgroundColor: available === total ? 'rgba(23,33,27,0.04)' : 'rgba(122,158,126,0.15)',
+              color: available === total ? '#647068' : '#7A9E7E',
             }}>
             <Plus size={16} />
           </button>
@@ -237,9 +237,9 @@ function CategoryCard({ cat, onUpdate }) {
         <button onClick={markAllBooked} disabled={updating || available === 0}
           className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
           style={{
-            borderColor: 'rgba(201,106,58,0.3)',
-            color: available === 0 ? '#8A7E78' : '#C96A3A',
-            backgroundColor: available === 0 ? 'rgba(26,18,16,0.03)' : 'rgba(201,106,58,0.04)',
+            borderColor: 'rgba(200,95,45,0.3)',
+            color: available === 0 ? '#647068' : '#C85F2D',
+            backgroundColor: available === 0 ? 'rgba(23,33,27,0.03)' : 'rgba(200,95,45,0.04)',
           }}>
           Mark All Booked
         </button>
@@ -247,15 +247,15 @@ function CategoryCard({ cat, onUpdate }) {
           className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
           style={{
             borderColor: 'rgba(122,158,126,0.3)',
-            color: available === total ? '#8A7E78' : '#7A9E7E',
-            backgroundColor: available === total ? 'rgba(26,18,16,0.03)' : 'rgba(122,158,126,0.06)',
+            color: available === total ? '#647068' : '#7A9E7E',
+            backgroundColor: available === total ? 'rgba(23,33,27,0.03)' : 'rgba(122,158,126,0.06)',
           }}>
           All Available
         </button>
       </div>
 
       {cat.description && (
-        <p className="text-xs mt-3 pt-3 border-t" style={{color:'#8A7E78', borderColor:'#E8DDD2'}}>
+        <p className="text-xs mt-3 pt-3 border-t" style={{color:'#647068', borderColor:'#DEDDD6'}}>
           {cat.description}
         </p>
       )}
@@ -325,30 +325,30 @@ export default function AvailabilityPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{color:'#1A1210'}}>
+            <h1 className="font-display text-2xl font-black" style={{color:'#17211B'}}>
               Availability Manager
             </h1>
-            <p className="text-xs mt-0.5" style={{color:'#8A7E78'}}>
+            <p className="text-xs mt-0.5" style={{color:'#647068'}}>
               Keep online and offline bookings in sync
             </p>
           </div>
           <button onClick={() => { if(selectedProp) loadCategories(selectedProp) }}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{backgroundColor:'rgba(26,18,16,0.08)'}}>
+            style={{backgroundColor:'rgba(23,33,27,0.08)'}}>
             <RefreshCw size={16} style={{color:'#5C4A3A'}} />
           </button>
         </div>
 
         {loading ? (
-          <div className="text-center py-20" style={{color:'#8A7E78'}}>Loading...</div>
+          <div className="text-center py-20" style={{color:'#647068'}}>Loading...</div>
         ) : properties.length === 0 ? (
           <div className="rounded-2xl border p-8 text-center"
-            style={{backgroundColor:'#FFFAF5', borderColor:'#E8DDD2'}}>
+            style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
             <div className="flex justify-center mb-4"><Hotel size={48} className="text-terracotta" /></div>
-            <h3 className="font-display font-black text-xl mb-2" style={{color:'#1A1210'}}>
+            <h3 className="font-display font-black text-xl mb-2" style={{color:'#17211B'}}>
               No hotels or short-lets listed
             </h3>
-            <p className="text-sm mb-5" style={{color:'#8A7E78'}}>
+            <p className="text-sm mb-5" style={{color:'#647068'}}>
               List your hotel or short-let first to manage availability.
             </p>
             <a href="/list-rental?type=hotel" className="btn-primary px-6 py-3 text-sm inline-flex">
@@ -364,9 +364,9 @@ export default function AvailabilityPage() {
                   <button key={p.id} onClick={() => setSelectedProp(p.id)}
                     className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 border transition-all"
                     style={{
-                      backgroundColor: selectedProp === p.id ? '#1A1210' : '#FFFFFF',
+                      backgroundColor: selectedProp === p.id ? '#17211B' : '#FFFFFF',
                       color: selectedProp === p.id ? '#FFFFFF' : '#5C4A3A',
-                      borderColor: selectedProp === p.id ? '#1A1210' : '#E8DDD2',
+                      borderColor: selectedProp === p.id ? '#17211B' : '#DEDDD6',
                     }}>
                     {p.title}
                   </button>
@@ -376,14 +376,14 @@ export default function AvailabilityPage() {
 
             {/* Summary card */}
             <div className="rounded-2xl p-5 mb-5"
-              style={{backgroundColor:'#1A1210'}}>
+              style={{backgroundColor:'#17211B'}}>
               <p className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{color:'rgba(255,255,255,0.4)'}}>
                 Overall Availability
               </p>
               <div className="flex items-end gap-2 mb-3">
                 <span className="font-display font-black text-4xl"
-                  style={{color: totalAvailable === 0 ? '#C96A3A' : '#7A9E7E'}}>
+                  style={{color: totalAvailable === 0 ? '#C85F2D' : '#7A9E7E'}}>
                   {totalAvailable}
                 </span>
                 <span className="text-sm mb-1" style={{color:'rgba(255,255,255,0.4)'}}>
@@ -395,7 +395,7 @@ export default function AvailabilityPage() {
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: totalRooms > 0 ? (totalAvailable/totalRooms*100) + '%' : '0%',
-                    backgroundColor: totalAvailable === 0 ? '#C96A3A' : '#7A9E7E',
+                    backgroundColor: totalAvailable === 0 ? '#C85F2D' : '#7A9E7E',
                   }} />
               </div>
               {lastUpdated && (
@@ -413,7 +413,7 @@ export default function AvailabilityPage() {
                 <p className="text-xs font-bold mb-1" style={{color:'#5C8060'}}>
                   How to prevent double bookings
                 </p>
-                <p className="text-xs leading-relaxed" style={{color:'#8A7E78'}}>
+                <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
                   When a room is booked offline, tap <strong>−</strong> to reduce available count. 
                   DealMatch automatically blocks online bookings when count reaches 0. 
                   When guest checks out, tap <strong>+</strong> to restore availability.
@@ -424,12 +424,12 @@ export default function AvailabilityPage() {
             {/* Categories */}
             {categories.length === 0 ? (
               <div className="rounded-2xl border p-8 text-center mb-5"
-                style={{backgroundColor:'#FFFAF5', borderColor:'#E8DDD2'}}>
+                style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
                 <div className="flex justify-center mb-3"><BedDouble size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm mb-1" style={{color:'#1A1210'}}>
+                <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
                   No room categories yet
                 </p>
-                <p className="text-xs mb-4" style={{color:'#8A7E78'}}>
+                <p className="text-xs mb-4" style={{color:'#647068'}}>
                   Add your room categories to start managing availability
                 </p>
               </div>
@@ -448,7 +448,7 @@ export default function AvailabilityPage() {
             {/* Add category button */}
             <button onClick={() => setShowAdd(true)}
               className="w-full py-4 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 text-sm font-semibold transition-all"
-              style={{borderColor:'#C96A3A', color:'#C96A3A', backgroundColor:'rgba(201,106,58,0.03)'}}>
+              style={{borderColor:'#C85F2D', color:'#C85F2D', backgroundColor:'rgba(200,95,45,0.03)'}}>
               <Plus size={16} /> Add Room Category
             </button>
           </>

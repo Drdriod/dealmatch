@@ -13,7 +13,7 @@ export default function TenancyPage() {
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
       <div className="max-w-2xl mx-auto px-4">
 
-        <div className="rounded-3xl p-8 mb-8 text-center relative overflow-hidden" style={{ backgroundColor: '#1A1210' }}>
+        <div className="rounded-3xl p-8 mb-8 text-center relative overflow-hidden" style={{ backgroundColor: '#17211B' }}>
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(122,158,126,0.2) 0%, transparent 70%)' }} />
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(122,158,126,0.2)' }}>
@@ -26,18 +26,18 @@ export default function TenancyPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-6 border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
-          <h2 className="font-display font-black text-xl mb-5" style={{ color: '#1A1210' }}>How It Works</h2>
+        <div className="rounded-2xl p-6 border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
+          <h2 className="font-display font-black text-xl mb-5" style={{ color: '#17211B' }}>How It Works</h2>
           <div className="space-y-5">
             {STEPS.map((s, i) => (
               <div key={i} className="flex gap-4">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(26,18,16,0.05)', border: '1px solid #E8DDD2' }}>
+                  style={{ backgroundColor: 'rgba(23,33,27,0.05)', border: '1px solid #DEDDD6' }}>
                   {s.icon}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>{s.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#8A7E78' }}>{s.desc}</p>
+                  <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{s.title}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#647068' }}>{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -50,11 +50,11 @@ export default function TenancyPage() {
           { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Verified Landlords', desc:'Only verified landlords can receive protection payments through DealMatch.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
-            style={{ backgroundColor: '#FFFAF5', borderColor: '#E8DDD2' }}>
+            style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
             <span className="flex-shrink-0">{b.icon}</span>
             <div>
-              <p className="font-semibold text-sm" style={{ color: '#1A1210' }}>{b.title}</p>
-              <p className="text-xs mt-0.5" style={{ color: '#8A7E78' }}>{b.desc}</p>
+              <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{b.title}</p>
+              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>{b.desc}</p>
             </div>
           </div>
         ))}
@@ -62,7 +62,7 @@ export default function TenancyPage() {
         <div className="grid grid-cols-2 gap-3 mt-6">
           <Link to="/rentals" className="btn-primary py-4 text-sm text-center">Browse Rentals →</Link>
           <Link to="/escrow" className="py-4 rounded-2xl text-sm font-semibold text-center border-2 transition-all"
-            style={{ borderColor: '#C96A3A', color: '#C96A3A', backgroundColor: 'rgba(201,106,58,0.04)' }}>
+            style={{ borderColor: '#C85F2D', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.04)' }}>
             Get Protected
           </Link>
         </div>

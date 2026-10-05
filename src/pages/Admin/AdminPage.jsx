@@ -29,7 +29,7 @@ const ROLE_LABELS = {
 }
 const ROLE_COLORS = { admin:'#D4A853', agent:'#5B8DEF', verifier:'#7A9E7E', lender:'#8B6BD9' }
 const STATUS_LABELS = { active:'Active', suspended:'Suspended', deleted:'Deleted' }
-const STATUS_COLORS = { active:'#7A9E7E', suspended:'#C96A3A', deleted:'#888' }
+const STATUS_COLORS = { active:'#7A9E7E', suspended:'#C85F2D', deleted:'#888' }
 
 const fmt    = (n=0) => n>=1e6?`₦${(n/1e6).toFixed(1)}M`:n>=1e3?`₦${(n/1e3).toFixed(0)}K`:`₦${Math.round(n)}`
 const fmtNum = (n=0) => Number(n||0).toLocaleString()
@@ -113,7 +113,7 @@ function useReauthGate(email) {
 
   const ReauthModalEl = !visible ? null : (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-      <div className="w-full max-w-sm rounded-2xl p-5 space-y-3" style={{backgroundColor:'#1A1210',border:'1px solid rgba(255,255,255,0.1)'}}>
+      <div className="w-full max-w-sm rounded-2xl p-5 space-y-3" style={{backgroundColor:'#17211B',border:'1px solid rgba(255,255,255,0.1)'}}>
         <p className="text-sm font-bold text-white flex items-center gap-2"><Shield size={14} style={{color:'#D4A853'}}/> Confirm your password</p>
         <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>
           This changes where DealMatch funds are sent. Re-enter your password to continue.
@@ -126,7 +126,7 @@ function useReauthGate(email) {
         <div className="flex gap-2 pt-1">
           <button onClick={submit} disabled={verifying||!password}
             className="flex-1 py-2.5 rounded-xl text-xs font-bold disabled:opacity-50"
-            style={{backgroundColor:'#D4A853',color:'#1A1210'}}>
+            style={{backgroundColor:'#D4A853',color:'#17211B'}}>
             {verifying?'Verifying...':'Confirm'}
           </button>
           <button onClick={cancel}
@@ -183,7 +183,7 @@ const StatCard = ({ icon:Icon, label, value, trend, color='#D4A853', onClick }) 
         <Icon size={16} style={{ color }} />
       </div>
       {trend!==undefined&&<span className="text-xs font-semibold flex items-center gap-0.5"
-        style={{ color:trend>=0?'#7A9E7E':'#C96A3A' }}>
+        style={{ color:trend>=0?'#7A9E7E':'#C85F2D' }}>
         {trend>=0?<TrendingUp size={11}/>:<TrendingDown size={11}/>}{Math.abs(trend)}%
       </span>}
     </div>
@@ -199,8 +199,8 @@ const ConfirmModal = ({ title, body, danger, onConfirm, onCancel }) => (
       className="w-full max-w-sm rounded-3xl p-6"
       style={{ backgroundColor:'#1E1510', border:'1px solid rgba(255,255,255,0.08)' }}>
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
-        style={{ backgroundColor:danger?'rgba(201,106,58,0.12)':'rgba(212,168,83,0.1)' }}>
-        {danger?<AlertTriangle size={22} style={{ color:'#C96A3A' }}/>:<Shield size={22} style={{ color:'#D4A853' }}/>}
+        style={{ backgroundColor:danger?'rgba(200,95,45,0.12)':'rgba(212,168,83,0.1)' }}>
+        {danger?<AlertTriangle size={22} style={{ color:'#C85F2D' }}/>:<Shield size={22} style={{ color:'#D4A853' }}/>}
       </div>
       <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
       <p className="text-sm mb-6" style={{ color:'rgba(255,255,255,0.5)' }}>{body}</p>
@@ -208,7 +208,7 @@ const ConfirmModal = ({ title, body, danger, onConfirm, onCancel }) => (
         <button onClick={onCancel} className="flex-1 py-3 rounded-2xl text-sm font-semibold"
           style={{ backgroundColor:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.6)' }}>Cancel</button>
         <button onClick={onConfirm} className="flex-1 py-3 rounded-2xl text-sm font-bold"
-          style={{ backgroundColor:danger?'#C96A3A':'#D4A853', color:'#1A1210' }}>Confirm</button>
+          style={{ backgroundColor:danger?'#C85F2D':'#D4A853', color:'#17211B' }}>Confirm</button>
       </div>
     </motion.div>
   </div>
@@ -246,7 +246,7 @@ const FilterBar = ({ options, value, onChange }) => (
     {options.map(([k,l])=>(
       <button key={k} onClick={()=>onChange(k)}
         className="px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all"
-        style={{ backgroundColor:value===k?'#D4A853':'rgba(255,255,255,0.06)', color:value===k?'#1A1210':'rgba(255,255,255,0.5)' }}>
+        style={{ backgroundColor:value===k?'#D4A853':'rgba(255,255,255,0.06)', color:value===k?'#17211B':'rgba(255,255,255,0.5)' }}>
         {l}
       </button>
     ))}
@@ -312,7 +312,7 @@ function OverviewTab() {
 
   useEffect(()=>{load()},[load])
 
-  const SC={pending_review:'#D4A853',active:'#7A9E7E',rejected:'#C96A3A',paused:'#888',sold:'#888'}
+  const SC={pending_review:'#D4A853',active:'#7A9E7E',rejected:'#C85F2D',paused:'#888',sold:'#888'}
   if(loading) return <Spinner/>
   return(
     <div className="space-y-5">
@@ -328,7 +328,7 @@ function OverviewTab() {
         <StatCard icon={Home}          label="Active Listings"   value={fmtNum(stats?.activeListings)}  color="#7A9E7E" onClick={()=>navigate('/admin/properties')}/>
         <StatCard icon={Clock}         label="Pending Review"    value={fmtNum(stats?.pendingListings)} color="#D4A853" onClick={()=>navigate('/admin/properties')}/>
         <StatCard icon={Wallet}        label="Total Revenue"     value={fmt(stats?.totalRevenue||0)}    color="#D4A853"/>
-        <StatCard icon={Shield}        label="ID Pending"        value={fmtNum(stats?.pendingIdentity)} color="#C96A3A" onClick={()=>navigate('/admin/identity')}/>
+        <StatCard icon={Shield}        label="ID Pending"        value={fmtNum(stats?.pendingIdentity)} color="#C85F2D" onClick={()=>navigate('/admin/identity')}/>
         <StatCard icon={Briefcase}     label="Professionals"     value={fmtNum(stats?.totalPros)}       color="#5B8DEF" onClick={()=>navigate('/admin/professionals')}/>
         <StatCard icon={FileText}      label="Mortgage Apps"     value={fmtNum(stats?.mortgageApps||0)} color="#888"   onClick={()=>navigate('/admin/mortgage')}/>
         <StatCard icon={MessageSquare} label="Enquiries"         value={fmtNum(stats?.rentalEnquiries||0)} color="#888" onClick={()=>navigate('/admin/enquiries')}/>
@@ -390,7 +390,7 @@ function PropertiesTab() {
   const [filter,setFilter]=useState('all')
   const [search,setSearch]=useState('')
   const [confirm,setConfirm]=useState(null)
-  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},rejected:{label:'Rejected',color:'#C96A3A'},paused:{label:'Paused',color:'#888'},sold:{label:'Sold',color:'#888'}}
+  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},rejected:{label:'Rejected',color:'#C85F2D'},paused:{label:'Paused',color:'#888'},sold:{label:'Sold',color:'#888'}}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -436,7 +436,7 @@ function PropertiesTab() {
                   {p.status!=='active'&&<ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve listing?',body:`"${p.title}" will go live.`,onConfirm:()=>setStatus(p.id,'active',p.title)})}/>}
                   {p.status==='active'&&<ActionBtn icon={Pause} color="#D4A853" tip="Pause" onClick={()=>setConfirm({title:'Pause listing?',body:`"${p.title}" will be hidden.`,onConfirm:()=>setStatus(p.id,'paused',p.title)})}/>}
                   {p.status==='paused'&&<ActionBtn icon={Play} color="#5B8DEF" tip="Restore" onClick={()=>setStatus(p.id,'active',p.title)}/>}
-                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C96A3A" tip="Reject" onClick={()=>setConfirm({title:'Reject listing?',body:`"${p.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.title)})}/>}
+                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject listing?',body:`"${p.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.title)})}/>}
                 </div>
               </td>
             </TR>)
@@ -510,7 +510,7 @@ function UsersTab() {
     }catch(e){toast.error(e.message)}
   }
 
-  const IDC={approved:'#7A9E7E',submitted:'#D4A853',rejected:'#C96A3A'}
+  const IDC={approved:'#7A9E7E',submitted:'#D4A853',rejected:'#C85F2D'}
 
   return(
     <div className="space-y-4">
@@ -523,19 +523,19 @@ function UsersTab() {
           className="px-3 py-2.5 rounded-xl text-xs outline-none font-semibold"
           style={{backgroundColor:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',color:roleFilter?'#D4A853':'rgba(255,255,255,0.5)',minWidth:120}}>
           <option value="">All Roles</option>
-          {Object.entries(ROLE_LABELS).map(([k,v])=><option key={k} value={k} style={{backgroundColor:'#1A1210'}}>{v}</option>)}
+          {Object.entries(ROLE_LABELS).map(([k,v])=><option key={k} value={k} style={{backgroundColor:'#17211B'}}>{v}</option>)}
         </select>
         <select value={statusFilter} onChange={e=>{setStatusFilter(e.target.value);load(0,search,roleFilter,e.target.value)}}
           className="px-3 py-2.5 rounded-xl text-xs outline-none font-semibold"
           style={{backgroundColor:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',color:statusFilter?'#D4A853':'rgba(255,255,255,0.5)',minWidth:120}}>
           <option value="">All Statuses</option>
-          {Object.entries(STATUS_LABELS).map(([k,v])=><option key={k} value={k} style={{backgroundColor:'#1A1210'}}>{v}</option>)}
+          {Object.entries(STATUS_LABELS).map(([k,v])=><option key={k} value={k} style={{backgroundColor:'#17211B'}}>{v}</option>)}
         </select>
       </div>
       <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{total} user{total!==1?'s':''} total</div>
       {apiError&&(
-        <div className="rounded-2xl p-4" style={{backgroundColor:'rgba(201,106,58,0.08)',border:'1px solid rgba(201,106,58,0.2)'}}>
-          <p className="text-xs font-bold mb-1" style={{color:'#C96A3A'}}>Could not load users from database</p>
+        <div className="rounded-2xl p-4" style={{backgroundColor:'rgba(200,95,45,0.08)',border:'1px solid rgba(200,95,45,0.2)'}}>
+          <p className="text-xs font-bold mb-1" style={{color:'#C85F2D'}}>Could not load users from database</p>
           <p className="text-xs mb-2" style={{color:'rgba(255,255,255,0.5)'}}>Error: {apiError}</p>
           <p className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>Fix: Run the SQL below in Supabase SQL Editor, then refresh this page.</p>
           <pre className="text-xs mt-2 p-3 rounded-xl overflow-x-auto" style={{backgroundColor:'rgba(0,0,0,0.3)',color:'#7A9E7E',fontFamily:'monospace'}}>
@@ -567,14 +567,14 @@ USING (
                 <td className="px-4 py-3">
                   {u.identity_verification_status==='approved'&&<Badge label="Verified" color="#7A9E7E"/>}
                   {u.identity_verification_status==='submitted'&&<Badge label="Pending" color="#D4A853"/>}
-                  {u.identity_verification_status==='rejected'&&<Badge label="Rejected" color="#C96A3A"/>}
+                  {u.identity_verification_status==='rejected'&&<Badge label="Rejected" color="#C85F2D"/>}
                   {(!u.identity_verification_status||u.identity_verification_status==='unverified')&&<span className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>None</span>}
                 </td>
                 <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(u.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <ActionBtn icon={UserCog} color="#D4A853" tip="Change role" onClick={()=>setRoleTarget({id:u.id,current:u.role,name:u.full_name||u.email})}/>
-                    {u.account_status!=='suspended'&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Ban} color="#C96A3A" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
+                    {u.account_status!=='suspended'&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Ban} color="#C85F2D" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
                     {u.account_status==='suspended'&&<ActionBtn icon={Play} color="#7A9E7E" tip="Unsuspend" onClick={()=>action('unsuspend',u.id,u.full_name||u.email)}/>}
                     {!u.is_deactivated&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Trash2} color="#888" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate account?',body:`${u.full_name||'User'}'s account will be permanently deactivated.`,danger:true,onConfirm:()=>action('deactivate',u.id,u.full_name||u.email)})}/>}
                   </div>
@@ -637,7 +637,7 @@ function IdentityTab() {
   const [reason,setReason]=useState('')
   const [lightbox,setLightbox]=useState(null)
   const DOC={nin:'NIN Slip',voters:"Voter's Card",passport:'Passport',drivers:"Driver's License"}
-  const SC={submitted:'#D4A853',approved:'#7A9E7E',rejected:'#C96A3A'}
+  const SC={submitted:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -707,7 +707,7 @@ function IdentityTab() {
                   </div>
                   <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{maskEmail(u.email)} · {maskPhone(u.phone)}</div>
                   <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{ago(u.created_at)}</div>
-                  {u.identity_rejection_note&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(201,106,58,0.08)',color:'#C96A3A'}}>Prev rejection: {u.identity_rejection_note}</div>}
+                  {u.identity_rejection_note&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Prev rejection: {u.identity_rejection_note}</div>}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   {u.photo_signed&&<button onClick={()=>setLightbox({src:u.photo_signed,label:`${u.full_name||'User'} - ID Doc`})} className="relative overflow-hidden rounded-xl border" style={{width:80,height:56,borderColor:'rgba(255,255,255,0.1)'}}>
@@ -728,7 +728,7 @@ function IdentityTab() {
                   <button onClick={()=>setConfirm({title:'Approve identity?',body:`${u.full_name} will be fully verified and unlock all transactions.`,onConfirm:()=>approve(u.id,u.full_name||u.email)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}>
                     <Check size={13}/> Approve & Verify
                   </button>
-                  <button onClick={()=>setReject({id:u.id,name:u.full_name||u.email})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(201,106,58,0.1)',color:'#C96A3A',border:'1px solid rgba(201,106,58,0.2)'}}>
+                  <button onClick={()=>setReject({id:u.id,name:u.full_name||u.email})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D',border:'1px solid rgba(200,95,45,0.2)'}}>
                     <X size={13}/> Reject
                   </button>
                 </div>
@@ -743,13 +743,13 @@ function IdentityTab() {
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(6px)'}}>
             <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} className="w-full max-w-sm rounded-3xl p-6" style={{backgroundColor:'#1E1510',border:'1px solid rgba(255,255,255,0.08)'}}>
-              <X size={22} style={{color:'#C96A3A'}} className="mb-3"/>
+              <X size={22} style={{color:'#C85F2D'}} className="mb-3"/>
               <h3 className="text-white font-bold text-lg mb-1">Reject Identity</h3>
               <p className="text-sm mb-4" style={{color:'rgba(255,255,255,0.45)'}}>Tell <strong className="text-white">{reject.name}</strong> why their ID was rejected.</p>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="e.g. Photo is blurry. Please upload a clearer image." className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}/>
               <div className="flex gap-3">
                 <button onClick={()=>{setReject(null);setReason('')}} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C96A3A',color:'#1A1210'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>
@@ -779,7 +779,7 @@ function SkillVerifyTab() {
   const [reject,setReject]=useState(null)
   const [reason,setReason]=useState('')
   const [busyId,setBusyId]=useState(null)
-  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C96A3A'}
+  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -857,7 +857,7 @@ function SkillVerifyTab() {
                   <button onClick={()=>approve(s)} disabled={busyId===s.id} className="py-2.5 rounded-2xl text-xs font-bold disabled:opacity-40" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>{busyId===s.id?'Processing...':'Approve - Skill Verified'}</button>
                 </div>
               )}
-              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(201,106,58,0.08)',color:'#C96A3A'}}>Reason: {s.admin_note}</div>}
+              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Reason: {s.admin_note}</div>}
             </div>
           ))}
         </div>
@@ -865,13 +865,13 @@ function SkillVerifyTab() {
       <AnimatePresence>
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="w-full sm:max-w-sm rounded-2xl p-5" style={{backgroundColor:'#1A1210'}}>
+            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="w-full sm:max-w-sm rounded-2xl p-5" style={{backgroundColor:'#17211B'}}>
               <h3 className="text-white font-bold text-sm mb-3">Reject submission</h3>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="Reason (shown to the provider)"
                 className="w-full px-3 py-2.5 rounded-xl text-sm outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'#fff'}}/>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={()=>{setReject(null);setReason('')}} className="py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C96A3A',color:'#1A1210'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>
@@ -892,7 +892,7 @@ function SkillVerifyTab() {
 // dashboard, not an editor; stage transitions still happen through their
 // normal flows (payment webhooks, RPCs), not by dragging cards here.
 const PIPELINE_STAGES=[
-  {id:'enquiry',    label:'Enquiry',      color:'#8A7E78'},
+  {id:'enquiry',    label:'Enquiry',      color:'#647068'},
   {id:'negotiation',label:'Negotiation',  color:'#D4A853'},
   {id:'paid_escrow',label:'Paid (Escrow)',color:'#5B8DEF'},
   {id:'completed',  label:'Completed',    color:'#7A9E7E'},
@@ -1021,7 +1021,7 @@ function TransactionsTab() {
   const [items,setItems]=useState([])
   const [loading,setLoading]=useState(true)
   const [search,setSearch]=useState('')
-  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#C96A3A',rejected:'#C96A3A',disputed:'#C96A3A',refunded:'#888'}
+  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#C85F2D',rejected:'#C85F2D',disputed:'#C85F2D',refunded:'#888'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -1053,7 +1053,7 @@ function TransactionsTab() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-2">
           {[['payments','Paystack'],['escrow','Escrow']].map(([k,l])=>(
-            <button key={k} onClick={()=>setTab(k)} className="px-4 py-2 rounded-xl text-xs font-bold transition-all" style={{backgroundColor:tab===k?'#D4A853':'rgba(255,255,255,0.06)',color:tab===k?'#1A1210':'rgba(255,255,255,0.5)'}}>{l}</button>
+            <button key={k} onClick={()=>setTab(k)} className="px-4 py-2 rounded-xl text-xs font-bold transition-all" style={{backgroundColor:tab===k?'#D4A853':'rgba(255,255,255,0.06)',color:tab===k?'#17211B':'rgba(255,255,255,0.5)'}}>{l}</button>
           ))}
         </div>
         <SearchBar value={search} onChange={setSearch} placeholder="Search reference, email…"/>
@@ -1172,7 +1172,7 @@ function PayoutsTab() {
   }
 
   const money=(c)=>`\u20a6${(Number(c||0)/100).toLocaleString()}`
-  const SC={pending:'#D4A853',verified:'#7A9E7E',rejected:'#C96A3A',processing:'#5B8DEF',paid:'#7A9E7E',failed:'#C96A3A'}
+  const SC={pending:'#D4A853',verified:'#7A9E7E',rejected:'#C85F2D',processing:'#5B8DEF',paid:'#7A9E7E',failed:'#C85F2D'}
 
   return(
     <div className="space-y-4">
@@ -1183,14 +1183,14 @@ function PayoutsTab() {
           {items.map(a=>(
             <TR key={a.id}>
               <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{a.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{a.profiles?.email}</div></td>
-              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'#C96A3A'}}>No bank code (pre-automation)</span>}</td>
+              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'#C85F2D'}}>No bank code (pre-automation)</span>}</td>
               <td className="px-4 py-3 text-xs text-white">{a.account_name}<div style={{color:'rgba(255,255,255,0.35)'}}>****{String(a.account_number).slice(-4)}</div></td>
               <td className="px-4 py-3"><Badge label={a.status} color={SC[a.status]}/></td>
               <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(a.created_at)}</td>
               <td className="px-4 py-3">
                 {a.status==='pending'&&<div className="flex gap-1">
                   <ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Verify" onClick={()=>verifyAccount(a.id)}/>
-                  <ActionBtn icon={XCircleIcon} color="#C96A3A" tip="Reject" onClick={()=>setRejectTarget(a.id)}/>
+                  <ActionBtn icon={XCircleIcon} color="#C85F2D" tip="Reject" onClick={()=>setRejectTarget(a.id)}/>
                 </div>}
               </td>
             </TR>
@@ -1207,7 +1207,7 @@ function PayoutsTab() {
               <td className="px-4 py-3 font-semibold text-white text-sm">{money(q.amount_cents)}</td>
               <td className="px-4 py-3"><Badge label={q.status} color={SC[q.status]}/></td>
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{q.attempts}/5</td>
-              <td className="px-4 py-3 text-xs" style={{color:'#C96A3A',maxWidth:220}}>{q.failure_reason||'-'}</td>
+              <td className="px-4 py-3 text-xs" style={{color:'#C85F2D',maxWidth:220}}>{q.failure_reason||'-'}</td>
               <td className="px-4 py-3">
                 {q.status==='failed'&&<ActionBtn icon={RefreshCw} color="#D4A853" tip="Retry" onClick={()=>retryQueueRow(q.id)}/>}
               </td>
@@ -1228,7 +1228,7 @@ function PayoutsTab() {
               <td className="px-4 py-3">
                 {w.status==='pending'&&<div className="flex gap-1">
                   <ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Mark paid" onClick={()=>fulfillWithdrawal(w.id)}/>
-                  <ActionBtn icon={XCircleIcon} color="#C96A3A" tip="Reject" onClick={()=>rejectWithdrawal(w.id)}/>
+                  <ActionBtn icon={XCircleIcon} color="#C85F2D" tip="Reject" onClick={()=>rejectWithdrawal(w.id)}/>
                 </div>}
               </td>
             </TR>
@@ -1239,13 +1239,13 @@ function PayoutsTab() {
 
       {rejectTarget&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm" style={{backgroundColor:'#1A1210'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm" style={{backgroundColor:'#17211B'}}>
             <p className="text-sm font-bold text-white mb-3">Reject payout account</p>
             <textarea value={rejectReason} onChange={e=>setRejectReason(e.target.value)} rows={3} placeholder="Reason (shown to the provider)"
               className="w-full rounded-xl px-3 py-2.5 text-xs resize-none outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}/>
             <div className="flex gap-2">
               <button onClick={()=>{setRejectTarget(null);setRejectReason('')}} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#C96A3A',color:'#fff'}}>Reject</button>
+              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#C85F2D',color:'#fff'}}>Reject</button>
             </div>
           </div>
         </div>
@@ -1317,12 +1317,12 @@ function PlatformFeesTab() {
     toast.success('Archived'); load()
   }
 
-  const STATUS_COLOR={DRAFT:'#888',SCHEDULED:'#D4A853',ACTIVE:'#7A9E7E',EXPIRED:'#C96A3A',ARCHIVED:'#555'}
+  const STATUS_COLOR={DRAFT:'#888',SCHEDULED:'#D4A853',ACTIVE:'#7A9E7E',EXPIRED:'#C85F2D',ARCHIVED:'#555'}
 
   return(
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={()=>setForm({})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'#D4A853',color:'#1A1210'}}>
+        <button onClick={()=>setForm({})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'#D4A853',color:'#17211B'}}>
           <Plus size={14}/> New Fee Schedule
         </button>
       </div>
@@ -1337,7 +1337,7 @@ function PlatformFeesTab() {
             <td className="px-4 py-3"><Badge label={c.status} color={STATUS_COLOR[c.status]||'#888'}/></td>
             <td className="px-4 py-3">
               <div className="flex gap-1">
-                {c.status==='ACTIVE'&&<ActionBtn icon={Pause} color="#C96A3A" tip="Expire now" onClick={()=>expireNow(c)}/>}
+                {c.status==='ACTIVE'&&<ActionBtn icon={Pause} color="#C85F2D" tip="Expire now" onClick={()=>expireNow(c)}/>}
                 {(c.status==='DRAFT'||c.status==='SCHEDULED')&&<ActionBtn icon={Trash2} color="#888" tip="Archive (never went live)" onClick={()=>archive(c)}/>}
               </div>
             </td>
@@ -1348,7 +1348,7 @@ function PlatformFeesTab() {
 
       {form&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'#1A1210'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'#17211B'}}>
             <p className="text-sm font-bold text-white">New Fee Schedule</p>
             <div>
               <label className="text-xs block mb-1" style={{color:'rgba(255,255,255,0.5)'}}>Name</label>
@@ -1360,7 +1360,7 @@ function PlatformFeesTab() {
               <select value={form.target_category_id||''} onChange={e=>setForm(f=>({...f,target_category_id:e.target.value||null}))}
                 className="w-full rounded-xl px-3 py-2.5 text-xs outline-none" style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}>
                 <option value="">All categories</option>
-                {categories.map(c=><option key={c.id} value={c.id} style={{backgroundColor:'#1A1210'}}>{c.name}</option>)}
+                {categories.map(c=><option key={c.id} value={c.id} style={{backgroundColor:'#17211B'}}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -1381,7 +1381,7 @@ function PlatformFeesTab() {
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={()=>setForm(null)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={save} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#D4A853',color:'#1A1210'}}>Save</button>
+              <button onClick={save} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#D4A853',color:'#17211B'}}>Save</button>
             </div>
           </div>
         </div>
@@ -1398,7 +1398,7 @@ function ProfessionalsTab() {
   const [filter,setFilter]=useState('all')
   const [search,setSearch]=useState('')
   const [confirm,setConfirm]=useState(null)
-  const SC={approved:'#7A9E7E',pending:'#D4A853',inactive:'#888',rejected:'#C96A3A'}
+  const SC={approved:'#7A9E7E',pending:'#D4A853',inactive:'#888',rejected:'#C85F2D'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -1440,7 +1440,7 @@ function ProfessionalsTab() {
                 <div className="flex gap-1">
                   {p.status!=='approved'&&<ActionBtn icon={Check} color="#7A9E7E" tip="Activate" onClick={()=>setConfirm({title:'Activate professional?',body:`${p.full_name} will appear in the directory.`,onConfirm:()=>setStatus(p.id,'active',p.full_name)})}/>}
                   {p.status==='approved'&&<ActionBtn icon={Pause} color="#D4A853" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate?',body:`${p.full_name} will be hidden.`,danger:true,onConfirm:()=>setStatus(p.id,'paused',p.full_name)})}/>}
-                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C96A3A" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${p.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.full_name)})}/>}
+                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${p.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.full_name)})}/>}
                 </div>
               </td>
             </TR>
@@ -1460,7 +1460,7 @@ function MortgageTab() {
   const [loading,setLoading]=useState(true)
   const [filter,setFilter]=useState('all')
   const [confirm,setConfirm]=useState(null)
-  const SC={pending:'#D4A853',under_review:'#5B8DEF',approved:'#7A9E7E',rejected:'#C96A3A',disbursed:'#888'}
+  const SC={pending:'#D4A853',under_review:'#5B8DEF',approved:'#7A9E7E',rejected:'#C85F2D',disbursed:'#888'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -1498,7 +1498,7 @@ function MortgageTab() {
                   {m.status==='pending'&&<ActionBtn icon={Eye} color="#5B8DEF" tip="Under review" onClick={()=>setStatus(m.id,'under_review',m.profiles?.full_name||'Applicant')}/>}
                   {['pending','under_review'].includes(m.status)&&<>
                     <ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve mortgage?',body:`Approve ${m.profiles?.full_name}'s application?`,onConfirm:()=>setStatus(m.id,'approved',m.profiles?.full_name||'Applicant')})}/>
-                    <ActionBtn icon={X} color="#C96A3A" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${m.profiles?.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(m.id,'rejected',m.profiles?.full_name||'Applicant')})}/>
+                    <ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${m.profiles?.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(m.id,'rejected',m.profiles?.full_name||'Applicant')})}/>
                   </>}
                   {m.status==='approved'&&<ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Mark disbursed" onClick={()=>setStatus(m.id,'disbursed',m.profiles?.full_name||'Applicant')}/>}
                 </div>
@@ -1563,7 +1563,7 @@ function StudentHostelsAdminTab() {
   const [loading,setLoading]=useState(true)
   const [filter,setFilter]=useState('all')
   const [confirm,setConfirm]=useState(null)
-  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},paused:{label:'Paused',color:'#888'},rejected:{label:'Rejected',color:'#C96A3A'},filled:{label:'Filled',color:'#5B8DEF'}}
+  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},paused:{label:'Paused',color:'#888'},rejected:{label:'Rejected',color:'#C85F2D'},filled:{label:'Filled',color:'#5B8DEF'}}
   const ROOM={single:'Single',shared_2:'Shared×2',shared_4:'Shared×4',shared_6:'Shared×6',self_contain:'Self Contain',mini_flat:'Mini Flat','2_bedroom':'2 Bed'}
 
   const load=useCallback(async()=>{
@@ -1599,14 +1599,14 @@ function StudentHostelsAdminTab() {
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>{h.institution_name||'N/A'}</td>
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{ROOM[h.room_type]||h.room_type||'N/A'}</td>
               <td className="px-4 py-3 text-white text-sm font-semibold">{fmt(h.price_per_year||0)}</td>
-              <td className="px-4 py-3">{h.listing_paid?<Badge label="Paid" color="#7A9E7E"/>:<Badge label="Unpaid" color="#C96A3A"/>}</td>
+              <td className="px-4 py-3">{h.listing_paid?<Badge label="Paid" color="#7A9E7E"/>:<Badge label="Unpaid" color="#C85F2D"/>}</td>
               <td className="px-4 py-3"><Badge label={meta.label} color={meta.color}/></td>
               <td className="px-4 py-3">
                 <div className="flex gap-1">
                   {h.status!=='active'&&h.listing_paid&&<ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve hostel?',body:`"${h.title}" will go live for students.`,onConfirm:()=>setStatus(h.id,'active',h.title)})}/>}
                   {h.status==='active'&&<ActionBtn icon={Pause} color="#D4A853" tip="Pause" onClick={()=>setConfirm({title:'Pause hostel?',body:`"${h.title}" will be hidden.`,onConfirm:()=>setStatus(h.id,'paused',h.title)})}/>}
                   {h.status==='paused'&&<ActionBtn icon={Play} color="#5B8DEF" tip="Restore" onClick={()=>setStatus(h.id,'active',h.title)}/>}
-                  {h.status!=='rejected'&&<ActionBtn icon={X} color="#C96A3A" tip="Reject" onClick={()=>setConfirm({title:'Reject hostel?',body:`"${h.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(h.id,'rejected',h.title)})}/>}
+                  {h.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject hostel?',body:`"${h.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(h.id,'rejected',h.title)})}/>}
                 </div>
               </td>
             </TR>)
@@ -1629,7 +1629,7 @@ function StudentVerificationsTab() {
   const [reject,setReject]=useState(null)
   const [reason,setReason]=useState('')
   const [lightbox,setLightbox]=useState(null)
-  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C96A3A'}
+  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -1690,7 +1690,7 @@ function StudentVerificationsTab() {
                       {v.matric_number?<>Matric: <span className="text-white font-mono">{v.matric_number}</span></>:v.jamb_reg_number?<>JAMB: <span className="text-white font-mono">{v.jamb_reg_number}</span> <Badge label="Fresher" color="#5B8DEF"/></>:v.application_number?<>App: <span className="text-white font-mono">{v.application_number}</span></>:'N/A'}
                     </div>
                     <div className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.3)'}}>{ago(v.created_at)}</div>
-                    {v.rejection_reason&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(201,106,58,0.08)',color:'#C96A3A'}}>Reason: {v.rejection_reason}</div>}
+                    {v.rejection_reason&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Reason: {v.rejection_reason}</div>}
                   </div>
                   {v.id_image_signed&&<button onClick={()=>setLightbox({src:v.id_image_signed,label:`${name} - Student ID`})} className="flex-shrink-0 relative overflow-hidden rounded-xl border" style={{width:80,height:56,borderColor:'rgba(255,255,255,0.1)'}}>
                     <img src={v.id_image_signed} alt="Student ID" className="w-full h-full object-cover"/>
@@ -1700,7 +1700,7 @@ function StudentVerificationsTab() {
                 {v.status==='pending'&&(
                   <div className="flex gap-2 mt-3">
                     <button onClick={()=>setConfirm({title:'Approve student?',body:`${name} will be verified and can view hostel contacts.`,onConfirm:()=>approve(v.id,v.user_id,name)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}><Check size={12}/> Approve</button>
-                    <button onClick={()=>setReject({id:v.id,userId:v.user_id,name})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(201,106,58,0.1)',color:'#C96A3A',border:'1px solid rgba(201,106,58,0.2)'}}><X size={12}/> Reject</button>
+                    <button onClick={()=>setReject({id:v.id,userId:v.user_id,name})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D',border:'1px solid rgba(200,95,45,0.2)'}}><X size={12}/> Reject</button>
                   </div>
                 )}
               </div>
@@ -1713,13 +1713,13 @@ function StudentVerificationsTab() {
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(6px)'}}>
             <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} className="w-full max-w-sm rounded-3xl p-6" style={{backgroundColor:'#1E1510',border:'1px solid rgba(255,255,255,0.08)'}}>
-              <X size={22} style={{color:'#C96A3A'}} className="mb-3"/>
+              <X size={22} style={{color:'#C85F2D'}} className="mb-3"/>
               <h3 className="text-white font-bold text-lg mb-1">Reject Verification</h3>
               <p className="text-sm mb-4" style={{color:'rgba(255,255,255,0.45)'}}>Tell <strong className="text-white">{reject.name}</strong> why their ID was rejected.</p>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="e.g. ID photo is blurry, please upload a clearer image" className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}/>
               <div className="flex gap-3">
                 <button onClick={()=>{setReject(null);setReason('')}} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C96A3A',color:'#1A1210'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>
@@ -1741,7 +1741,7 @@ function AnnouncementsTab() {
   const [showForm,setShowForm]=useState(false)
   const [saving,setSaving]=useState(false)
   const [form,setForm]=useState({title:'',body:'',type:'info',target:'all'})
-  const TC={info:'#5B8DEF',warning:'#D4A853',success:'#7A9E7E',critical:'#C96A3A'}
+  const TC={info:'#5B8DEF',warning:'#D4A853',success:'#7A9E7E',critical:'#C85F2D'}
 
   const load=async()=>{
     setLoading(true)
@@ -1768,7 +1768,7 @@ function AnnouncementsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div><h3 className="text-white font-bold">Announcements</h3><p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.35)'}}>Platform-wide notices shown to users</p></div>
-        <button onClick={()=>setShowForm(v=>!v)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#1A1210'}}><Plus size={14}/> New</button>
+        <button onClick={()=>setShowForm(v=>!v)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#17211B'}}><Plus size={14}/> New</button>
       </div>
       {showForm&&(
         <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} className="rounded-2xl p-5 space-y-3" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)'}}>
@@ -1784,24 +1784,24 @@ function AnnouncementsTab() {
             <div>
               <label className="text-xs font-bold mb-1.5 block" style={{color:'rgba(255,255,255,0.5)'}}>Type</label>
               <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} className="w-full rounded-xl px-4 py-3 text-sm outline-none" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
-                <option value="info" style={{backgroundColor:'#1A1210'}}>ℹ️ Info</option>
-                <option value="warning" style={{backgroundColor:'#1A1210'}}>Warning</option>
-                <option value="success" style={{backgroundColor:'#1A1210'}}>Success</option>
-                <option value="critical" style={{backgroundColor:'#1A1210'}}>Critical</option>
+                <option value="info" style={{backgroundColor:'#17211B'}}>ℹ️ Info</option>
+                <option value="warning" style={{backgroundColor:'#17211B'}}>Warning</option>
+                <option value="success" style={{backgroundColor:'#17211B'}}>Success</option>
+                <option value="critical" style={{backgroundColor:'#17211B'}}>Critical</option>
               </select>
             </div>
             <div>
               <label className="text-xs font-bold mb-1.5 block" style={{color:'rgba(255,255,255,0.5)'}}>Target</label>
               <select value={form.target} onChange={e=>setForm(f=>({...f,target:e.target.value}))} className="w-full rounded-xl px-4 py-3 text-sm outline-none" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
                 {[['all','All Users'],['buyer','Buyers'],['seller','Sellers'],['landlord','Landlords'],['professional','Professionals'],['student','Students']].map(([k,l])=>(
-                  <option key={k} value={k} style={{backgroundColor:'#1A1210'}}>{l}</option>
+                  <option key={k} value={k} style={{backgroundColor:'#17211B'}}>{l}</option>
                 ))}
               </select>
             </div>
           </div>
           <div className="flex gap-3 pt-1">
             <button onClick={()=>setShowForm(false)} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-            <button onClick={publish} disabled={saving} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#1A1210'}}>{saving?'Publishing…':'Publish Now'}</button>
+            <button onClick={publish} disabled={saving} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#17211B'}}>{saving?'Publishing…':'Publish Now'}</button>
           </div>
         </motion.div>
       )}
@@ -1869,7 +1869,7 @@ function TestimonialsTab() {
           {['pending','approved','rejected'].map(s=>(
             <button key={s} onClick={()=>setStatusFilter(s)}
               className="px-3 py-1.5 rounded-xl text-xs font-bold capitalize"
-              style={{backgroundColor:statusFilter===s?'#D4A853':'rgba(255,255,255,0.06)',color:statusFilter===s?'#1A1210':'rgba(255,255,255,0.5)'}}>
+              style={{backgroundColor:statusFilter===s?'#D4A853':'rgba(255,255,255,0.06)',color:statusFilter===s?'#17211B':'rgba(255,255,255,0.5)'}}>
               {s}
             </button>
           ))}
@@ -1982,7 +1982,7 @@ function StaffTab({isSuperAdmin}) {
           <h3 className="text-white font-bold">Staff Accounts</h3>
           <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.35)'}}>{isSuperAdmin?'Invite and manage all staff accounts':'Staff list - contact superadmin to add or remove'}</p>
         </div>
-        {isSuperAdmin&&<button onClick={()=>setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#1A1210'}}><Plus size={14}/> Invite Staff</button>}
+        {isSuperAdmin&&<button onClick={()=>setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all" style={{backgroundColor:'#D4A853',color:'#17211B'}}><Plus size={14}/> Invite Staff</button>}
       </div>
       <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(212,168,83,0.06)',border:'1px solid rgba(212,168,83,0.15)'}}>
         <Shield size={14} style={{color:'#D4A853',flexShrink:0,marginTop:2}}/>
@@ -2001,7 +2001,7 @@ function StaffTab({isSuperAdmin}) {
               </div>
               <div className="flex items-center gap-3">
                 <Badge label={ROLE_LABELS[inv.role]||inv.role} color={ROLE_COLORS[inv.role]||'#888'}/>
-                <ActionBtn icon={UserX} color="#C96A3A" tip="Revoke invite" onClick={()=>revokeInvite(inv)}/>
+                <ActionBtn icon={UserX} color="#C85F2D" tip="Revoke invite" onClick={()=>revokeInvite(inv)}/>
               </div>
             </div>
           ))}
@@ -2024,9 +2024,9 @@ function StaffTab({isSuperAdmin}) {
                 <Badge label={ROLE_LABELS[s.role]||s.role} color={ROLE_COLORS[s.role]||'#888'}/>
                 {isSuperAdmin&&!SUPERADMIN_EMAILS.includes(s.email)&&<>
                   <select value={s.role} onChange={e=>changeRole(s.id,e.target.value,s.full_name)} className="text-xs rounded-xl px-2 py-1.5 outline-none" style={{backgroundColor:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
-                    {['agent','verifier','admin'].map(r=><option key={r} value={r} style={{backgroundColor:'#1A1210'}}>{ROLE_LABELS[r]}</option>)}
+                    {['agent','verifier','admin'].map(r=><option key={r} value={r} style={{backgroundColor:'#17211B'}}>{ROLE_LABELS[r]}</option>)}
                   </select>
-                  <ActionBtn icon={UserX} color="#C96A3A" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate staff?',body:`${s.full_name}'s access will be revoked immediately.`,danger:true,onConfirm:()=>deactivate(s.id,s.full_name)})}/>
+                  <ActionBtn icon={UserX} color="#C85F2D" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate staff?',body:`${s.full_name}'s access will be revoked immediately.`,danger:true,onConfirm:()=>deactivate(s.id,s.full_name)})}/>
                 </>}
                 {SUPERADMIN_EMAILS.includes(s.email)&&<span className="text-xs px-2 py-1 rounded-lg" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}> Owner</span>}
               </div>
@@ -2053,9 +2053,9 @@ function StaffTab({isSuperAdmin}) {
                 <div>
                   <label className="text-xs font-bold mb-1.5 block" style={{color:'rgba(255,255,255,0.5)'}}>Role</label>
                   <select value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))} className="w-full rounded-xl px-4 py-3 text-sm outline-none" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
-                    <option value="agent" style={{backgroundColor:'#1A1210'}}>Agent - verifies listings on-site</option>
-                    <option value="verifier" style={{backgroundColor:'#1A1210'}}>Verifier - approves identity documents</option>
-                    <option value="admin" style={{backgroundColor:'#1A1210'}}>Admin - full dashboard access</option>
+                    <option value="agent" style={{backgroundColor:'#17211B'}}>Agent - verifies listings on-site</option>
+                    <option value="verifier" style={{backgroundColor:'#17211B'}}>Verifier - approves identity documents</option>
+                    <option value="admin" style={{backgroundColor:'#17211B'}}>Admin - full dashboard access</option>
                   </select>
                 </div>
                 <div className="rounded-xl p-3 flex items-start gap-2" style={{backgroundColor:'rgba(255,255,255,0.04)'}}>
@@ -2065,7 +2065,7 @@ function StaffTab({isSuperAdmin}) {
               </div>
               <div className="flex gap-3 mt-5">
                 <button onClick={()=>{setShowCreate(false);setForm({email:'',fullName:'',role:'agent'})}} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={sendInvite} disabled={creating} className="flex-1 py-3 rounded-2xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all" style={{backgroundColor:'#D4A853',color:'#1A1210'}}>{creating?'Sending...':'Send Invite'}</button>
+                <button onClick={sendInvite} disabled={creating} className="flex-1 py-3 rounded-2xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all" style={{backgroundColor:'#D4A853',color:'#17211B'}}>{creating?'Sending...':'Send Invite'}</button>
               </div>
             </motion.div>
           </div>
@@ -2102,7 +2102,7 @@ function SettingsTab({isSuperAdmin}) {
         ].map(s=>(
           <button key={s.id} onClick={()=>setSection(s.id)}
             className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
-            style={{backgroundColor:section===s.id?'#D4A853':'rgba(255,255,255,0.06)',color:section===s.id?'#1A1210':'rgba(255,255,255,0.5)'}}>
+            style={{backgroundColor:section===s.id?'#D4A853':'rgba(255,255,255,0.06)',color:section===s.id?'#17211B':'rgba(255,255,255,0.5)'}}>
             {s.label}
           </button>
         ))}
@@ -2177,7 +2177,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
                   {isSuperAdmin&&(
                     <button onClick={()=>saveField(f.key)} disabled={saving[f.key]}
                       className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all"
-                      style={{backgroundColor:'#D4A853',color:'#1A1210'}}>
+                      style={{backgroundColor:'#D4A853',color:'#17211B'}}>
                       <Save size={12}/> {saving[f.key]?'Saving…':'Save'}
                     </button>
                   )}
@@ -2273,8 +2273,8 @@ function BankDetailsSection({isSuperAdmin}) {
 
   return(
     <div className="space-y-4">
-      <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(201,106,58,0.06)',border:'1px solid rgba(201,106,58,0.15)'}}>
-        <Shield size={14} style={{color:'#C96A3A',flexShrink:0,marginTop:2}}/>
+      <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(200,95,45,0.06)',border:'1px solid rgba(200,95,45,0.15)'}}>
+        <Shield size={14} style={{color:'#C85F2D',flexShrink:0,marginTop:2}}/>
         <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>
           These are DealMatch's own business accounts for receiving large or manually-confirmed payments.
           This is separate from a user's personal bank account used for referral payouts.
@@ -2343,7 +2343,7 @@ function BankDetailsSection({isSuperAdmin}) {
           <div className="flex gap-2 pt-1">
             <button onClick={save} disabled={saving}
               className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all"
-              style={{backgroundColor:'#D4A853',color:'#1A1210'}}>
+              style={{backgroundColor:'#D4A853',color:'#17211B'}}>
               <Save size={12}/> {saving?'Saving…':'Save Account'}
             </button>
             <button onClick={()=>setEditing(null)}
@@ -2380,7 +2380,7 @@ function BankDetailsSection({isSuperAdmin}) {
               <button onClick={()=>startEdit(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Edit</button>
               {!acc.is_primary&&<button onClick={()=>setPrimary(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}>Set Primary</button>}
               <button onClick={()=>toggleActive(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>{acc.is_active?'Deactivate':'Activate'}</button>
-              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(201,106,58,0.1)',color:'#C96A3A'}}>Delete</button>
+              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D'}}>Delete</button>
             </div>
           )}
         </div>
@@ -2431,13 +2431,13 @@ function AnalyticsTab() {
     {label:'All Properties',value:fmtNum(data?.totalProps),icon:Home,color:'#7A9E7E'},
     {label:'Live Properties',value:fmtNum(data?.activeListings),icon:CheckCircle,color:'#7A9E7E'},
     {label:'Pending Review',value:fmtNum(data?.pendingListings),icon:Clock,color:'#D4A853'},
-    {label:'Total Pros',value:fmtNum(data?.totalPros),icon:Briefcase,color:'#C96A3A'},
-    {label:'Active Pros',value:fmtNum(data?.activePros),icon:Star,color:'#C96A3A'},
+    {label:'Total Pros',value:fmtNum(data?.totalPros),icon:Briefcase,color:'#C85F2D'},
+    {label:'Active Pros',value:fmtNum(data?.activePros),icon:Star,color:'#C85F2D'},
     {label:'Mortgage Apps',value:fmtNum(data?.mortgageApps),icon:Building,color:'#D4A853'},
     {label:'Escrow Txns',value:fmtNum(data?.escrowTxns),icon:Wallet,color:'#5B8DEF'},
     {label:'Total Revenue',value:fmt(data?.totalRevenue||0),icon:TrendingUp,color:'#D4A853'},
     {label:'Rental Enquiries',value:fmtNum(data?.rentalEnquiries),icon:MessageSquare,color:'#888'},
-    {label:'ID Pending',value:fmtNum(data?.pendingIdentity),icon:Shield,color:'#C96A3A'},
+    {label:'ID Pending',value:fmtNum(data?.pendingIdentity),icon:Shield,color:'#C85F2D'},
     {label:'Student Pending',value:fmtNum(data?.studentVerifs||0),icon:GraduationCap,color:'#5B8DEF'},
   ]
 
@@ -2467,7 +2467,7 @@ function AnalyticsTab() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <RatioBar label="Listing Approval Rate" rate={listingRate} color="#7A9E7E" subA={`${fmtNum(data?.activeListings)} live`} subB={`${fmtNum(data?.pendingListings)} pending`}/>
-        <RatioBar label="Professional Activation" rate={proRate} color="#C96A3A" subA={`${fmtNum(data?.activePros)} active`} subB={`${fmtNum((data?.totalPros||0)-(data?.activePros||0))} inactive`}/>
+        <RatioBar label="Professional Activation" rate={proRate} color="#C85F2D" subA={`${fmtNum(data?.activePros)} active`} subB={`${fmtNum((data?.totalPros||0)-(data?.activePros||0))} inactive`}/>
       </div>
     </div>
   )
@@ -2564,8 +2564,8 @@ function AgentScoresTab({ admin }) {
                 {[
                   {label:'Verified', value:a.verified_count, color:'#7A9E7E'},
                   {label:'Success',  value:`${a.success_rate_pct}%`, color:'#7A9E7E'},
-                  {label:'Complaints', value:`${a.complaints_upheld}/${a.complaints_received}`, color:a.complaints_upheld>0?'#C96A3A':'rgba(255,255,255,0.5)'},
-                  {label:'Strikes', value:`${a.strike_count}/3`, color:a.strike_count>=2?'#C94A3A':a.strike_count===1?'#C96A3A':'rgba(255,255,255,0.5)'},
+                  {label:'Complaints', value:`${a.complaints_upheld}/${a.complaints_received}`, color:a.complaints_upheld>0?'#C85F2D':'rgba(255,255,255,0.5)'},
+                  {label:'Strikes', value:`${a.strike_count}/3`, color:a.strike_count>=2?'#C94A3A':a.strike_count===1?'#C85F2D':'rgba(255,255,255,0.5)'},
                 ].map(m => (
                   <div key={m.label} className="rounded-xl p-2 text-center" style={{backgroundColor:'rgba(255,255,255,0.04)'}}>
                     <p className="text-sm font-black" style={{color:m.color}}>{m.value}</p>
@@ -2583,7 +2583,7 @@ function AgentScoresTab({ admin }) {
                 <div className="h-1.5 rounded-full" style={{backgroundColor:'rgba(255,255,255,0.08)'}}>
                   <div className="h-full rounded-full transition-all" style={{
                     width:`${(a.strike_count/3)*100}%`,
-                    backgroundColor:a.strike_count>=2?'#C94A3A':a.strike_count>=1?'#C96A3A':'#7A9E7E'
+                    backgroundColor:a.strike_count>=2?'#C94A3A':a.strike_count>=1?'#C85F2D':'#7A9E7E'
                   }} />
                 </div>
               </div>
@@ -2740,7 +2740,7 @@ function ComplaintsTab({ admin }) {
                   <p className="text-xs font-bold mb-0.5" style={{color:'rgba(255,255,255,0.35)'}}>Responsible Agent</p>
                   {c.agent ? (
                     <>
-                      <p className="text-xs font-bold" style={{color:'#C96A3A'}}>{c.agent.full_name}</p>
+                      <p className="text-xs font-bold" style={{color:'#C85F2D'}}>{c.agent.full_name}</p>
                       <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{c.agent.email}</p>
                     </>
                   ) : <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>Not yet assigned</p>}
@@ -2862,7 +2862,7 @@ export default function AdminPage() {
 
       {/* Sidebar */}
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 flex flex-col w-64 transition-transform duration-300 ${sidebarOpen?'translate-x-0':'-translate-x-full lg:translate-x-0'}`}
-        style={{backgroundColor:'#1A1210',borderRight:'1px solid rgba(255,255,255,0.06)'}}>
+        style={{backgroundColor:'#17211B',borderRight:'1px solid rgba(255,255,255,0.06)'}}>
         <div className="px-5 py-4 flex items-center gap-2.5" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{backgroundColor:'rgba(212,168,83,0.15)'}}><Shield size={16} style={{color:'#D4A853'}}/></div>
           <div><div className="font-black text-white text-sm leading-tight">DealMatch</div><div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>Control Panel</div></div>
@@ -2877,7 +2877,7 @@ export default function AdminPage() {
                 style={{backgroundColor:isActive?'rgba(212,168,83,0.12)':'transparent',color:isActive?'#D4A853':'rgba(255,255,255,0.45)'}}>
                 <item.icon size={16} style={{flexShrink:0}}/>
                 <span className="flex-1">{item.label}</span>
-                {badge>0&&<span className="text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center" style={{backgroundColor:'#C96A3A',color:'#fff',fontSize:10}}>{badge>99?'99+':badge}</span>}
+                {badge>0&&<span className="text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center" style={{backgroundColor:'#C85F2D',color:'#fff',fontSize:10}}>{badge>99?'99+':badge}</span>}
               </NavLink>
             )
           })}
@@ -2892,7 +2892,7 @@ export default function AdminPage() {
               <div className="text-xs truncate" style={{color:'rgba(255,255,255,0.3)'}}>{isSuperAdmin?' Superadmin':ROLE_LABELS[profile?.role]||'Staff'}</div>
             </div>
           </div>
-          <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80" style={{backgroundColor:'rgba(201,106,58,0.1)',color:'#C96A3A'}}>
+          <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D'}}>
             <LogOut size={13}/> Sign Out
           </button>
         </div>

@@ -2,8 +2,8 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="max-w-2xl mx-auto px-6">
-        <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#1A1210' }}>Terms of Service</h1>
-        <p className="text-xs mb-8" style={{ color: '#8A7E78' }}>Last updated: {new Date().getFullYear()}</p>
+        <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#17211B' }}>Terms of Service</h1>
+        <p className="text-xs mb-8" style={{ color: '#647068' }}>Last updated: {new Date().getFullYear()}</p>
         {[
           { title: '1. Acceptance', body: 'By using DealMatch you agree to these terms. If you do not agree, please do not use the platform.' },
           { title: '2. Platform Use', body: 'DealMatch matches people to a verified place or a verified person. We connect renters, hosts, and skilled professionals through an escrow-protected process. We do not take title to any property, act as a real estate agent, or employ any professional listed on the platform.' },
@@ -14,7 +14,7 @@ export default function TermsPage() {
           { title: '7. Contact', body: 'Questions? WhatsApp: +234 705 739 2060' },
         ].map(s => (
           <div key={s.title} className="mb-6">
-            <h2 className="font-display font-black text-lg mb-2" style={{ color: '#1A1210' }}>{s.title}</h2>
+            <h2 className="font-display font-black text-lg mb-2" style={{ color: '#17211B' }}>{s.title}</h2>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{s.body}</p>
           </div>
         ))}

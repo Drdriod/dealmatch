@@ -37,7 +37,7 @@ export default function HeroBackground({ className = '' }) {
       draw() {
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(201,106,58,${this.alpha})`
+        ctx.fillStyle = `rgba(200,95,45,${this.alpha})`
         ctx.fill()
       }
     }
@@ -66,7 +66,7 @@ export default function HeroBackground({ className = '' }) {
             ctx.beginPath()
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(201,106,58,${0.12 * (1 - dist / 120)})`
+            ctx.strokeStyle = `rgba(200,95,45,${0.12 * (1 - dist / 120)})`
             ctx.lineWidth   = 0.8
             ctx.stroke()
           }

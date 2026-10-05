@@ -29,8 +29,8 @@ const GoogleIcon = () => (
 // type between renders. Defining it inside caused React to unmount + remount
 // the input on every keystroke, dismissing the Android keyboard immediately.
 function FieldStatus({ status }) {
-  if (status === 'checking') return <Loader size={14} className="animate-spin" style={{ color:'#8A7E78' }} />
-  if (status === 'taken')    return <XCircle size={14} style={{ color:'#C96A3A' }} />
+  if (status === 'checking') return <Loader size={14} className="animate-spin" style={{ color:'#647068' }} />
+  if (status === 'taken')    return <XCircle size={14} style={{ color:'#C85F2D' }} />
   if (status === 'free')     return <CheckCircle size={14} style={{ color:'#7A9E7E' }} />
   return null
 }
@@ -47,13 +47,13 @@ function Field({
   required = false, hint = '',
   value, onChange, status, error,
 }) {
-  const borderColor = error ? '#C96A3A' : status === 'free' ? '#7A9E7E' : '#E8DDD2'
+  const borderColor = error ? '#C85F2D' : status === 'free' ? '#7A9E7E' : '#DEDDD6'
   return (
     <div>
       <label
         className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-        style={{ color:'rgba(26,18,16,0.5)' }}>
-        {label}{required && <span style={{ color:'#C96A3A' }}> *</span>}
+        style={{ color:'rgba(23,33,27,0.5)' }}>
+        {label}{required && <span style={{ color:'#C85F2D' }}> *</span>}
       </label>
       <div className="relative">
         <input
@@ -68,7 +68,7 @@ function Field({
           autoCapitalize={type === 'email' ? 'none' : 'words'}
           spellCheck={false}
           className="input w-full pr-9"
-          style={{ borderColor, backgroundColor:'#FFFFFF', color:'#1A1210' }}
+          style={{ borderColor, backgroundColor:'#FFFFFF', color:'#17211B' }}
         />
         {status && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -77,7 +77,7 @@ function Field({
         )}
       </div>
       {error && (
-        <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#C96A3A' }}>
+        <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#C85F2D' }}>
           <XCircle size={11} /> {error}
         </p>
       )}
@@ -87,7 +87,7 @@ function Field({
         </p>
       )}
       {hint && !error && status !== 'free' && (
-        <p className="text-xs mt-1" style={{ color:'#8A7E78' }}>{hint}</p>
+        <p className="text-xs mt-1" style={{ color:'#647068' }}>{hint}</p>
       )}
     </div>
   )
@@ -142,7 +142,7 @@ function PasswordChecklist({ password }) {
         const met = rule.test(password || '')
         return (
           <div key={rule.id} className="flex items-center gap-1.5 text-xs transition-colors"
-            style={{ color: met ? '#5C8060' : 'rgba(26,18,16,0.4)' }}>
+            style={{ color: met ? '#5C8060' : 'rgba(23,33,27,0.4)' }}>
             {met ? <Check size={12} strokeWidth={3} /> : <span style={{ width:12, height:12, borderRadius:'50%', border:'1.5px solid currentColor', display:'inline-block', flexShrink:0 }} />}
             {rule.label}
           </div>
@@ -478,17 +478,17 @@ export default function AuthPage() {
     return (
       <div style={{ backgroundColor:'#FAF3EA' }} className="min-h-screen flex flex-col items-center px-6 pt-10 pb-12 sm:justify-center sm:pt-12">
         <div className="w-full max-w-sm text-center rounded-3xl p-8 sm:p-9"
-          style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(26,18,16,0.08)', border:'1px solid #F0E5D8' }}>
+          style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(23,33,27,0.08)', border:'1px solid #F0E5D8' }}>
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{ backgroundColor:'rgba(201,106,58,0.1)' }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C96A3A" strokeWidth="2">
+            style={{ backgroundColor:'rgba(200,95,45,0.1)' }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C85F2D" strokeWidth="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-black mb-2" style={{ color:'#1A1210' }}>Check your email</h1>
-          <p className="text-sm mb-1" style={{ color:'#8A7E78' }}>We sent a 6-digit code to</p>
-          <p className="font-semibold text-sm mb-8" style={{ color:'#C96A3A' }}>{signupEmail}</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-black mb-2" style={{ color:'#17211B' }}>Check your email</h1>
+          <p className="text-sm mb-1" style={{ color:'#647068' }}>We sent a 6-digit code to</p>
+          <p className="font-semibold text-sm mb-8" style={{ color:'#C85F2D' }}>{signupEmail}</p>
           <div className="flex gap-2.5 sm:gap-3 justify-center mb-8" onPaste={handleOtpPaste}>
             {otp.map((digit, i) => (
               <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
@@ -496,26 +496,26 @@ export default function AuthPage() {
                 onChange={e => handleOtpChange(i, e.target.value)}
                 onKeyDown={e => handleOtpKeyDown(i, e)}
                 style={{
-                  backgroundColor: digit ? 'rgba(201,106,58,0.06)' : '#FAF6F0',
-                  borderColor: digit ? '#C96A3A' : '#E8DDD2',
-                  color: digit ? '#C96A3A' : '#1A1210'
+                  backgroundColor: digit ? 'rgba(200,95,45,0.06)' : '#F7F4ED',
+                  borderColor: digit ? '#C85F2D' : '#DEDDD6',
+                  color: digit ? '#C85F2D' : '#17211B'
                 }}
-                className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all focus:border-[#C96A3A]"
+                className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all focus:border-[#C85F2D]"
               />
             ))}
           </div>
           <button onClick={handleVerifyOtp} disabled={verifying || otp.join('').length < 6}
             className="w-full py-4 rounded-2xl font-bold text-white mb-4 transition-all hover:opacity-90 disabled:opacity-40"
-            style={{ backgroundColor:'#C96A3A', boxShadow:'0 4px 16px rgba(201,106,58,0.3)' }}>
+            style={{ backgroundColor:'#C85F2D', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
             {verifying ? 'Verifying...' : 'Confirm Email'}
           </button>
-          <p style={{ color:'#8A7E78' }} className="text-sm">
+          <p style={{ color:'#647068' }} className="text-sm">
             Didn't receive it?{' '}
-            <button onClick={handleResendOtp} style={{ color:'#C96A3A' }}
+            <button onClick={handleResendOtp} style={{ color:'#C85F2D' }}
               className="font-semibold hover:underline">Resend code</button>
           </p>
           <button onClick={() => { setVerificationSent(false); setOtp(['','','','','','']) }}
-            className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'#8A7E78' }}>
+            className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'#647068' }}>
             <ArrowLeft size={14} /> Back to signup
           </button>
         </div>
@@ -534,14 +534,14 @@ export default function AuthPage() {
         <img src="/home/hero-place-house.webp" alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ backgroundColor:'rgba(15,11,9,0.72)' }} />
         <div className="absolute inset-0"
-          style={{ background:'radial-gradient(ellipse 80% 60% at 30% 60%, rgba(201,106,58,0.25) 0%, transparent 60%)' }} />
+          style={{ background:'radial-gradient(ellipse 80% 60% at 30% 60%, rgba(200,95,45,0.25) 0%, transparent 60%)' }} />
         <Link to="/" className="flex items-center gap-2.5 font-display text-2xl font-black text-white relative z-10">
           <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-8 w-auto" />
           Deal<span style={{ color:'#C96A3A' }}>Match</span>
         </Link>
         <div className="relative z-10">
           <p className="font-display text-5xl font-black text-white leading-tight mb-6">
-            Find a <em style={{ color:'#C96A3A' }}>verified place</em><br />or a <em style={{ color:'#C96A3A' }}>verified person.</em><br />Pay for protection first.
+            Find a <em style={{ color:'#C85F2D' }}>verified place</em><br />or a <em style={{ color:'#C85F2D' }}>verified person.</em><br />Pay for protection first.
           </p>
           {[
             'Places: ID plus proof of property, checked before anything goes live',
@@ -579,10 +579,10 @@ export default function AuthPage() {
           {/* Elevated card instead of the form floating directly on the
               page background - one clear surface, softly lifted. */}
           <div className="rounded-3xl p-6 sm:p-8"
-            style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(26,18,16,0.07)', border:'1px solid #F0E5D8' }}>
+            style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(23,33,27,0.07)', border:'1px solid #F0E5D8' }}>
 
             <Link to="/" className="hidden lg:inline-flex items-center gap-2 text-sm mb-6 transition-colors"
-              style={{ color:'rgba(26,18,16,0.4)' }}>
+              style={{ color:'rgba(23,33,27,0.4)' }}>
               <ArrowLeft size={14} /> Back to home
             </Link>
 
@@ -590,7 +590,7 @@ export default function AuthPage() {
             {callbackErrorMessage && (
               <div
                 className="flex items-start gap-3 p-4 rounded-2xl mb-6 text-sm"
-                style={{ backgroundColor:'rgba(201,106,58,0.08)', border:'1px solid rgba(201,106,58,0.25)', color:'#C96A3A' }}
+                style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.25)', color:'#C85F2D' }}
                 role="alert"
               >
                 <XCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -599,13 +599,13 @@ export default function AuthPage() {
             )}
 
             {/* Tabs */}
-            <div className="flex rounded-2xl p-1 mb-6" style={{ backgroundColor:'#FAF6F0' }}>
+            <div className="flex rounded-2xl p-1 mb-6" style={{ backgroundColor:'#F7F4ED' }}>
               {[['signin','Sign In'],['signup','Create Account']].map(([t,l]) => (
                 <button key={t} onClick={() => { setTab(t); resetTabState() }}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
                   style={{
                     backgroundColor: tab === t ? '#FFFFFF' : 'transparent',
-                    color:           tab === t ? '#1A1210' : 'rgba(26,18,16,0.4)',
+                    color:           tab === t ? '#17211B' : 'rgba(23,33,27,0.4)',
                     boxShadow:       tab === t ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                   }}>{l}</button>
               ))}
@@ -616,16 +616,16 @@ export default function AuthPage() {
               <>
                 <button onClick={handleGoogle} type="button"
                   className="w-full py-3 px-4 rounded-2xl border-2 flex items-center justify-center gap-3 font-semibold transition-all hover:bg-gray-50 mb-5"
-                  style={{ borderColor:'#E8DDD2', color:'#1A1210' }}>
+                  style={{ borderColor:'#DEDDD6', color:'#17211B' }}>
                   <GoogleIcon /> Continue with Google
                 </button>
 
                 <div className="relative mb-5">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t" style={{ borderColor:'#E8DDD2' }} />
+                    <div className="w-full border-t" style={{ borderColor:'#DEDDD6' }} />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(26,18,16,0.4)' }}>or with email</span>
+                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(23,33,27,0.4)' }}>or with email</span>
                   </div>
                 </div>
               </>
@@ -635,15 +635,15 @@ export default function AuthPage() {
           {tab === 'signup' ? (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#1A1210' }}>Create account</h1>
-                <p className="text-sm" style={{ color:'rgba(26,18,16,0.4)' }}>Find a verified place or a verified person. Pay for protection first.</p>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Create account</h1>
+                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Find a verified place or a verified person. Pay for protection first.</p>
               </div>
 
               {/* Full Name - no live check */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>
-                  Full Name <span style={{ color:'#C96A3A' }}>*</span>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>
+                  Full Name <span style={{ color:'#C85F2D' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -652,7 +652,7 @@ export default function AuthPage() {
                   value={form.fullName}
                   onChange={setField('fullName')}
                   autoComplete="name"
-                  style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }}
+                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}
                 />
               </div>
 
@@ -699,9 +699,9 @@ export default function AuthPage() {
               {/* Referral / Invite Code */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>
                   Invite Code{' '}
-                  <span style={{ color:'rgba(26,18,16,0.3)', fontWeight:400, textTransform:'none', fontSize:11 }}>
+                  <span style={{ color:'rgba(23,33,27,0.3)', fontWeight:400, textTransform:'none', fontSize:11 }}>
                     (optional - from a friend's link)
                   </span>
                 </label>
@@ -728,11 +728,11 @@ export default function AuthPage() {
                     spellCheck={false}
                     style={{
                       backgroundColor: '#FFFFFF',
-                      color: '#1A1210',
+                      color: '#17211B',
                       borderColor: fieldStatus.inviteCode === 'valid'
                         ? '#7A9E7E'
                         : fieldStatus.inviteCode === 'invalid'
-                        ? '#C96A3A'
+                        ? '#C85F2D'
                         : undefined,
                     }}
                   />
@@ -740,25 +740,25 @@ export default function AuthPage() {
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {fieldStatus.inviteCode === 'checking' && (
                       <div className="w-4 h-4 rounded-full border-2 border-transparent animate-spin"
-                        style={{ borderTopColor:'#C96A3A' }}/>
+                        style={{ borderTopColor:'#C85F2D' }}/>
                     )}
                     {fieldStatus.inviteCode === 'valid' && (
                       <Check size={16} style={{ color:"#7A9E7E" }} />
                     )}
                     {fieldStatus.inviteCode === 'invalid' && (
-                      <X size={16} style={{ color:"#C96A3A" }} />
+                      <X size={16} style={{ color:"#C85F2D" }} />
                     )}
                   </div>
                 </div>
                 {/* Feedback message */}
                 {fieldErrors.inviteCode && (
                   <p className="text-xs mt-1 font-semibold"
-                    style={{ color: fieldStatus.inviteCode === 'valid' ? '#7A9E7E' : '#C96A3A' }}>
+                    style={{ color: fieldStatus.inviteCode === 'valid' ? '#7A9E7E' : '#C85F2D' }}>
                     {fieldErrors.inviteCode}
                   </p>
                 )}
                 {!fieldErrors.inviteCode && !form.inviteCode && (
-                  <p className="text-xs mt-1" style={{ color:'rgba(26,18,16,0.35)' }}>
+                  <p className="text-xs mt-1" style={{ color:'rgba(23,33,27,0.35)' }}>
                     Have a friend's invite link? Enter their code here.
                   </p>
                 )}
@@ -767,8 +767,8 @@ export default function AuthPage() {
               {/* Password */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>
-                  Password <span style={{ color:'#C96A3A' }}>*</span>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>
+                  Password <span style={{ color:'#C85F2D' }}>*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -778,7 +778,7 @@ export default function AuthPage() {
                     value={form.password}
                     onChange={setField('password')}
                     autoComplete="new-password"
-                    style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }}
+                    style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -796,17 +796,17 @@ export default function AuthPage() {
                 Object.values(fieldStatus).includes('checking')
               }
                 className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'#C96A3A', boxShadow:'0 4px 16px rgba(201,106,58,0.3)' }}>
+                style={{ backgroundColor:'#C85F2D', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
                 {loading ? 'Creating account...' :
                  Object.values(fieldStatus).includes('checking') ? 'Checking availability...' :
                  'Create Account'}
               </button>
 
-              <p className="text-xs text-center" style={{ color:'rgba(26,18,16,0.4)' }}>
+              <p className="text-xs text-center" style={{ color:'rgba(23,33,27,0.4)' }}>
                 By signing up you agree to our{' '}
-                <Link to="/terms" style={{ color:'#C96A3A' }} className="font-semibold hover:underline">Terms</Link>
+                <Link to="/terms" style={{ color:'#C85F2D' }} className="font-semibold hover:underline">Terms</Link>
                 {' '}and{' '}
-                <Link to="/privacy" style={{ color:'#C96A3A' }} className="font-semibold hover:underline">Privacy Policy</Link>
+                <Link to="/privacy" style={{ color:'#C85F2D' }} className="font-semibold hover:underline">Privacy Policy</Link>
               </p>
             </form>
 
@@ -814,26 +814,26 @@ export default function AuthPage() {
             /* ── Sign In ── */
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#1A1210' }}>Welcome back</h1>
-                <p className="text-sm" style={{ color:'rgba(26,18,16,0.4)' }}>Sign in to continue to DealMatch.</p>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Welcome back</h1>
+                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Sign in to continue to DealMatch.</p>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>Email</label>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>Email</label>
                 <input className="input w-full" type="email" placeholder="your@email.com"
                   value={form.email} onChange={setField('email')}
                   autoComplete="email"
-                  style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(26,18,16,0.5)' }}>Password</label>
+                  style={{ color:'rgba(23,33,27,0.5)' }}>Password</label>
                 <div className="relative">
                   <input className="input w-full pr-10" type={showPass ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={form.password} onChange={setField('password')}
                     autoComplete="current-password"
-                    style={{ backgroundColor:'#FFFFFF', color:'#1A1210' }} />
+                    style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -842,18 +842,18 @@ export default function AuthPage() {
               </div>
               <button type="submit" disabled={loading}
                 className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'#C96A3A', boxShadow:'0 4px 16px rgba(201,106,58,0.3)' }}>
+                style={{ backgroundColor:'#C85F2D', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
               <button type="button" onClick={handleForgotPassword}
-                className="w-full py-2 text-sm font-semibold" style={{ color:'#C96A3A' }}>
+                className="w-full py-2 text-sm font-semibold" style={{ color:'#C85F2D' }}>
                 Forgot password?
               </button>
             </form>
           )}
           </div>
 
-          <p className="text-center text-xs mt-6" style={{ color:'rgba(26,18,16,0.35)' }}>
+          <p className="text-center text-xs mt-6" style={{ color:'rgba(23,33,27,0.35)' }}>
             © {new Date().getFullYear()} DealMatch Technology Limited
           </p>
         </div>

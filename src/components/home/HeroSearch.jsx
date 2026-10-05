@@ -51,10 +51,10 @@ export default function HeroSearch({ className = '' }) {
   }
 
   return (
-    <form onSubmit={submit} className={`relative w-full max-w-xl mx-auto ${className}`}>
-      <div className="relative flex items-center rounded-full transition-shadow focus-within:shadow-lg"
-        style={{ backgroundColor: '#FFFFFF', border: '1px solid #E4D5C4' }}>
-        <Search size={18} className="ml-5 flex-shrink-0" style={{ color: '#8A7E78' }} />
+    <form onSubmit={submit} className={`relative w-full max-w-[700px] ${className}`}>
+      <div className="relative flex items-center rounded-[20px] p-1.5 shadow-soft transition-shadow focus-within:ring-2 focus-within:ring-terracotta/30"
+        style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(23,33,27,0.08)' }}>
+        <Search size={18} className="ml-5 flex-shrink-0" style={{ color: '#647068' }} />
 
         <div className="relative flex-1 min-w-0">
           <input
@@ -64,7 +64,7 @@ export default function HeroSearch({ className = '' }) {
             onChange={e => setValue(e.target.value)}
             aria-label="What are you looking for?"
             className="w-full bg-transparent outline-none px-3 py-4 text-sm sm:text-base"
-            style={{ color: '#1A1A1A' }}
+            style={{ color: '#17211B' }}
           />
           {value === '' && (
             <div className="absolute inset-0 flex items-center px-3 pointer-events-none overflow-hidden">
@@ -90,8 +90,8 @@ export default function HeroSearch({ className = '' }) {
         </div>
 
         <button type="submit"
-          className="flex-shrink-0 flex items-center gap-1.5 m-1.5 px-5 py-3 rounded-full text-sm font-bold"
-          style={{ backgroundColor: '#C45C26', color: '#FFFFFF' }}>
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 sm:px-6 min-h-[52px] rounded-full text-sm font-bold transition hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]"
+          style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
           Find a Match <ArrowRight size={14} />
         </button>
       </div>

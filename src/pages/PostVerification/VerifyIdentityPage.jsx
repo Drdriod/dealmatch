@@ -255,13 +255,13 @@ export default function VerifyIdentityPage() {
             style={{ backgroundColor:'rgba(122,158,126,0.12)' }}>
             <Shield size={36} style={{ color:'#7A9E7E' }} />
           </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#1A1210' }}>You're Verified</h1>
-          <p className="text-sm mb-8" style={{ color:'#8A7E78' }}>
+          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>You're Verified</h1>
+          <p className="text-sm mb-8" style={{ color:'#647068' }}>
             Your identity has been verified. You have full access to all DealMatch features.
           </p>
           <button onClick={handleDone}
             className="w-full py-4 rounded-2xl font-bold text-white"
-            style={{ backgroundColor:'#C96A3A' }}>
+            style={{ backgroundColor:'#C85F2D' }}>
             Continue →
           </button>
         </div>
@@ -278,14 +278,14 @@ export default function VerifyIdentityPage() {
             style={{ backgroundColor:'rgba(212,168,83,0.12)' }}>
             <Shield size={36} style={{ color:'#D4A853' }} />
           </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#1A1210' }}>Under Review</h1>
-          <p className="text-sm mb-4" style={{ color:'#8A7E78' }}>
+          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Under Review</h1>
+          <p className="text-sm mb-4" style={{ color:'#647068' }}>
             Your identity documents were submitted and are being reviewed. This usually takes under 24 hours.
           </p>
           <div className="rounded-2xl p-4 mb-8 text-left"
             style={{ backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)' }}>
             <p className="text-xs font-semibold" style={{ color:'#D4A853' }}>What you can do while waiting:</p>
-            <ul className="text-xs mt-2 space-y-1" style={{ color:'#8A7E78' }}>
+            <ul className="text-xs mt-2 space-y-1" style={{ color:'#647068' }}>
               <li>• Browse and swipe properties</li>
               <li>• Book hotels and short-lets</li>
               <li>• Message matched contacts</li>
@@ -293,7 +293,7 @@ export default function VerifyIdentityPage() {
           </div>
           <button onClick={handleDone}
             className="w-full py-4 rounded-2xl font-bold text-white"
-            style={{ backgroundColor:'#1A1210' }}>
+            style={{ backgroundColor:'#17211B' }}>
             Continue Browsing →
           </button>
         </div>
@@ -310,16 +310,16 @@ export default function VerifyIdentityPage() {
             style={{ backgroundColor:'rgba(122,158,126,0.12)' }}>
             <Check size={36} style={{ color:'#7A9E7E' }} />
           </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#1A1210' }}>Submitted!</h1>
-          <p className="text-sm mb-4" style={{ color:'#8A7E78' }}>
+          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Submitted!</h1>
+          <p className="text-sm mb-4" style={{ color:'#647068' }}>
             Your ID and selfie have been uploaded. Our team will verify you within 24 hours.
           </p>
-          <p className="text-xs mb-8 p-3 rounded-xl" style={{ color:'#8A7E78', backgroundColor:'rgba(26,18,16,0.04)' }}>
+          <p className="text-xs mb-8 p-3 rounded-xl" style={{ color:'#647068', backgroundColor:'rgba(23,33,27,0.04)' }}>
             You'll be able to {roleLabel} as soon as your verification is approved.
           </p>
           <button onClick={handleDone}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C96A3A' }}>
+            style={{ backgroundColor:'#C85F2D' }}>
             Start Exploring DealMatch
           </button>
         </div>
@@ -335,18 +335,18 @@ export default function VerifyIdentityPage() {
           {/* Back button */}
           <button onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-sm mb-8"
-            style={{ color:'rgba(26,18,16,0.4)' }}>
+            style={{ color:'rgba(23,33,27,0.4)' }}>
             <ArrowLeft size={14} /> Back
           </button>
 
           {/* Hero */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor:'rgba(201,106,58,0.1)' }}>
-              <Shield size={36} style={{ color:'#C96A3A' }} />
+              style={{ backgroundColor:'rgba(200,95,45,0.1)' }}>
+              <Shield size={36} style={{ color:'#C85F2D' }} />
             </div>
-            <h1 className="font-display font-black text-3xl mb-2" style={{ color:'#1A1210' }}>Verify Your Identity</h1>
-            <p className="text-sm" style={{ color:'#8A7E78' }}>
+            <h1 className="font-display font-black text-3xl mb-2" style={{ color:'#17211B' }}>Verify Your Identity</h1>
+            <p className="text-sm" style={{ color:'#647068' }}>
               Required to {roleLabel}. Takes about 2 minutes.
             </p>
           </div>
@@ -359,11 +359,11 @@ export default function VerifyIdentityPage() {
               { icon: <Clock size={20} className="text-terracotta" />, title:'24-hour review', desc:'Our team reviews submissions manually for your security' },
             ].map(item => (
               <div key={item.title} className="flex items-start gap-3 p-4 rounded-2xl"
-                style={{ backgroundColor:'rgba(26,18,16,0.03)', border:'1px solid #E8DDD2' }}>
+                style={{ backgroundColor:'rgba(23,33,27,0.03)', border:'1px solid #DEDDD6' }}>
                 <span className="flex-shrink-0">{item.icon}</span>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>{item.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color:'#8A7E78' }}>{item.desc}</p>
+                  <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{item.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -373,18 +373,18 @@ export default function VerifyIdentityPage() {
           <div className="flex items-start gap-2 p-3 rounded-xl mb-6"
             style={{ backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)' }}>
             <Lock size={13} style={{ color:'#7A9E7E', flexShrink:0, marginTop:2 }} />
-            <p className="text-xs" style={{ color:'#8A7E78' }}>
+            <p className="text-xs" style={{ color:'#647068' }}>
               Your ID is stored encrypted and never shared publicly. Only used to confirm you are a real person.
             </p>
           </div>
 
           {/* What requires verification */}
           <div className="p-4 rounded-2xl mb-6"
-            style={{ backgroundColor:'rgba(201,106,58,0.05)', border:'1px solid rgba(201,106,58,0.15)' }}>
-            <p className="text-xs font-bold mb-2" style={{ color:'#C96A3A' }}>
+            style={{ backgroundColor:'rgba(200,95,45,0.05)', border:'1px solid rgba(200,95,45,0.15)' }}>
+            <p className="text-xs font-bold mb-2" style={{ color:'#C85F2D' }}>
               <Lock size={11} className="inline mr-1" />Requires verification
             </p>
-            <ul className="text-xs space-y-1" style={{ color:'#8A7E78' }}>
+            <ul className="text-xs space-y-1" style={{ color:'#647068' }}>
               <li>• Expressing interest in buying a property</li>
               <li>• Listing a property for sale or rent</li>
               <li>• Signing tenancy agreements</li>
@@ -393,7 +393,7 @@ export default function VerifyIdentityPage() {
             <p className="text-xs font-bold mt-3 mb-1" style={{ color:'#7A9E7E' }}>
               <Eye size={11} className="inline mr-1" />Free without verification
             </p>
-            <ul className="text-xs space-y-1" style={{ color:'#8A7E78' }}>
+            <ul className="text-xs space-y-1" style={{ color:'#647068' }}>
               <li>• Browse and swipe all listings</li>
               <li>• Book hotels and short-lets</li>
               <li>• View professionals directory</li>
@@ -404,7 +404,7 @@ export default function VerifyIdentityPage() {
           {/* CTA */}
           <button onClick={() => setStep(1)}
             className="w-full py-4 rounded-2xl font-bold text-white mb-3 flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C96A3A', boxShadow:'0 4px 16px rgba(201,106,58,0.3)' }}>
+            style={{ backgroundColor:'#C85F2D', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
             <Shield size={16} /> Verify Now - Free
           </button>
 
@@ -413,11 +413,11 @@ export default function VerifyIdentityPage() {
             onClick={handleSkip}
             disabled={skipping}
             className="w-full py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-70"
-            style={{ color:'rgba(26,18,16,0.4)', border:'1px solid #E8DDD2', backgroundColor:'transparent' }}>
+            style={{ color:'rgba(23,33,27,0.4)', border:'1px solid #DEDDD6', backgroundColor:'transparent' }}>
             <SkipForward size={14} />
             {skipping ? 'Skipping...' : 'Skip for now - browse freely'}
           </button>
-          <p className="text-center text-xs mt-2" style={{ color:'rgba(26,18,16,0.3)' }}>
+          <p className="text-center text-xs mt-2" style={{ color:'rgba(23,33,27,0.3)' }}>
             You'll be reminded when you try to make a transaction
           </p>
         </div>
@@ -431,7 +431,7 @@ export default function VerifyIdentityPage() {
       <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
         <div className="max-w-sm mx-auto px-5 py-8">
           <button onClick={() => setStep(0)}
-            className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(26,18,16,0.4)' }}>
+            className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(23,33,27,0.4)' }}>
             <ArrowLeft size={14} /> Back
           </button>
 
@@ -442,21 +442,21 @@ export default function VerifyIdentityPage() {
                 <div className="flex items-center gap-1.5">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                     style={{
-                      backgroundColor: i < 1 ? '#C96A3A' : 'rgba(26,18,16,0.08)',
-                      color: i < 1 ? 'white' : 'rgba(26,18,16,0.3)',
+                      backgroundColor: i < 1 ? '#C85F2D' : 'rgba(23,33,27,0.08)',
+                      color: i < 1 ? 'white' : 'rgba(23,33,27,0.3)',
                     }}>
                     {i < 0 ? <Check size={14} /> : i + 1}
                   </div>
                   <span className="text-xs font-semibold hidden sm:block"
-                    style={{ color: i === 0 ? '#1A1210' : 'rgba(26,18,16,0.3)' }}>{label}</span>
+                    style={{ color: i === 0 ? '#17211B' : 'rgba(23,33,27,0.3)' }}>{label}</span>
                 </div>
-                {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#E8DDD2' }} />}
+                {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
               </React.Fragment>
             ))}
           </div>
 
-          <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#1A1210' }}>Upload your ID</h2>
-          <p className="text-sm mb-6" style={{ color:'#8A7E78' }}>Choose the type and upload a clear photo.</p>
+          <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Upload your ID</h2>
+          <p className="text-sm mb-6" style={{ color:'#647068' }}>Choose the type and upload a clear photo.</p>
 
           {/* ID type selection - a single-select list rather than a grid of
               tiles: one clean container, hairline dividers between rows, a
@@ -468,19 +468,19 @@ export default function VerifyIdentityPage() {
               <button key={t.id} onClick={() => setIdType(t.id)}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors"
                 style={{
-                  backgroundColor: idType === t.id ? 'rgba(201,106,58,0.05)' : 'transparent',
+                  backgroundColor: idType === t.id ? 'rgba(200,95,45,0.05)' : 'transparent',
                   borderTop: i === 0 ? 'none' : '1px solid #F2EAE0',
                 }}>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: idType === t.id ? 'rgba(201,106,58,0.12)' : '#F5EDE0' }}>
+                  style={{ backgroundColor: idType === t.id ? 'rgba(200,95,45,0.12)' : '#F5EDE0' }}>
                   {t.icon}
                 </div>
-                <span className="flex-1 text-sm font-semibold" style={{ color: '#1A1210' }}>
+                <span className="flex-1 text-sm font-semibold" style={{ color: '#17211B' }}>
                   {t.label}
                 </span>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                   style={{
-                    backgroundColor: idType === t.id ? '#C96A3A' : 'transparent',
+                    backgroundColor: idType === t.id ? '#C85F2D' : 'transparent',
                     border: idType === t.id ? 'none' : '1.5px solid #E0D4C4',
                   }}>
                   {idType === t.id && <Check size={12} className="text-white" strokeWidth={3} />}
@@ -492,21 +492,21 @@ export default function VerifyIdentityPage() {
           {/* Upload area */}
           <label className="block cursor-pointer mb-5">
             {idPreview ? (
-              <div className="relative rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(26,18,16,0.08)' }}>
+              <div className="relative rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(23,33,27,0.08)' }}>
                 <img src={idPreview} alt="ID" className="w-full h-48 object-cover" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                  style={{ backgroundColor:'rgba(26,18,16,0.45)' }}>
+                  style={{ backgroundColor:'rgba(23,33,27,0.45)' }}>
                   <span className="text-white text-xs font-semibold">Tap to replace</span>
                 </div>
               </div>
             ) : (
               <div className="rounded-2xl p-10 text-center transition-colors"
                 style={{ border: '1.5px dashed #DCCFBE', backgroundColor:'#FFFFFF' }}>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(201,106,58,0.08)' }}>
-                  <Upload size={20} style={{ color:'#C96A3A' }} />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
+                  <Upload size={20} style={{ color:'#C85F2D' }} />
                 </div>
-                <p className="font-semibold text-sm" style={{ color:'#1A1210' }}>Upload ID Photo</p>
-                <p className="text-xs mt-1" style={{ color:'#8A7E78' }}>JPG, PNG or WEBP - max 5MB</p>
+                <p className="font-semibold text-sm" style={{ color:'#17211B' }}>Upload ID Photo</p>
+                <p className="text-xs mt-1" style={{ color:'#647068' }}>JPG, PNG or WEBP - max 5MB</p>
               </div>
             )}
             <input ref={idFileRef} type="file" accept="image/*" className="hidden" onChange={handleIdUpload} />
@@ -519,7 +519,7 @@ export default function VerifyIdentityPage() {
               setStep(2)
             }}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C96A3A' }}>
+            style={{ backgroundColor:'#C85F2D' }}>
             Next: Take Selfie <ArrowRight size={16} />
           </button>
         </div>
@@ -532,7 +532,7 @@ export default function VerifyIdentityPage() {
     <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
       <div className="max-w-sm mx-auto px-5 py-8">
         <button onClick={() => setStep(1)}
-          className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(26,18,16,0.4)' }}>
+          className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(23,33,27,0.4)' }}>
           <ArrowLeft size={14} /> Back
         </button>
 
@@ -543,21 +543,21 @@ export default function VerifyIdentityPage() {
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{
-                    backgroundColor: i <= 1 ? '#C96A3A' : 'rgba(26,18,16,0.08)',
-                    color: i <= 1 ? 'white' : 'rgba(26,18,16,0.3)',
+                    backgroundColor: i <= 1 ? '#C85F2D' : 'rgba(23,33,27,0.08)',
+                    color: i <= 1 ? 'white' : 'rgba(23,33,27,0.3)',
                   }}>
                   {i < 1 ? <Check size={14} /> : i + 1}
                 </div>
                 <span className="text-xs font-semibold hidden sm:block"
-                  style={{ color: i === 1 ? '#1A1210' : 'rgba(26,18,16,0.3)' }}>{label}</span>
+                  style={{ color: i === 1 ? '#17211B' : 'rgba(23,33,27,0.3)' }}>{label}</span>
               </div>
-              {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#E8DDD2' }} />}
+              {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
             </React.Fragment>
           ))}
         </div>
 
-        <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#1A1210' }}>Take a selfie</h2>
-        <p className="text-sm mb-6" style={{ color:'#8A7E78' }}>
+        <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Take a selfie</h2>
+        <p className="text-sm mb-6" style={{ color:'#647068' }}>
           Look straight at the camera. Good lighting helps.
         </p>
 
@@ -568,14 +568,14 @@ export default function VerifyIdentityPage() {
               <img src={faceCapture} alt="Selfie" className="w-full rounded-2xl" />
               <button onClick={retakePhoto}
                 className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor:'rgba(26,18,16,0.6)' }}>
+                style={{ backgroundColor:'rgba(23,33,27,0.6)' }}>
                 <X size={14} color="white" />
               </button>
             </div>
           ) : (
             <label htmlFor="selfie-input"
               className="relative rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 p-6 cursor-pointer"
-              style={{ backgroundColor:'#1A1210', minHeight:240 }}>
+              style={{ backgroundColor:'#17211B', minHeight:240 }}>
               <Camera size={40} style={{ color:'rgba(255,255,255,0.4)' }} />
               <p className="text-xs text-center" style={{ color:'rgba(255,255,255,0.5)' }}>
                 Tap to open your camera and take a selfie
@@ -594,7 +594,7 @@ export default function VerifyIdentityPage() {
             onClick={handleSubmit}
             disabled={saving}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C96A3A' }}>
+            style={{ backgroundColor:'#C85F2D' }}>
             {saving
               ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               : <><Shield size={16} /> Submit for Verification</>}

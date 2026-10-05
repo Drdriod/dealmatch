@@ -115,22 +115,22 @@ export default function FindProviderPage() {
   const mapPins = filtered.filter(p => p.city).slice(0, 20)
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: '#FAF6F0' }}>
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: '#FAF6F0', borderBottom: '1px solid #E8DDD2' }}>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: '#F7F4ED' }}>
+      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: '#F7F4ED', borderBottom: '1px solid #DEDDD6' }}>
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FFF' }}>
-            <ArrowLeft size={16} style={{ color: '#1A1210' }} />
+            <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <div>
-            <h1 className="font-display text-lg font-black" style={{ color: '#1A1210' }}>Find a Provider</h1>
-            <p className="text-xs" style={{ color: '#8A7E78' }}>Nearest available, verified first</p>
+            <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find a Provider</h1>
+            <p className="text-xs" style={{ color: '#647068' }}>Nearest available, verified first</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid #E8DDD2' }}>
-          <Search size={15} style={{ color: '#8A7E78' }} />
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+          <Search size={15} style={{ color: '#647068' }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="What do you need done?"
-            className="flex-1 bg-transparent outline-none text-sm" style={{ color: '#1A1210' }} />
+            className="flex-1 bg-transparent outline-none text-sm" style={{ color: '#17211B' }} />
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2">
@@ -138,14 +138,14 @@ export default function FindProviderPage() {
             <button key={cat} onClick={() => toggleCategory(cat)}
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
               style={activeCategories.includes(cat)
-                ? { backgroundColor: '#1A1210', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #E8DDD2' }}>
+                ? { backgroundColor: '#17211B', color: '#FFF' }
+                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
               {CATEGORY_LABEL[cat]}
             </button>
           ))}
           <button onClick={() => setShowAdvanced(s => !s)}
             className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0"
-            style={{ backgroundColor: 'transparent', color: '#8A7E78', border: '1px dashed #C9BBAE' }}>
+            style={{ backgroundColor: 'transparent', color: '#647068', border: '1px dashed #C9BBAE' }}>
             {showAdvanced ? 'Hide advanced' : 'Advanced ▾'}
           </button>
         </div>
@@ -154,8 +154,8 @@ export default function FindProviderPage() {
             <button onClick={() => toggleCategory('property_professional')}
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
               style={activeCategories.includes('property_professional')
-                ? { backgroundColor: '#C45C26', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #E8DDD2' }}>
+                ? { backgroundColor: '#C85F2D', color: '#FFF' }
+                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
               {CATEGORY_LABEL.property_professional}
             </button>
           </div>
@@ -166,8 +166,8 @@ export default function FindProviderPage() {
             <button key={chip.id} onClick={() => toggleChip(chip.id)}
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
               style={activeChips.includes(chip.id)
-                ? { backgroundColor: '#C45C26', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #E8DDD2' }}>
+                ? { backgroundColor: '#C85F2D', color: '#FFF' }
+                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
               {chip.label}
             </button>
           ))}
@@ -179,7 +179,7 @@ export default function FindProviderPage() {
           "spatial proof isn't wired up yet" placeholder instead of faking
           pins from city centroids, which would misrepresent real distance. */}
       {!loading && filtered.length > 0 && (
-        <div className="mx-4 mt-4 rounded-2xl flex items-center justify-center gap-2 text-xs" style={{ height: 64, backgroundColor: '#F0E5D8', color: '#8A7E78' }}>
+        <div className="mx-4 mt-4 rounded-2xl flex items-center justify-center gap-2 text-xs" style={{ height: 64, backgroundColor: '#F0E5D8', color: '#647068' }}>
           <MapIcon size={14} /> Map view coming soon - showing {filtered.length} verified provider{filtered.length === 1 ? '' : 's'} by city
         </div>
       )}
@@ -192,21 +192,21 @@ export default function FindProviderPage() {
         ) : filtered.length === 0 ? (
           <div className="col-span-full text-center py-16">
             <ShieldCheck size={36} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#1A1210' }}>No verified providers match yet</p>
-            <p className="text-xs mt-1" style={{ color: '#8A7E78' }}>Try clearing filters, or post a job and let providers come to you.</p>
+            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>No verified providers match yet</p>
+            <p className="text-xs mt-1" style={{ color: '#647068' }}>Try clearing filters, or post a job and let providers come to you.</p>
             <button onClick={() => navigate('/request?mode=bid')} className="btn-primary mt-4 px-6 py-2.5 text-sm">Post a request instead</button>
           </div>
         ) : filtered.map(p => (
           <motion.div key={p.id}
             initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
             whileHover={{ y: -4 }} transition={{ duration: 0.35 }}
-            className="rounded-3xl overflow-hidden" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', boxShadow: '0 4px 24px rgba(26,18,16,0.06)' }}>
+            className="rounded-3xl overflow-hidden" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}>
             {/* Identity -> Badge -> Distance/Rating -> Price -> dual CTA, per spec card order */}
             <div className="h-40 relative" style={{ backgroundColor: '#F0D4BE' }}>
               {p.avatar
                 ? <img src={p.avatar} alt="" className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(196,92,38,0.15), rgba(122,158,126,0.15))' }}>
-                    <span className="font-display text-3xl font-black" style={{ color: '#C45C26' }}>{p.name?.[0] || '?'}</span>
+                : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.15), rgba(122,158,126,0.15))' }}>
+                    <span className="font-display text-3xl font-black" style={{ color: '#C85F2D' }}>{p.name?.[0] || '?'}</span>
                   </div>}
               <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
                 style={{ backgroundColor: '#3D7A45', color: '#FFFFFF' }}>
@@ -221,26 +221,26 @@ export default function FindProviderPage() {
             </div>
 
             <div className="p-5">
-              <p className="font-display font-black text-base mb-1" style={{ color: '#1A1A1A' }}>{p.name}</p>
+              <p className="font-display font-black text-base mb-1" style={{ color: '#17211B' }}>{p.name}</p>
               {/* Card fields per spec: name -> skill -> area -> badge/rating -> price -> dual CTA */}
               {p.category && (
-                <p className="text-xs font-semibold mb-1" style={{ color: '#C45C26' }}>{p.category}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{p.category}</p>
               )}
-              <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: '#8A7E78' }}>
-                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: '#C45C26' }} /> {p.area || p.city || p.state}</span>}
+              <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: '#647068' }}>
+                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: '#C85F2D' }} /> {p.area || p.city || p.state}</span>}
                 {p.rating != null && <span className="flex items-center gap-1 ml-1"><Star size={11} className="fill-current" style={{ color: '#D4A853' }} /> {p.rating} ({p.reviewCount})</span>}
               </div>
-              <p className="text-xs font-bold mb-3" style={{ color: '#1A1A1A' }}>
+              <p className="text-xs font-bold mb-3" style={{ color: '#17211B' }}>
                 {p.openPrice || !p.priceCents ? 'Open price' : `From ₦${(p.priceCents / 100).toLocaleString()}`}
               </p>
 
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/request?mode=bid&provider=${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(196,92,38,0.1)', color: '#C45C26' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
                   Request Bid
                 </button>
                 <button onClick={() => navigate(`/provider/${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#C45C26' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#C85F2D' }}>
                   View <ChevronRight size={12} />
                 </button>
               </div>

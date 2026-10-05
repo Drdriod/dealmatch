@@ -30,23 +30,23 @@ function FlipCard({ step, flipped }) {
         {/* Front */}
         <div
           className="absolute inset-0 rounded-3xl p-7 flex flex-col justify-between"
-          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #E9DECF' }}
+          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}
         >
-          <span className="font-display text-2xl font-black" style={{ color: '#E4D2BF' }}>{step.n}</span>
+          <span className="font-display text-2xl font-black" style={{ color: '#DEDDD6' }}>{step.n}</span>
           <div>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#C45C26' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#C85F2D' }}>
               <Icon size={28} color="#FFFFFF" strokeWidth={2} />
             </div>
-            <h3 className="font-display text-2xl font-black" style={{ color: '#1A1A1A' }}>{step.title}</h3>
+            <h3 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>{step.title}</h3>
           </div>
         </div>
 
         {/* Back */}
         <div
           className="absolute inset-0 rounded-3xl p-7 flex flex-col justify-center"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: '#1A1A1A' }}
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: '#234C3A' }}
         >
-          <span className="font-display text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C45C26' }}>
+          <span className="font-display text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C85F2D' }}>
             Step {step.n}
           </span>
           <p className="font-display text-lg font-bold leading-snug" style={{ color: '#FFFFFF' }}>{step.back}</p>
@@ -93,11 +93,11 @@ export default function HowItWorksFlip() {
   }, [reducedMotion])
 
   return (
-    <section className="py-16 px-6" style={{ backgroundColor: '#F8F1E9' }}>
+    <section className="py-20 px-5 sm:px-7" style={{ backgroundColor: '#173428' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#C45C26' }}>How it works</p>
-          <h2 className="font-display text-2xl sm:text-3xl font-black" style={{ color: '#1A1A1A' }}>Four steps, start to finish.</h2>
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] mb-3" style={{ color: '#F3C96A' }}>How DealMatch works</p>
+          <h2 className="font-display text-4xl sm:text-5xl text-white">Four steps, start to finish.</h2>
         </div>
 
         <div className="flex justify-center">

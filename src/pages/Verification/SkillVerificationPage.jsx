@@ -103,42 +103,42 @@ export default function SkillVerificationPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F1E9' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#C45C26', borderTopColor: 'transparent' }} />
+    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EEE9DE' }}>
+      <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#C85F2D', borderTopColor: 'transparent' }} />
     </div>
   }
 
   const NumberedLabel = ({ n, children }) => (
-    <label className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color: '#1A1A1A' }}>
+    <label className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color: '#17211B' }}>
       <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
-        style={{ backgroundColor: 'rgba(196,92,38,0.12)', color: '#C45C26' }}>{n}</span>
+        style={{ backgroundColor: 'rgba(200,95,45,0.12)', color: '#C85F2D' }}>{n}</span>
       {children}
     </label>
   )
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: '#F8F1E9' }}>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
-          <ArrowLeft size={16} style={{ color: '#1A1A1A' }} />
+          <ArrowLeft size={16} style={{ color: '#17211B' }} />
         </button>
         <div>
-          <h1 className="font-display text-lg font-black" style={{ color: '#1A1A1A' }}>Skill Verification</h1>
-          <p className="text-xs" style={{ color: '#8A7E78' }}>Show your work - photos matter more than certificates</p>
+          <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Skill Verification</h1>
+          <p className="text-xs" style={{ color: '#647068' }}>Show your work - photos matter more than certificates</p>
         </div>
       </div>
 
       {currentLevel >= 2 ? (
-        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4' }}>
+        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
           <Award size={36} className="mx-auto mb-3" style={{ color: '#D4A853' }} />
-          <p className="font-semibold text-sm" style={{ color: '#1A1A1A' }}>You're Skill Verified{currentLevel >= 3 ? ' & Trusted' : ''}!</p>
-          <p className="text-xs mt-1" style={{ color: '#8A7E78' }}>You now appear in Find a Provider search results.</p>
+          <p className="font-semibold text-sm" style={{ color: '#17211B' }}>You're Skill Verified{currentLevel >= 3 ? ' & Trusted' : ''}!</p>
+          <p className="text-xs mt-1" style={{ color: '#647068' }}>You now appear in Find a Provider search results.</p>
         </div>
       ) : existing?.status === 'pending' ? (
-        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4' }}>
+        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
           <Clock size={32} className="mx-auto mb-3" style={{ color: '#D4A853' }} />
-          <p className="font-semibold text-sm" style={{ color: '#1A1A1A' }}>Under review</p>
-          <p className="text-xs mt-1" style={{ color: '#8A7E78' }}>Submitted {new Date(existing.created_at).toLocaleDateString()}. Our team typically reviews within 48 hours.</p>
+          <p className="font-semibold text-sm" style={{ color: '#17211B' }}>Under review</p>
+          <p className="text-xs mt-1" style={{ color: '#647068' }}>Submitted {new Date(existing.created_at).toLocaleDateString()}. Our team typically reviews within 48 hours.</p>
         </div>
       ) : (
         <div className="px-4 mt-4 max-w-4xl mx-auto md:grid md:grid-cols-[300px,1fr] md:gap-8">
@@ -146,8 +146,8 @@ export default function SkillVerificationPage() {
           {/* Live photo preview - mirrors the reference design's photo-left
               layout, using the applicant's own uploaded work photos. */}
           <div className="hidden md:block">
-            <div className="rounded-3xl overflow-hidden sticky top-4" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4' }}>
-              <div className="aspect-[4/5] relative" style={{ backgroundColor: 'rgba(196,92,38,0.06)' }}>
+            <div className="rounded-3xl overflow-hidden sticky top-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+              <div className="aspect-[4/5] relative" style={{ backgroundColor: 'rgba(200,95,45,0.06)' }}>
                 {files[0]
                   ? <img src={files[0].previewUrl} alt="" className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -187,9 +187,9 @@ export default function SkillVerificationPage() {
                 <button key={opt.id} type="button" onClick={() => setCategoryType(opt.id)}
                   className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
                   style={{
-                    backgroundColor: categoryType === opt.id ? '#C45C26' : '#FFF',
-                    color: categoryType === opt.id ? '#FFF' : '#1A1A1A',
-                    border: '1px solid #E4D5C4',
+                    backgroundColor: categoryType === opt.id ? '#C85F2D' : '#FFF',
+                    color: categoryType === opt.id ? '#FFF' : '#17211B',
+                    border: '1px solid #DEDDD6',
                   }}>
                   {opt.label}
                 </button>
@@ -200,13 +200,13 @@ export default function SkillVerificationPage() {
           <div>
             <NumberedLabel n={2}>What do you do? *</NumberedLabel>
             <input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Plumbing, Electrical, Catering, Tailoring"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
           </div>
 
           <div>
             <NumberedLabel n={3}>Area *</NumberedLabel>
             <input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. Uyo, Ewet Housing Estate"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
           </div>
 
           <div>
@@ -214,18 +214,18 @@ export default function SkillVerificationPage() {
             <div className="flex items-center gap-2 mb-2">
               <button type="button" onClick={() => setOpenPrice(true)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: openPrice ? '#C45C26' : '#FFF', color: openPrice ? '#FFF' : '#1A1A1A', border: '1px solid #E4D5C4' }}>
+                style={{ backgroundColor: openPrice ? '#C85F2D' : '#FFF', color: openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
                 Open price
               </button>
               <button type="button" onClick={() => setOpenPrice(false)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: !openPrice ? '#C45C26' : '#FFF', color: !openPrice ? '#FFF' : '#1A1A1A', border: '1px solid #E4D5C4' }}>
+                style={{ backgroundColor: !openPrice ? '#C85F2D' : '#FFF', color: !openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
                 Set a starting price
               </button>
             </div>
             {!openPrice && (
               <input type="number" min="0" value={price} onChange={e => setPrice(e.target.value)} placeholder="e.g. 5000"
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
             )}
           </div>
 
@@ -233,24 +233,24 @@ export default function SkillVerificationPage() {
             <NumberedLabel n={5}>Describe your experience *</NumberedLabel>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4}
               placeholder="What kind of jobs have you done? How long have you been doing this work?"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+              className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <NumberedLabel n={6}>Years of experience</NumberedLabel>
               <input type="number" min="0" value={yearsExperience} onChange={e => setYearsExperience(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
             </div>
             <div>
               <NumberedLabel n={7}>References</NumberedLabel>
               <input value={references} onChange={e => setReferences(e.target.value)} placeholder="Names or phone numbers"
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #E4D5C4', color: '#1A1A1A' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
             </div>
           </div>
 
           <div>
-            <NumberedLabel n={8}>Photos of your work * <span className="font-normal ml-1" style={{ color: '#8A7E78' }}>(up to 6)</span></NumberedLabel>
+            <NumberedLabel n={8}>Photos of your work * <span className="font-normal ml-1" style={{ color: '#647068' }}>(up to 6)</span></NumberedLabel>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
               {files.map((f, i) => (
                 <div key={i} className="relative aspect-square rounded-xl overflow-hidden">
@@ -261,9 +261,9 @@ export default function SkillVerificationPage() {
                 </div>
               ))}
               {files.length < 6 && (
-                <label className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer" style={{ backgroundColor: '#FFF', border: '1.5px dashed #E4D5C4' }}>
-                  <Camera size={18} style={{ color: '#8A7E78' }} />
-                  <span className="text-[10px] font-semibold" style={{ color: '#8A7E78' }}>Add</span>
+                <label className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer" style={{ backgroundColor: '#FFF', border: '1.5px dashed #DEDDD6' }}>
+                  <Camera size={18} style={{ color: '#647068' }} />
+                  <span className="text-[10px] font-semibold" style={{ color: '#647068' }}>Add</span>
                   <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
                 </label>
               )}
@@ -272,10 +272,10 @@ export default function SkillVerificationPage() {
 
           <button onClick={handleSubmit} disabled={submitting}
             className="w-full py-3.5 rounded-full font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-transform hover:scale-[1.01]"
-            style={{ backgroundColor: '#C45C26' }}>
+            style={{ backgroundColor: '#C85F2D' }}>
             {submitting ? 'Submitting…' : <><Upload size={15} /> Submit for review</>}
           </button>
-          <p className="text-[11px] text-center" style={{ color: '#8A7E78' }}>
+          <p className="text-[11px] text-center" style={{ color: '#647068' }}>
             Reviewed by our team, usually within 48 hours. You'll be notified either way.
           </p>
           </div>

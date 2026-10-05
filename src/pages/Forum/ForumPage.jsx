@@ -65,14 +65,14 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
   }
 
   return (
-    <div className="mb-6 p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+    <div className="mb-6 p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
       <div className="flex gap-3 mb-3">
         {['DISCUSSION', 'QUESTION'].map(t => (
           <button key={t} onClick={() => setThreadType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{
-              background: threadType === t ? '#C96A3A' : '#FAF6F0',
-              color: threadType === t ? '#fff' : '#8A7E78',
+              background: threadType === t ? '#C85F2D' : '#F7F4ED',
+              color: threadType === t ? '#fff' : '#647068',
             }}>
             {t === 'QUESTION' ? 'Ask a question' : 'Start a discussion'}
           </button>
@@ -81,12 +81,12 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
       <input
         value={title} onChange={e => setTitle(e.target.value)} maxLength={200}
         placeholder={threadType === 'QUESTION' ? 'e.g. How much is rent in Lekki for a 2-bedroom?' : "What's on your mind?"}
-        className="w-full mb-2 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }}
+        className="w-full mb-2 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }}
       />
       <textarea
         value={body} onChange={e => setBody(e.target.value)} rows={4}
         placeholder="Details…"
-        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }}
+        className="w-full mb-3 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }}
       />
       <div className="flex gap-2">
         <button onClick={submit} disabled={submitting} className="btn-primary text-sm px-5 py-2">
@@ -131,7 +131,7 @@ function ReplyForm({ threadId, onPosted }) {
       <textarea
         value={body} onChange={e => setBody(e.target.value)} rows={3}
         placeholder={isAuthenticated ? 'Write a reply…' : 'Sign in to reply'}
-        className="w-full mb-2 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#E8DDD2' }}
+        className="w-full mb-2 px-3 py-2 rounded-xl border text-sm" style={{ borderColor: '#DEDDD6' }}
       />
       <button onClick={submit} disabled={submitting} className="btn-primary text-sm px-5 py-2">
         {submitting ? 'Posting…' : 'Reply'}
@@ -184,7 +184,7 @@ export default function ForumPage() {
   if (state.error) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3 pt-16">
-        <h1 className="font-display text-2xl font-black" style={{ color: '#1A1210' }}>Not found</h1>
+        <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>Not found</h1>
         <Link to="/forum" className="text-sm text-terracotta">Back to Forum</Link>
       </div>
     )
@@ -202,18 +202,18 @@ export default function ForumPage() {
 function IndexView({ tree }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#1A1210' }}>Ask the People Who've Actually Done the Deal</h1>
+      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#17211B' }}>Ask the People Who've Actually Done the Deal</h1>
       <p className="text-sm text-gray-500 mb-8">Real questions about real estate, business services, logistics, events, and more. Answered by people who've been through it, not a chatbot guessing.</p>
       <div className="grid gap-4">
         {tree.map(cat => (
-          <div key={cat.slug} className="p-4 rounded-2xl border" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
-            <Link to={`/forum/${cat.slug}`} className="font-bold text-lg" style={{ color: '#1A1210' }}>{cat.tagline || cat.name}</Link>
+          <div key={cat.slug} className="p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
+            <Link to={`/forum/${cat.slug}`} className="font-bold text-lg" style={{ color: '#17211B' }}>{cat.tagline || cat.name}</Link>
             <p className="text-sm text-gray-500 mt-1">{cat.description}</p>
             {cat.children?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {cat.children.map(child => (
                   <Link key={child.slug} to={`/forum/${cat.slug}/${child.slug}`}
-                    className="text-xs px-3 py-1 rounded-full" style={{ background: '#FAF6F0', color: '#8A7E78' }}>
+                    className="text-xs px-3 py-1 rounded-full" style={{ background: '#F7F4ED', color: '#647068' }}>
                     {child.tagline || child.name}
                   </Link>
                 ))}
@@ -230,15 +230,15 @@ function GroupView({ category, childCategories }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Breadcrumb items={[category]} />
-      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C96A3A' }}>{category.name}</p>
-      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#1A1210' }}>{category.tagline || category.name}</h1>
+      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C85F2D' }}>{category.name}</p>
+      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{category.tagline || category.name}</h1>
       <p className="text-sm text-gray-500 mb-6">{category.description}</p>
       <div className="grid gap-3">
         {childCategories.map(c => (
           <Link key={c.slug} to={`/forum/${category.slug}/${c.slug}`}
-            className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#E8DDD2', background: '#fff' }}>
+            className="p-4 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
             <div>
-              <div className="font-semibold" style={{ color: '#1A1210' }}>{c.tagline || c.name}</div>
+              <div className="font-semibold" style={{ color: '#17211B' }}>{c.tagline || c.name}</div>
               <div className="text-xs text-gray-500">{c.description}</div>
             </div>
             <ChevronRight size={18} className="text-gray-300" />
@@ -254,21 +254,21 @@ function CategoryView({ category, breadcrumb, threads, onCreated }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Breadcrumb items={breadcrumb.slice(1)} />
-      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C96A3A' }}>{category.name}</p>
-      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#1A1210' }}>{category.tagline || category.name}</h1>
+      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C85F2D' }}>{category.name}</p>
+      <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{category.tagline || category.name}</h1>
       <p className="text-sm text-gray-500 mb-6">{category.description}</p>
       <NewThreadForm categorySlugPath={slugPath} onCreated={onCreated} />
       {threads.length === 0 ? (
         <p className="text-sm text-gray-400">Nobody's asked yet. Be the first, and someone else searching this exact question will thank you.</p>
       ) : (
-        <div className="divide-y" style={{ borderColor: '#E8DDD2' }}>
+        <div className="divide-y" style={{ borderColor: '#DEDDD6' }}>
           {threads.map(t => (
             <Link key={t.id} to={`/forum/${slugPath}/${t.slug}`} className="flex items-center justify-between py-4">
               <div>
-                <div className="flex items-center gap-2 font-semibold" style={{ color: '#1A1210' }}>
+                <div className="flex items-center gap-2 font-semibold" style={{ color: '#17211B' }}>
                   {t.is_pinned && <Pin size={14} className="text-terracotta" />}
                   {t.title}
-                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FAF6F0', color: '#C96A3A' }}>Q</span>}
+                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F7F4ED', color: '#C85F2D' }}>Q</span>}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">{timeAgo(t.last_activity_at)}</div>
               </div>
@@ -308,14 +308,14 @@ function ThreadView({ category, breadcrumb, thread, posts, onPosted }) {
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Breadcrumb items={[...breadcrumb.slice(1), thread]} />
       <article className="mb-8">
-        <h1 className="font-display text-2xl font-black mb-3" style={{ color: '#1A1210' }}>{thread.title}</h1>
+        <h1 className="font-display text-2xl font-black mb-3" style={{ color: '#17211B' }}>{thread.title}</h1>
         <p className="text-sm whitespace-pre-wrap" style={{ color: '#3a2f2a' }}>{thread.body}</p>
       </article>
       <h2 className="text-sm font-bold text-gray-500 mb-3">{localPosts.length} repl{localPosts.length === 1 ? 'y' : 'ies'}</h2>
       <div className="space-y-4">
         {localPosts.map(p => (
           <div key={p.id} className="p-4 rounded-2xl border" style={{
-            borderColor: p.id === thread.accepted_post_id ? '#7A9E7E' : '#E8DDD2',
+            borderColor: p.id === thread.accepted_post_id ? '#7A9E7E' : '#DEDDD6',
             background: p.id === thread.accepted_post_id ? '#F3F8F3' : '#fff',
           }}>
             {p.id === thread.accepted_post_id && (

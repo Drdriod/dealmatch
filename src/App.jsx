@@ -99,18 +99,18 @@ class ErrorBoundary extends Component {
         background:'#FFFAF5', padding:'24px', textAlign:'center', gap:'16px',
       }}>
         <div style={{ fontSize:56 }}><Home size={24} className="text-terracotta" /></div>
-        <h1 style={{ fontWeight:900, fontSize:26, color:'#1A1210', margin:0 }}>
+        <h1 style={{ fontWeight:900, fontSize:26, color:'#17211B', margin:0 }}>
           Something went wrong
         </h1>
-        <p style={{ color:'#8A7E78', fontSize:14, maxWidth:320, lineHeight:1.6, margin:0 }}>
+        <p style={{ color:'#647068', fontSize:14, maxWidth:320, lineHeight:1.6, margin:0 }}>
           DealMatch hit an unexpected error. Our team has been notified. Please try refreshing or{' '}
-          <a href="/" style={{ color:'#C96A3A', fontWeight:600 }}>return home</a>.
+          <a href="/" style={{ color:'#C85F2D', fontWeight:600 }}>return home</a>.
         </p>
         <button
           onClick={() => { this.setState({ hasError:false, error:null }); window.location.href = '/' }}
           style={{
             marginTop:8, padding:'12px 28px', borderRadius:100,
-            backgroundColor:'#C96A3A', color:'#fff',
+            backgroundColor:'#C85F2D', color:'#fff',
             fontWeight:700, fontSize:14, border:'none', cursor:'pointer',
           }}>
           Go home
@@ -135,7 +135,7 @@ const LoadingScreen = () => (
   <div style={{
     minHeight:'100vh', display:'flex', flexDirection:'column',
     alignItems:'center', justifyContent:'center',
-    background:'linear-gradient(145deg,#0f0f0f 0%,#1a1210 50%,#0f0f0f 100%)',
+    background:'linear-gradient(145deg,#0f0f0f 0%,#17211B 50%,#0f0f0f 100%)',
     position:'relative', overflow:'hidden',
   }}>
     <style>{`
@@ -149,7 +149,7 @@ const LoadingScreen = () => (
       @keyframes dm-logo-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
       .dm-logo{font-family:'DM Sans',sans-serif;font-size:28px;font-weight:700;background:linear-gradient(90deg,#c9a96e,#f0d4a0,#c9a96e);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:dm-shimmer 2.5s linear infinite,dm-fade-up 0.6s ease forwards}
       .dm-sub{font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:2.5px;text-transform:uppercase;animation:dm-fade-up 0.6s ease 0.2s both}
-      .dm-tag{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(201,106,58,0.7);letter-spacing:1px;animation:dm-fade-up 0.6s ease 0.35s both}
+      .dm-tag{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(200,95,45,0.7);letter-spacing:1px;animation:dm-fade-up 0.6s ease 0.35s both}
       .dm-ring{width:64px;height:64px;border-radius:50%;border:2px solid rgba(201,169,110,0.15);border-top:2px solid #c9a96e;animation:dm-spin 1s cubic-bezier(0.4,0,0.2,1) infinite}
       .dm-pulse{position:absolute;width:64px;height:64px;border-radius:50%;border:1px solid rgba(201,169,110,0.5);animation:dm-pulse-ring 1.5s ease-out infinite}
       .dm-dot{width:5px;height:5px;border-radius:50%;background:#c9a96e}
@@ -188,7 +188,7 @@ const PageSkeleton = () => (
       <div style={{ position:'relative', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{
           position:'absolute', width:44, height:44, borderRadius:'50%',
-          border:'2.5px solid #E8DDD2', borderTopColor:'#C96A3A',
+          border:'2.5px solid #DEDDD6', borderTopColor:'#C85F2D',
           animation:'dm-spin 0.8s linear infinite',
         }} />
         <img src="/brand/dealmatch-icon-transparent.png" alt="" style={{ width:22, height:'auto', animation:'dm-skel-breathe 1.6s ease-in-out infinite' }} />
@@ -197,7 +197,7 @@ const PageSkeleton = () => (
         @keyframes dm-spin{to{transform:rotate(360deg)}}
         @keyframes dm-skel-breathe{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
       `}</style>
-      <p style={{ fontSize:13, color:'#8A7E78', fontWeight:500 }}>Loading…</p>
+      <p style={{ fontSize:13, color:'#647068', fontWeight:500 }}>Loading…</p>
     </div>
   </div>
 )
@@ -715,8 +715,8 @@ function AnimatedRoutes() {
             <PageTransition>
               <div className="min-h-screen flex items-center justify-center flex-col gap-5 pt-20">
                 <div className="text-6xl"><Home size={24} className="text-terracotta" /></div>
-                <h1 className="font-display text-3xl font-black" style={{ color:'#1A1210' }}>Page not found</h1>
-                <p className="text-sm" style={{ color:'#8A7E78' }}>Every match is a connection</p>
+                <h1 className="font-display text-3xl font-black" style={{ color:'#17211B' }}>Page not found</h1>
+                <p className="text-sm" style={{ color:'#647068' }}>Every match is a connection</p>
                 <a href="/" className="btn-primary text-sm px-6 py-3">Go home</a>
               </div>
             </PageTransition>
@@ -762,12 +762,12 @@ export default function App() {
               position="bottom-center"
               toastOptions={{
                 style:{
-                  background:'#1A1210', color:'#FAF6F0',
+                  background:'#17211B', color:'#F7F4ED',
                   borderRadius:'100px', padding:'14px 24px',
                   fontSize:'14px', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
                 },
-                success: { iconTheme:{ primary:'#7A9E7E', secondary:'#FAF6F0' } },
-                error:   { iconTheme:{ primary:'#C96A3A', secondary:'#FAF6F0' } },
+                success: { iconTheme:{ primary:'#7A9E7E', secondary:'#F7F4ED' } },
+                error:   { iconTheme:{ primary:'#C85F2D', secondary:'#F7F4ED' } },
               }}
             />
             <WaLinkResume />

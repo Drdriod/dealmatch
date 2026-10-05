@@ -48,8 +48,8 @@ export default function MobileTabBar() {
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch"
         style={{
-          backgroundColor: '#FAF6F0',
-          borderTop: '1px solid #E8DDD2',
+          backgroundColor: '#F7F4ED',
+          borderTop: '1px solid #DEDDD6',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
@@ -59,7 +59,7 @@ export default function MobileTabBar() {
           return (
             <Link key={tab.label} to={tab.to}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              style={{ color: active ? '#C96A3A' : '#8A7E78' }}>
+              style={{ color: active ? '#C85F2D' : '#647068' }}>
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">{tab.label}</span>
             </Link>
@@ -74,25 +74,25 @@ export default function MobileTabBar() {
             className="absolute flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
             style={{
               width: 52, height: 52, top: -20,
-              backgroundColor: '#C96A3A', color: '#FFFFFF',
-              border: '4px solid #FAF6F0',
+              backgroundColor: '#C85F2D', color: '#FFFFFF',
+              border: '4px solid #F7F4ED',
             }}>
             <Plus size={24} strokeWidth={2.5} />
           </button>
-          <span className="text-[10px] font-semibold mt-7" style={{ color: '#8A7E78' }}>Post</span>
+          <span className="text-[10px] font-semibold mt-7" style={{ color: '#647068' }}>Post</span>
         </div>
 
         {isAuthenticated ? (
           <>
             <Link to="/messages"
               className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              style={{ color: isActive('/messages') ? '#C96A3A' : '#8A7E78' }}>
+              style={{ color: isActive('/messages') ? '#C85F2D' : '#647068' }}>
               <Inbox size={20} strokeWidth={isActive('/messages') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Inbox</span>
             </Link>
             <Link to="/profile"
               className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              style={{ color: isActive('/profile') ? '#C96A3A' : '#8A7E78' }}>
+              style={{ color: isActive('/profile') ? '#C85F2D' : '#647068' }}>
               <User size={20} strokeWidth={isActive('/profile') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Profile</span>
             </Link>
@@ -100,7 +100,7 @@ export default function MobileTabBar() {
         ) : (
           <Link to="/auth"
             className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-            style={{ color: isActive('/auth') ? '#C96A3A' : '#8A7E78' }}>
+            style={{ color: isActive('/auth') ? '#C85F2D' : '#647068' }}>
             <User size={20} strokeWidth={isActive('/auth') ? 2.5 : 2} />
             <span className="text-[10px] font-semibold">Sign In</span>
           </Link>
@@ -114,7 +114,7 @@ export default function MobileTabBar() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowChooser(false)}
-              className="md:hidden fixed inset-0 z-[60]" style={{ backgroundColor: 'rgba(26,18,16,0.45)' }} />
+              className="md:hidden fixed inset-0 z-[60]" style={{ backgroundColor: 'rgba(23,33,27,0.45)' }} />
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
@@ -124,9 +124,9 @@ export default function MobileTabBar() {
                 paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
               }}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-display font-black text-base" style={{ color: '#1A1210' }}>What do you want to post?</span>
+                <span className="font-display font-black text-base" style={{ color: '#17211B' }}>What do you want to post?</span>
                 <button onClick={() => setShowChooser(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F0E5D8' }}>
-                  <X size={15} style={{ color: '#1A1210' }} />
+                  <X size={15} style={{ color: '#17211B' }} />
                 </button>
               </div>
               <div className="space-y-2.5">
@@ -135,13 +135,13 @@ export default function MobileTabBar() {
                   return (
                     <button key={choice.to} onClick={() => goTo(choice.to)}
                       className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left"
-                      style={{ backgroundColor: '#FAF6F0', border: '1px solid #E8DDD2' }}>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(196,92,38,0.1)' }}>
-                        <Icon size={18} style={{ color: '#C45C26' }} />
+                      style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
+                        <Icon size={18} style={{ color: '#C85F2D' }} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold" style={{ color: '#1A1210' }}>{choice.label}</p>
-                        <p className="text-xs" style={{ color: '#8A7E78' }}>{choice.desc}</p>
+                        <p className="text-sm font-bold" style={{ color: '#17211B' }}>{choice.label}</p>
+                        <p className="text-xs" style={{ color: '#647068' }}>{choice.desc}</p>
                       </div>
                     </button>
                   )

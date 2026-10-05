@@ -85,39 +85,39 @@ export default function ReportModal({ entityType, entityId, listingSource = null
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10" style={{ backgroundColor: '#FFFAF5', maxHeight: '85vh', overflowY: 'auto' }}>
-        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor: '#E8DDD2' }} />
-        <h3 className="font-display text-lg font-black mb-1" style={{ color: '#1A1210' }}>Report a Problem</h3>
-        <p className="text-xs mb-4" style={{ color: '#8A7E78' }}>
+        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor: '#DEDDD6' }} />
+        <h3 className="font-display text-lg font-black mb-1" style={{ color: '#17211B' }}>Report a Problem</h3>
+        <p className="text-xs mb-4" style={{ color: '#647068' }}>
           Your report goes directly to our team.
         </p>
 
-        <p className="text-xs font-bold mb-2" style={{ color: '#1A1210' }}>What's the issue? *</p>
+        <p className="text-xs font-bold mb-2" style={{ color: '#17211B' }}>What's the issue? *</p>
         <div className="space-y-2 mb-4">
           {categories.map(cat => (
             <button key={cat.id}
               onClick={() => setForm(f => ({ ...f, category: cat.id }))}
               className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all"
               style={{
-                backgroundColor: form.category === cat.id ? 'rgba(201,74,58,0.06)' : 'rgba(26,18,16,0.03)',
-                border: `1.5px solid ${form.category === cat.id ? '#C94A3A' : '#E8DDD2'}`,
+                backgroundColor: form.category === cat.id ? 'rgba(201,74,58,0.06)' : 'rgba(23,33,27,0.03)',
+                border: `1.5px solid ${form.category === cat.id ? '#C94A3A' : '#DEDDD6'}`,
               }}>
               <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
-                style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : '#E8DDD2'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
+                style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : '#DEDDD6'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
                 {form.category === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <span className="text-xs" style={{ color: '#1A1210' }}>{cat.label}</span>
+              <span className="text-xs" style={{ color: '#17211B' }}>{cat.label}</span>
             </button>
           ))}
         </div>
 
-        <p className="text-xs font-bold mb-1" style={{ color: '#1A1210' }}>Describe what happened *</p>
+        <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>Describe what happened *</p>
         <textarea
           value={form.description}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="Provide as much detail as possible - dates, what you were told vs reality, any money lost..."
           rows={4}
           className="w-full rounded-2xl px-4 py-3 text-xs resize-none outline-none mb-4"
-          style={{ backgroundColor: 'rgba(26,18,16,0.03)', border: '1.5px solid #E8DDD2', color: '#1A1210' }}
+          style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: '#17211B' }}
         />
 
         <button onClick={submit} disabled={filing || !form.category || !form.description.trim()}
@@ -126,7 +126,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
           <Flag size={16} />
           {filing ? 'Submitting...' : 'Submit Report'}
         </button>
-        <button onClick={onClose} className="w-full mt-2 py-2.5 text-xs" style={{ color: '#8A7E78' }}>
+        <button onClick={onClose} className="w-full mt-2 py-2.5 text-xs" style={{ color: '#647068' }}>
           Cancel
         </button>
       </div>
