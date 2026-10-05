@@ -71,8 +71,8 @@ export default function ListRentalPage() {
           )}
 
           {[
-            { label: isHotel ? 'Property Name *' : 'Property Title *', key:'title', type:'text', placeholder: isHotel ? 'e.g. The Grand Uyo Hotel' : 'e.g. 3-Bed Apartment, Lekki' },
-            { label:'City / Area *', key:'city', type:'text', placeholder:'e.g. Uyo, Akwa Ibom' },
+            { label: isHotel ? 'Property Name *' : 'Property Title *', key:'title', type:'text', placeholder: isHotel ? 'e.g. The Grand Lagos Hotel' : 'e.g. 3-Bed Apartment, Lekki' },
+            { label:'City / Area *', key:'city', type:'text', placeholder:'e.g. Lekki, Lagos' },
             { label:'Full Address',  key:'address', type:'text', placeholder:'Street address (for agent verification)' },
             { label: isHotel ? 'Starting Price/Night (₦) *' : 'Annual Rent (₦) *', key:'price', type:'number', placeholder:'e.g. 35000' },
           ].map(f => (

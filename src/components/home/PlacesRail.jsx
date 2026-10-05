@@ -10,13 +10,16 @@ export default function PlacesRail() {
 
   useEffect(() => { fetchPlacesNearYou(8).then(setPlaces) }, [])
 
+  // No listings yet: hide the section instead of showing an empty state.
+  if (places !== null && places.length === 0) return null
+
   return (
     <section className="py-10 px-6" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-end justify-between mb-5">
           <div>
             <h2 className="font-display text-3xl" style={{ color: '#17211B' }}>Places near you</h2>
-            <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Shortlets and homes worth seeing.</p>
+            <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Places and homes worth seeing.</p>
           </div>
           <Link to="/places" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: '#C85F2D' }}>
             See all <ArrowRight size={13} />
@@ -39,28 +42,7 @@ export default function PlacesRail() {
           <Rail>
             {places.map(p => <PlaceCard key={p.id} place={p} />)}
           </Rail>
-        ) : (
-          // Functional empty state, not a dead end: one photo of the room
-          // we want (placeholder for now, see PhotoPlaceholder) + a real,
-          // working "List a place" CTA - per instruction, this must work
-          // today, not be a stub to come back to.
-          <div className="rounded-3xl overflow-hidden flex flex-col sm:flex-row" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
-            <div className="sm:w-64 flex-shrink-0" style={{ aspectRatio: '4 / 3' }}>
-              {/* "The room we want" - real reference photo, not the
-                  generic gradient placeholder, per the brief's Places-row
-                  empty-state spec. */}
-              <img src="/home/places-empty-room.webp" alt="" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-6 flex flex-col justify-center">
-              <p className="font-display font-black text-lg mb-1" style={{ color: '#17211B' }}>No places listed here yet</p>
-              <p className="text-sm mb-4" style={{ color: '#647068' }}>Be the first to list a shortlet or house rent in Uyo.</p>
-              <Link to="/list-rental" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold self-start"
-                style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
-                List a place <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   )

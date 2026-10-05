@@ -3,7 +3,7 @@ import { ChevronDown, Building2, ShieldCheck, Lock, Wallet, ShieldAlert, Bot, Aw
 import { motion, AnimatePresence } from 'framer-motion'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 
-// Content matches the actual live product (Places + People, Uyo-first) -
+// Content matches the actual live product (Places + People) -
 // deliberately doesn't claim categories or coverage that aren't real yet.
 // The old copy here listed automotive, business services, logistics,
 // events, and health as live categories, and implied national coverage
@@ -49,7 +49,7 @@ const FAQS = [
   {
     icon: MapPin,
     q: 'What areas in Nigeria does DealMatch cover?',
-    a: 'We\'re launching in Uyo, Akwa Ibom first, on purpose - proving the platform works well in one city before expanding. If you\'re outside Uyo, you can still sign up; more cities are coming.',
+    a: 'DealMatch is built for people across Nigeria. Search by your city or area to see places and professionals near you, and sign up from anywhere to list or offer your services.',
   },
 ]
 

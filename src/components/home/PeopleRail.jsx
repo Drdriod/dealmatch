@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Award } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Rail from './Rail'
 import PersonCard from '@/components/cards/PersonCard'
 import { fetchPeopleNearYou } from '@/lib/homeFeed'
@@ -9,6 +9,9 @@ export default function PeopleRail() {
   const [people, setPeople] = useState(null) // null = loading
 
   useEffect(() => { fetchPeopleNearYou(8).then(setPeople) }, [])
+
+  // No verified people yet: hide the section instead of showing an empty state.
+  if (people !== null && people.length === 0) return null
 
   return (
     <section className="py-10 px-6" style={{ backgroundColor: '#FFFFFF' }}>
@@ -39,23 +42,7 @@ export default function PeopleRail() {
           <Rail>
             {people.map(p => <PersonCard key={p.id} person={p} />)}
           </Rail>
-        ) : (
-          // Functional empty state - a real, working "Offer a skill" CTA,
-          // not a placeholder to come back and wire up later.
-          <div className="rounded-3xl p-8 flex flex-col sm:flex-row sm:items-center gap-5" style={{ backgroundColor: '#EEE9DE', border: '1px solid #DEDDD6' }}>
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.12)' }}>
-              <Award size={26} style={{ color: '#C85F2D' }} />
-            </div>
-            <div className="flex-1">
-              <p className="font-display font-black text-lg mb-1" style={{ color: '#17211B' }}>No verified people here yet</p>
-              <p className="text-sm" style={{ color: '#647068' }}>Artisan, tutor, home service - offer your skill and get discovered.</p>
-            </div>
-            <Link to="/verify-skill" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold flex-shrink-0"
-              style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
-              Offer a skill <ArrowRight size={14} />
-            </Link>
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   )

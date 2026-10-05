@@ -1,113 +1,68 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { Search, ListChecks, MousePointerClick, Handshake } from 'lucide-react'
-import Rail from './Rail'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, Search, ListChecks, Handshake, UserCheck, Inbox, BadgeCheck } from 'lucide-react'
 
-// 4 steps, matching the approved copy. Each `back` line stays generic on
-// purpose (search OR post, browse OR receive bids, book OR bid OR escrow)
-// since this section describes the shape of every flow on the platform,
-// not one specific vertical.
-const STEPS = [
-  { n: '01', icon: Search,            title: 'Tell us', back: "Search for a place or service, or post exactly what you're looking for." },
-  { n: '02', icon: ListChecks,        title: 'Options', back: 'Browse available places or providers, or let providers respond to your request.' },
-  { n: '03', icon: MousePointerClick, title: 'Choose',  back: 'Book directly, receive bids, or continue through the available transaction flow.' },
-  { n: '04', icon: Handshake,         title: 'Done',    back: 'Connect, complete the transaction and move forward.' },
+// Two journeys, not one generic flow: people searching, and people offering.
+// Copy stays generic about transaction type on purpose (book, connect or
+// escrow depends on the deal), so nothing implies universal protection.
+const JOURNEYS = [
+  {
+    key: 'search',
+    kicker: 'If you are looking',
+    title: 'Find the right place or person',
+    cta: { to: '/search', label: 'Start searching' },
+    steps: [
+      { icon: Search,     title: 'Describe what you need', body: 'Pick a place or a professional, add what you need and where.' },
+      { icon: ListChecks, title: 'Compare verified options', body: 'Each profile shows exactly which checks it has passed.' },
+      { icon: Handshake,  title: 'Connect securely',        body: 'Book or connect through the protected steps available for that deal.' },
+    ],
+  },
+  {
+    key: 'offer',
+    kicker: 'If you are offering',
+    title: 'Get found by people who need you',
+    cta: { to: '/verify-skill', label: 'Offer a skill' },
+    steps: [
+      { icon: UserCheck,  title: 'Create and verify your profile', body: 'List your place or skill and complete the verification steps.' },
+      { icon: Inbox,      title: 'Receive relevant requests',      body: 'Get matched with people who are looking for what you offer.' },
+      { icon: BadgeCheck, title: 'Agree and complete the deal',    body: 'Confirm the details, complete the work and build your reputation.' },
+    ],
+  },
 ]
 
-const CARD_W = 260
-const CARD_H = 320
-
-function FlipCard({ step, flipped }) {
-  const Icon = step.icon
-  return (
-    <div className="flex-shrink-0" style={{ width: CARD_W, height: CARD_H, perspective: 1400 }}>
-      <motion.div
-        className="relative w-full h-full"
-        style={{ transformStyle: 'preserve-3d' }}
-        animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={{ duration: 0.7, ease: [0.45, 0.05, 0.15, 0.95] }}
-      >
-        {/* Front */}
-        <div
-          className="absolute inset-0 rounded-3xl p-7 flex flex-col justify-between"
-          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}
-        >
-          <span className="font-display text-2xl font-black" style={{ color: '#DEDDD6' }}>{step.n}</span>
-          <div>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#C85F2D' }}>
-              <Icon size={28} color="#FFFFFF" strokeWidth={2} />
-            </div>
-            <h3 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>{step.title}</h3>
-          </div>
-        </div>
-
-        {/* Back */}
-        <div
-          className="absolute inset-0 rounded-3xl p-7 flex flex-col justify-center"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: '#234C3A' }}
-        >
-          <span className="font-display text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C85F2D' }}>
-            Step {step.n}
-          </span>
-          <p className="font-display text-lg font-bold leading-snug" style={{ color: '#FFFFFF' }}>{step.back}</p>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-/**
- * "How DealMatch Works", 4 steps (Tell us / Options / Choose / Done), each
- * a flip card. Auto-flip only, on a background timer that cycles through
- * the cards one at a time, front to back and back to front, with no tap
- * or click interaction on the cards themselves. (An earlier pass of this
- * component added tap-to-flip; that was reverted per direct instruction,
- * this version is auto-only again.)
- */
+/** "How DealMatch works", split into the searcher and provider journeys. */
 export default function HowItWorksFlip() {
-  const [activeIndex, setActiveIndex] = useState(-1) // -1 = no card flipped right now
-  const [reducedMotion, setReducedMotion] = useState(false)
-  const timerRef = useRef(null)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReducedMotion(mq.matches)
-    const onChange = () => setReducedMotion(mq.matches)
-    mq.addEventListener?.('change', onChange)
-    return () => mq.removeEventListener?.('change', onChange)
-  }, [])
-
-  useEffect(() => {
-    if (reducedMotion) return // no autoplay loop for reduced-motion users
-    let step = 0
-    const tick = () => {
-      setActiveIndex(step)
-      timerRef.current = setTimeout(() => {
-        setActiveIndex(-1)
-        step = (step + 1) % STEPS.length
-        timerRef.current = setTimeout(tick, 500)
-      }, 2200)
-    }
-    timerRef.current = setTimeout(tick, 900)
-    return () => clearTimeout(timerRef.current)
-  }, [reducedMotion])
-
   return (
     <section className="py-20 px-5 sm:px-7" style={{ backgroundColor: '#173428' }}>
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
+      <div className="max-w-[1184px] mx-auto">
+        <div className="text-center mb-12">
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] mb-3" style={{ color: '#F3C96A' }}>How DealMatch works</p>
-          <h2 className="font-display text-4xl sm:text-5xl text-white">Four steps, start to finish.</h2>
+          <h2 className="font-display text-4xl sm:text-5xl text-white">Two sides, one clear path.</h2>
         </div>
 
-        <div className="flex justify-center">
-          <div className="w-full max-w-4xl">
-            <Rail>
-              {STEPS.map((step, i) => (
-                <FlipCard key={step.title} step={step} flipped={activeIndex === i} />
-              ))}
-            </Rail>
-          </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {JOURNEYS.map(j => (
+            <div key={j.key} className="rounded-[22px] p-7 sm:p-9" style={{ backgroundColor: '#234C3A' }}>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] mb-2" style={{ color: '#F3C96A' }}>{j.kicker}</p>
+              <h3 className="font-display text-2xl sm:text-3xl text-white mb-7">{j.title}</h3>
+              <ol className="space-y-5 mb-8">
+                {j.steps.map((s, i) => (
+                  <li key={s.title} className="flex gap-4">
+                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#C85F2D' }}>
+                      <s.icon size={19} color="#FFFFFF" />
+                    </span>
+                    <div>
+                      <p className="font-bold text-white text-sm"><span style={{ color: '#F3C96A' }}>{i + 1}.</span> {s.title}</p>
+                      <p className="text-sm leading-relaxed mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{s.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <Link to={j.cta.to} className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-deep hover:bg-cream transition-colors">
+                {j.cta.label} <ArrowRight size={15} />
+              </Link>
+            </div>
+          ))}
         </div>
       </div>
     </section>

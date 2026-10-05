@@ -419,7 +419,7 @@ export default function ApplyProfessionalPage() {
                 Coverage Areas
               </label>
               <input value={form.coverage_areas} onChange={set('coverage_areas')}
-                placeholder="e.g. Uyo, Port Harcourt, Lagos"
+                placeholder="e.g. Lagos, Abuja, Port Harcourt"
                 className="w-full px-4 py-3 rounded-xl border text-sm"
                 style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
             </div>

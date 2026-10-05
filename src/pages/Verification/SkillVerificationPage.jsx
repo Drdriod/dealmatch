@@ -25,7 +25,7 @@ export default function SkillVerificationPage() {
   const { user, profile } = useAuth()
   const [category, setCategory] = useState('')
   const [categoryType, setCategoryType] = useState('artisan')
-  const [area, setArea] = useState('Uyo')
+  const [area, setArea] = useState('')
   const [description, setDescription] = useState('')
   const [yearsExperience, setYearsExperience] = useState('')
   const [references, setReferences] = useState('')
@@ -205,7 +205,7 @@ export default function SkillVerificationPage() {
 
           <div>
             <NumberedLabel n={3}>Area *</NumberedLabel>
-            <input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. Uyo, Ewet Housing Estate"
+            <input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. Lekki, Lagos"
               className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
           </div>
 

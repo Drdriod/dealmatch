@@ -177,6 +177,9 @@ export default function TestimonialsSection() {
     }
   }, [isAuthenticated, user])
 
+  // Nothing to show and nobody signed in to add one: hide the section.
+  if (!loading && testimonials.length === 0 && !isAuthenticated) return null
+
   return (
     <section className="py-24 px-6" style={{ backgroundColor: '#F7F4ED' }}>
       <div className="max-w-6xl mx-auto">

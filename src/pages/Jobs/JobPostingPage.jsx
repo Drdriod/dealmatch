@@ -33,9 +33,7 @@ export default function JobPostingPage() {
   const [invitedProvider, setInvitedProvider] = useState(null)
 
   const [description, setDescription] = useState('')
-  // Launch city is Uyo - pre-fill rather than defaulting to Lagos, which is
-  // what the field's old placeholder implied to a first-time visitor.
-  const [location, setLocation]       = useState('Uyo, Akwa Ibom')
+  const [location, setLocation]       = useState('')
   const [budget, setBudget]           = useState('')
   const [posting, setPosting]         = useState(false)
 
@@ -338,7 +336,7 @@ export default function JobPostingPage() {
               <div>
                 <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>What do you need? *</p>
                 <input value={description} onChange={e => setDescription(e.target.value)}
-                  placeholder="I need a plumber around Ewet"
+                  placeholder="I need a plumber to fix a leaking pipe"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                   style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: '#17211B' }} />
               </div>
@@ -349,7 +347,7 @@ export default function JobPostingPage() {
                     style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
                     <MapPin size={13} style={{ color: '#C85F2D' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
-                      placeholder="Uyo, Akwa Ibom"
+                      placeholder="e.g. Lekki, Lagos"
                       className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
                   </div>
                 </div>
