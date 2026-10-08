@@ -3,16 +3,26 @@
  * ════════════════════
  * Controls access to transaction-gated actions.
  *
- * WHAT REQUIRES VERIFICATION:
- *   sell, buy, list_rental, escrow, tenancy, mortgage_apply
+ * POLICY (product decision): verification is optional after onboarding and
+ * can be skipped, but no major deal or transaction goes ahead without it.
+ *
+ * WHAT REQUIRES VERIFICATION (money or an agreement is committed):
+ *   escrow / protection payment, reserving a property, buying contact
+ *   unlocks, accepting a bid or signing a deal agreement, tenancy,
+ *   mortgage applications, and the sale/hostel/service listing actions
+ *   that already call this guard.
  *
  * WHAT DOES NOT REQUIRE VERIFICATION (free to all):
- *   shortlet, hotel, browse, professionals, student hostels
+ *   browsing, searching, viewing profiles, posting a request, building a
+ *   listing or profile draft, student hostels
  *
  * SKIP POLICY:
  *   If profile.verification_skipped = true AND action is gated,
  *   user is redirected to /verify-identity with returnTo state
  *   so after verifying they land back where they were.
+ *
+ * NOTE: this is an app-level gate. The database functions behind these
+ * actions do not yet refuse unverified users on their own.
  *
  * STUDENT CONFLICT RESOLUTION:
  *   Student verification (is_student_verified) is a SEPARATE system.
@@ -27,7 +37,7 @@ import toast from 'react-hot-toast'
 // Actions that require full identity verification
 const GATED_ACTIONS = new Set([
   'sell', 'buy', 'list_rental', 'list_hostel', 'list_service',
-  'escrow', 'tenancy', 'mortgage_apply', 'deal_agreement',
+  'escrow', 'tenancy', 'mortgage_apply', 'deal_agreement', 'unlock_contact',
 ])
 
 // Human-readable labels for toast messages
@@ -41,6 +51,7 @@ const ACTION_LABELS = {
   tenancy:         'sign a tenancy agreement',
   mortgage_apply:  'apply for a mortgage',
   deal_agreement:  'sign a deal agreement',
+  unlock_contact:  'unlock contact details',
 }
 
 // Actions that are completely free - no verification, no login required

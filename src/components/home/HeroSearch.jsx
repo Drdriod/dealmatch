@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, MapPin, Search, Users } from 'lucide-react'
+import LocationField from '@/components/ui/LocationField'
+import { rememberIntent } from '@/lib/intent'
 
 // Only things DealMatch actually supports today: Places (shortlet / house
 // rent) and People (skilled services). Never list a category that does not
@@ -33,6 +35,8 @@ export default function HeroSearch({ className = '' }) {
 
   const submit = (e) => {
     e.preventDefault()
+    // If this visitor signs up next, onboarding already knows what they want.
+    rememberIntent(mode === 'place' ? 'find_place' : 'find_person', { where: where.trim() })
     const text = [what.trim(), where.trim()].filter(Boolean).join(' ')
     navigate(text ? `/search?q=${encodeURIComponent(text)}` : '/search')
   }
@@ -65,13 +69,13 @@ export default function HeroSearch({ className = '' }) {
             <span className="block text-[10px] font-extrabold uppercase tracking-wider mb-1">Where?</span>
             <span className="flex items-center gap-2 text-deep/60">
               <MapPin size={16} className="flex-shrink-0" />
-              <input value={where} onChange={e => setWhere(e.target.value)} placeholder="City or area"
+              <LocationField value={where} onChange={setWhere} placeholder="City or area" ariaLabel="Where?"
                 className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/40" />
             </span>
           </label>
           <button type="submit"
             className="mt-2 sm:mt-0 sm:ml-2 self-center min-h-[52px] px-6 rounded-full text-sm font-bold inline-flex items-center justify-center gap-1.5 bg-terracotta text-white transition hover:bg-[#A8441D] hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]">
-            Search <ArrowRight size={14} />
+            Find a Match <ArrowRight size={14} />
           </button>
         </div>
       </div>

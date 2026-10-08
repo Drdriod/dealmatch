@@ -125,11 +125,11 @@ export default function DashboardPage() {
             <span>{verificationLevel === 'none' ? <AlertTriangle size={22} className="text-amber-500" /> : <Camera size={22} className="text-terracotta" />}</span>
             <div className="flex-1">
               <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
-                {verificationLevel === 'none' ? 'Complete your verification' : 'Finish Live Verification'}
+                {verificationLevel === 'none' ? 'Verify your identity' : 'Finish Live Verification'}
               </p>
               <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                 {verificationLevel === 'none'
-                  ? 'Upload photo + live check to list and buy properties'
+                  ? 'Optional for now. Needed before any booking, payment or agreement.'
                   : 'Photo uploaded! Complete the live check to unlock full access'}
               </p>
             </div>

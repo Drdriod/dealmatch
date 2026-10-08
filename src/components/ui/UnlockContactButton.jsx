@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Lock, Phone, Coins, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { buyUnlockCredits, UNLOCK_CREDIT_PACKS } from '@/lib/paystack'
 import toast from 'react-hot-toast'
 
@@ -21,6 +22,7 @@ import toast from 'react-hot-toast'
  */
 export default function UnlockContactButton({ targetType, targetId, onUnlocked }) {
   const { user } = useAuth()
+  const { requireVerification } = useVerificationGuard()
   const [balance, setBalance] = useState(null)
   const [contact, setContact] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -43,6 +45,8 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
 
   async function handleUnlock() {
     if (!user) { toast.error('Sign in to unlock contact details'); return }
+    // Spending or buying credits is a transaction: verify first.
+    if (!(await requireVerification('unlock_contact'))) return
     if (!balance) { setShowPacks(true); return }
     setBusy(true)
     try {
