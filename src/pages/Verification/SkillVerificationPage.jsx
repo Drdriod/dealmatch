@@ -14,18 +14,22 @@
  * See supabase/migrations/20260812000000_production_hardening.sql.
  */
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Camera, CheckCircle2, Clock, ShieldCheck, Upload, X, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
 
 export default function SkillVerificationPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, profile } = useAuth()
   const [category, setCategory] = useState('')
-  const [categoryType, setCategoryType] = useState('artisan')
-  const [area, setArea] = useState('')
+  // Onboarding passes the chosen kind of work; fall back to the old default.
+  const startType = ['artisan', 'tutor', 'home_service', 'other_skill'].includes(location.state?.categoryType) ? location.state.categoryType : 'artisan'
+  const [categoryType, setCategoryType] = useState(startType)
+  const [area, setArea] = useState(profile?.city || '')
   const [description, setDescription] = useState('')
   const [yearsExperience, setYearsExperience] = useState('')
   const [references, setReferences] = useState('')
@@ -38,6 +42,8 @@ export default function SkillVerificationPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { if (user?.id) load() }, [user?.id])
+  // Profile can finish loading after first render: fill the work area once.
+  useEffect(() => { if (profile?.city) setArea(a => a || profile.city) }, [profile?.city])
 
   const load = async () => {
     setLoading(true)
@@ -127,6 +133,8 @@ export default function SkillVerificationPage() {
           <p className="text-xs" style={{ color: '#647068' }}>Show your work - photos matter more than certificates</p>
         </div>
       </div>
+
+      <VerifyReminder returnTo="/verify-skill" className="mx-4 mt-2 max-w-4xl md:mx-auto" />
 
       {currentLevel >= 2 ? (
         <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>

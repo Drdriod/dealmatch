@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, ShieldCheck, X, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { initializePaystackPayment, generateReference } from '@/lib/paystack'
 import toast from 'react-hot-toast'
 
@@ -17,6 +18,7 @@ const HOW_IT_WORKS = [
 // ─── Request Modal ────────────────────────────────────────
 function EscrowRequestModal({ onClose }) {
   const { user, profile } = useAuth()
+  const { requireVerification } = useVerificationGuard()
   const [form, setForm] = useState({
     type: 'rental', property_title: '', property_address: '',
     landlord_name: '', landlord_phone: '',
@@ -43,6 +45,7 @@ function EscrowRequestModal({ onClose }) {
     }
     const email = form.tenant_email || user?.email || ''
     if (!email) { toast.error('Please provide your email for payment'); return }
+    if (!(await requireVerification('escrow'))) return
 
     await initializePaystackPayment({
       email, amount: Number(form.amount),

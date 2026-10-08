@@ -106,10 +106,11 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
             <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
             <h1 className="mt-4 text-[clamp(38px,10.5vw,50px)] sm:text-[clamp(48px,4.6vw,72px)] leading-[1.02] max-w-[720px] text-deep">
-              Find a trusted place<br className="hidden sm:block" /> or <em className="not-italic text-terracotta">professional near you.</em>
+              <span className="block">Find what you need.</span>
+              <span className="block">Find who can <em className="not-italic text-terracotta whitespace-nowrap">provide it.</em></span>
             </h1>
             <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
-              Search places to stay, homes to rent, artisans and home services, matched to what you need and where you are.
+              Places to stay, homes to rent, and people ready to help.
             </p>
           </motion.div>
 

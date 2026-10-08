@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Shield, ShieldCheck, X, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { initializePaystackPayment, generateReference, formatNaira } from '@/lib/paystack'
 import toast from 'react-hot-toast'
 
@@ -25,6 +26,7 @@ import toast from 'react-hot-toast'
  */
 export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const { user, profile } = useAuth()
+  const { requireVerification } = useVerificationGuard()
   const [amount, setAmount]     = useState(property?.price ? String(property.price) : '')
   const [moveInDate, setMoveInDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -51,6 +53,8 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const handleReserve = async () => {
     if (!user) { toast.error('Please sign in to continue'); return }
     if (!gross || gross <= 0) { toast.error('Enter a valid amount'); return }
+    // Money is about to move: identity must be verified first.
+    if (!(await requireVerification('escrow'))) return
     const email = user.email || `${user.id}@guest.dealmatch.com.ng`
 
     setSubmitting(true)

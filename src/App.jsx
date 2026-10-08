@@ -9,6 +9,7 @@ import { Home } from 'lucide-react'
 
 import Navbar    from '@/components/layout/Navbar'
 import MobileTabBar from '@/components/layout/MobileTabBar'
+import IntentTracker from '@/components/routing/IntentTracker'
 import Footer    from '@/components/layout/Footer'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import InstallPrompt  from '@/components/ui/InstallPrompt'
@@ -276,6 +277,8 @@ function AnimatedRoutes() {
   useEffect(() => { window.scrollTo(0, 0) }, [location.pathname])
 
   return (
+    <>
+    <IntentTracker />
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
 
@@ -611,7 +614,7 @@ function AnimatedRoutes() {
         {/* ── Onboarding + Verify ─────────────────────── */}
         <Route path="/onboarding" element={
           <ProtectedRoute requireOnboarding={false}>
-            <AppShell showNav={false} showFooter={false} showWhatsApp={false}>
+            <AppShell showNav={false} showFooter={false} showWhatsApp={false} showTabBar={false}>
               <Suspense fallback={<PageSkeleton />}>
                 <PageTransition><OnboardingPage /></PageTransition>
               </Suspense>
@@ -725,6 +728,7 @@ function AnimatedRoutes() {
 
       </Routes>
     </AnimatePresence>
+    </>
   )
 }
 

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Camera, Check, CheckCircle, Hotel, PartyPopper, Store, Upload, Video, Wifi, X } from 'lucide-react'
 import { supabase, stripControlChars } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
 
 const STATES = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','Abuja (FCT)']
@@ -299,7 +300,8 @@ export default function ListRentalPage() {
           Your {isHotel ? 'hotel/short-let' : 'rental'} has been submitted. A DealMatch agent will verify the property and it will go live within 24–48 hours.
         </p>
         {listingId && <p className="text-sm font-semibold mb-2" style={{ color:'#7A9E7E' }}>Reference: {listingId}</p>}
-        <p className="text-xs mb-8" style={{ color:'#C85F2D' }}>You'll receive a WhatsApp notification once approved.</p>
+        <p className="text-xs mb-5" style={{ color:'#C85F2D' }}>You'll receive a WhatsApp notification once approved.</p>
+        <VerifyReminder returnTo="/landlord" className="mb-6" />
         <div className="space-y-3">
           <button onClick={() => navigate('/landlord')} className="btn-primary w-full py-4">Go to Dashboard →</button>
           <button onClick={() => { setSaved(false); setListingId(null); setSubmitError(''); setStep(0); setForm({ title:'', state:'', city:'', address:'', price:'', description:'', features:[], images:[], video_url:'', bedrooms:'', bathrooms:'', size_sqm:'', max_guests:'', category: type }) }}

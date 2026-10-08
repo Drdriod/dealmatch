@@ -365,6 +365,11 @@ export default function RentalsPage() {
                 borderColor:     type === t ? '#C85F2D' : '#DEDDD6',
               }}>{t}</button>
           ))}
+          <Link to="/student-hostels"
+            className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
+            style={{ backgroundColor: '#FFFFFF', color: '#5C4A3A', borderColor: '#DEDDD6' }}>
+            Student housing
+          </Link>
         </div>
 
         {/* Filters row 2 - state */}

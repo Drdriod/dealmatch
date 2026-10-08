@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { emitEvent } from '@/lib/events'
 import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/paystack'
 import GuestAuthModal from '@/components/ui/GuestAuthModal'
@@ -25,6 +26,7 @@ const STATUS_LABEL = {
 export default function JobPostingPage() {
   const navigate = useNavigate()
   const { user }   = useAuth()
+  const { requireVerification } = useVerificationGuard()
   const { id: routeId } = useParams()   // present when visiting /jobs/:id (an existing transaction)
   const [params]   = useSearchParams()
 
@@ -164,6 +166,8 @@ export default function JobPostingPage() {
   }
 
   const acceptBid = async (bid) => {
+    // Accepting a bid is a deal agreement: identity must be verified first.
+    if (!(await requireVerification('deal_agreement'))) return
     // Gate: a provider with nowhere for money to land shouldn't have a bid
     // accepted in the first place, this fails fast before touching the
     // transaction rather than letting payment get stuck later.
@@ -211,6 +215,7 @@ export default function JobPostingPage() {
   // after real payment verification. The realtime subscription above
   // picks up the change once it does.
   const fundEscrow = async () => {
+    if (!(await requireVerification('escrow'))) return
     setFundingEscrow(true)
     const reference = generateReference()
 
