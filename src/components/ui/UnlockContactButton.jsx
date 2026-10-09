@@ -3,7 +3,7 @@ import { Lock, Phone, Coins, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
-import { buyUnlockCredits, UNLOCK_CREDIT_PACKS } from '@/lib/paystack'
+import { buyUnlockCredits, UNLOCK_CREDIT_PACKS } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
 
 /**
@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
  * (providers) - targetType is 'property' | 'provider'.
  *
  * Enforcement lives entirely server-side (item 3/6): a credit is only
- * ever granted after Paystack confirms payment (see the webhook's
+ * ever granted after Flutterwave confirms payment (see the webhook's
  * 'contact_unlock_credits' case), and spend_unlock_credit()/
  * get_property_contact()/get_provider_contact() are all SECURITY DEFINER
  * functions a client cannot bypass - this component just calls them.

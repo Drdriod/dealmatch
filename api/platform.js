@@ -24,6 +24,7 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
+import { flw, alnum, flutterwaveConfigured } from '../src/lib/flutterwaveServer.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
@@ -143,45 +144,146 @@ const jsonResources = {
     return res.status(200).json({ ok: true })
   },
 
-  // ── Automated payouts (item 8 of the fix request) ─────────────────────
-  // Three resources, all folded in here rather than given their own
-  // files to stay under the serverless function count budget:
-  //   - cron-process-payouts: Vercel Cron hits this on a schedule (see
-  //     vercel.json "crons"), picks up pending payout_queue rows (queued
-  //     by release_held_payment() once a transaction is dual-confirmed -
-  //     see 20260915000002_automated_payouts.sql), creates a Paystack
-  //     transfer recipient if the provider doesn't have one yet, and
-  //     initiates the transfer. Final confirmation happens asynchronously
-  //     via api/paystack-webhook.js's transfer.success/transfer.failed.
-  //   - paystack-banks / paystack-resolve-account: PayoutSetupPage.jsx
-  //     needs these to let a provider pick a real bank (for its Paystack
-  //     code, required to create a transfer recipient) and confirm the
-  //     account name resolves, instead of the old free-text bank name
-  //     field that gave no way to actually pay anyone out automatically.
+  // ── Flutterwave V4: collections and automated payouts ───────────────
+  // Folded in here (not separate files) to stay inside the serverless
+  // function budget, same as every resource in this file.
+  //   - payment-virtual-account (POST): a payer gets a dynamic bank account
+  //     number for one payment. The transfer lands via api/flutterwave-webhook.js.
+  //   - payment-status (GET): the payer's own payment row. Owner-only by RLS.
+  //   - cron-process-payouts: Vercel Cron pays out queued transactions as
+  //     V4 bank transfers (recipient first, then transfer).
+  //   - payout-banks / payout-resolve-account: PayoutSetupPage.jsx.
+  async ['payment-virtual-account'](req, res, supabase) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    const rl = await redisRateLimit(req, 'pay_va', 10, 60)
+    if (!rl.allowed) return res.status(429).json({ error: 'Too many requests' })
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
+      return res.status(503).json({ error: 'Payment service not configured' })
+    }
+
+    const { reference, amountNaira, email } = req.body || {}
+    if (!reference || typeof reference !== 'string' || !/^[a-zA-Z0-9-]{6,42}$/.test(reference)) {
+      return res.status(400).json({ error: 'Invalid reference' })
+    }
+    const amountKobo = Math.round(Number(amountNaira) * 100)
+    if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
+      return res.status(400).json({ error: 'Invalid amount' })
+    }
+    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email' })
+    }
+    const metadata = cleanMetadata(req.body?.metadata)
+
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+
+    // Retries of the same reference return the same account, but only to its owner.
+    const { data: existing } = await svc
+      .from('payment_virtual_accounts')
+      .select('*')
+      .eq('reference', reference)
+      .maybeSingle()
+    if (existing) {
+      if (existing.profile_id !== user.id) return res.status(409).json({ error: 'Reference already in use' })
+      return res.status(200).json(publicVirtualAccount(existing))
+    }
+
+    try {
+      const customer = await flw('POST', '/customers', {
+        body: { email },
+        idempotencyKey: idemKey('dmcus', reference),
+      })
+      const va = await flw('POST', '/virtual-accounts', {
+        body: {
+          customer_id: customer.id,
+          reference,
+          currency: 'NGN',
+          account_type: 'dynamic',
+          amount: amountKobo / 100, // Flutterwave takes naira
+          expiry: VA_TTL_SECONDS,
+          narration: 'DealMatch payment',
+          meta: metadata,
+        },
+        idempotencyKey: idemKey('dmva', reference),
+      })
+
+      const row = {
+        reference,
+        profile_id: user.id,
+        email,
+        customer_id: customer.id,
+        virtual_account_id: va.id,
+        account_number: va.account_number,
+        bank_name: va.account_bank_name ?? null,
+        expected_kobo: amountKobo,
+        status: 'pending',
+        metadata,
+        expires_at: va.account_expiration_datetime ?? new Date(Date.now() + VA_TTL_SECONDS * 1000).toISOString(),
+      }
+      const { error: insErr } = await svc.from('payment_virtual_accounts').insert(row)
+      if (insErr) {
+        console.error('payment-virtual-account: insert failed', insErr.message)
+        return res.status(500).json({ error: 'Could not start payment. Please try again.' })
+      }
+      return res.status(200).json(publicVirtualAccount(row))
+    } catch (err) {
+      console.error('payment-virtual-account failed:', err.message)
+      return res.status(502).json({ error: 'Could not start payment. Please try again.' })
+    }
+  },
+
+  async ['payment-status'](req, res, supabase) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    const reference = req.query.reference
+    if (!reference || typeof reference !== 'string' || !/^[a-zA-Z0-9-]{6,42}$/.test(reference)) {
+      return res.status(400).json({ error: 'Invalid reference' })
+    }
+    // The elevated client runs under the payer's own RLS, so only their row is visible.
+    const { data: row, error } = await supabase
+      .from('payment_virtual_accounts')
+      .select('reference, status, expected_kobo, paid_kobo, paid_at, profile_id')
+      .eq('reference', reference)
+      .maybeSingle()
+    if (error) return res.status(500).json({ error: 'Could not load payment' })
+    if (!row || row.profile_id !== user.id) return res.status(404).json({ error: 'Payment not found' })
+
+    return res.status(200).json({
+      reference: row.reference,
+      status: row.status,
+      paid: row.status === 'paid',
+      amountNaira: Number(row.expected_kobo) / 100,
+      paidAt: row.paid_at,
+    })
+  },
+
   async ['cron-process-payouts'](req, res) {
     // Not a signed-in-user resource - Vercel Cron calls this with no user
-    // session at all, so it is gated by a shared secret instead, the same
-    // pattern api/escrow-webhook.js and api/paystack-webhook.js use for
-    // gateway-initiated calls that also have no user JWT to check.
+    // session, so it is gated by a shared secret, the same pattern the
+    // gateway webhooks use.
     const cronSecret = process.env.CRON_SECRET
     const auth = req.headers.authorization
     if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.PAYSTACK_SECRET_KEY) {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
       return res.status(200).json({ processed: 0, skipped: 'payouts not configured' })
     }
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-    const paystackKey = process.env.PAYSTACK_SECRET_KEY
 
     const { data: rows, error } = await svc
       .from('payout_queue')
       .select('id, transaction_id, profile_id, payout_account_id, amount_cents, attempts')
       .eq('status', 'pending')
-      .lt('attempts', 5) // never retry forever - a row stuck at 5 failures needs an admin, see PayoutsTab's "Retry" button
+      .lt('attempts', 5) // never retry forever - a row stuck at 5 failures needs an admin
       .order('created_at', { ascending: true })
-      .limit(20) // small batches per cron tick, safely inside a serverless function's timeout
+      .limit(20)
 
     if (error) {
       console.error('cron-process-payouts: failed to load queue', error.message)
@@ -204,65 +306,58 @@ const jsonResources = {
           throw new Error('No verified payout account for this transaction')
         }
         if (!account.bank_code) {
-          // Old rows submitted before bank_code existed - can't create a
-          // real transfer recipient without it. Surface clearly so an
-          // admin can ask the provider to resubmit, rather than silently
-          // retrying forever.
           throw new Error('Payout account is missing a bank code - ask the provider to resubmit their bank details')
         }
 
-        let recipientCode = account.gateway_recipient_code
-        if (!recipientCode) {
-          const recRes = await fetch('https://api.paystack.co/transferrecipient', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${paystackKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'nuban',
-              name: account.account_name,
-              account_number: account.account_number,
-              bank_code: account.bank_code,
-              currency: 'NGN',
-            }),
+        // V4 transfers pay a saved recipient. Create it once per payout
+        // account and store its id, so later payouts and retries reuse it.
+        let recipientId = account.gateway_recipient_code
+        if (!recipientId) {
+          const recipient = await flw('POST', '/transfers/recipients', {
+            body: {
+              type: 'bank_ngn',
+              bank: { account_number: account.account_number, code: account.bank_code },
+            },
+            idempotencyKey: idemKey('dmrcp', account.id),
           })
-          const recData = await recRes.json()
-          if (!recRes.ok || !recData?.data?.recipient_code) {
-            throw new Error(recData?.message || 'Failed to create Paystack transfer recipient')
-          }
-          recipientCode = recData.data.recipient_code
-          await svc.from('payout_accounts').update({ gateway_recipient_code: recipientCode }).eq('id', account.id)
+          recipientId = recipient.id
+          await svc.from('payout_accounts').update({ gateway_recipient_code: recipientId }).eq('id', account.id)
         }
 
-        const transferRes = await fetch('https://api.paystack.co/transfer', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${paystackKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source: 'balance',
-            amount: row.amount_cents, // Paystack amounts are in kobo, same unit as amount_cents throughout this codebase
-            recipient: recipientCode,
-            reason: `DealMatch payout - transaction #${row.transaction_id}`,
-            reference: `payout_${row.id}_${Date.now()}`,
-          }),
+        // The reference is stable per queue row: Flutterwave rejects a
+        // duplicate reference, so a crash between sending and recording
+        // cannot pay out twice.
+        const transferReference = `payout-${row.id}`
+        const transfer = await flw('POST', '/transfers', {
+          body: {
+            action: 'instant',
+            reference: transferReference,
+            narration: `DealMatch payout - transaction #${row.transaction_id}`,
+            payment_instruction: {
+              source_currency: 'NGN',
+              destination_currency: 'NGN',
+              amount: { applies_to: 'destination_currency', value: row.amount_cents / 100 }, // naira; amount_cents is kobo
+              recipient_id: recipientId,
+            },
+          },
+          idempotencyKey: idemKey('dmpayout', row.id),
         })
-        const transferData = await transferRes.json()
-        if (!transferRes.ok) {
-          throw new Error(transferData?.message || 'Paystack transfer initiation failed')
-        }
 
-        // Still 'pending' from Paystack's side until the transfer.success
-        // webhook confirms it - this just records that it's in flight.
+        // Still in flight until the transfer.success / transfer.failed
+        // webhook confirms it. gateway_ref is our reference, which the webhook matches.
         await svc.from('payout_queue').update({
           status: 'processing',
-          gateway_ref: transferData.data?.transfer_code || transferData.data?.reference || null,
+          gateway_ref: transferReference,
         }).eq('id', row.id)
-        await svc.from('transactions').update({ payout_ref: transferData.data?.transfer_code }).eq('id', row.transaction_id)
+        await svc.from('transactions').update({ payout_ref: String(transfer.id ?? transferReference) }).eq('id', row.transaction_id)
 
         processed++
       } catch (err) {
         failed++
         console.error(`cron-process-payouts: row ${row.id} failed:`, err.message)
         await svc.from('payout_queue').update({
-          status: row.attempts + 1 >= 5 ? 'failed' : 'pending', // give up after 5 attempts, otherwise leave pending for the next tick
-          failure_reason: err.message.slice(0, 500),
+          status: row.attempts + 1 >= 5 ? 'failed' : 'pending',
+          failure_reason: String(err.message).slice(0, 500),
         }).eq('id', row.id)
         if (row.attempts + 1 >= 5) {
           await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', row.transaction_id)
@@ -273,44 +368,43 @@ const jsonResources = {
     return res.status(200).json({ processed, failed, total: (rows || []).length })
   },
 
-  async ['paystack-banks'](req, res) {
+  async ['payout-banks'](req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-    if (!process.env.PAYSTACK_SECRET_KEY) return res.status(200).json({ banks: [] })
+    if (!flutterwaveConfigured()) return res.status(200).json({ banks: [] })
     try {
-      const r = await fetch('https://api.paystack.co/bank?country=nigeria&currency=NGN', {
-        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
-      })
-      const data = await r.json()
-      const banks = (data?.data || []).map(b => ({ name: b.name, code: b.code })).sort((a, b) => a.name.localeCompare(b.name))
+      const data = await flw('GET', '/banks?country=NG')
+      const banks = (Array.isArray(data) ? data : [])
+        .map(b => ({ name: b.name, code: b.code }))
+        .sort((a, b) => a.name.localeCompare(b.name))
       res.setHeader('Cache-Control', 'public, max-age=3600') // bank list barely ever changes
       return res.status(200).json({ banks })
     } catch (err) {
-      console.error('paystack-banks failed:', err.message)
+      console.error('payout-banks failed:', err.message)
       return res.status(200).json({ banks: [] })
     }
   },
 
-  async ['paystack-resolve-account'](req, res, supabase) {
+  async ['payout-resolve-account'](req, res, supabase) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
     const { user } = await getAuthedUser(req, supabase)
     if (!user) return res.status(401).json({ error: 'Authentication required' })
-    if (!process.env.PAYSTACK_SECRET_KEY) return res.status(200).json({ resolved: false })
+    if (!flutterwaveConfigured()) return res.status(200).json({ resolved: false })
 
     const { accountNumber, bankCode } = req.body || {}
     if (!accountNumber || !bankCode) return res.status(400).json({ error: 'accountNumber and bankCode required' })
+    if (!/^\d{10}$/.test(String(accountNumber))) return res.status(400).json({ error: 'Account number must be 10 digits' })
 
     try {
-      const r = await fetch(`https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(accountNumber)}&bank_code=${encodeURIComponent(bankCode)}`, {
-        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+      const data = await flw('POST', '/banks/account-resolve', {
+        body: { currency: 'NGN', account: { code: String(bankCode), number: String(accountNumber) } },
       })
-      const data = await r.json()
-      if (!r.ok || !data?.data?.account_name) {
-        return res.status(200).json({ resolved: false, error: data?.message || 'Could not resolve this account' })
+      if (!data?.account_name) {
+        return res.status(200).json({ resolved: false, error: 'Could not resolve this account' })
       }
-      return res.status(200).json({ resolved: true, accountName: data.data.account_name })
+      return res.status(200).json({ resolved: true, accountName: data.account_name })
     } catch (err) {
-      console.error('paystack-resolve-account failed:', err.message)
-      return res.status(200).json({ resolved: false })
+      console.error('payout-resolve-account failed:', err.message)
+      return res.status(200).json({ resolved: false, error: 'Could not resolve this account' })
     }
   },
 
@@ -788,6 +882,37 @@ async function resolveThreadJson(supabase, res, category, threadSlug, breadcrumb
   const { posts } = await listPosts(supabase, thread.id, { pageSize: 100 })
   incrementViewCount(supabase, thread.id) // fire-and-forget
   return res.status(200).json({ kind: 'thread', category, breadcrumb, thread, posts })
+}
+
+// ─── Flutterwave V4 helpers ─────────────────────────────────────────────────
+const VA_TTL_SECONDS = 86400 // a dynamic account can be paid for 24 hours
+
+// Flutterwave idempotency keys are 12-255 alphanumeric characters.
+function idemKey(prefix, value) {
+  return `${prefix}${alnum(value)}`.padEnd(12, '0').slice(0, 255)
+}
+
+// Only short, simple string or number values go to Flutterwave and the DB.
+function cleanMetadata(input) {
+  const out = {}
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return out
+  for (const [k, v] of Object.entries(input).slice(0, 20)) {
+    if (!/^[a-zA-Z0-9_]{1,40}$/.test(k)) continue
+    if (typeof v === 'string') out[k] = v.slice(0, 200)
+    else if (typeof v === 'number' && Number.isFinite(v)) out[k] = String(v)
+  }
+  return out
+}
+
+function publicVirtualAccount(row) {
+  return {
+    reference: row.reference,
+    accountNumber: row.account_number,
+    bankName: row.bank_name,
+    amountNaira: Number(row.expected_kobo) / 100,
+    expiresAt: row.expires_at,
+    status: row.status,
+  }
 }
 
 // ─── Entry point ────────────────────────────────────────────────────────────

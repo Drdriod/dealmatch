@@ -1052,7 +1052,7 @@ function TransactionsTab() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-2">
-          {[['payments','Paystack'],['escrow','Escrow']].map(([k,l])=>(
+          {[['payments','Flutterwave'],['escrow','Escrow']].map(([k,l])=>(
             <button key={k} onClick={()=>setTab(k)} className="px-4 py-2 rounded-xl text-xs font-bold transition-all" style={{backgroundColor:tab===k?'#D4A853':'rgba(255,255,255,0.06)',color:tab===k?'#17211B':'rgba(255,255,255,0.5)'}}>{l}</button>
           ))}
         </div>

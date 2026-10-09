@@ -41,15 +41,15 @@ export default function PayoutSetupPage() {
   useEffect(() => { if (user?.id) load() }, [user?.id])
   useEffect(() => { loadBanks() }, [])
 
-  // NEW: real bank list from Paystack (via /api/paystack-banks), so a
-  // submission carries the bank's actual Paystack code - required to
+  // NEW: real bank list from Flutterwave (via /api/payout-banks), so a
+  // submission carries the bank's actual Flutterwave code - required to
   // create a transfer recipient and automate payouts (item 8 of the fix
   // request). The old free-text "bank name" field had no way to ever
   // resolve to a code, which is part of why payouts could never be
   // automated before.
   async function loadBanks() {
     try {
-      const res = await fetch('/api/paystack-banks')
+      const res = await fetch('/api/payout-banks')
       const data = await res.json()
       setBanks(data.banks || [])
     } catch {
@@ -71,7 +71,7 @@ export default function PayoutSetupPage() {
   }
 
   // NEW: confirms the account number actually belongs to the name typed
-  // in, via Paystack's account-resolve endpoint - catches typos before
+  // in, via Flutterwave's account-resolve endpoint - catches typos before
   // submission instead of only at admin review time.
   async function handleResolve() {
     if (!bankCode || accountNumber.trim().length < 10) return
@@ -79,7 +79,7 @@ export default function PayoutSetupPage() {
     setResolved(false)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch('/api/paystack-resolve-account', {
+      const res = await fetch('/api/payout-resolve-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
         body: JSON.stringify({ accountNumber: accountNumber.trim(), bankCode }),

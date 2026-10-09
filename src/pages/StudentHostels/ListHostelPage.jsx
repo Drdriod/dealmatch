@@ -6,7 +6,7 @@
  *   • Semester plan: ₦5,000
  *   • Annual plan:  ₦8,500
  *
- * Security: listing_paid = false until Paystack confirms payment.
+ * Security: listing_paid = false until Flutterwave confirms payment.
  * The listing is created in DB immediately but stays in 'pending_review'
  * until payment is confirmed AND an admin/verifier approves it.
  */
@@ -17,7 +17,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditC
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { initializePaystackPayment, generateReference } from '@/lib/paystack'
+import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
@@ -243,7 +243,7 @@ export default function ListHostelPage() {
       status:     'pending',
     })
 
-    await initializePaystackPayment({
+    await initializeFlutterwavePayment({
       email:     user.email,
       amount:    planMeta.price,
       reference,
@@ -601,7 +601,7 @@ export default function ListHostelPage() {
                 <div className="rounded-2xl p-3 flex items-start gap-2" style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
                   <Shield size={14} style={{ color: '#7A9E7E', flexShrink: 0, marginTop: 1 }} />
                   <p className="text-xs" style={{ color: '#647068' }}>
-                    Payment is secured by Paystack. Your listing goes live within 24hrs of payment + verification.
+                    Payment is secured by Flutterwave. Your listing goes live within 24hrs of payment + verification.
                   </p>
                 </div>
 

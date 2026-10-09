@@ -18,7 +18,7 @@
 | Startup status | Labelled startup under the **Nigeria Startup Act 2022** |
 | Location | Uyo, Akwa Ibom State, Nigeria |
 
-**Payments:** DealMatch accepts card and bank payments only, through Paystack. Cryptocurrency payment is not offered and has been removed from the code. Existing historical records (if any) are retained in the database with all client access closed (migration `20261004000003_remove_crypto_payments.sql`).
+**Payments:** DealMatch accepts card and bank payments only, through Flutterwave. Cryptocurrency payment is not offered and has been removed from the code. Existing historical records (if any) are retained in the database with all client access closed (migration `20261004000003_remove_crypto_payments.sql`).
 
 User data deletion: users can delete their own account in the app (Profile) or at `/delete-account`. See `supabase/migrations/20261003000001_account_deletion.sql`.
 
@@ -42,7 +42,7 @@ DealMatch is a multi-category, intent-driven matching platform. A user says what
 | Matching | Pinecone Vector Search (Real Estate) + PostGIS/JSONB RPC (all other categories) |
 | Search | Postgres full-text search, federated across every category in one RPC |
 | Maps | Google Maps (`@react-google-maps/api`) |
-| Payments | Paystack (card/bank) |
+| Payments | Flutterwave V4: bank transfer to a dynamic virtual account per payment; bank payouts and account checks via Flutterwave V4 |
 | Hosting | Vercel (CI/CD via GitHub) |
 | PWA | Service Worker + Web App Manifest |
 | Analytics | PostHog |
@@ -77,7 +77,7 @@ src/
 │   ├── schemaValidation.js # Ajv validation against each category's JSON Schema
 │   ├── apiMiddleware.js    # withSecurity() wrapper (auth, rate limit, origin check)
 │   ├── redis.js            # Rate limiting
-│   ├── paystack.js         # Payment processing
+│   ├── flutterwave.js      # Payment processing (Flutterwave V4 virtual accounts)
 │   ├── pinecone.js         # AI vector matching (Real Estate)
 │   └── referral.js         # 3-level cash + points system
 ├── pages/
@@ -119,7 +119,7 @@ A full review against the product handoff spec (guest checkout, dual verificatio
 **Fixed - real bugs, not just gaps:**
 - **Property contact leak.** `PropertyPage.jsx` used to join `profiles(phone)` directly and open WhatsApp with it unconditionally. RLS happened to block the join for non-owners in practice, but that was incidental, not designed - any future policy change could have turned it into a real leak. Replaced with `get_property_contact()`, a `SECURITY DEFINER` RPC that only returns a phone number to the property's owner, staff, or a party to a **funded** escrow transaction on that exact property.
 - **Escrow could never actually be confirmed (property vertical) - a deeper bug than it first looked.** Two compounding issues, both now fixed:
-  1. `EscrowPage.jsx` took payment via Paystack but never wrote an `escrow_transactions` row first, so the webhook had no `payment_ref` to resolve against. Fixed with `start_property_escrow_payment()` (mirrors ADR-009's `start_escrow_payment` pattern) and a new `PropertyReserveModal.jsx` that calls it before opening Paystack.
+  1. `EscrowPage.jsx` took payment via the payment gateway (then Flutterwave) but never wrote an `escrow_transactions` row first, so the webhook had no `payment_ref` to resolve against. Fixed with `start_property_escrow_payment()` (mirrors ADR-009's `start_escrow_payment` pattern) and a new `PropertyReserveModal.jsx` that calls it before opening Paystack.
   2. Even when a row existed, `escrow_transactions` was missing four columns that existing code already assumed: `payment_ref`, `funded_at`, `released_at`, `created_at`. Both `api/paystack-webhook.js` and `api/escrow-webhook.js` (crypto) resolve rows by `payment_ref` and reference `funded_at`; the baseline schema's own `fn_check_deed_completion()` trigger sets `released_at`. None of these columns existed, so every escrow confirmation attempt - Paystack **and** crypto, on every category that uses this table - failed at the query step with a Postgres "column does not exist" error, silently logged and swallowed. `api/paystack-webhook.js` was also selecting `platform_fee`/`amount`, columns that were never named that (the real names are `platform_amount`/`gross_amount`), and writing `status: 'confirmed'` while the RLS policy and `get_property_contact()` both expect `'funded'` - fixed all three. One near-miss caught during the fix: `confirmed_at` on this table means "tenant confirmed move-in" and has its own auto-release trigger - setting it at payment-funding time (an early draft of this fix did) would have skipped the entire escrow protection window by triggering instant auto-release. Left untouched; only `status`/`funded_at` are set when a payment lands.
 - **`/api/send-email` and `/api/send-whatsapp` had no auth, no rate limit, and trusted a client-supplied recipient.** Anyone who found the URL could relay unlimited email/WhatsApp through DealMatch's Resend/WhatsApp Cloud API credits to any address. Both now require a valid Supabase session, resolve the recipient server-side from `userId` only, rate-limit per user and per IP, HTML-escape interpolated content, and log every send to `outbound_message_log`.
 
@@ -256,8 +256,10 @@ Set these in Vercel, scoped per environment (Production vs. Preview, so a sandbo
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-VITE_PAYSTACK_PUBLIC_KEY=
-PAYSTACK_SECRET_KEY=
+FLUTTERWAVE_V4_CLIENT_ID=      # V4 Live/Sandbox API keys page (OAuth client credentials)
+FLUTTERWAVE_V4_CLIENT_SECRET=
+FLUTTERWAVE_BASE_URL=         # sandbox: https://developersandbox-api.flutterwave.com  live: https://f4bexperience.flutterwave.com
+FLUTTERWAVE_SECRET_HASH=       # the webhook secret hash set in the Flutterwave dashboard; checked against the flutterwave-signature header
 VITE_PINECONE_API_KEY=
 VITE_PINECONE_INDEX=
 VITE_GOOGLE_MAPS_API_KEY=
@@ -320,7 +322,7 @@ DealMatch ships as native Android and iOS app shells (Capacitor), wrapping the l
 - Input sanitization on all form inputs
 - Rate limiting on auth (5 attempts/minute), on the bot-facing render path (separately, since that path can't use the normal auth-based rate limiter), and now on both outbound message endpoints
 - Security headers: HSTS, X-Frame-Options, CSP, X-XSS-Protection
-- Paystack and escrow webhook signature verification (fail-closed - a missing/invalid signature is rejected, not silently skipped)
+- Flutterwave webhook verification (flutterwave-signature HMAC-SHA256 over the raw body, then each event re-read from the Flutterwave V4 API) and escrow webhook signature verification (fail-closed - a missing/invalid signature is rejected, not silently skipped)
 - No secrets in client code
 - Module boundary enforcement: no file outside a module's own directory queries a table that module owns (enforced by `npm run check:fitness`, wired into CI)
 - `npm audit`: clean except one moderate `react-router-dom` advisory requiring a v6→v7 major upgrade, deferred as a planned migration - see "Known follow-ups" above

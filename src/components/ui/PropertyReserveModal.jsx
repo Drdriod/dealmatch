@@ -3,7 +3,7 @@ import { Shield, ShieldCheck, X, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
-import { initializePaystackPayment, generateReference, formatNaira } from '@/lib/paystack'
+import { initializeFlutterwavePayment, generateReference, formatNaira } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
 
 /**
@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
  * The property-scoped "Reserve" flow the handoff spec calls for (section
  * 6.1): pay into escrow, contact unlocks only once the payment is
  * confirmed. This is the piece that was missing end-to-end - the generic
- * /escrow page took payment via Paystack but never created an
+ * /escrow page took payment via Flutterwave but never created an
  * escrow_transactions row first, so the webhook had nothing to confirm and
  * contact could never legitimately unlock (see
  * supabase/migrations/20260812000000_production_hardening.sql for the
@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
  *
  * Flow: amount + move-in date -> generate a reference -> write the pending
  * escrow row server-side via the RPC (this is what makes the webhook's
- * payment_ref lookup succeed) -> open Paystack with that same reference ->
+ * payment_ref lookup succeed) -> open Flutterwave with that same reference ->
  * on success, poll briefly for the webhook to flip status to 'funded',
  * then call onFunded() so the caller can refresh the contact-unlock state.
  */
@@ -61,7 +61,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     const reference = generateReference()
 
     // Write the escrow row FIRST, server-side, authoritatively - this is
-    // what the Paystack webhook resolves by payment_ref. Without this
+    // what the Flutterwave webhook resolves by payment_ref. Without this
     // step the payment would succeed but never be reflected as escrow.
     const { data: escrowRow, error: rpcError } = await supabase.rpc('start_property_escrow_payment', {
       p_property_id:      property.id,
@@ -79,7 +79,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
       return
     }
 
-    await initializePaystackPayment({
+    await initializeFlutterwavePayment({
       email,
       amount: gross,
       reference,
