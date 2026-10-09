@@ -135,23 +135,6 @@ const PASSWORD_RULES = [
 ]
 const isPasswordValid = (password) => PASSWORD_RULES.every(r => r.test(password || ''))
 
-function PasswordChecklist({ password }) {
-  return (
-    <div className="mt-2 grid grid-cols-1 gap-1">
-      {PASSWORD_RULES.map(rule => {
-        const met = rule.test(password || '')
-        return (
-          <div key={rule.id} className="flex items-center gap-1.5 text-xs transition-colors"
-            style={{ color: met ? '#5C8060' : 'rgba(23,33,27,0.4)' }}>
-            {met ? <Check size={12} strokeWidth={3} /> : <span style={{ width:12, height:12, borderRadius:'50%', border:'1.5px solid currentColor', display:'inline-block', flexShrink:0 }} />}
-            {rule.label}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 // ─── Main AuthPage ────────────────────────────────────────────────────────────
 export default function AuthPage() {
   const [searchParams] = useSearchParams()
@@ -785,7 +768,6 @@ export default function AuthPage() {
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <PasswordChecklist password={form.password} />
               </div>
 
               <button type="submit" disabled={

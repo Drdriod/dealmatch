@@ -20,7 +20,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Check, Eye, EyeOff, Lock, Shield, User, X } from 'lucide-react'
+import { AlertTriangle, Check, Eye, EyeOff, Lock, Shield, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -296,23 +296,6 @@ export default function ResetPasswordPage() {
                   </div>
                 )}
 
-                {/* Rules checklist */}
-                {password.length > 0 && (
-                  <ul className="mt-2 space-y-1">
-                    {RULES.map(r => {
-                      const ok = r.test(password)
-                      return (
-                        <li key={r.id} className="flex items-center gap-2 text-xs">
-                          {ok
-                            ? <Check size={11} style={{ color: '#7A9E7E', flexShrink: 0 }} />
-                            : <X size={11} style={{ color: '#C85F2D', flexShrink: 0 }} />
-                          }
-                          <span style={{ color: ok ? '#7A9E7E' : textSub }}>{r.label}</span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
               </div>
 
               {/* Confirm password */}
@@ -359,16 +342,16 @@ export default function ResetPasswordPage() {
 
               <button
                 type="submit"
-                disabled={saving || !allPassed || !matches}
+                disabled={saving || !matches}
                 className="w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 mt-2"
                 style={{
-                  backgroundColor: (!allPassed || !matches || saving)
+                  backgroundColor: (!matches || saving)
                     ? isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(23,33,27,0.08)'
                     : accent,
-                  color: (!allPassed || !matches || saving)
+                  color: (!matches || saving)
                     ? isAdmin ? 'rgba(255,255,255,0.3)' : 'rgba(23,33,27,0.3)'
                     : isAdmin ? '#17211B' : '#FFFFFF',
-                  cursor: (!allPassed || !matches) ? 'not-allowed' : 'pointer',
+                  cursor: !matches ? 'not-allowed' : 'pointer',
                 }}
               >
                 {saving
