@@ -27,13 +27,14 @@ Fix migration: `supabase/migrations/20261009000000_security_audit_hardening.sql`
 |---|---|---|
 | H1 | `available_wallet_balance`, `has_verified_payout_account`, `get_unlock_credit_balance` returned data for any `profile_id` (IDOR). | Caller must own the id or be staff. `available_wallet_balance` is not a client RPC and is now service/internal only. |
 | H2 | `resolve_report` accepted a caller-supplied `resolved_by` and had no staff check. | Staff check added. Resolver is always `auth.uid()`. |
-| H3 | `escrow_transactions` "Escrow strict update": a tenant could update any column on a funded escrow row. | Column guard: tenant may change `confirmed_at` only. Release happens in the owner-run trigger. |
+| H3 | `escrow_transactions` "Escrow strict update": a tenant could update any column on a funded escrow row. | Column guard: tenant may change `confirmed_at` only. Release happens in the owner-run trigger. A new permissive policy, "Tenant confirms move-in", lets the row pass the check once the trigger sets `released`. Without it, the tenant's own confirmation failed (a pre-existing bug the tighter guard exposed). |
 | H4 | Sellers could set `status = 'active'`, `verified_by`, `verified_at`, `assigned_agent_id`, `payment_ref`, etc. on their own listings, including re-listing rejected ones. | Column guard: owners can pause/remove, and re-list only listings staff had approved. Verification fields are staff-only. |
 | H5 | Students could set their own verification `status` to `approved` (INSERT and UPDATE). | Users may submit `pending` and resubmit after rejection. Only staff can approve or reject. |
 | H6 | Dispute reporters could set `status` and `resolution` on their own disputes. | Reporters may open a dispute (status `open`). Only staff change outcomes. |
 | H7 | `account_deletion_blockers` was callable by anon and authenticated for any user. | Service role only. The API uses the service role. |
 | H8 | Supabase default privileges grant anon and authenticated full table rights on `public`. RLS was the only barrier. | anon: no write privileges except `rental_enquiries` (public enquiry form). authenticated: no TRUNCATE, REFERENCES or TRIGGER. Default privileges set for future tables. |
 | H9 | `revoke_staff_invite` checked `auth.email()` against the founder list. | Checks `is_superadmin()`. |
+| H10 | `v_agent_scorecard` (agent name, email, phone, complaint and strike counts) had no `security_invoker`, so it ran with its owner's privileges and bypassed RLS. Supabase's default grants would expose it to anon. | `security_invoker = true`, anon access revoked. Staff see rows through RLS on `profiles` and `agent_scores`. `admin_deal_pipeline` and `my_requests` are re-asserted the same way. |
 
 ### Medium (all fixed)
 
@@ -51,13 +52,14 @@ Fix migration: `supabase/migrations/20261009000000_security_audit_hardening.sql`
 - Storage: `identity-docs` and `provider-portfolio` are private (forced by migration `20260828000005`). Folder-scoped owner policies are correct. The leftover `USING (true)` storage policy from the dashboard was already removed there.
 - Realtime publication includes only `public.notifications`, which is RLS-protected.
 - API handlers check auth: `api/platform.js`, `api/admin/[resource].js`, `api/agent/[action].js`, `api/send-email.js` (Bearer token, server-side recipient, rate limit, HTML escaping). `api/paystack-webhook.js` and `api/escrow-webhook.js` verify HMAC-SHA512 and fail closed when the secret or signature is missing.
+- `provider_stats` is intentionally owner-run. It returns per-provider aggregates for public provider pages, and an invoker view would show only the viewer's own transactions.
 - Anonymous functions that remain are intentional: signup conflict checks, username/phone checks, booking availability, public search and listing reads, forum view counts, and the admin-login lockout pair.
 
 ---
 
 ## 2. Verification
 
-Regression suite `supabase/tests/security_hardening.sql`, run against the migrated database as the real roles (43 checks, 0 failures):
+Regression suite `supabase/tests/security_hardening.sql`, run against the migrated database as the real roles (45 checks, 0 failures):
 
 - Email spoofing grants no staff or admin rights.
 - Superadmin, admin and agent roles keep full staff access.
@@ -70,9 +72,26 @@ Regression suite `supabase/tests/security_hardening.sql`, run against the migrat
 - Staff activation, escrow update and report resolution succeed, and the resolver is recorded as the caller.
 - No founder email appears in any RLS policy or public function.
 
+Regression suite run after the final migration: 45 PASS, 0 FAIL. It is committed as `supabase/tests/security_hardening.sql`.
+
 Client RPC audit: every RPC name called from `src/` and `api/` was checked against the final privileges. Each keeps the role it needs (authenticated, or anon where the pre-login flow calls it).
 
 Build: `vite build` passes after the client role-list change.
+
+## 2a. Coverage and limits of this audit
+
+Be clear about what this audit covers. A replay of the full migration chain into the scratch cluster logged errors in four files:
+
+| File | Replay result | Consequence |
+|---|---|---|
+| `20260711000000_production_baseline_schema.sql` | 30 errors, mostly stub collisions with the `auth`/`storage`/`realtime` stubs | Stub-related, not a finding |
+| `20260731000017_fix_provider_stats_and_bid_rpcs.sql` | References `provider_stats` before it exists | Ordering issue. `provider_stats` was not created in the replay |
+| `20260812000000_production_hardening.sql` | `admin_deal_pipeline` missing, `uuid = bigint` error | That view and its policies were not checked in the replay |
+| `20260813000000_dashboard_profile_spec.sql` | `my_requests` missing, `public.reviews` missing | Those objects were not checked in the replay |
+
+The view findings (H10) and the `admin_deal_pipeline`/`my_requests` checks come from reading the migration SQL and the live objects that did replay. Migration `20260731000017` also references `public.reviews`, which is created later in `20260828000009`, so a fresh replay fails there. That is the known ordering issue.
+
+**Recommended follow-up:** run `supabase db reset` against a local Supabase stack, which applies the chain with the real `auth`/`storage` schemas. Then re-run this audit and `supabase/tests/security_hardening.sql` against it. This closes the gap for objects in those four files.
 
 ---
 
@@ -93,7 +112,7 @@ Build: `vite build` passes after the client role-list change.
    join public.profiles p on p.id = wl.recipient_id
    where wl.recipient_role = 'platform' and p.role is distinct from 'superadmin';
    ```
-5. Known pre-existing issue, not fixed here: migrations replay out of order. `20260731000017` references `public.reviews`, which is created in `20260828000009`. A fresh replay fails there. Production is unaffected because it was migrated in order.
+5. Known pre-existing issue, not fixed here: migrations replay out of order (see section 2a). `20260731000017` references `public.reviews`, which is created in `20260828000009`. A fresh replay fails there. Production is unaffected because it was migrated in order.
 
 ---
 
@@ -112,10 +131,18 @@ These are not fixed in this change. Each needs a product or ops decision.
 | F7 | `rental_enquiries` accepts anonymous inserts (intended). | Rate-limit at the edge to prevent spam. |
 | F8 | Dashboard user deletion fails with "Database error deleting user" because of plain foreign keys to `auth.users` (for example `transactions`, `reviews`, `disputes`). The repo's account-deletion design soft-deletes instead. | Awaiting a decision. Options: add `ON DELETE` rules, or always use the soft-delete path. |
 | F9 | `fn_sanitize_text` strips SQL keywords and `--` from listing text. This is not a security control: parameterized queries are the real protection. It also alters listing content. | Leave as-is for now, or remove if content integrity matters more. |
-| F10 | `security_audit_report.md` (April) is outdated. | Superseded by this document. |
+| F10 | `security_audit_report.md` (April) is outdated. | Superseded by this document (banner added). |
+| F11 | `db/archive/*.sql` contains older security SQL. It is not part of the migration chain. | Do not run it. Kept for history. Marked in `db/archive/README.md`. |
+| F12 | `provider_stats` is owner-run and returns per-provider aggregates to any signed-in user. | Accepted: aggregates only. Revisit if they reveal more than counts and rates. |
+| F13 | `rental_enquiries` anonymous insert: spam risk. | Covered by F7. |
+| F14 | `admin_deal_pipeline` is used by the admin UI but was not present in the replayed scratch schema. | Expected from the replay gap (section 2a). Verify on a real `db reset`. |
 
 ---
 
 ## 5. Changes outside the database
 
 - `src/App.jsx`, `src/pages/Admin/AdminLoginPage.jsx`, `src/pages/Auth/ResetPasswordPage.jsx`, `src/pages/Agent/AgentDashboardPage.jsx`: `superadmin` added to role checks, so UI access matches the database role.
+- `db/SETUP_ORDER.md`: the step that made admins by email is replaced. The founder role is now set by the migration. Other admins are made by a `superadmin` through the admin UI.
+- `CHANGELOG.md`: entry added for this change.
+- `security_audit_report.md`: superseded banner added.
+- `db/archive/README.md`: notes that archived SQL is historical and must not be run.

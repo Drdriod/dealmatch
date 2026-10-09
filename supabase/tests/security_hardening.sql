@@ -30,6 +30,16 @@ BEGIN
   END;
 END $f$;
 
+-- ── 0. Views run as the caller (checked on the migrated state, before test grants) ──
+DO $c$ BEGIN
+  IF (SELECT coalesce(reloptions, '{}') @> '{security_invoker=true}' FROM pg_class WHERE oid = 'public.v_agent_scorecard'::regclass) THEN
+    RAISE NOTICE 'PASS: v_agent_scorecard runs with security_invoker';
+  ELSE RAISE NOTICE 'FAIL: v_agent_scorecard runs with owner privileges'; END IF;
+  IF has_table_privilege('anon', 'public.v_agent_scorecard', 'SELECT') THEN
+    RAISE NOTICE 'FAIL: anon can read v_agent_scorecard';
+  ELSE RAISE NOTICE 'PASS: anon cannot read v_agent_scorecard'; END IF;
+END $c$;
+
 -- Supabase default privileges: anon/authenticated get table access and RLS does the filtering.
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated;

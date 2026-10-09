@@ -733,6 +733,34 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE INSERT, UPDATE, DELETE, TRUNCAT
 -- ── 7. Pinecone index status is operational data: staff only ───────────────
 -- It exposes internal error_log text and has no client reads.
 DROP POLICY IF EXISTS "Public read pinecone status" ON public.pinecone_index_status;
+DROP POLICY IF EXISTS "Staff read pinecone status" ON public.pinecone_index_status;
 CREATE POLICY "Staff read pinecone status" ON public.pinecone_index_status
   FOR SELECT TO authenticated
   USING (public.is_admin_staff());
+
+
+-- ── 8. Views run as the caller, so RLS applies ─────────────────────────────
+-- A view without security_invoker runs with its owner's privileges and
+-- bypasses the caller's RLS. v_agent_scorecard exposes agent name, email,
+-- phone and complaint figures, so it must not run as the owner.
+-- admin_deal_pipeline and my_requests are set the same way for consistency
+-- (they are already set in 20260813000000 and are re-asserted here).
+-- provider_stats is deliberately left owner-run: it returns per-provider
+-- aggregates (review count, completion rate) that public provider pages need,
+-- and as an invoker view it would only count the viewer's own transactions.
+DO $do$
+BEGIN
+  IF to_regclass('public.v_agent_scorecard') IS NOT NULL THEN
+    ALTER VIEW public.v_agent_scorecard SET (security_invoker = true);
+    REVOKE ALL ON public.v_agent_scorecard FROM anon;
+  END IF;
+  IF to_regclass('public.admin_deal_pipeline') IS NOT NULL THEN
+    ALTER VIEW public.admin_deal_pipeline SET (security_invoker = true);
+    REVOKE ALL ON public.admin_deal_pipeline FROM anon;
+  END IF;
+  IF to_regclass('public.my_requests') IS NOT NULL THEN
+    ALTER VIEW public.my_requests SET (security_invoker = true);
+    REVOKE ALL ON public.my_requests FROM anon;
+  END IF;
+END
+$do$;

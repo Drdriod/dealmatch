@@ -22,7 +22,7 @@ Run: `admin-features-migration.sql` + `missing-tables.sql`
 ## After running all SQL
 1. Click "Reload Schema" in Supabase Table Editor
 2. In Supabase Dashboard → Authentication → Confirm your admin email is in ADMIN_EMAILS in AdminPage.jsx
-3. Set admin role: `UPDATE profiles SET role='admin' WHERE email='divineandbassey@gmail.com';`
+3. Founder accounts get the `superadmin` role from migration `20261009000000_security_audit_hardening.sql`, matched on the verified login email in `auth.users`. Do not set admin rights by `profiles.email`: users can edit that column, so it is not an authority. To grant a role to anyone else, a superadmin uses the admin UI, or run by user id: `UPDATE profiles SET role='admin' WHERE id = '<auth user uuid>';`
 
 ## Key Tables Added in v1.4
 - `matches` - AI property matching results
