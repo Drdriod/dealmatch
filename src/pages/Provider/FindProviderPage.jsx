@@ -65,7 +65,7 @@ export default function FindProviderPage() {
 
       const ids = vp.map(v => v.user_id)
       const [{ data: profiles }, { data: stats }] = await Promise.all([
-        supabase.from('profiles').select('id, full_name, avatar_url, city, state, bio').in('id', ids),
+        supabase.from('public_profiles').select('id, full_name, avatar_url, city, state, bio').in('id', ids),
         supabase.from('provider_stats').select('provider_id, review_count, avg_rating, completion_rate').in('provider_id', ids),
       ])
 

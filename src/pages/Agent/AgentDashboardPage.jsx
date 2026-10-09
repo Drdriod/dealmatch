@@ -50,7 +50,7 @@ export default function AgentDashboardPage() {
 
   useEffect(() => {
     if (!user) return
-    if (!['admin','agent'].includes(profile?.role)) { navigate('/'); return }
+    if (!['admin','superadmin','agent'].includes(profile?.role)) { navigate('/'); return }
     loadAll()
   }, [user, profile])
 

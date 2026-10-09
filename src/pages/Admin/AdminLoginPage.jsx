@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 const ADMIN_EMAILS  = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
-const ALLOWED_ROLES = ['admin', 'agent']
+const ALLOWED_ROLES = ['admin', 'superadmin', 'agent']
 
 // ─── Forgot Password View ────────────────────────────────────────────────────
 function ForgotPassword({ onBack }) {

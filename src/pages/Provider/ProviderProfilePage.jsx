@@ -42,7 +42,7 @@ export default function ProviderProfilePage() {
 
     const load = async () => {
       const [{ data: profileData }, { data: vp }, { data: statsData }, { data: reviewRows }, { data: bp }, { data: listingRows }, { data: payoutAcct }] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', id).single(),
+        supabase.from('public_profiles').select('*').eq('id', id).single(),
         supabase.from('verified_providers').select('level, level_data').eq('user_id', id).single(),
         supabase.from('provider_stats').select('*').eq('provider_id', id).single(),
         supabase
@@ -78,7 +78,7 @@ export default function ProviderProfilePage() {
       const reviewerIds = [...new Set(reviewsWithNames.map(r => r.reviewer_id))]
       if (reviewerIds.length) {
         const { data: reviewerProfiles } = await supabase
-          .from('profiles').select('id, full_name').in('id', reviewerIds)
+          .from('public_profiles').select('id, full_name').in('id', reviewerIds)
         const byId = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p]))
         reviewsWithNames = reviewsWithNames.map(r => ({ ...r, reviewerName: byId[r.reviewer_id]?.full_name }))
       }

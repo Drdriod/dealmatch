@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
             .maybeSingle()
           setIsAdmin(
             data.session.user.email === 'divineandbassey@gmail.com' ||
-            ['admin', 'agent', 'verifier'].includes(profile?.role)
+            ['admin', 'superadmin', 'agent', 'verifier'].includes(profile?.role)
           )
         }
         setStage('ready')
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
           .maybeSingle()
         setIsAdmin(
           sessionData.session.user.email === 'divineandbassey@gmail.com' ||
-          ['admin', 'agent', 'verifier'].includes(profile?.role)
+          ['admin', 'superadmin', 'agent', 'verifier'].includes(profile?.role)
         )
         setStage('ready')
         return

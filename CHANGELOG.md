@@ -1,3 +1,26 @@
+# DealMatch - Database Security Audit and Hardening (October 2026)
+
+- Admin access no longer depends on email. Authority comes only from
+  `profiles.role`. Founder accounts become `superadmin` by matching verified
+  login emails. Every founder-email check in functions and RLS is replaced.
+- Platform revenue goes to the `superadmin` role, not to a profile that matches
+  an email. (The previous lookup could be exploited.)
+- Internal and service-only functions are no longer callable by clients or
+  anonymous visitors: `release_held_payment`, `set_verification_level`,
+  `wa_add_strike`, `account_deletion_blockers`, `erase_account_data`, and others.
+- Cross-user reads of wallet, payout and unlock-credit data are refused unless
+  the caller owns the data or is staff.
+- Direct client writes are limited by column guards for escrow, listings,
+  student verifications and disputes. Tenant move-in confirmation works again.
+- `v_agent_scorecard` runs with the caller's privileges (it previously bypassed
+  RLS). Anonymous table write access is removed except the enquiry form.
+- Fixed: every write to `properties` failed because the sanitizer used a NUL
+  check that PostgreSQL rejects.
+- Migration `20261009000000_security_audit_hardening.sql`. Regression suite in
+  `supabase/tests/security_hardening.sql`. Full write-up in
+  `docs/security/2026-10-database-audit.md`, which supersedes
+  `security_audit_report.md`.
+
 # DealMatch - Crypto Payments Removed (October 2026)
 
 - Cryptocurrency (USDT/USDC) payment removed entirely: payment component and

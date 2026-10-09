@@ -298,7 +298,7 @@ export default function RentalsPage() {
     // status - never shown unless it's actually true.
     const sellerIds = [...new Set(list.map(r => r.seller_id).filter(Boolean))]
     if (sellerIds.length > 0) {
-      const { data: sellers } = await supabase.from('profiles')
+      const { data: sellers } = await supabase.from('public_profiles')
         .select('id, identity_verification_status').in('id', sellerIds)
       list = list.map(r => ({
         ...r,

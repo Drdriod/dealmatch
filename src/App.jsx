@@ -242,7 +242,7 @@ const AdminRoute = ({ children }) => {
   // bounce home instead of to a discoverable /admin-login. Staff use the
   // obscure entry path directly (see /staff-gate-7f3k below).
   if (!user) return <Navigate to="/" replace />
-  const isAdmin = ADMIN_ALLOWED_EMAILS.includes(user.email) || ['admin','agent','verifier'].includes(profile?.role)
+  const isAdmin = ADMIN_ALLOWED_EMAILS.includes(user.email) || ['admin','superadmin','agent','verifier'].includes(profile?.role)
   if (!isAdmin) return <Navigate to="/" replace />
   // Every path that reaches this point is a staff or admin account -
   // gate all of them behind a second factor, enrolling on first arrival
