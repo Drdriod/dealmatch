@@ -1,3 +1,5 @@
+> **Superseded.** This April 2026 report predates the current schema. See [docs/security/2026-10-database-audit.md](docs/security/2026-10-database-audit.md) for the October 2026 database audit and fixes.
+
 # DealMatch Security Audit Report
 **Version:** 1.4.0 Production  
 **Date:** April 2026  
