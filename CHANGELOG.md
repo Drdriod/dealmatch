@@ -1,5 +1,13 @@
 # DealMatch - Database Security Audit and Hardening (October 2026)
 
+## Unreleased - Flutterwave V4
+
+- Collections: each payment gets a Flutterwave V4 dynamic virtual account (bank transfer). The webhook marks it paid by account number and checks the amount against the expected amount. The V3 inline popup and `/api/payments/verify` are removed.
+- Payouts: V4 recipients (`bank_ngn`, stored on `payout_accounts.gateway_recipient_code`) and instant transfers. Bank list and account resolve use V4 endpoints.
+- Migration `20261009030000_flutterwave_virtual_accounts.sql` adds `payment_virtual_accounts` (RLS: payer reads own rows only).
+- Env vars: `FLUTTERWAVE_V4_CLIENT_ID`, `FLUTTERWAVE_V4_CLIENT_SECRET`, `FLUTTERWAVE_BASE_URL`, `FLUTTERWAVE_SECRET_HASH`. Removed: `FLUTTERWAVE_SECRET_KEY`, `VITE_FLUTTERWAVE_PUBLIC_KEY`.
+- Payment references are hyphenated (letters, digits, hyphens) to meet the V4 rule.
+
 ## Payment gateway: Paystack replaced by Flutterwave (October 2026)
 
 - Card, bank transfer and USSD checkout now run through Flutterwave's inline

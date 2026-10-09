@@ -43,7 +43,6 @@ const MAX_URL_LENGTH    = 2048
 const ALLOWED_ORIGINS = new Set([
   'https://dealmatch.com.ng',
   'https://www.dealmatch.com.ng',
-  'https://checkout.flutterwave.com',
 ])
 
 // ─── 1. Input Sanitization ────────────────────────────────────────────────────

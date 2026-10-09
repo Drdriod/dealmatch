@@ -75,6 +75,14 @@
       "destination": "/api/platform?resource=payout-resolve-account"
     },
     {
+      "source": "/api/payments/virtual-account",
+      "destination": "/api/platform?resource=payment-virtual-account"
+    },
+    {
+      "source": "/api/payments/status",
+      "destination": "/api/platform?resource=payment-status"
+    },
+    {
       "source": "/api/events/listing-created",
       "destination": "/api/platform?resource=listing-webhook"
     },
@@ -151,7 +159,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://checkout.flutterwave.com https://*.sentry.io https://*.posthog.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.googleapis.com https://*.gstatic.com; connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://checkout.flutterwave.com https://*.flutterwave.com https://*.sentry.io https://*.posthog.com https://maps.googleapis.com; frame-src https://checkout.flutterwave.com https://*.flutterwave.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' https://*.sentry.io https://*.posthog.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.googleapis.com https://*.gstatic.com; connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.posthog.com https://maps.googleapis.com; frame-src; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     }

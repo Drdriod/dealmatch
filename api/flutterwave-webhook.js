@@ -1,23 +1,26 @@
-// Flutterwave Webhook Handler: verifies payment and transfer events server-side
+// Flutterwave V4 webhook handler: verifies payment and transfer events server-side
 // Deployed as Vercel serverless function at /api/flutterwave-webhook
 //
-// Trust model: the verif-hash header only proves the request came from
-// Flutterwave's dashboard config. It does NOT prove the payload is true, so
-// every event is re-fetched from Flutterwave's API with our secret key
-// before anything is granted (see normalizeFlutterwaveEvent). The business
-// logic below works on a normalised event shaped like:
+// Trust model:
+//  - The flutterwave-signature header is HMAC-SHA256 (base64) of the RAW request
+//    body, keyed with our secret hash. We check it before parsing anything.
+//  - A valid signature still doesn't prove the payload is true, so each event is
+//    re-fetched from the Flutterwave V4 API before anything is granted.
+//  - Bank-transfer credits are matched to a payment by the virtual account
+//    number that was credited (payment_virtual_accounts), not by a reference
+//    supplied by the payer.
+//
+// The business logic below works on a normalised event shaped like:
 //   { event: 'charge.success' | 'transfer.success' | 'transfer.failed',
 //     data: { reference, amount (kobo), customer: { email }, metadata } }
 // so referral, escrow, unlock-credit and payout handling is unchanged.
-//
-// AUTOMATION: when a charge.success event lands here, this file walks
-// the buyer's referral chain automatically - Level 1/2/3 get cash,
-// Level 4+ get loyalty points - and creates a notification for every
-// person who earns. No manual lookup, no admin click required.
-// Mirrors the tiered rates in src/lib/referral.js exactly.
+
+// Vercel must not parse the body: the signature is computed over the raw bytes.
+export const config = { api: { bodyParser: false } }
 
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { flw } from '../src/lib/flutterwaveServer.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
 const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
@@ -178,73 +181,103 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
   }
 }
 
-// ✅ SECURITY: timing-safe comparison of the verif-hash header against the
-// secret hash configured in the Flutterwave dashboard
-function verifyHash(secretHash, headerValue) {
+// ✅ SECURITY: timing-safe check of the flutterwave-signature header
+// (HMAC-SHA256 base64 over the raw body, keyed with the secret hash)
+function verifySignature(secretHash, rawBody, headerValue) {
   if (!secretHash || !headerValue) return false
-  const a = Buffer.from(String(secretHash))
+  const expected = crypto.createHmac('sha256', secretHash).update(rawBody).digest('base64')
+  const a = Buffer.from(expected)
   const b = Buffer.from(String(headerValue))
   if (a.length !== b.length) return false
   return crypto.timingSafeEqual(a, b)
 }
 
-const FLW_API = 'https://api.flutterwave.com'
-
-// Fetch an object from Flutterwave's API using our secret key. Throws on
-// network or HTTP errors so the webhook returns 500 and Flutterwave retries.
-async function flwGet(path) {
-  const r = await fetch(`${FLW_API}${path}`, {
-    headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}` },
-  })
-  const body = await r.json().catch(() => null)
-  if (!r.ok || body?.status !== 'success') {
-    throw new Error(`Flutterwave ${path} failed: ${body?.message || r.status}`)
-  }
-  return body.data
+async function readRawBody(req) {
+  const chunks = []
+  for await (const chunk of req) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+  return Buffer.concat(chunks)
 }
 
-// Re-verify the webhook payload against Flutterwave, then reshape it into
-// the normalised event the handler below understands. Returns null for
-// events we don't act on, or that Flutterwave does not confirm.
-async function normalizeFlutterwaveEvent(body) {
-  const type = body?.event
-  const id   = body?.data?.id
-  if (!id) return null
+function getServiceClient() {
+  return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
 
-  if (type === 'charge.completed') {
-    const tx = await flwGet(`/v3/transactions/${encodeURIComponent(id)}/verify`)
-    // Must be confirmed successful, in naira, and the tx_ref must match
-    // what the webhook said. The amount used below is Flutterwave's, not
-    // the one in the webhook body.
-    if (tx?.status !== 'successful' || tx?.currency !== 'NGN' || tx?.tx_ref !== body.data.tx_ref) {
-      return null
-    }
-    return {
-      event: 'charge.success',
-      data: {
-        reference: tx.tx_ref,
-        amount:    Math.round(Number(tx.amount) * 100), // naira -> kobo, the unit used internally
-        customer:  { email: tx.customer?.email },
-        metadata:  tx.meta || {},
-      },
-    }
-  }
+// A customer paid by bank transfer into one of our virtual accounts.
+// Re-fetch the charge, match it to our row by account number, check the amount,
+// and mark the row paid exactly once.
+async function normalizeChargeEvent(eventData) {
+  const charge = await flw('GET', `/charges/${encodeURIComponent(eventData.id)}`)
+  if (charge?.status !== 'succeeded' || charge?.currency !== 'NGN') return null
 
-  if (type === 'transfer.completed') {
-    const tr = await flwGet(`/v3/transfers/${encodeURIComponent(id)}`)
-    const reference = tr?.reference
-    if (!reference) return null
-    // transfer_code carries our own payout reference: that is what
-    // payout_queue.gateway_ref stores, so the handlers below match on it.
-    if (tr.status === 'SUCCESSFUL') {
-      return { event: 'transfer.success', data: { reference, transfer_code: reference } }
-    }
-    if (tr.status === 'FAILED') {
-      return { event: 'transfer.failed', data: { reference, transfer_code: reference } }
-    }
+  const accountNumber = charge.payment_method_details?.bank_transfer?.virtual_account_number
+  if (!accountNumber) return null // card or other method: not a DealMatch virtual account
+
+  const svc = getServiceClient()
+  const { data: row } = await svc
+    .from('payment_virtual_accounts')
+    .select('*')
+    .eq('account_number', accountNumber)
+    .maybeSingle()
+  if (!row) {
+    console.warn('Credit to unknown virtual account:', accountNumber)
     return null
   }
 
+  const paidKobo = Math.round(Number(charge.amount) * 100)
+  if (paidKobo < Number(row.expected_kobo)) {
+    // Part-payment: record it, grant nothing. Staff follow up.
+    await svc.from('payment_virtual_accounts')
+      .update({ status: 'underpaid', paid_kobo: paidKobo })
+      .eq('reference', row.reference)
+      .eq('status', 'pending')
+    console.warn('Underpaid virtual account payment:', row.reference, paidKobo, row.expected_kobo)
+    return null
+  }
+
+  // Conditional update: only the first delivery of this credit flips the row
+  const { data: flipped } = await svc
+    .from('payment_virtual_accounts')
+    .update({ status: 'paid', paid_kobo: paidKobo, paid_at: new Date().toISOString() })
+    .eq('reference', row.reference)
+    .eq('status', 'pending')
+    .select('reference')
+  if (!flipped || flipped.length === 0) return null // already processed
+
+  return {
+    event: 'charge.success',
+    data: {
+      reference: row.reference,
+      amount: paidKobo,
+      customer: { email: row.email },
+      metadata: row.metadata || {},
+    },
+  }
+}
+
+// A payout transfer finished. Re-fetch it and map to our payout reference.
+async function normalizeTransferEvent(eventData) {
+  const transfer = await flw('GET', `/transfers/${encodeURIComponent(eventData.id)}`)
+  const reference = transfer?.reference
+  if (!reference) return null
+  // transfer_code carries our own payout reference: that is what
+  // payout_queue.gateway_ref stores, so the handlers below match on it.
+  if (transfer.status === 'SUCCESSFUL') {
+    return { event: 'transfer.success', data: { reference, transfer_code: reference } }
+  }
+  if (transfer.status === 'FAILED') {
+    return { event: 'transfer.failed', data: { reference, transfer_code: reference } }
+  }
+  return null
+}
+
+async function normalizeFlutterwaveEvent(body) {
+  const type = body?.type
+  const id = body?.data?.id
+  if (!id) return null
+  if (type === 'charge.completed') return normalizeChargeEvent(body.data)
+  if (type === 'transfer.disburse' || type === 'transfer.completed') return normalizeTransferEvent(body.data)
   return null
 }
 
@@ -259,28 +292,39 @@ export default async function handler(req, res) {
   }
 
   const secretHash = process.env.FLUTTERWAVE_SECRET_HASH
-  const headerHash = req.headers['verif-hash']
-
-  // ✅ SECURITY: reject if no secret hash configured
-  if (!secretHash || !process.env.FLUTTERWAVE_SECRET_KEY) {
-    console.error('FLUTTERWAVE_SECRET_HASH / FLUTTERWAVE_SECRET_KEY not set')
+  if (!secretHash || !process.env.FLUTTERWAVE_V4_CLIENT_ID || !process.env.FLUTTERWAVE_V4_CLIENT_SECRET || !process.env.FLUTTERWAVE_BASE_URL) {
+    console.error('Flutterwave webhook environment is not configured')
     return res.status(500).json({ error: 'Server misconfiguration' })
   }
 
-  // ✅ SECURITY: timing-safe check of the verif-hash header
-  if (!verifyHash(secretHash, headerHash)) {
-    console.error('Invalid Flutterwave webhook hash')
+  let rawBody
+  try {
+    rawBody = await readRawBody(req)
+  } catch {
+    return res.status(400).json({ error: 'Unreadable body' })
+  }
+
+  // ✅ SECURITY: check the signature over the raw bytes before trusting anything
+  if (!verifySignature(secretHash, rawBody, req.headers['flutterwave-signature'])) {
+    console.error('Invalid Flutterwave webhook signature')
     return res.status(400).json({ error: 'Invalid signature' })
   }
 
+  let body
+  try {
+    body = JSON.parse(rawBody.toString('utf8'))
+  } catch {
+    return res.status(400).json({ error: 'Malformed event' })
+  }
+
   // ✅ SECURITY: validate event shape
-  if (!req.body?.event || !req.body?.data) {
+  if (!body?.type || !body?.data) {
     return res.status(400).json({ error: 'Malformed event' })
   }
 
   let event
   try {
-    event = await normalizeFlutterwaveEvent(req.body)
+    event = await normalizeFlutterwaveEvent(body)
   } catch (err) {
     // Flutterwave API unreachable or refused: return 500 so Flutterwave retries
     console.error('Flutterwave re-verification failed:', err.message)

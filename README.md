@@ -42,7 +42,7 @@ DealMatch is a multi-category, intent-driven matching platform. A user says what
 | Matching | Pinecone Vector Search (Real Estate) + PostGIS/JSONB RPC (all other categories) |
 | Search | Postgres full-text search, federated across every category in one RPC |
 | Maps | Google Maps (`@react-google-maps/api`) |
-| Payments | Flutterwave (card, bank transfer, USSD); bank payouts and bank account checks via Flutterwave |
+| Payments | Flutterwave V4: bank transfer to a dynamic virtual account per payment; bank payouts and account checks via Flutterwave V4 |
 | Hosting | Vercel (CI/CD via GitHub) |
 | PWA | Service Worker + Web App Manifest |
 | Analytics | PostHog |
@@ -77,7 +77,7 @@ src/
 │   ├── schemaValidation.js # Ajv validation against each category's JSON Schema
 │   ├── apiMiddleware.js    # withSecurity() wrapper (auth, rate limit, origin check)
 │   ├── redis.js            # Rate limiting
-│   ├── flutterwave.js      # Payment processing (Flutterwave inline checkout)
+│   ├── flutterwave.js      # Payment processing (Flutterwave V4 virtual accounts)
 │   ├── pinecone.js         # AI vector matching (Real Estate)
 │   └── referral.js         # 3-level cash + points system
 ├── pages/
@@ -256,9 +256,10 @@ Set these in Vercel, scoped per environment (Production vs. Preview, so a sandbo
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-VITE_FLUTTERWAVE_PUBLIC_KEY=
-FLUTTERWAVE_SECRET_KEY=
-FLUTTERWAVE_SECRET_HASH=   # the secret hash you set in the Flutterwave dashboard; sent back as the verif-hash header
+FLUTTERWAVE_V4_CLIENT_ID=      # V4 Live/Sandbox API keys page (OAuth client credentials)
+FLUTTERWAVE_V4_CLIENT_SECRET=
+FLUTTERWAVE_BASE_URL=         # sandbox: https://developersandbox-api.flutterwave.com  live: https://f4bexperience.flutterwave.com
+FLUTTERWAVE_SECRET_HASH=       # the webhook secret hash set in the Flutterwave dashboard; checked against the flutterwave-signature header
 VITE_PINECONE_API_KEY=
 VITE_PINECONE_INDEX=
 VITE_GOOGLE_MAPS_API_KEY=
@@ -321,7 +322,7 @@ DealMatch ships as native Android and iOS app shells (Capacitor), wrapping the l
 - Input sanitization on all form inputs
 - Rate limiting on auth (5 attempts/minute), on the bot-facing render path (separately, since that path can't use the normal auth-based rate limiter), and now on both outbound message endpoints
 - Security headers: HSTS, X-Frame-Options, CSP, X-XSS-Protection
-- Flutterwave webhook verification (verif-hash header, then re-verified with the Flutterwave API) and escrow webhook signature verification (fail-closed - a missing/invalid signature is rejected, not silently skipped)
+- Flutterwave webhook verification (flutterwave-signature HMAC-SHA256 over the raw body, then each event re-read from the Flutterwave V4 API) and escrow webhook signature verification (fail-closed - a missing/invalid signature is rejected, not silently skipped)
 - No secrets in client code
 - Module boundary enforcement: no file outside a module's own directory queries a table that module owns (enforced by `npm run check:fitness`, wired into CI)
 - `npm audit`: clean except one moderate `react-router-dom` advisory requiring a v6→v7 major upgrade, deferred as a planned migration - see "Known follow-ups" above
