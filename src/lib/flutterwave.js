@@ -1,8 +1,13 @@
-// Paystack: Nigerian payment gateway
-// Handles professional listing subscription fees + student hostel listing fees
-// + escrow funding for marketplace transactions (ADR-009).
+// Flutterwave: payment gateway (replaces the previous gateway).
+// Handles professional listing subscription fees, student hostel listing
+// fees, escrow funding for marketplace transactions (ADR-009) and
+// contact-unlock credit packs.
+//
+// Amounts in this module are NAIRA. Flutterwave takes naira; the database
+// and the webhook work in kobo (amount x 100). The webhook is the only
+// place that grants anything: the client callback below is for UX only.
 
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
+const FLUTTERWAVE_PUBLIC_KEY = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY
 
 // ─── Professional Plans ────────────────────────────────────
 // Flat N25,000/month for every professional type - finalized rate.
@@ -95,21 +100,23 @@ export const HOSTEL_LISTING_PLANS = {
   },
 }
 
-// ─── Load Paystack script once ─────────────────────────────
-let paystackLoaded = false
-function loadPaystackScript() {
+// ─── Load Flutterwave inline checkout once ─────────────────
+let flutterwaveLoaded = false
+function loadFlutterwaveScript() {
   return new Promise((resolve) => {
-    if (paystackLoaded || window.PaystackPop) { resolve(); return }
+    if (flutterwaveLoaded || window.FlutterwaveCheckout) { resolve(); return }
     const script = document.createElement('script')
-    script.src = 'https://js.paystack.co/v1/inline.js'
-    script.onload = () => { paystackLoaded = true; resolve() }
+    script.src = 'https://checkout.flutterwave.com/v3.js'
+    script.onload = () => { flutterwaveLoaded = true; resolve() }
     script.onerror = () => resolve() // fail silently
     document.head.appendChild(script)
   })
 }
 
 // ─── Open payment popup ────────────────────────────────────
-export const initializePaystackPayment = async ({
+// `amount` is in naira. `reference` becomes the Flutterwave tx_ref, which
+// the webhook resolves transactions by (the same role the payment reference plays in the webhook).
+export const initializeFlutterwavePayment = async ({
   email,
   amount,
   metadata = {},
@@ -117,24 +124,34 @@ export const initializePaystackPayment = async ({
   onClose,
   reference,
 }) => {
-  if (!PAYSTACK_PUBLIC_KEY) {
-    console.warn('[DealMatch] VITE_PAYSTACK_PUBLIC_KEY is not set - payment skipped')
+  if (!FLUTTERWAVE_PUBLIC_KEY) {
+    console.warn('[DealMatch] VITE_FLUTTERWAVE_PUBLIC_KEY is not set - payment skipped')
     return
   }
-  await loadPaystackScript()
-  if (!window.PaystackPop) { return }
+  await loadFlutterwaveScript()
+  if (!window.FlutterwaveCheckout) { return }
 
-  const handler = window.PaystackPop.setup({
-    key:      PAYSTACK_PUBLIC_KEY,
-    email,
-    amount:   amount * 100, // kobo
-    currency: 'NGN',
-    ref:      reference || generateReference(),
-    metadata: { ...metadata, platform: 'DealMatch' },
-    callback: (response) => onSuccess?.(response),
-    onClose:  () => onClose?.(),
+  const txRef = reference || generateReference()
+  window.FlutterwaveCheckout({
+    public_key:      FLUTTERWAVE_PUBLIC_KEY,
+    tx_ref:          txRef,
+    amount:          Number(amount),
+    currency:        'NGN',
+    payment_options: 'card,banktransfer,ussd',
+    customer:        { email },
+    meta:            { ...metadata, platform: 'DealMatch', tx_ref: txRef },
+    customizations:  { title: 'DealMatch', description: metadata.plan_name || metadata.property_title || 'DealMatch payment' },
+    callback: (response) => {
+      // Normalised so callers keep using response.reference.
+      // Only a server verification (/api/payments/verify) or the webhook counts as paid.
+      onSuccess?.({
+        reference:     response.tx_ref || txRef,
+        transactionId: response.transaction_id,
+        status:        response.status,
+      })
+    },
+    onclose: (incomplete) => { if (incomplete) onClose?.() },
   })
-  handler.openIframe()
 }
 
 // ─── Contact-unlock credit packs (item 2) ──────────────────
@@ -142,14 +159,14 @@ export const initializePaystackPayment = async ({
 // src/components/ui/UnlockContactButton.jsx for where this is used, and
 // supabase/migrations/20260915000003_contact_unlock_credits.sql for the
 // server-side wallet + idempotent unlock logic. A credit is only ever
-// granted by the webhook once Paystack confirms the charge, never here.
+// granted by the webhook once Flutterwave confirms the charge, never here.
 export const UNLOCK_CREDIT_PACKS = [
   { credits: 1, price: 500,  label: '1 unlock' },
   { credits: 5, price: 2000, label: '5 unlocks', badge: 'Best value' }, // 2000/5 = 400/unlock, a real discount over buying singly
 ]
 
 export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose }) => {
-  await initializePaystackPayment({
+  await initializeFlutterwavePayment({
     email,
     amount: pack.price,
     metadata: {
@@ -158,7 +175,7 @@ export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose
       credits: pack.credits,
     },
     onSuccess: async (response) => {
-      await verifyPayment(response.reference)
+      await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
     },
     onClose,
@@ -167,7 +184,7 @@ export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose
 
 // Called after the applicant's professional_applications row has
 // already been created with status='pending'. On successful
-// payment, the Paystack webhook flips status to 'active'.
+// payment, the Flutterwave webhook flips status to 'active'.
 export const subscribeProfessional = async ({
   applicationId,
   userId,
@@ -181,7 +198,7 @@ export const subscribeProfessional = async ({
   if (!plan) return
   const amount = planType === 'annual' ? plan.annualFee : plan.monthlyFee
 
-  await initializePaystackPayment({
+  await initializeFlutterwavePayment({
     email,
     amount,
     metadata: {
@@ -193,7 +210,7 @@ export const subscribeProfessional = async ({
       plan_name:          plan.name,
     },
     onSuccess: async (response) => {
-      await verifyPayment(response.reference)
+      await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
     },
     onClose,
@@ -216,7 +233,7 @@ export const payHostelListingFee = async ({
 
   const reference = generateReference()
 
-  await initializePaystackPayment({
+  await initializeFlutterwavePayment({
     email,
     amount:    planMeta.price,
     reference,
@@ -238,7 +255,7 @@ export const payHostelListingFee = async ({
 //
 // The reference passed in must already be bound to the transaction via
 // the start_escrow_payment RPC (20260731000020) BEFORE this is called --
-// see JobPostingPage.jsx's fundEscrow(). The webhook (paystack-webhook.js)
+// see JobPostingPage.jsx's fundEscrow(). The webhook (flutterwave-webhook.js)
 // resolves which transaction to mark FUNDED strictly by that reference,
 // not by metadata.transaction_id, so a reference that was never bound
 // server-side won't match anything and the payment will be logged but
@@ -255,7 +272,7 @@ export const fundTransactionEscrow = async ({
   if (!amountCents) return
   const ref = reference || generateReference()
 
-  await initializePaystackPayment({
+  await initializeFlutterwavePayment({
     email,
     amount:    amountCents / 100, // this function takes naira, not cents
     reference: ref,
@@ -265,7 +282,7 @@ export const fundTransactionEscrow = async ({
       user_id:        requesterId,
     },
     onSuccess: async (response) => {
-      await verifyPayment(response.reference)
+      await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
     },
     onClose,
@@ -273,12 +290,12 @@ export const fundTransactionEscrow = async ({
 }
 
 // ─── Verify on server ──────────────────────────────────────
-export const verifyPayment = async (reference) => {
+export const verifyPayment = async (reference, transactionId) => {
   try {
     const res = await fetch('/api/payments/verify', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ reference }),
+      body:    JSON.stringify({ reference, transactionId }),
     })
     if (!res.ok) throw new Error('Verification failed')
     return await res.json()

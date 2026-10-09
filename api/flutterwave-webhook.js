@@ -1,5 +1,14 @@
-// Paystack Webhook Handler: verifies payment events server-side
-// Deployed as Vercel serverless function at /api/paystack-webhook
+// Flutterwave Webhook Handler: verifies payment and transfer events server-side
+// Deployed as Vercel serverless function at /api/flutterwave-webhook
+//
+// Trust model: the verif-hash header only proves the request came from
+// Flutterwave's dashboard config. It does NOT prove the payload is true, so
+// every event is re-fetched from Flutterwave's API with our secret key
+// before anything is granted (see normalizeFlutterwaveEvent). The business
+// logic below works on a normalised event shaped like:
+//   { event: 'charge.success' | 'transfer.success' | 'transfer.failed',
+//     data: { reference, amount (kobo), customer: { email }, metadata } }
+// so referral, escrow, unlock-credit and payout handling is unchanged.
 //
 // AUTOMATION: when a charge.success event lands here, this file walks
 // the buyer's referral chain automatically - Level 1/2/3 get cash,
@@ -37,7 +46,7 @@ const calcCashReferral = (dmCommission, level) => {
 
 const calcPoints = (level) => POINTS_PER_LEVEL[level] || POINTS_DEFAULT
 
-// Map Paystack payment_type metadata to a DealMatch transaction type + fee rate
+// Map payment_type metadata to a DealMatch transaction type + fee rate
 //
 // 'transaction_escrow' (ADR-009 marketplace jobs) is deliberately NOT in
 // this map. Architecture v3 Section 4.3 is explicit that the DealMatch
@@ -169,18 +178,74 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
   }
 }
 
-// ✅ SECURITY: timing-safe HMAC comparison (prevents timing attacks)
-function verifySignature(secret, body, signature) {
-  if (!secret || !signature) return false
-  const hash = crypto
-    .createHmac('sha512', secret)
-    .update(JSON.stringify(body))
-    .digest('hex')
-  try {
-    return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature))
-  } catch {
-    return false
+// ✅ SECURITY: timing-safe comparison of the verif-hash header against the
+// secret hash configured in the Flutterwave dashboard
+function verifyHash(secretHash, headerValue) {
+  if (!secretHash || !headerValue) return false
+  const a = Buffer.from(String(secretHash))
+  const b = Buffer.from(String(headerValue))
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(a, b)
+}
+
+const FLW_API = 'https://api.flutterwave.com'
+
+// Fetch an object from Flutterwave's API using our secret key. Throws on
+// network or HTTP errors so the webhook returns 500 and Flutterwave retries.
+async function flwGet(path) {
+  const r = await fetch(`${FLW_API}${path}`, {
+    headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}` },
+  })
+  const body = await r.json().catch(() => null)
+  if (!r.ok || body?.status !== 'success') {
+    throw new Error(`Flutterwave ${path} failed: ${body?.message || r.status}`)
   }
+  return body.data
+}
+
+// Re-verify the webhook payload against Flutterwave, then reshape it into
+// the normalised event the handler below understands. Returns null for
+// events we don't act on, or that Flutterwave does not confirm.
+async function normalizeFlutterwaveEvent(body) {
+  const type = body?.event
+  const id   = body?.data?.id
+  if (!id) return null
+
+  if (type === 'charge.completed') {
+    const tx = await flwGet(`/v3/transactions/${encodeURIComponent(id)}/verify`)
+    // Must be confirmed successful, in naira, and the tx_ref must match
+    // what the webhook said. The amount used below is Flutterwave's, not
+    // the one in the webhook body.
+    if (tx?.status !== 'successful' || tx?.currency !== 'NGN' || tx?.tx_ref !== body.data.tx_ref) {
+      return null
+    }
+    return {
+      event: 'charge.success',
+      data: {
+        reference: tx.tx_ref,
+        amount:    Math.round(Number(tx.amount) * 100), // naira -> kobo, the unit used internally
+        customer:  { email: tx.customer?.email },
+        metadata:  tx.meta || {},
+      },
+    }
+  }
+
+  if (type === 'transfer.completed') {
+    const tr = await flwGet(`/v3/transfers/${encodeURIComponent(id)}`)
+    const reference = tr?.reference
+    if (!reference) return null
+    // transfer_code carries our own payout reference: that is what
+    // payout_queue.gateway_ref stores, so the handlers below match on it.
+    if (tr.status === 'SUCCESSFUL') {
+      return { event: 'transfer.success', data: { reference, transfer_code: reference } }
+    }
+    if (tr.status === 'FAILED') {
+      return { event: 'transfer.failed', data: { reference, transfer_code: reference } }
+    }
+    return null
+  }
+
+  return null
 }
 
 // ✅ SECURITY: idempotency guard: track processed references in memory
@@ -193,26 +258,37 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const secret    = process.env.PAYSTACK_SECRET_KEY
-  const signature = req.headers['x-paystack-signature']
+  const secretHash = process.env.FLUTTERWAVE_SECRET_HASH
+  const headerHash = req.headers['verif-hash']
 
-  // ✅ SECURITY: reject if no secret configured
-  if (!secret) {
-    console.error('PAYSTACK_SECRET_KEY not set')
+  // ✅ SECURITY: reject if no secret hash configured
+  if (!secretHash || !process.env.FLUTTERWAVE_SECRET_KEY) {
+    console.error('FLUTTERWAVE_SECRET_HASH / FLUTTERWAVE_SECRET_KEY not set')
     return res.status(500).json({ error: 'Server misconfiguration' })
   }
 
-  // ✅ SECURITY: timing-safe signature check
-  if (!verifySignature(secret, req.body, signature)) {
-    console.error('Invalid Paystack webhook signature')
+  // ✅ SECURITY: timing-safe check of the verif-hash header
+  if (!verifyHash(secretHash, headerHash)) {
+    console.error('Invalid Flutterwave webhook hash')
     return res.status(400).json({ error: 'Invalid signature' })
   }
 
-  const event = req.body
-
   // ✅ SECURITY: validate event shape
-  if (!event?.event || !event?.data) {
+  if (!req.body?.event || !req.body?.data) {
     return res.status(400).json({ error: 'Malformed event' })
+  }
+
+  let event
+  try {
+    event = await normalizeFlutterwaveEvent(req.body)
+  } catch (err) {
+    // Flutterwave API unreachable or refused: return 500 so Flutterwave retries
+    console.error('Flutterwave re-verification failed:', err.message)
+    return res.status(500).json({ error: 'Verification failed' })
+  }
+  if (!event) {
+    // Not an event we act on, or Flutterwave does not confirm it
+    return res.status(200).json({ received: true, ignored: true })
   }
 
   try {
@@ -291,14 +367,14 @@ export default async function handler(req, res) {
           }
 
           // NEW (item 2): credit-pack purchase for optional contact
-          // unlock. Credits are only ever granted here, after Paystack
+          // unlock. Credits are only ever granted here, after Flutterwave
           // confirms the charge - never on the client's say-so - same
           // enforcement principle as every other payment type in this
           // file (item 3/6 of the fix request).
           if (metadata?.type === 'contact_unlock_credits') {
-            // Credits are derived from the amount Paystack actually charged,
+            // Credits are derived from the amount Flutterwave actually charged,
             // never from client metadata. Keep this map in step with
-            // UNLOCK_CREDIT_PACKS in src/lib/paystack.js (prices in kobo).
+            // UNLOCK_CREDIT_PACKS in src/lib/flutterwave.js (prices in kobo).
             const PACK_CREDITS_BY_KOBO = { 50000: 1, 200000: 5 }
             const credits = PACK_CREDITS_BY_KOBO[amount] || 0
 
@@ -314,7 +390,7 @@ export default async function handler(req, res) {
             }
 
             if (credits > 0 && buyerId) {
-              // Paystack retries webhooks. Grant once per payment reference.
+              // Flutterwave retries webhooks. Grant once per payment reference.
               const { data: already } = await supabase
                 .from('unlock_credit_ledger')
                 .select('id')
@@ -336,7 +412,7 @@ export default async function handler(req, res) {
           }
 
           // ✅ SECURITY FIX: escrow metadata (user_id, platform_fee) is
-          // client-supplied at Paystack widget init and is NOT trustworthy.
+          // client-supplied at Flutterwave widget init and is NOT trustworthy.
           // Previously this trusted metadata.user_id to pick which escrow
           // row to confirm, and metadata.platform_fee as the commission
           // figure downstream - both spoofable by paying a tiny real amount
@@ -385,7 +461,7 @@ export default async function handler(req, res) {
           // Multi-Attribute Reverse jobs) ─────────────────────────────
           // Same resolve-by-payment_ref pattern as escrow_payment above,
           // for the same reason: metadata.transaction_id is client-supplied
-          // at Paystack widget init and must not be trusted to pick which
+          // at Flutterwave widget init and must not be trusted to pick which
           // row to mark FUNDED. payment_ref was written server-side (via
           // the authorization-checked start_escrow_payment RPC,
           // 20260731000020) before this payment ever started, so resolving
@@ -456,11 +532,11 @@ export default async function handler(req, res) {
           try {
             const mapping = TYPE_MAP[metadata?.type]
             // ✅ SECURITY FIX: never trust metadata.user_id or metadata.platform_fee
-            // directly - both are attacker-controlled at Paystack widget init.
+            // directly - both are attacker-controlled at Flutterwave widget init.
             // For escrow, only proceed if we resolved a real DB row above
             // (escrowRow) and use ITS tenant_id + platform_fee. For every
             // other type, dmCommission is derived from amountNgn, which is
-            // the actual amount Paystack charged (verified via HMAC
+            // the actual amount Flutterwave charged (verified via HMAC
             // signature above) - not attacker-suppliable.
             const referralUserId = metadata?.type === 'escrow_payment'
               ? escrowRow?.tenant_id
@@ -515,7 +591,7 @@ export default async function handler(req, res) {
               transaction_id: queueRow.transaction_id,
               entry_type: 'released',
               amount_cents: queueRow.amount_cents,
-              gateway: 'paystack',
+              gateway: 'flutterwave',
               gateway_ref: transferCode,
             })
             await svc.from('commission_wallet_ledger').insert({
@@ -523,7 +599,7 @@ export default async function handler(req, res) {
               transaction_id: queueRow.transaction_id,
               entry_type: 'withdrawn', // this is a real bank settlement, not just an internal "released" marker
               amount_cents: queueRow.amount_cents,
-              gateway: 'paystack',
+              gateway: 'flutterwave',
               gateway_ref: transferCode,
             })
           } else {
@@ -545,18 +621,14 @@ export default async function handler(req, res) {
           const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
           const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
           if (queueRow) {
-            await svc.from('payout_queue').update({ status: 'failed', failure_reason: `Paystack ${event.event}` }).eq('id', queueRow.id)
+            await svc.from('payout_queue').update({ status: 'failed', failure_reason: `Flutterwave ${event.event}` }).eq('id', queueRow.id)
             await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
           }
         }
         break
       }
 
-      case 'charge.dispute.create':
-        console.warn('Dispute created:', event.data.reference)
-        break
-
-      default:
+            default:
         // Don't log unknown events in detail: potential info leak
         break
     }

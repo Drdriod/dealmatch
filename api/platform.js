@@ -149,31 +149,29 @@ const jsonResources = {
   //   - cron-process-payouts: Vercel Cron hits this on a schedule (see
   //     vercel.json "crons"), picks up pending payout_queue rows (queued
   //     by release_held_payment() once a transaction is dual-confirmed -
-  //     see 20260915000002_automated_payouts.sql), creates a Paystack
-  //     transfer recipient if the provider doesn't have one yet, and
-  //     initiates the transfer. Final confirmation happens asynchronously
-  //     via api/paystack-webhook.js's transfer.success/transfer.failed.
-  //   - paystack-banks / paystack-resolve-account: PayoutSetupPage.jsx
-  //     needs these to let a provider pick a real bank (for its Paystack
-  //     code, required to create a transfer recipient) and confirm the
-  //     account name resolves, instead of the old free-text bank name
-  //     field that gave no way to actually pay anyone out automatically.
+  //     see 20260915000002_automated_payouts.sql) and initiates a
+  //     Flutterwave bank transfer straight to the account's bank code and
+  //     number. Final confirmation happens asynchronously via
+  //     api/flutterwave-webhook.js's transfer.success/transfer.failed.
+  //   - payout-banks / payout-resolve-account: PayoutSetupPage.jsx lets a
+  //     provider pick a real bank and confirm the account name resolves
+  //     before submitting, instead of a free-text bank name.
   async ['cron-process-payouts'](req, res) {
     // Not a signed-in-user resource - Vercel Cron calls this with no user
     // session at all, so it is gated by a shared secret instead, the same
-    // pattern api/escrow-webhook.js and api/paystack-webhook.js use for
+    // pattern api/escrow-webhook.js and api/flutterwave-webhook.js use for
     // gateway-initiated calls that also have no user JWT to check.
     const cronSecret = process.env.CRON_SECRET
     const auth = req.headers.authorization
     if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.PAYSTACK_SECRET_KEY) {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.FLUTTERWAVE_SECRET_KEY) {
       return res.status(200).json({ processed: 0, skipped: 'payouts not configured' })
     }
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-    const paystackKey = process.env.PAYSTACK_SECRET_KEY
+    const flwKey = process.env.FLUTTERWAVE_SECRET_KEY
 
     const { data: rows, error } = await svc
       .from('payout_queue')
@@ -211,50 +209,38 @@ const jsonResources = {
           throw new Error('Payout account is missing a bank code - ask the provider to resubmit their bank details')
         }
 
-        let recipientCode = account.gateway_recipient_code
-        if (!recipientCode) {
-          const recRes = await fetch('https://api.paystack.co/transferrecipient', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${paystackKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'nuban',
-              name: account.account_name,
-              account_number: account.account_number,
-              bank_code: account.bank_code,
-              currency: 'NGN',
-            }),
-          })
-          const recData = await recRes.json()
-          if (!recRes.ok || !recData?.data?.recipient_code) {
-            throw new Error(recData?.message || 'Failed to create Paystack transfer recipient')
-          }
-          recipientCode = recData.data.recipient_code
-          await svc.from('payout_accounts').update({ gateway_recipient_code: recipientCode }).eq('id', account.id)
-        }
-
-        const transferRes = await fetch('https://api.paystack.co/transfer', {
+        // Flutterwave transfers go straight to bank code + account number,
+        // so there is no recipient object to create first. The reference is
+        // stable per queue row: Flutterwave rejects a duplicate reference,
+        // so a crash between sending and recording cannot pay out twice.
+        const transferReference = `payout_${row.id}`
+        const transferRes = await fetch('https://api.flutterwave.com/v3/transfers', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${paystackKey}`, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${flwKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            source: 'balance',
-            amount: row.amount_cents, // Paystack amounts are in kobo, same unit as amount_cents throughout this codebase
-            recipient: recipientCode,
-            reason: `DealMatch payout - transaction #${row.transaction_id}`,
-            reference: `payout_${row.id}_${Date.now()}`,
+            account_bank:   account.bank_code,
+            account_number: account.account_number,
+            amount:         row.amount_cents / 100, // Flutterwave takes naira; amount_cents is kobo
+            currency:       'NGN',
+            narration:      `DealMatch payout - transaction #${row.transaction_id}`,
+            reference:      transferReference,
+            beneficiary_name: account.account_name,
+            debit_currency: 'NGN',
           }),
         })
-        const transferData = await transferRes.json()
-        if (!transferRes.ok) {
-          throw new Error(transferData?.message || 'Paystack transfer initiation failed')
+        const transferData = await transferRes.json().catch(() => null)
+        if (!transferRes.ok || transferData?.status !== 'success') {
+          throw new Error(transferData?.message || 'Flutterwave transfer initiation failed')
         }
 
-        // Still 'pending' from Paystack's side until the transfer.success
+        // Still pending on Flutterwave's side until the transfer.completed
         // webhook confirms it - this just records that it's in flight.
+        // gateway_ref is our own reference, which the webhook matches on.
         await svc.from('payout_queue').update({
           status: 'processing',
-          gateway_ref: transferData.data?.transfer_code || transferData.data?.reference || null,
+          gateway_ref: transferReference,
         }).eq('id', row.id)
-        await svc.from('transactions').update({ payout_ref: transferData.data?.transfer_code }).eq('id', row.transaction_id)
+        await svc.from('transactions').update({ payout_ref: String(transferData.data?.id ?? transferReference) }).eq('id', row.transaction_id)
 
         processed++
       } catch (err) {
@@ -273,43 +259,45 @@ const jsonResources = {
     return res.status(200).json({ processed, failed, total: (rows || []).length })
   },
 
-  async ['paystack-banks'](req, res) {
+  async ['payout-banks'](req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-    if (!process.env.PAYSTACK_SECRET_KEY) return res.status(200).json({ banks: [] })
+    if (!process.env.FLUTTERWAVE_SECRET_KEY) return res.status(200).json({ banks: [] })
     try {
-      const r = await fetch('https://api.paystack.co/bank?country=nigeria&currency=NGN', {
-        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+      const r = await fetch('https://api.flutterwave.com/v3/banks/NG', {
+        headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}` },
       })
       const data = await r.json()
       const banks = (data?.data || []).map(b => ({ name: b.name, code: b.code })).sort((a, b) => a.name.localeCompare(b.name))
       res.setHeader('Cache-Control', 'public, max-age=3600') // bank list barely ever changes
       return res.status(200).json({ banks })
     } catch (err) {
-      console.error('paystack-banks failed:', err.message)
+      console.error('payout-banks failed:', err.message)
       return res.status(200).json({ banks: [] })
     }
   },
 
-  async ['paystack-resolve-account'](req, res, supabase) {
+  async ['payout-resolve-account'](req, res, supabase) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
     const { user } = await getAuthedUser(req, supabase)
     if (!user) return res.status(401).json({ error: 'Authentication required' })
-    if (!process.env.PAYSTACK_SECRET_KEY) return res.status(200).json({ resolved: false })
+    if (!process.env.FLUTTERWAVE_SECRET_KEY) return res.status(200).json({ resolved: false })
 
     const { accountNumber, bankCode } = req.body || {}
     if (!accountNumber || !bankCode) return res.status(400).json({ error: 'accountNumber and bankCode required' })
 
     try {
-      const r = await fetch(`https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(accountNumber)}&bank_code=${encodeURIComponent(bankCode)}`, {
-        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+      const r = await fetch('https://api.flutterwave.com/v3/accounts/resolve', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ account_number: String(accountNumber), account_bank: String(bankCode) }),
       })
       const data = await r.json()
-      if (!r.ok || !data?.data?.account_name) {
+      if (!r.ok || data?.status !== 'success' || !data?.data?.account_name) {
         return res.status(200).json({ resolved: false, error: data?.message || 'Could not resolve this account' })
       }
       return res.status(200).json({ resolved: true, accountName: data.data.account_name })
     } catch (err) {
-      console.error('paystack-resolve-account failed:', err.message)
+      console.error('payout-resolve-account failed:', err.message)
       return res.status(200).json({ resolved: false })
     }
   },

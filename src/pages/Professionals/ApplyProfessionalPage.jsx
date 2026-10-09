@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Briefcase, Building, Check, ChevronDown, Map } f
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { supabase } from '@/lib/supabase'
-import { PROFESSIONAL_PLANS, subscribeProfessional } from '@/lib/paystack'
+import { PROFESSIONAL_PLANS, subscribeProfessional } from '@/lib/flutterwave'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 

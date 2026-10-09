@@ -66,7 +66,7 @@ export default function ProviderProfilePage() {
         // Only meaningful when the viewer owns this profile, harmless
         // no-op read otherwise since RLS restricts it to the owner anyway.
         user?.id === id
-          ? supabase.from('payout_accounts').select('status').eq('profile_id', id).eq('gateway', 'paystack').maybeSingle()
+          ? supabase.from('payout_accounts').select('status').eq('profile_id', id).maybeSingle()
           : Promise.resolve({ data: null }),
       ])
 
