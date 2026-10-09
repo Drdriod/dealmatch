@@ -296,16 +296,42 @@ export default async function handler(req, res) {
           // enforcement principle as every other payment type in this
           // file (item 3/6 of the fix request).
           if (metadata?.type === 'contact_unlock_credits') {
-            const credits = Number(metadata.credits) || 0
-            if (metadata.user_id && credits > 0) {
-              await supabase.from('unlock_credit_ledger').insert({
-                profile_id: metadata.user_id,
-                entry_type: 'purchased',
-                credits,
-                price_cents: amount,
-                payment_ref: reference,
-              })
-              console.log(`Granted ${credits} unlock credit(s) to`, metadata.user_id)
+            // Credits are derived from the amount Paystack actually charged,
+            // never from client metadata. Keep this map in step with
+            // UNLOCK_CREDIT_PACKS in src/lib/paystack.js (prices in kobo).
+            const PACK_CREDITS_BY_KOBO = { 50000: 1, 200000: 5 }
+            const credits = PACK_CREDITS_BY_KOBO[amount] || 0
+
+            // The buyer must be the account whose verified login email matches
+            // the payer. metadata.user_id alone is client-supplied, so it is
+            // not trusted on its own.
+            let buyerId = null
+            if (credits > 0 && metadata.user_id && customer?.email) {
+              const { data: authUser } = await supabase.auth.admin.getUserById(metadata.user_id)
+              if (authUser?.user && authUser.user.email?.toLowerCase() === String(customer.email).toLowerCase()) {
+                buyerId = authUser.user.id
+              }
+            }
+
+            if (credits > 0 && buyerId) {
+              // Paystack retries webhooks. Grant once per payment reference.
+              const { data: already } = await supabase
+                .from('unlock_credit_ledger')
+                .select('id')
+                .eq('payment_ref', reference)
+                .maybeSingle()
+              if (!already) {
+                await supabase.from('unlock_credit_ledger').insert({
+                  profile_id: buyerId,
+                  entry_type: 'purchased',
+                  credits,
+                  price_cents: amount,
+                  payment_ref: reference,
+                })
+                console.log(`Granted ${credits} unlock credit(s) to`, buyerId)
+              }
+            } else {
+              console.warn('Unlock purchase not granted (amount or buyer did not match):', reference, amount)
             }
           }
 

@@ -25,7 +25,7 @@ export async function fetchPlacesNearYou(limit = 8) {
   const sellerIds = [...new Set(data.map(r => r.seller_id).filter(Boolean))]
   let verifiedSellerIds = new Set()
   if (sellerIds.length > 0) {
-    const { data: sellers } = await supabase.from('profiles')
+    const { data: sellers } = await supabase.from('public_profiles')
       .select('id, identity_verification_status').in('id', sellerIds)
     verifiedSellerIds = new Set((sellers || [])
       .filter(s => s.identity_verification_status === 'approved')
@@ -62,7 +62,7 @@ export async function fetchPeopleNearYou(limit = 8) {
 
   const ids = vp.map(v => v.user_id)
   const { data: profiles } = await supabase
-    .from('profiles').select('id, full_name, avatar_url, city, state').in('id', ids)
+    .from('public_profiles').select('id, full_name, avatar_url, city, state').in('id', ids)
 
   return vp.map(v => {
     const p = profiles?.find(x => x.id === v.user_id)

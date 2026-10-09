@@ -125,7 +125,7 @@ These are not fixed in this change. Each needs a product or ops decision.
 | F1 | Signup conflict checks (`check_phone_exists`, `check_username_exists`, `check_device_exists`, `check_signup_conflicts`) are anon-callable and can enumerate accounts. Signup needs them. | Rate-limit at the edge, the same way `api/validate-invite.js` uses `redisRateLimit`. Or move them behind an API route. |
 | F2 | `record_admin_login_attempt` is anon-callable. Anyone can record failures against an admin email and lock it out (denial of service). | Move the lockout check and counter to the server (API route with service role) and rate-limit by IP. |
 | F3 | Email allowlists remain in the client (`App.jsx`, `AdminPage.jsx`, `AdminLoginPage.jsx`, `ResetPasswordPage.jsx`) and API (`api/admin/[resource].js`). The database no longer depends on them, but UI and API gating still do. | Move to role checks. Emails come from verified auth, so this is lower risk than C1. |
-| F4 | `Owner reads own identity docs` lets the `agent` role read every identity document. | Restrict to `admin`, `verifier` and `superadmin` unless field agents need it. Product decision. |
+| F4 | `Owner reads own identity docs` lets the `agent` role read every identity document. (Deletion by agents is fixed in section 6, S3.) | Restrict to `admin`, `verifier` and `superadmin` unless field agents need it. Product decision (D3). |
 | F5 | `messages`: the recipient can UPDATE or DELETE messages they received. | Make messages append-only, or add a column guard. |
 | F6 | Public-read tables (`reviews`, `professional_reviews`, `property_reviews`, `property_images`, `room_categories`, `institutions`, `platform_settings`) are intentional. | Confirm no personal data is stored in these columns. `platform_settings` holds no secret-like keys in seeds. |
 | F7 | `rental_enquiries` accepts anonymous inserts (intended). | Rate-limit at the edge to prevent spam. |
@@ -146,3 +146,50 @@ These are not fixed in this change. Each needs a product or ops decision.
 - `CHANGELOG.md`: entry added for this change.
 - `security_audit_report.md`: superseded banner added.
 - `db/archive/README.md`: notes that archived SQL is historical and must not be run.
+- `api/paystack-webhook.js`: unlock-credit grants derived server-side (S1).
+- Visitor-facing pages (`FindProviderPage`, `ProviderProfilePage`, `RentalsPage`, `src/lib/homeFeed.js`, `src/lib/supabase.js`): read `public_profiles`; `getProperty` joins `property_images` (S4, P1, P2 in the pages audit).
+- `docs/audit/PAGES_AUDIT_2026-10.md`: new page-by-page audit.
+
+---
+
+## 6. Second pass: page audit (October 2026)
+
+A full review of every page's wiring and database calls (see `docs/audit/PAGES_AUDIT_2026-10.md`) found more security issues. Each is listed here with its status.
+
+### Fixed
+
+| ID | Severity | Finding | Fix |
+|---|---|---|---|
+| S1 | Critical | `contact_unlock_credits` trusted `metadata.user_id` and `metadata.credits` in the Paystack payload. A forged or replayed event could grant credits. | `api/paystack-webhook.js` derives credits from the paid amount (`50000 kobo → 1`, `200000 kobo → 5`), requires the buyer to match the Paystack customer email, and is idempotent on `payment_ref`. Code change only; part of this branch. |
+| S2 | High | Agents could trigger referral payouts through `process_referral_payouts_for_transaction` (guard included `is_admin_staff()`). | Migration `20261009010000_page_audit_fixes.sql`: guard limited to `admin`, `superadmin`, `is_superadmin()`. |
+| S3 | High | Agents could delete identity documents (storage policy `Staff delete identity docs` included `is_admin_staff()`). | Same migration: delete limited to `admin`, `verifier`, `superadmin`. |
+| S4 | High | Visitor pages needed `profiles` rows they cannot read under RLS. Rather than widen `profiles` RLS, a narrow projection was added. | Migration: `public_profiles` view (display columns only, no email, phone, DOB, identity or account-status detail beyond the verification status badge). Granted to `anon` and `authenticated`. Pages updated to read the view. |
+
+Verification: `supabase/tests/security_hardening.sql` still passes 45/45. Anonymous `SELECT` on `profiles` remains denied; `SELECT` on `public_profiles` is allowed.
+
+### Open
+
+| ID | Severity | Finding | Status |
+|---|---|---|---|
+| S5 | High | Hostel listings: the client sends `listing_paid` and the owner can activate their own listing (`ListHostelPage`). | Open (O5). Needs a server-side activation path. |
+| S6 | Medium | Messaging: realtime subscribes to a table outside the publication. Thread creation also fails. | Open (O6, D5). |
+| S7 | Medium | `/verify` legacy route is outside `MfaGate`. | Open (O7). |
+| S8 | Medium | MFA is enforced only in the UI. Database helpers do not check `aal2`. | Decision (D6). |
+| S9 | Medium | Agents may approve identities and dismiss complaints in the database. | Decision (D2). |
+| S10 | Medium | Agents can read identity documents (F4 above). | Decision (D3). |
+| S11 | Medium | Replay root cause: `transactions.listing_id` is `BIGINT` but `category_listings.id` is `UUID`; four migrations fail on a clean replay. Fresh builds may not match the production schema. | Open (O14). Verify on a clean replay before the next deploy. |
+| S12 | Low | Schema gaps that break flows: `payments.payment_type`, `WalletPage` column names, admin embeds through `auth.users` FKs. | Open (O1, O2, O4). These are reliability issues, not access issues. |
+
+### Status vocabulary (for reviewers)
+
+Two listing vocabularies exist and are intentionally separate:
+- `properties.status`: `active`, `pending`, `pending_review`, `paused`, `rejected`, `inactive`, `rented`, `sold`, `removed`.
+- `category_listings.status`: `ACTIVE`, `MATCHED`, `SUSPENDED`, `CLOSED`.
+
+Owners may change status only within their listing's allowed moves (see `fn_guard_property_client_write`). Staff may set any value.
+
+### Deployment notes for this section
+
+1. Apply `20261009010000_page_audit_fixes.sql` after `20261009000000_security_audit_hardening.sql`.
+2. Deploy the webhook change in `api/paystack-webhook.js` at the same time as the frontend change. Until the webhook is deployed, unlock-credit purchases will be refused for lack of a matching buyer.
+3. Re-run `supabase/tests/security_hardening.sql` on staging.

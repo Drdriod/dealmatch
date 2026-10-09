@@ -163,12 +163,26 @@ export const getProperty = async (id) => {
   // and only for entitled viewers via the get_property_contact() RPC
   // (owner / staff / a funded-escrow counterparty), never joined directly.
   // See supabase/migrations/20260812000000_production_hardening.sql.
+  // profiles RLS hides other users' rows from visitors, so the seller's
+  // display name/avatar comes from the public_profiles projection instead
+  // of an embed (which returned null for anonymous viewers).
   const { data, error } = await supabase
     .from('properties')
-    .select('*, profiles(full_name, avatar_url)')
+    .select('*, images:property_images(id, url, is_primary, caption)')
     .eq('id', id)
     .single()
-  return { data, error }
+  if (error || !data) return { data, error }
+
+  let profiles = null
+  if (data.seller_id) {
+    const { data: seller } = await supabase
+      .from('public_profiles')
+      .select('full_name, avatar_url')
+      .eq('id', data.seller_id)
+      .maybeSingle()
+    profiles = seller || null
+  }
+  return { data: { ...data, profiles }, error: null }
 }
 
 // ─── Swipe / Match helpers ────────────────────────────────
