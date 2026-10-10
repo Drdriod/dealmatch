@@ -7,6 +7,7 @@ import AnimatedStat from '@/components/ui/AnimatedStat'
 import FAQSection from '@/components/ui/FAQSection'
 import TestimonialsSection from '@/components/ui/TestimonialsSection'
 import HeroSearch from '@/components/home/HeroSearch'
+import HeroHeadline from '@/components/home/HeroHeadline'
 import PhotoPlaceholder from '@/components/home/PhotoPlaceholder'
 import FindOfferCard from '@/components/home/FindOfferCard'
 import PostChoiceModal from '@/components/home/PostChoiceModal'
@@ -105,10 +106,7 @@ export default function HomePage() {
         <div className="self-center px-5 pt-8 pb-8 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-14">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
             <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
-            <h1 className="mt-4 text-[clamp(38px,10.5vw,50px)] sm:text-[clamp(48px,4.6vw,72px)] leading-[1.02] max-w-[720px] text-deep">
-              <span className="block">Find what you need.</span>
-              <span className="block">Find who can <em className="not-italic text-terracotta whitespace-nowrap">provide it.</em></span>
-            </h1>
+            <HeroHeadline />
             <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
               Places to stay, homes to rent, and people ready to help.
             </p>

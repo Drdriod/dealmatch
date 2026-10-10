@@ -24,6 +24,7 @@ export default {
       fontFamily: {
         display: ['"DM Serif Display"', 'Georgia', 'serif'],
         body:    ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        headline: ['Fraunces', '"DM Serif Display"', 'Georgia', 'serif'],
       },
       boxShadow: {
         card:       '0 4px 24px rgba(23,33,27,0.08)',
