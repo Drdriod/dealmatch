@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const secret    = process.env.ESCROW_WEBHOOK_SECRET
-  const signature = req.headers['x-escrow-signature']
+  const secret    = process.env.ESCROW_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY
+  const signature = req.headers['x-escrow-signature'] || req.headers['x-paystack-signature']
 
   // ✅ SECURITY FIX: this previously only verified the signature when BOTH
   // secret and signature were present - which meant an attacker could just
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   // any payment_ref with zero authentication. Fail closed: a missing or
   // unconfigured secret/signature is now always rejected, never bypassed.
   if (!secret) {
-    console.error('ESCROW_WEBHOOK_SECRET not set')
+    console.error('ESCROW_WEBHOOK_SECRET / PAYSTACK_SECRET_KEY not set')
     return res.status(500).json({ error: 'Server misconfiguration' })
   }
   if (!signature) {
@@ -90,14 +90,14 @@ export default async function handler(req, res) {
       }
 
       case 'charge.success': {
-        // Payment confirmed (forwarded by the payment webhook) - fund the escrow
+        // Paystack charge confirmed - fund the escrow
         const { reference, metadata } = data
         if (metadata?.type === 'escrow_payment' && reference) {
           await supabase
             .from('escrow_transactions')
             .update({ status: 'funded', funded_at: new Date().toISOString() })
             .eq('payment_ref', reference)
-          console.log('Escrow funded:', reference)
+          console.log('Escrow funded via Paystack:', reference)
         }
         break
       }

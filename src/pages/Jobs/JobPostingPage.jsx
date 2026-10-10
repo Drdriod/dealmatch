@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { emitEvent } from '@/lib/events'
-import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/flutterwave'
+import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/paystack'
 import GuestAuthModal from '@/components/ui/GuestAuthModal'
 import toast from 'react-hot-toast'
 
@@ -74,7 +74,7 @@ export default function JobPostingPage() {
     return () => { cancelled = true }
   }, [invitedProviderId])
 
-  // Realtime on the transaction row itself -- so if the Flutterwave webhook
+  // Realtime on the transaction row itself -- so if the Paystack webhook
   // flips status OPEN/PENDING -> FUNDED while this page is open, the
   // requester sees it live instead of needing to refresh.
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function JobPostingPage() {
   }
 
   // Binds a payment reference to this transaction server-side (via RPC,
-  // authorization-checked) BEFORE opening Flutterwave -- the webhook resolves
+  // authorization-checked) BEFORE opening Paystack -- the webhook resolves
   // which row to mark FUNDED strictly by that reference (20260731000020),
   // the same pattern already used for escrow_transactions.payment_ref.
   // Does NOT flip status to FUNDED itself -- that happens in the webhook

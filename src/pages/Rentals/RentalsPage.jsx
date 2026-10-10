@@ -26,7 +26,7 @@ const STATES   = ['All States','Lagos','Abuja','Rivers','Akwa Ibom','Delta','Oyo
 // stays; what changes is what happens next: instead of an instant
 // WhatsApp handoff, the tenant is routed into the SAME escrow-gated
 // reserve flow PropertyPage.jsx already uses for sales (PropertyReserveModal
-// -> start_property_escrow_payment -> Flutterwave -> webhook confirms
+// -> start_property_escrow_payment -> Paystack -> webhook confirms
 // `funded` -> get_property_contact() only then returns a real number).
 // `properties` is the same table for sale/rental/shortlet rows, so this
 // infrastructure applies here unchanged.

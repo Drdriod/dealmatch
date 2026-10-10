@@ -1,19 +1,14 @@
 # Environment Variable Audit: DealMatch
 
-> **Update (October 2026, Flutterwave V4):** the payment variables are now
-> `FLUTTERWAVE_V4_CLIENT_ID`, `FLUTTERWAVE_V4_CLIENT_SECRET`, `FLUTTERWAVE_BASE_URL`
-> and `FLUTTERWAVE_SECRET_HASH`. `FLUTTERWAVE_SECRET_KEY` and `VITE_FLUTTERWAVE_PUBLIC_KEY`
-> are no longer read and can be removed from Vercel. The list below is the earlier snapshot.
-
 Based on the scan of the codebase and the provided Vercel deployment screenshot, here is the comparison of environment variables.
 
 ## 1. Variables Present in Vercel (from Screenshot)
 The following **10** variables are already configured in Vercel:
-- `FLUTTERWAVE_SECRET_HASH`
+- `PAYSTACK_WEBHOOK_SECRET`
 - `VITE_APP_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `VITE_FLUTTERWAVE_PUBLIC_KEY`
-- `FLUTTERWAVE_SECRET_KEY`
+- `VITE_PAYSTACK_PUBLIC_KEY`
+- `PAYSTACK_SECRET_KEY`
 - `PINECONE_API_KEY`
 - `PINECONE_INDEX_NAME`
 - `VITE_GOOGLE_MAPS_API_KEY`

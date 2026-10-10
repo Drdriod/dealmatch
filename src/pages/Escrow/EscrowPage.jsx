@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, ShieldCheck, X, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
-import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
+import { initializePaystackPayment, generateReference } from '@/lib/paystack'
 import toast from 'react-hot-toast'
 
 const WHATSAPP = '2347057392060'
@@ -47,7 +47,7 @@ function EscrowRequestModal({ onClose }) {
     if (!email) { toast.error('Please provide your email for payment'); return }
     if (!(await requireVerification('escrow'))) return
 
-    await initializeFlutterwavePayment({
+    await initializePaystackPayment({
       email, amount: Number(form.amount),
       reference: generateReference(),
       metadata: {
@@ -64,7 +64,7 @@ function EscrowRequestModal({ onClose }) {
           'Tenant: ' + form.tenant_name + ' | ' + form.tenant_phone + '\n' +
           'Landlord: ' + form.landlord_name + ' | ' + form.landlord_phone + '\n' +
           'Amount: ₦' + Number(form.amount).toLocaleString() + '\n' +
-          'Payment Ref: ' + response.reference
+          'Paystack Ref: ' + response.reference
         )
         window.open('https://wa.me/' + WHATSAPP + '?text=' + msg, '_blank')
         setSubmitted(true)

@@ -89,7 +89,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
       'Load failed',
       // Safari-specific quirks
       'Non-Error promise rejection captured',
-      // Flutterwave iframe cross-origin
+      // Paystack iframe cross-origin
       'Permission denied to access property',
     ],
 

@@ -1,36 +1,5 @@
 # DealMatch - Database Security Audit and Hardening (October 2026)
 
-## Unreleased - Flutterwave V4
-
-- Collections: each payment gets a Flutterwave V4 dynamic virtual account (bank transfer). The webhook marks it paid by account number and checks the amount against the expected amount. The V3 inline popup and `/api/payments/verify` are removed.
-- Payouts: V4 recipients (`bank_ngn`, stored on `payout_accounts.gateway_recipient_code`) and instant transfers. Bank list and account resolve use V4 endpoints.
-- Migration `20261009030000_flutterwave_virtual_accounts.sql` adds `payment_virtual_accounts` (RLS: payer reads own rows only).
-- Env vars: `FLUTTERWAVE_V4_CLIENT_ID`, `FLUTTERWAVE_V4_CLIENT_SECRET`, `FLUTTERWAVE_BASE_URL`, `FLUTTERWAVE_SECRET_HASH`. Removed: `FLUTTERWAVE_SECRET_KEY`, `VITE_FLUTTERWAVE_PUBLIC_KEY`.
-- Payment references are hyphenated (letters, digits, hyphens) to meet the V4 rule.
-
-## Payment gateway: Paystack replaced by Flutterwave (October 2026)
-
-- Card, bank transfer and USSD checkout now run through Flutterwave's inline
-  checkout (`src/lib/flutterwave.js`). Payment and escrow logic is unchanged:
-  the webhook still resolves transactions by reference, and only the webhook
-  (or `/api/payments/verify`) can mark anything paid.
-- `api/paystack-webhook.js` is now `api/flutterwave-webhook.js`. It checks the
-  `verif-hash` header, then re-fetches every charge and transfer from the
-  Flutterwave API before acting on it. Amounts are taken from that API response.
-- Bank payouts are sent straight to bank code and account number through
-  Flutterwave transfers. The Paystack transfer-recipient step is gone.
-- Bank name lookup and account name checks use Flutterwave, at
-  `/api/payout-banks` and `/api/payout-resolve-account`.
-- `/api/payments/verify` verifies by Flutterwave transaction id and requires
-  the tx_ref to match.
-- Database: `payout_gateway` gains `flutterwave`. The `paystack` value stays,
-  because existing payout rows use it. New rows default to `flutterwave`.
-- Environment: `VITE_FLUTTERWAVE_PUBLIC_KEY`, `FLUTTERWAVE_SECRET_KEY` and
-  `FLUTTERWAVE_SECRET_HASH` replace the Paystack variables. Point the
-  Flutterwave dashboard webhook at `/api/flutterwave-webhook`.
-- `ESCROW_WEBHOOK_SECRET` is now required. The old fallback to the Paystack
-  key is removed.
-
 - Admin access no longer depends on email. Authority comes only from
   `profiles.role`. Founder accounts become `superadmin` by matching verified
   login emails. Every founder-email check in functions and RLS is replaced.

@@ -56,7 +56,7 @@ const MAX_BODY_SIZE = 50 * 1024 // 50KB max request body
 const STRIP_FIELDS = [
   'seller_id', 'user_id', 'owner_id', 'internal_notes',
   'admin_notes', 'verification_notes', 'stripe_customer_id',
-  'service_role', 'hashed_password',
+  'paystack_customer_code', 'service_role', 'hashed_password',
 ]
 
 // ─── Bot Detection ────────────────────────────────────────────────────────────
