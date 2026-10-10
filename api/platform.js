@@ -24,7 +24,7 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
-import { flw, alnum, flutterwaveConfigured } from '../src/lib/flutterwaveServer.js'
+import { flw, alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
@@ -208,6 +208,9 @@ const jsonResources = {
           meta: metadata,
         },
         idempotencyKey: idemKey('dmva', reference),
+        // Sandbox only: tells Flutterwave's sandbox to approve the transfer,
+        // so a test account can be paid. Never sent to live.
+        extraHeaders: isFlutterwaveSandbox() ? { 'X-Scenario-Key': 'issuer:approved' } : undefined,
       })
 
       const row = {
