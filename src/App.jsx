@@ -40,6 +40,7 @@ const ProfilePage           = lazyWithRetry(() => import('@/pages/Profile/Profil
 const AdminPage             = lazyWithRetry(() => import('@/pages/Admin/AdminPage'))
 const AcceptStaffInvitePage = lazyWithRetry(() => import('@/pages/Admin/AcceptStaffInvitePage'))
 const AdminLoginPage        = lazyWithRetry(() => import('@/pages/Admin/AdminLoginPage'))
+const PaymentTestPage       = lazyWithRetry(() => import('@/pages/Admin/PaymentTestPage'))
 const AuthCallback          = lazyWithRetry(() => import('@/pages/Auth/AuthCallback'))
 const ResetPasswordPage     = lazyWithRetry(() => import('@/pages/Auth/ResetPasswordPage'))
 const StudentHostelsPage    = lazyWithRetry(() => import('@/pages/StudentHostels/StudentHostelsPage'))
@@ -694,6 +695,14 @@ function AnimatedRoutes() {
           <Suspense fallback={<LoadingScreen />}>
             <AcceptStaffInvitePage />
           </Suspense>
+        } />
+
+        <Route path="/admin/payment-test" element={
+          <AdminRoute>
+            <Suspense fallback={<LoadingScreen />}>
+              <PaymentTestPage />
+            </Suspense>
+          </AdminRoute>
         } />
 
         <Route path="/admin/*" element={
