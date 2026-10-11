@@ -192,10 +192,22 @@ const jsonResources = {
     }
 
     try {
-      const customer = await flw('POST', '/customers', {
-        body: { email },
-        idempotencyKey: idemKey('dmcus', reference),
-      })
+      // Flutterwave rejects a second customer with the same email, so reuse the
+      // one we already created for this email. Only our own rows are used.
+      const { data: prior } = await svc
+        .from('payment_virtual_accounts')
+        .select('customer_id')
+        .eq('email', email)
+        .not('customer_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      const customer = prior?.customer_id
+        ? { id: prior.customer_id }
+        : await flw('POST', '/customers', {
+            body: { email },
+            idempotencyKey: idemKey('dmcus', reference),
+          })
       const va = await flw('POST', '/virtual-accounts', {
         body: {
           customer_id: customer.id,
