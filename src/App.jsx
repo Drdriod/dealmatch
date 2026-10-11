@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { lazyWithRetry } from '@/lib/lazyLoad'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Home } from 'lucide-react'
 
 import Navbar    from '@/components/layout/Navbar'
@@ -592,7 +592,7 @@ function AnimatedRoutes() {
 
         <Route path="/auth/callback" element={
           <Suspense fallback={<PageSkeleton />}>
-            <AuthCallback />
+            <PageTransition><AuthCallback /></PageTransition>
           </Suspense>
         } />
 
@@ -686,21 +686,21 @@ function AnimatedRoutes() {
             /admin-login redirects home instead of revealing anything. */}
         <Route path="/staff-gate-7f3k" element={
           <Suspense fallback={<LoadingScreen />}>
-            <AdminLoginPage />
+            <PageTransition><AdminLoginPage /></PageTransition>
           </Suspense>
         } />
         <Route path="/admin-login" element={<Navigate to="/" replace />} />
 
         <Route path="/staff/accept-invite" element={
           <Suspense fallback={<LoadingScreen />}>
-            <AcceptStaffInvitePage />
+            <PageTransition><AcceptStaffInvitePage /></PageTransition>
           </Suspense>
         } />
 
         <Route path="/admin/payment-test" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <PaymentTestPage />
+              <PageTransition><PaymentTestPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />
@@ -708,7 +708,7 @@ function AnimatedRoutes() {
         <Route path="/admin/*" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <AdminPage />
+              <PageTransition><AdminPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />
@@ -716,7 +716,7 @@ function AnimatedRoutes() {
         <Route path="/agent" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <AgentDashboardPage />
+              <PageTransition><AgentDashboardPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Bath, Bed, ChevronLeft, ChevronRight, Heart, Home, MapPin, Maximize } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { recordSwipe } from '@/lib/supabase'

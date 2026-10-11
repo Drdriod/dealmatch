@@ -33,7 +33,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Camera, Car, Check, Clock, CreditCard, Eye, Info, Lock, Shield, SkipForward, Store, Upload, Users, Vote, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 const ID_TYPES = [
@@ -201,16 +201,15 @@ export default function VerifyIdentityPage() {
         return
       }
 
-      // ✅ FIX: paths must NOT repeat the bucket name - RLS policies check
-      // that the FIRST folder segment of the path equals auth.uid(). The
-      // old path ("identity-docs/{uid}/...") made "identity-docs" itself
-      // the first segment, so the check always failed and every single
-      // submission was silently rejected by the database.
-      const idPath   = `${user.id}/id_${Date.now()}.jpg`
-      const facePath = `${user.id}/face_${Date.now()}.jpg`
+      // One fixed path per document per user. A re-upload replaces the
+      // existing object in place, so there are no superseded copies to track
+      // or purge. Paths must NOT repeat the bucket name: RLS checks that the
+      // first folder segment equals auth.uid().
+      const idPath   = `${user.id}/id-document`
+      const facePath = `${user.id}/selfie`
 
       if (idFile) {
-        const { error: idErr } = await supabase.storage.from('identity-docs').upload(idPath, idFile, { upsert:true })
+        const { error: idErr } = await supabase.storage.from('identity-docs').upload(idPath, idFile, { upsert:true, contentType: idFile.type || 'image/jpeg' })
         // ✅ SECURITY FIX: no longer falls back to the PUBLIC 'avatars'
         // bucket on failure - identity documents must stay in the private
         // bucket. A real failure here should surface as an error, not

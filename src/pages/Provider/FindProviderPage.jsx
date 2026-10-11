@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Search, ShieldCheck, Star, Zap, ChevronRight, Crosshair } from 'lucide-react'
 import { supabase } from '@/lib/supabase'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { ArrowRight, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'

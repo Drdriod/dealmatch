@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react'
 import { Award, Briefcase, Building2, CheckCircle, ChevronLeft, ChevronRight, Clock, Filter, HardHat, Heart, MapPin, MessageCircle, PartyPopper, Phone, Search, Shield, Star, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'

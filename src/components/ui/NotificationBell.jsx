@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { AlertTriangle, Bell, CheckCircle, Gavel, Lock, Mail, ShieldCheck, ShieldX, Star, TrendingUp, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'

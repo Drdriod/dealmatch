@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Star, Quote, Send, X, CheckCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'

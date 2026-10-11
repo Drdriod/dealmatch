@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Bath, Bed, CheckCircle, Heart, Home, Key, Lock, MapPin, MessageCircle, PartyPopper, Phone, Search, ShieldCheck, X } from 'lucide-react'
 import { recordSwipe, supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Bath, Bed, Heart, HeartCrack, Home, MapPin, Maximize, MessageCircle, Trash2 } from 'lucide-react'
 import { getMatches, supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 const formatPrice = (n) => {

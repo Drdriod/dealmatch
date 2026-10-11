@@ -3,7 +3,7 @@ import { AlertCircle, ArrowLeft, Home, MessageCircle, Send, Star, User } from 'l
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 // ─── Review Modal ─────────────────────────────────────────────

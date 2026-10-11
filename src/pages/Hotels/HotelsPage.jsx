@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Check, Hotel, MapPin, PartyPopper, Search, Star, Users, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 

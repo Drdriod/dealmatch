@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { MessageCircle, X } from 'lucide-react'
 
 const DEALMATCH_WA = '2347057392060' // Central DealMatch business gateway - NEVER expose personal numbers

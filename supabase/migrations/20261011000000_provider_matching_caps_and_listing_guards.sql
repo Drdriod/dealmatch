@@ -272,7 +272,8 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF NEW.identity_hmac IS DISTINCT FROM OLD.identity_hmac THEN
+  IF NEW.identity_hmac IS DISTINCT FROM OLD.identity_hmac
+     OR NEW.identity_nin_submitted_at IS DISTINCT FROM OLD.identity_nin_submitted_at THEN
     RAISE EXCEPTION 'IDENTITY_FIELDS_SERVER_ONLY' USING ERRCODE = 'insufficient_privilege';
   END IF;
 
@@ -640,3 +641,58 @@ DROP TRIGGER IF EXISTS trg_queue_identity_doc_purge ON public.profiles;
 CREATE TRIGGER trg_queue_identity_doc_purge
   AFTER UPDATE OF identity_photo_url, identity_selfie_url ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.queue_identity_doc_purge();
+
+-- ---------------------------------------------------------------------
+-- 13. NIN/BVN submission status. The hash itself is never shown to staff.
+--     The admin Identity tab shows only whether and when it was submitted.
+--     Written by identity-submit (service role). Guarded above.
+-- ---------------------------------------------------------------------
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS identity_nin_submitted_at timestamptz;
+
+-- ---------------------------------------------------------------------
+-- 14. Student ID images are purged 90 days after account deletion too.
+--     Same rule as the profile identity documents (section 12). Runs when
+--     the account is marked deleted, which is what erase_account_data() does.
+--     The pointer on student_verifications is cleared in the same step.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.queue_student_id_purge()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.account_status = 'deleted' AND OLD.account_status IS DISTINCT FROM 'deleted' THEN
+    INSERT INTO public.identity_doc_purge_queue (user_id, storage_path)
+    SELECT NEW.id, sv.id_image_url
+    FROM public.student_verifications sv
+    WHERE sv.user_id = NEW.id AND sv.id_image_url IS NOT NULL;
+
+    UPDATE public.student_verifications
+    SET id_image_url = NULL
+    WHERE user_id = NEW.id AND id_image_url IS NOT NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.queue_student_id_purge() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS trg_queue_student_id_purge ON public.profiles;
+CREATE TRIGGER trg_queue_student_id_purge
+  AFTER UPDATE OF account_status ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.queue_student_id_purge();
+
+-- ---------------------------------------------------------------------
+-- 15. Identity documents are stored at a fixed path per user
+--     ({uid}/id-document and {uid}/student-id, {uid}/selfie) and replaced in
+--     place on re-upload. That keeps one object per document and avoids
+--     superseded copies. Replacing needs an owner UPDATE policy, which the
+--     bucket did not have, so upsert would otherwise be refused.
+-- ---------------------------------------------------------------------
+DROP POLICY IF EXISTS "Users replace own identity docs" ON storage.objects;
+CREATE POLICY "Users replace own identity docs" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'identity-docs' AND (storage.foldername(name))[1] = (auth.uid())::text)
+  WITH CHECK (bucket_id = 'identity-docs' AND (storage.foldername(name))[1] = (auth.uid())::text);

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Facebook, Instagram } from 'lucide-react'
 import { usePlatformSettings } from '@/hooks/usePlatformSettings'
+import { PILLARS, pillarHref } from '@/lib/taxonomy'
 
 export default function Footer() {
   const { settings } = usePlatformSettings()
@@ -54,9 +55,8 @@ export default function Footer() {
             <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/45 mb-5">Place &amp; People</h4>
             <ul className="space-y-3">
               {[
-                { label: 'Place (properties, stays, assets)', to: '/places' },
-                { label: 'People (skills, services, experts)', to: '/providers' },
-                { label: 'Community Forum',                  to: '/forum' },
+                ...PILLARS.map(p => ({ label: p.name, to: pillarHref(p) })),
+                { label: 'Community Forum', to: '/forum' },
               ].map(item => (
                 <li key={item.label}><Link to={item.to} className="text-sm text-white/65 hover:text-white transition-colors">{item.label}</Link></li>
               ))}

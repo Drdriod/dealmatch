@@ -361,7 +361,10 @@ const jsonResources = {
       return res.status(409).json({ error: 'Your identity is already verified.' })
     }
 
-    const { error } = await svc.from('profiles').update({ identity_hmac: hash }).eq('id', user.id)
+    const { error } = await svc.from('profiles').update({
+      identity_hmac: hash,
+      identity_nin_submitted_at: new Date().toISOString(),
+    }).eq('id', user.id)
     if (error) {
       if (error.code === '23505') {
         return res.status(409).json({ error: 'This NIN/BVN is already linked to another account. Contact support if this is a mistake.' })

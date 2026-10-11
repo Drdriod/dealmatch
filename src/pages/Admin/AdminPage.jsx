@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
@@ -642,7 +642,7 @@ function IdentityTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('profiles').select('id,full_name,email,phone,role,identity_photo_url,identity_selfie_url,identity_doc_type,identity_verification_status,identity_verified_at,identity_rejection_note,created_at').order('created_at',{ascending:false}).limit(200)
+    let q=supabase.from('profiles').select('id,full_name,email,phone,role,identity_photo_url,identity_selfie_url,identity_doc_type,identity_verification_status,identity_verified_at,identity_rejection_note,identity_nin_submitted_at,created_at').order('created_at',{ascending:false}).limit(200)
     if(filter==='all') q=q.in('identity_verification_status',['submitted','approved','rejected'])
     else q=q.eq('identity_verification_status',filter)
     const {data,error}=await q
@@ -704,10 +704,14 @@ function IdentityTab() {
                     <span className="text-white font-semibold text-sm">{u.full_name||'N/A'}</span>
                     <Badge label={u.identity_verification_status} color={SC[u.identity_verification_status]||'#888'}/>
                     {u.identity_doc_type&&<Badge label={DOC[u.identity_doc_type]||u.identity_doc_type} color="#5B8DEF"/>}
+                    <Badge label={u.identity_nin_submitted_at?'NIN/BVN submitted':'NIN/BVN not submitted'} color={u.identity_nin_submitted_at?'#7A9E7E':'#C85F2D'}/>
                     <Badge label={ROLE_LABELS[u.role]||u.role||'N/A'} color={ROLE_COLORS[u.role]||'#888'}/>
                   </div>
                   <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{maskEmail(u.email)} · {maskPhone(u.phone)}</div>
                   <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{ago(u.created_at)}</div>
+                  <div className="text-xs mt-0.5" style={{color:u.identity_nin_submitted_at?'rgba(255,255,255,0.4)':'#C85F2D'}}>
+                    {u.identity_nin_submitted_at?`NIN/BVN submitted ${ago(u.identity_nin_submitted_at)}`:'NIN/BVN not submitted yet. Approval is blocked until it is.'}
+                  </div>
                   {u.identity_rejection_note&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Prev rejection: {u.identity_rejection_note}</div>}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
@@ -726,7 +730,7 @@ function IdentityTab() {
               </div>
               {u.identity_verification_status==='submitted'&&(
                 <div className="flex gap-2 mt-3">
-                  <button onClick={()=>setConfirm({title:'Approve identity?',body:`${u.full_name} will be fully verified and unlock all transactions.`,onConfirm:()=>approve(u.id,u.full_name||u.email)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}>
+                  <button disabled={!u.identity_nin_submitted_at} onClick={()=>setConfirm({title:'Approve identity?',body:`${u.full_name} will be fully verified and unlock all transactions.`,onConfirm:()=>approve(u.id,u.full_name||u.email)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}>
                     <Check size={13}/> Approve & Verify
                   </button>
                   <button onClick={()=>setReject({id:u.id,name:u.full_name||u.email})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D',border:'1px solid rgba(200,95,45,0.2)'}}>

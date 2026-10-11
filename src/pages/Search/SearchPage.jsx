@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { MapPin, Search as SearchIcon, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { universalSearch } from '@/modules/search/searchService'

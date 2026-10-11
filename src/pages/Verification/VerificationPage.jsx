@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Camera, Check, CheckCircle, Clock, Home, MapPin, RefreshCw, Shield, Video, X } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 

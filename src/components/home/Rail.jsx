@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
  * logic to keep in sync with "mobile mode" logic.
  *
  * Deliberately not the existing Carousel.jsx (which pages through fixed
- * groups with a framer-motion slide, and autoplays by default) - the brief
+ * groups with a motion slide, and autoplays by default) - the brief
  * asks specifically for a snap-scroll rail with a peeking next card and no
  * autoplay, which native overflow-scroll + scroll-snap gives for free and
  * with genuinely better mobile feel than a JS-driven transform ever will.
