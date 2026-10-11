@@ -352,7 +352,9 @@ export const subscribeProfessional = async ({
 
 // ─── Pay hostel listing fee ────────────────────────────────
 // Called from ListHostelPage after saving the hostel draft.
-// On success, marks listing_paid = true in student_hostels table.
+// The browser never marks the listing paid. The Flutterwave webhook
+// (api/flutterwave-webhook.js, hostel_listing_fee branch) sets listing_paid
+// after verifying the charge server-side.
 export const payHostelListingFee = async ({
   email,
   hostelId,

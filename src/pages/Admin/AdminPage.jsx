@@ -10,6 +10,7 @@ import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
+import { friendlyDbError } from '@/lib/dbErrors'
 
 const SUPERADMIN_EMAILS = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
 const STAFF_ROLES       = ['agent', 'verifier', 'admin']
@@ -668,7 +669,7 @@ function IdentityTab() {
 
   const approve=async(id,name)=>{
     const {error}=await supabase.from('profiles').update({identity_verification_status:'approved',is_photo_verified:true,is_live_verified:true,identity_verified_at:new Date().toISOString(),identity_verified_by:admin?.id,identity_rejection_note:null,verification_skipped:false}).eq('id',id)
-    if(error){toast.error('Failed');return}
+    if(error){toast.error(friendlyDbError(error,'Could not approve. Please try again.'));return}
     await auditLog('identity_approved',{user_id:id,by:admin?.id})
     // Let the user know in-app (bell + email) and via a status they'll see
     // next time they load their profile/dashboard - the update above is

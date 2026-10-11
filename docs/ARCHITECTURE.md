@@ -114,7 +114,7 @@ Two stages, kept simple until volume justifies more:
 
 Features come from Postgres columns and views. A feature store is out of scope until there is a measured need.
 
-Find a Provider filters (location, rating, price range, verification tier) are blocked on one decision: ADR-008 excludes level 1 (identity verified) providers, while the spec includes them.
+Find a Provider shows Level 2 and above by default. Level 1 (identity verified) providers appear only on the explicit "Identity verified" tab (ADR-009, Option C). Search runs server-side through `search_providers_rpc`.
 
 ## 9. Security
 

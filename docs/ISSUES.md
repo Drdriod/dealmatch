@@ -93,7 +93,7 @@ We recommend choosing A or C, and writing the decision into a new ADR that super
 | SEC-2 | High | Rate limiter fails open when Upstash is not configured. | `src/lib/redis.js`: returns `allowed: true` when no URL or token. | Fail closed for auth, payment and verification endpoints. Keep fail-open for read-only public routes only. |
 | SEC-3 | High | Hostel listing fee is unlocked by the browser. | `src/pages/StudentHostels/ListHostelPage.jsx` writes `status: success` itself. | Move to the webhook. Remove the browser write. |
 | SEC-4 | Medium | Flutterwave sandbox client secret was shared during setup. | Session notes. | Rotate it. Check that no secret is in logs, screenshots or the repo. |
-| SEC-5 | Medium | Verification documents and IDs are personal data. Retention and access are not documented. | No retention rule found in `docs/`. | Write a retention schedule (for example, delete after verification plus 90 days). Restrict storage access to staff roles. Record in the NDPC register. |
+| SEC-5 | Medium | Verification documents and IDs are personal data. Retention and access are not documented. | Retention decided: 90 days after account deletion (ADR-009). Purge is queued by trigger and run by the daily cron. | Done in code. Still to do: queue student ID images and superseded uploads (see ADR-009); record the schedule in the NDPC register; confirm AML/KYC retention with counsel. |
 | SEC-6 | Medium | Contact details are masked until escrow confirms, but the masking rule is not tested. | `contact_unlocks`, `unlock_credit_ledger` tables. | Add tests that a provider's phone never appears in a list response before unlock. |
 
 ### Abuse and marketplace integrity

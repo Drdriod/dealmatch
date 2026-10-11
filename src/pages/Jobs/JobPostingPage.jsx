@@ -8,6 +8,7 @@ import { emitEvent } from '@/lib/events'
 import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/flutterwave'
 import GuestAuthModal from '@/components/ui/GuestAuthModal'
 import toast from 'react-hot-toast'
+import { friendlyDbError } from '@/lib/dbErrors'
 
 const MODEL_BY_TOGGLE = {
   book: 'NEAREST_AVAILABLE',       // "I need someone now" -- ADR-009, build now, first
@@ -214,7 +215,7 @@ export default function JobPostingPage() {
       .single()
 
     setPosting(false)
-    if (error) { toast.error('Could not post job. Try again.'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not post job. Try again.')); return }
     setTransaction(data)
     navigate(`/jobs/${data.id}`, { replace: true })
     toast.success(toggle === 'book' ? 'Request sent!' : 'Job posted - bids coming in')
@@ -244,7 +245,7 @@ export default function JobPostingPage() {
       p_transaction_id: transaction.id,
       p_bid_id: bid.id,
     })
-    if (error) { toast.error(error.message || 'Could not accept bid'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not accept bid')); return }
 
     setTransaction(updatedTx)
     toast.success('Bid accepted - pay for protection to unlock contact details')
@@ -266,7 +267,7 @@ export default function JobPostingPage() {
       p_bid_id: bid.id,
       p_counter_cents: counterCents,
     })
-    if (error) { toast.error(error.message || 'Could not send counter'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not send counter')); return }
     toast.success('Counter sent - awaiting provider response')
   }
 
@@ -287,7 +288,7 @@ export default function JobPostingPage() {
       p_reference: reference,
     })
     if (refErr) {
-      toast.error(refErr.message || 'Could not start payment')
+      toast.error(friendlyDbError(refErr, 'Could not start payment'))
       setFundingEscrow(false)
       return
     }
@@ -318,7 +319,7 @@ export default function JobPostingPage() {
       p_reason: 'Cancelled by requester',
     })
     setCancelling(false)
-    if (error) { toast.error(error.message || 'Could not cancel this request'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not cancel this request')); return }
 
     setTransaction(updatedTx)
     toast.success('Request cancelled')
@@ -331,7 +332,7 @@ export default function JobPostingPage() {
       { p_transaction_id: transaction.id }
     )
     setCompleting(false)
-    if (error) { toast.error(error.message || 'Could not confirm'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not confirm')); return }
 
     setTransaction(updatedTx)
     toast.success(updatedTx.status === 'COMPLETED' ? 'Job marked complete - both sides confirmed' : 'Confirmed. Waiting on the other side.')
