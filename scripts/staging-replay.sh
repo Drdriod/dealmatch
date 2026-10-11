@@ -45,11 +45,29 @@ fi
 echo "== Bootstrap (covers migrations up to 20260731000011)"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -q -f "$ROOT/supabase/migrations_staging_clean/STAGING_BOOTSTRAP_ALL.sql"
 
+# Ordering exception. 20260731000017 queries public.reviews, but reviews is
+# only created by 20260828000009 (which also re-applies the view and the
+# accept_bid/counter_bid functions). Production has reviews from its baseline,
+# so this only bites on a rebuild from history. Run 20260828000009 right
+# before 20260731000017 and skip its normal position, so it runs exactly once.
+EARLY_FILE="20260828000009_missing_reviews_and_verification_sessions.sql"
+BEFORE_FILE="20260731000017_fix_provider_stats_and_bid_rpcs.sql"
+
+run_migration() {
+  echo "== $1"
+  psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -q -f "$ROOT/supabase/migrations/$1"
+}
+
 for f in $(ls "$ROOT"/supabase/migrations/*.sql | sort); do
   name="$(basename "$f")"
   if [[ "$name" > "20260731000011_" ]]; then
-    echo "== $name"
-    psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+    if [ "$name" = "$EARLY_FILE" ]; then
+      continue
+    fi
+    if [ "$name" = "$BEFORE_FILE" ]; then
+      run_migration "$EARLY_FILE"
+    fi
+    run_migration "$name"
   fi
 done
 
