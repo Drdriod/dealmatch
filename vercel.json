@@ -159,7 +159,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://*.sentry.io https://*.posthog.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.googleapis.com https://*.gstatic.com; connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.posthog.com https://maps.googleapis.com; frame-src; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' https://*.sentry.io https://*.posthog.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https://*.googleapis.com https://*.gstatic.com; connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.posthog.com https://maps.googleapis.com; frame-src; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     }
