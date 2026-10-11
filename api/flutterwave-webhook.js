@@ -410,6 +410,43 @@ export default async function handler(req, res) {
             console.log('Rental listing activated:', reference)
           }
 
+          // SEC-3: student hostel listing fee. The unlock happens here, on the
+          // server, after Flutterwave confirms the charge. The browser never
+          // writes listing_paid. The hostel and owner come from the
+          // hostel_payments row we created for this reference, not from
+          // client metadata, and the amount must match the plan price.
+          if (metadata?.type === 'hostel_listing_fee') {
+            const { data: payRow } = await supabase
+              .from('hostel_payments')
+              .select('id, hostel_id, owner_id, amount, status')
+              .eq('reference', reference)
+              .maybeSingle()
+
+            if (!payRow) {
+              console.error('[SEC-3] hostel_listing_fee with no hostel_payments row:', reference)
+            } else if (payRow.status === 'success') {
+              console.log('Hostel listing already unlocked, skipping:', reference)
+            } else if (Number(payRow.amount) !== amountNgn) {
+              // Money was taken but does not match the plan. Do not unlock.
+              // Mark failed so an admin can refund or reconcile.
+              await supabase.from('hostel_payments')
+                .update({ status: 'failed' })
+                .eq('id', payRow.id)
+                .eq('status', 'pending')
+              console.error('[SEC-3] hostel amount mismatch, not unlocked:', reference, amountNgn, payRow.amount)
+            } else {
+              const paidAt = new Date().toISOString()
+              await supabase.from('hostel_payments')
+                .update({ status: 'success', paid_at: paidAt })
+                .eq('id', payRow.id)
+                .eq('status', 'pending')
+              await supabase.from('student_hostels')
+                .update({ listing_paid: true, listing_paid_at: paidAt, payment_ref: reference })
+                .eq('id', payRow.hostel_id)
+              console.log('Hostel listing unlocked:', reference)
+            }
+          }
+
           // NEW (item 2): credit-pack purchase for optional contact
           // unlock. Credits are only ever granted here, after Flutterwave
           // confirms the charge - never on the client's say-so - same

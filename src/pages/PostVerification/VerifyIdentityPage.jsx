@@ -72,6 +72,7 @@ export default function VerifyIdentityPage() {
   const [faceFile,    setFaceFile]    = useState(null) // compressed Blob to upload
   const [saving,      setSaving]      = useState(false)
   const [skipping,    setSkipping]    = useState(false)
+  const [nin,         setNin]         = useState('')
 
   // Post-verification routing: previously branched on profile.role to
   // /landlord or /lender, neither of which are registered routes in
@@ -173,9 +174,25 @@ export default function VerifyIdentityPage() {
     if (!idFile && !idPreview) { toast.error('Please upload your ID document'); return }
     if (!faceCapture || !faceFile) { toast.error('Please add a selfie'); return }
     if (!idType) { toast.error('Please select your ID type'); return }
+    if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); setStep(1); return }
     setSaving(true)
 
     try {
+      // The NIN/BVN is hashed on the server before anything is stored (SEC-1).
+      // The browser never keeps or writes the hash itself.
+      const { data: sess } = await supabase.auth.getSession()
+      const ninRes = await fetch('/api/platform?resource=identity-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sess?.session?.access_token || ''}` },
+        body: JSON.stringify({ nin }),
+      })
+      if (!ninRes.ok) {
+        const j = await ninRes.json().catch(() => ({}))
+        toast.error(j.error || 'Could not save your NIN/BVN. Please try again.')
+        setSaving(false)
+        return
+      }
+
       const { data: freshProfile } = await supabase
         .from('profiles').select('is_live_verified').eq('id', user.id).single()
       if (freshProfile?.is_live_verified) {
@@ -512,10 +529,24 @@ export default function VerifyIdentityPage() {
             <input ref={idFileRef} type="file" accept="image/*" className="hidden" onChange={handleIdUpload} />
           </label>
 
+          <div>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color:'#647068' }} htmlFor="nin-input">
+              Your NIN or BVN (11 digits)
+            </label>
+            <input id="nin-input" inputMode="numeric" autoComplete="off" maxLength={11}
+              value={nin}
+              onChange={e => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
+              placeholder="e.g. 12345678901" className="input" />
+            <p className="text-[11px] mt-1.5" style={{ color:'#647068' }}>
+              Used only to stop duplicate accounts. Stored as a secure hash, never in plain text.
+            </p>
+          </div>
+
           <button
             onClick={() => {
               if (!idType) { toast.error('Select your ID type'); return }
               if (!idFile && !idPreview) { toast.error('Upload your ID photo'); return }
+              if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); return }
               setStep(2)
             }}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"

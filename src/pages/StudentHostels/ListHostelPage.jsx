@@ -255,17 +255,12 @@ export default function ListHostelPage() {
         listing_type: 'student_hostel',
         owner_name: profile?.full_name || '',
       },
-      onSuccess: async (response) => {
-        // Mark payment success
-        await supabase.from('hostel_payments').update({ status: 'success', paid_at: new Date().toISOString() }).eq('reference', response.reference)
-        // Unlock hostel listing
-        await supabase.from('student_hostels').update({
-          listing_paid:    true,
-          listing_paid_at: new Date().toISOString(),
-          payment_ref:     response.reference,
-        }).eq('id', id)
+      onSuccess: () => {
+        // The server unlocks the listing when Flutterwave confirms the charge
+        // (api/flutterwave-webhook.js). The browser must not write payment
+        // status: anything written here could be forged from the console.
         setPaymentDone(true)
-        toast.success('Payment confirmed! Your listing is under review.')
+        toast.success('Payment received. Your listing will be activated once it is confirmed.')
       },
       onClose: () => {
         toast('Payment cancelled. Your listing has been saved as a draft.', { icon: 'ℹ️' })

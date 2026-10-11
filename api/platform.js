@@ -24,6 +24,7 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
+import { identityHmac, IdentityHashError } from '../src/lib/identityHash.js'
 import { flw, alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
@@ -91,6 +92,54 @@ async function handleRenderPublic(req, res) {
 }
 
 // ─── JSON API resources ─────────────────────────────────────────────────────
+// Removes identity documents whose 90-day retention window has ended.
+// Queue rows are written by a trigger when a profile's document pointer is
+// cleared on account deletion. Storage paths may carry a legacy
+// 'identity-docs/' prefix, so it is stripped before removal.
+async function purgeIdentityDocs(svc) {
+  const { data: due, error } = await svc
+    .from('identity_doc_purge_queue')
+    .select('id, storage_path, attempts')
+    .is('purged_at', null)
+    .lte('purge_after', new Date().toISOString())
+    .lt('attempts', 5)
+    .order('purge_after', { ascending: true })
+    .limit(200)
+  if (error) {
+    console.error('purge: failed to load queue', error.message)
+    return { purged: 0, failed: 0, error: 'load_failed' }
+  }
+  if (!due || due.length === 0) return { purged: 0, failed: 0 }
+
+  const withPath = due.filter((r) => r.storage_path)
+  const paths = [...new Set(withPath.map((r) => r.storage_path.replace(/^identity-docs\//, '')))]
+  let removeErr = null
+  if (paths.length > 0) {
+    const { error: rmErr } = await svc.storage.from('identity-docs').remove(paths)
+    removeErr = rmErr
+  }
+
+  const now = new Date().toISOString()
+  if (removeErr) {
+    console.error('purge: storage remove failed:', removeErr.message)
+    for (const r of due) {
+      await svc.from('identity_doc_purge_queue')
+        .update({ attempts: r.attempts + 1, last_error: removeErr.message.slice(0, 500) })
+        .eq('id', r.id)
+    }
+    return { purged: 0, failed: due.length }
+  }
+
+  // Rows with no path have nothing to delete; they are closed out as well.
+  const ids = due.map((r) => r.id)
+  const { error: updErr } = await svc
+    .from('identity_doc_purge_queue')
+    .update({ purged_at: now, storage_path: null, last_error: null })
+    .in('id', ids)
+  if (updErr) console.error('purge: marking rows purged failed:', updErr.message)
+  return { purged: ids.length, failed: 0 }
+}
+
 const jsonResources = {
   // ── Account deletion (Google Play / App Store requirement) ───────────
   // POST { confirm: 'DELETE' } with the user's bearer token. GET returns
@@ -158,7 +207,7 @@ const jsonResources = {
     const { user, error: authError } = await getAuthedUser(req, supabase)
     if (authError) return res.status(401).json({ error: authError })
 
-    const rl = await redisRateLimit(req, 'pay_va', 10, 60)
+    const rl = await redisRateLimit(req, 'pay_va', 10, 60, true, { failClosed: true })
     if (!rl.allowed) return res.status(429).json({ error: 'Too many requests' })
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
@@ -277,6 +326,52 @@ const jsonResources = {
     })
   },
 
+  // Identity (ADR-009): the NIN/BVN is hashed here with a server-side key and only
+  // the hash is stored. The raw number is never written to the database.
+  // Approval by staff then sets Level 1 (see sync_identity_to_provider in the DB).
+  async ['identity-submit'](req, res, supabase) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    // Fail closed: this route creates identity links, so Redis trouble must deny, not allow.
+    const rl = await redisRateLimit(req, `identity-submit:${user.id}`, 5, 60 * 60, false, { failClosed: true })
+    if (!rl.allowed) return res.status(429).json({ error: rl.message || 'Too many attempts. Try again later.' })
+
+    if (!process.env.IDENTITY_HMAC_KEY) {
+      console.error('identity-submit: IDENTITY_HMAC_KEY is not set')
+      return res.status(503).json({ error: 'Identity service is not configured.' })
+    }
+    let hash
+    try {
+      hash = identityHmac(req.body?.nin)
+    } catch (err) {
+      if (err instanceof IdentityHashError) return res.status(400).json({ error: 'Enter your 11-digit NIN or BVN.' })
+      throw err
+    }
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(503).json({ error: 'Identity service is not configured.' })
+    }
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+
+    const { data: current } = await svc
+      .from('profiles').select('identity_verification_status').eq('id', user.id).maybeSingle()
+    if (current?.identity_verification_status === 'approved') {
+      return res.status(409).json({ error: 'Your identity is already verified.' })
+    }
+
+    const { error } = await svc.from('profiles').update({ identity_hmac: hash }).eq('id', user.id)
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(409).json({ error: 'This NIN/BVN is already linked to another account. Contact support if this is a mistake.' })
+      }
+      console.error('identity-submit failed:', error.message)
+      return res.status(500).json({ error: 'Could not save your NIN/BVN. Please try again.' })
+    }
+    return res.status(200).json({ ok: true })
+  },
+
   async ['cron-process-payouts'](req, res) {
     // Not a signed-in-user resource - Vercel Cron calls this with no user
     // session, so it is gated by a shared secret, the same pattern the
@@ -286,8 +381,21 @@ const jsonResources = {
     if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
+
+    // Verification expiry runs on this daily cron (ADR-009), even when payouts are not configured.
+    let demoted = null
+    let purged = null
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const maint = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+      const { data: n, error: demoteErr } = await maint.rpc('demote_expired_verifications')
+      if (demoteErr) console.error('cron: demote_expired_verifications failed:', demoteErr.message)
+      else demoted = n
+      // Identity documents are removed 90 days after account deletion (ADR-009).
+      purged = await purgeIdentityDocs(maint)
+    }
+
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
-      return res.status(200).json({ processed: 0, skipped: 'payouts not configured' })
+      return res.status(200).json({ processed: 0, skipped: 'payouts not configured', demoted, purged })
     }
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
