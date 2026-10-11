@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   model                     public.auction_model NOT NULL,
   status                    public.transaction_status NOT NULL DEFAULT 'OPEN',
   category_id               INT REFERENCES public.categories(id),
-  listing_id                BIGINT,               -- category_listings.id, nullable: legacy-vertical
+  listing_id                UUID,                 -- category_listings.id (UUID), nullable: legacy-vertical
   listing_source            TEXT,                 -- mirrors universal_match()'s `source` (ADR-002)
   requester_id              UUID NOT NULL REFERENCES auth.users(id),
   provider_id               UUID REFERENCES auth.users(id),   -- NULL until a winner is picked
