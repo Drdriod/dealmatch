@@ -49,7 +49,7 @@ BEGIN
   -- migration exists to avoid. A change this broad should go through a
   -- deliberate announcement, not an automatic per-user notification.
   IF NEW.target_category_id IS NULL THEN
-    RAISE NOTICE 'Major platform-wide commission change (% -> %%%), consider a manual announcement instead of auto-notifying every user', COALESCE(v_previous_rate, 0), NEW.percentage_rate;
+    RAISE NOTICE 'Major platform-wide commission change (% -> %), consider a manual announcement instead of auto-notifying every user', COALESCE(v_previous_rate, 0) || '%', NEW.percentage_rate || '%';
     RETURN NEW;
   END IF;
 
