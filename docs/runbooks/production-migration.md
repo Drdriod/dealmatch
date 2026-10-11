@@ -33,13 +33,24 @@ Stop and report if A returns `bigint`, or if B shows migrations that are not in 
 
 ## 2. Migrations to apply, in this order
 
-Apply only the migrations after what B reports as already applied:
+Production is not tracked by the migration tool, so apply **one file at a time**,
+starting from the earliest missing object. Each file gets its own rolled-back dry
+run first, and stops on the first error.
 
-1. `20261011000000_provider_matching_caps_and_listing_guards.sql`
-2. `20261011010000_place_people_taxonomy.sql`
-3. `20261011020000_security_perf_hardening.sql`
-4. `20261011030000_fix_fk_index_duplicates.sql`
-5. `20261011040000_nigeria_points_invoker.sql`
+Missing on production (checked read-only):
+
+1. `20260731000019_complete_transaction_rpc.sql` (complete_transaction)
+2. `20260909000001_subscriptions.sql` (subscriptions, get_active_plan)
+3. `20260909000005_commission_notifications.sql` (notify_commission_activated)
+4. `20261009000000_security_audit_hardening.sql` (is_superadmin, fn_guard_* only partly present)
+5. `20261011000000_provider_matching_caps_and_listing_guards.sql`
+6. `20261011020000_security_perf_hardening.sql`
+7. `20261011030000_fix_fk_index_duplicates.sql`
+8. `20261011040000_nigeria_points_invoker.sql`
+
+**Deferred, not part of this apply:** `20261011010000_place_people_taxonomy.sql`.
+It re-parents live listings and deactivates five categories. It needs a separate
+product decision and its own dry run. Nothing above depends on it.
 
 Staging ran the full history in this order, so staging is the reference.
 
