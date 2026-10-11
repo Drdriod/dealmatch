@@ -192,7 +192,7 @@ export default function FindProviderPage() {
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <div>
-            <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find a Provider</h1>
+            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find a Provider</motion.h1>
             <p className="text-xs" style={{ color: '#647068' }}>Nearest verified providers first</p>
           </div>
         </div>

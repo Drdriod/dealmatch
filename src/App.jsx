@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { lazyWithRetry } from '@/lib/lazyLoad'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { Home } from 'lucide-react'
 
 import Navbar    from '@/components/layout/Navbar'
@@ -768,6 +768,9 @@ const basename = import.meta.env.BASE_URL
 export default function App() {
   return (
     <ErrorBoundary>
+      {/* One app-wide motion setting: honours the OS "reduce motion" preference
+          by switching transform animations off, so every page respects it. */}
+      <MotionConfig reducedMotion="user">
       <BrowserRouter basename={basename}>
         <ThemeProvider>
           <AuthProvider>
@@ -788,6 +791,7 @@ export default function App() {
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
+      </MotionConfig>
     </ErrorBoundary>
   )
 }

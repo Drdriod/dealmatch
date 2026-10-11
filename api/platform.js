@@ -97,6 +97,11 @@ async function handleRenderPublic(req, res) {
 // cleared on account deletion. Storage paths may carry a legacy
 // 'identity-docs/' prefix, so it is stripped before removal.
 async function purgeIdentityDocs(svc) {
+  // Queue unreferenced files (superseded or legacy uploads) before purging.
+  // Failure here is logged and does not block purging what is already queued.
+  const { error: sweepErr } = await svc.rpc('sweep_orphan_identity_docs')
+  if (sweepErr) console.error('purge: orphan sweep failed:', sweepErr.message)
+
   const { data: due, error } = await svc
     .from('identity_doc_purge_queue')
     .select('id, storage_path, attempts')

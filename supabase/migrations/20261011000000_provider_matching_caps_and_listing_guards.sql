@@ -696,3 +696,49 @@ CREATE POLICY "Users replace own identity docs" ON storage.objects
   FOR UPDATE TO authenticated
   USING (bucket_id = 'identity-docs' AND (storage.foldername(name))[1] = (auth.uid())::text)
   WITH CHECK (bucket_id = 'identity-docs' AND (storage.foldername(name))[1] = (auth.uid())::text);
+
+-- ---------------------------------------------------------------------
+-- 16. Unreferenced identity files (superseded or legacy uploads).
+--     Before section 15, re-uploads wrote new timestamped objects and left the
+--     old ones behind. This sweep, run by the daily cron, queues any object in
+--     the identity-docs bucket that no profile or student record points to.
+--     A 7-day grace period covers an upload that has not been linked yet.
+--     Queued objects are removed on the next purge run (purge_after = now()).
+--     Only paths inside a user's own folder are considered.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.sweep_orphan_identity_docs(p_grace interval DEFAULT interval '7 days')
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, storage
+AS $$
+DECLARE
+  n integer;
+BEGIN
+  INSERT INTO public.identity_doc_purge_queue (user_id, storage_path, purge_after)
+  SELECT (storage.foldername(o.name))[1]::uuid, o.name, now()
+  FROM storage.objects o
+  WHERE o.bucket_id = 'identity-docs'
+    AND (storage.foldername(o.name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    AND o.created_at < now() - p_grace
+    AND NOT EXISTS (
+      SELECT 1 FROM public.profiles p
+      WHERE p.identity_photo_url  IN (o.name, 'identity-docs/' || o.name)
+         OR p.identity_selfie_url IN (o.name, 'identity-docs/' || o.name)
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM public.student_verifications sv
+      WHERE sv.id_image_url IN (o.name, 'identity-docs/' || o.name)
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM public.identity_doc_purge_queue q
+      WHERE q.storage_path IN (o.name, 'identity-docs/' || o.name) AND q.purged_at IS NULL
+    );
+
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RETURN n;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.sweep_orphan_identity_docs(interval) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.sweep_orphan_identity_docs(interval) TO service_role;

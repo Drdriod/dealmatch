@@ -331,7 +331,7 @@ export default function RentalsPage() {
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Rent Without the Runaround.</h1>
+            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Rent Without the Runaround.</motion.h1>
             <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Real tenancy terms upfront - no surprise agent fees at the door.</p>
           </div>
           {/* View toggle */}

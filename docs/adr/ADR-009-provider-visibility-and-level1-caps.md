@@ -45,10 +45,13 @@ How it is implemented:
 - The daily cron (`cron-process-payouts`, which runs whether or not payouts are configured) calls `purgeIdentityDocs()`. It removes objects from the private `identity-docs` bucket once `purge_after` has passed, then sets `purged_at` and clears `storage_path`. Up to 200 rows per run, with at most 5 attempts per row.
 - Queue rows are readable and writable only by the service role.
 
-Not covered by this decision:
+Student ID images (`student_verifications.id_image_url`) are queued by `trg_queue_student_id_purge` when the account is marked deleted, on the same 90-day schedule.
 
-- **Replacement uploads.** A re-upload points the profile at a new path, and the old object is not queued, so it stays in the bucket until something else removes it. Only the paths current at deletion are queued. Needs a decision: either queue superseded paths when they are replaced, or accept the gap.
-- **Student ID images** (`StudentVerifyPage`, `id_image_url`) are not on the erasure path. They need the same treatment.
+Superseded and legacy uploads:
+
+- Each document now has one fixed path per user (`{uid}/id-document`, `{uid}/selfie`, `{uid}/student-id`). A re-upload overwrites the object in place, so new uploads leave no copy behind.
+- Files uploaded before this change have timestamped names. Any that no profile or student record points to are swept by `sweep_orphan_identity_docs()`. It runs on the daily cron, and only for objects older than 7 days, so an upload that has not yet been linked is never removed. Those objects are queued for immediate removal.
+- The 90-day rule applies to deleted accounts. Unreferenced files are not kept for that period, since nothing points at them.
 
 **Still open for counsel.** AML/KYC record-keeping may require longer retention (see the questions below). If it applies, the 90-day rule is overridden for those records and this section changes.
 
