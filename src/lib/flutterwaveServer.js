@@ -57,12 +57,18 @@ async function getAccessToken() {
 
 // Call a V4 endpoint. Returns the `data` object on success, throws otherwise.
 // idempotencyKey must be 12-255 alphanumeric characters (Flutterwave rule).
-export async function flw(method, path, { body, idempotencyKey } = {}) {
+// True only for the sandbox base URL. Sandbox-only headers are gated on this.
+export function isFlutterwaveSandbox() {
+  return /sandbox/i.test(process.env.FLUTTERWAVE_BASE_URL || '')
+}
+
+export async function flw(method, path, { body, idempotencyKey, extraHeaders } = {}) {
   const token = await getAccessToken()
   const headers = {
     Authorization: `Bearer ${token}`,
     'X-Trace-Id': randomBytes(12).toString('hex'), // alphanumeric, 24 chars
     Accept: 'application/json',
+    ...(extraHeaders || {}),
   }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (idempotencyKey) headers['X-Idempotency-Key'] = idempotencyKey
