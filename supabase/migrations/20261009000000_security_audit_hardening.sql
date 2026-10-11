@@ -708,6 +708,12 @@ BEGIN
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
      WHERE n.nspname = 'public' AND p.prosecdef AND p.proconfig IS NULL
+       -- Skip functions owned by an extension (e.g. PostGIS installed in public).
+       -- They belong to the extension owner, so ALTER fails with "must be owner".
+       AND NOT EXISTS (
+         SELECT 1 FROM pg_depend d
+          WHERE d.objid = p.oid AND d.classid = 'pg_proc'::regclass AND d.deptype = 'e'
+       )
   LOOP
     EXECUTE format('ALTER FUNCTION %s SET search_path = public, extensions, pg_temp', r.sig);
   END LOOP;
