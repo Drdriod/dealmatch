@@ -136,7 +136,7 @@ BEGIN
        AND NOT EXISTS (
          SELECT 1 FROM pg_index i
           WHERE i.indrelid = c.conrelid
-            AND (i.indkey::int2[])[1:array_length(c.conkey, 1)] = c.conkey
+            AND (string_to_array(i.indkey::text, ' ')::int2[])[1:array_length(c.conkey, 1)] = c.conkey
        )
   LOOP
     SELECT string_agg(quote_ident(a.attname), ', ' ORDER BY k.ord)
