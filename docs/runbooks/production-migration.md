@@ -1,7 +1,26 @@
 # Production migration runbook
 
-Status: **prepared, not run.** Production is Supabase project `dijggrafwdznescbuypi`.
-Nothing in this runbook changes production until the approval step at the end.
+Status: **files 1 to 8 applied and verified (2026-10-12).** Production is Supabase project `dijggrafwdznescbuypi`.
+Taxonomy (`20261011010000`) remains parked and is not applied.
+
+## 0. Applied log
+
+| # | File | Result |
+|---|------|--------|
+| 1 | 20260731000019_complete_transaction_rpc | Applied. `complete_transaction` exists. |
+| 2 | 20260909000001_subscriptions | Applied. Verified: table, RLS, `get_active_plan`. |
+| 3 | 20260909000005_commission_notifications | Applied. Trigger notifies providers in a category on a ≥1.00 pt change to ACTIVE. Earlier RAISE format fix in commit d6e885d. |
+| 4 | 20261009000000_security_audit_hardening | Applied. `is_superadmin` exists, 0 founder-email policies remain. `search_providers_rpc` added to keep-list (commit 0665020). |
+| 5 | 20261011000000_provider_matching_caps_and_listing_guards | Applied. Verified: search RPC, Level 1 cap function and trigger, purge function. |
+| 6 | 20261011020000_security_perf_hardening | Applied. 0 unindexed FKs, 4 duplicate indexes removed, 7 trigger-only functions not client-callable. |
+| 7 | 20261011030000_fix_fk_index_duplicates | Applied, by explicit choice. Rebuilt the same 85 FK indexes. Net effect on production was a rebuild, not a cleanup. |
+| 8 | 20261011040000_nigeria_points_invoker | Applied. `nigeria_state_points` has `security_invoker=true`. |
+
+**Advisor state after apply:**
+- Security: `provider_stats` SECURITY DEFINER view is intentional. PostGIS and pg_net in `public` and `spatial_ref_sys` RLS need an extension move (deferred). ~16 anon-callable and ~42 authenticated-callable SECURITY DEFINER functions are an RPC grant audit (deferred). Leaked-password protection is disabled in Auth settings (action needed). `identity_doc_purge_queue` RLS with no policies is intended.
+- Performance: 10 `auth_rls_initplan` policies remain, 147 unused indexes (needs traffic data), 313 multiple permissive policies (design change). All deferred.
+
+**Action items:** enable leaked-password protection; reset staging and production database passwords (exposed in chat); smoke-test Find Provider, provider profiles, listing creation, and a transaction.
 
 ## 1. Pre-flight checks (read-only)
 
