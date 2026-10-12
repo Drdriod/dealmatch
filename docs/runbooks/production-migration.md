@@ -16,7 +16,7 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 7 | 20261011030000_fix_fk_index_duplicates | Applied, by explicit choice. Rebuilt the same 85 FK indexes. Net effect on production was a rebuild, not a cleanup. |
 | 8 | 20261011040000_nigeria_points_invoker | Applied. `nigeria_state_points` has `security_invoker=true`. |
 | 9 | 20261012000000_taxonomy_blueprint_v2 | Applied 2026-10-12 after a rolled-back dry run (success, no rows). Verified: 11 active groups (4 place, 7 people), 60 active leaves, 0 active categories without a pillar, 0 listings under inactive categories. Adds `categories.pillar` and `properties.category_id`. No listings or properties were moved. |
-| 10 | 20261012000100_universal_search_category_filter | Applied 2026-10-12 after a rolled-back dry run. Verified: 2-argument `universal_search` dropped, 3-argument version live with optional `p_category_slug`, grants on anon, authenticated, service_role, unfiltered and filtered calls both run. Needs `public_profiles` (file 11). |
+| 10 | 20261012000100_universal_search_category_filter | Applied 2026-10-12 after a rolled-back dry run. Verified: 2-argument `universal_search` dropped, 3-argument version live with optional `p_category_slug`, grants on anon, authenticated, service_role, unfiltered and filtered calls both run. Depends on the `public_profiles` view from file 11, which was applied earlier on the same day. |
 | 11 | 20261009010000_page_audit_fixes | Applied 2026-10-12 after a rolled-back dry run. Verified: `public_profiles` view exists, listing status rule includes the admin statuses, `mortgage_applications.updated_at` exists, referral payout guard uses `is_superadmin`. |
 
 **Advisor state after apply:**
