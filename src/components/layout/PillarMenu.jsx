@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import useCategoryTree from '@/hooks/useCategoryTree'
-import { PILLAR_GROUPS, categoryHref } from '@/lib/taxonomy'
+import { categoryHref } from '@/lib/taxonomy'
 
 const ease = [0.22, 1, 0.36, 1]
 // Short intent delays: the panel does not flicker when the pointer crosses
@@ -22,12 +22,13 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease } },
 }
 
-// The live groups for one pillar, in config order. Groups missing from the
-// live tree are skipped rather than shown as broken links.
+// The active groups for one pillar, read from the database `pillar` column.
+// Sorted by name so the order is stable and does not depend on the seed.
 function groupsFor(pillarSlug, tree) {
   if (!tree) return null
-  const bySlug = new Map(tree.map(root => [root.slug, root]))
-  return PILLAR_GROUPS[pillarSlug].map(slug => bySlug.get(slug)).filter(Boolean)
+  return tree
+    .filter(root => root.pillar === pillarSlug)
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function MenuStatus({ tree, error, groups }) {

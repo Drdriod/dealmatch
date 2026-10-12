@@ -5,8 +5,10 @@ import { ChevronRight } from 'lucide-react'
 import useCategoryTree from '@/hooks/useCategoryTree'
 import { supabase } from '@/lib/supabase'
 import PersonCard from '@/components/cards/PersonCard'
+import PlaceCard from '@/components/cards/PlaceCard'
 import Notice from '@/components/ui/Notice'
-import { PILLARS, categoryHref, pillarOfRoot } from '@/lib/taxonomy'
+import { fetchPlacesForCategories } from '@/lib/categoryFeed'
+import { PILLARS, categoryHref } from '@/lib/taxonomy'
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -19,8 +21,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.28, ease } },
 }
 
-// Locate a category in the active tree. Returns the category, its top-level
-// root, and whether it is a child (parent set) or a root (parent null).
+// Locate a category in the active tree. A root is a group; a child is a leaf.
 function findCategory(tree, slug) {
   if (!tree) return null
   for (const root of tree) {
@@ -31,8 +32,8 @@ function findCategory(tree, slug) {
   return null
 }
 
-// People come only from verified providers (level 2 or higher), matching
-// the PersonCard rule. Category is a text label on the provider record, so it
+// People come only from verified providers (level 2 or higher), matching the
+// PersonCard rule. The category is a text label on the provider record, so it
 // is matched by the category name.
 async function loadPeople(categoryName) {
   const { data: vp, error } = await supabase
@@ -75,17 +76,48 @@ function Skeleton() {
   )
 }
 
+function Page({ children }) {
+  return (
+    <main className="mx-auto w-full max-w-[1240px] px-4 py-8 md:px-7 md:py-12" style={{ backgroundColor: '#F7F4ED', minHeight: '60vh' }}>
+      {children}
+    </main>
+  )
+}
+
 export default function CategoryPage() {
   const { slug } = useParams()
   const { tree, error: treeError } = useCategoryTree()
   const found = useMemo(() => findCategory(tree, slug), [tree, slug])
-  const pillarSlug = found ? pillarOfRoot(found.root.slug) : null
+
+  // The pillar is stored on the group row in the database.
+  const pillarSlug = found?.root.pillar ?? null
   const pillar = PILLARS.find(p => p.slug === pillarSlug) || null
   const categoryId = found?.category.id
   const categoryName = found?.category.name
+  // A group page also includes its leaves' places and people.
+  const scopeIds = useMemo(() => {
+    if (!found) return []
+    return found.isRoot
+      ? [found.category.id, ...(found.category.children || []).map(c => c.id)]
+      : [found.category.id]
+  }, [found])
+  const scopeKey = scopeIds.join(',')
 
+  const [places, setPlaces] = useState(null)
+  const [placesError, setPlacesError] = useState(null)
   const [people, setPeople] = useState(null)
   const [peopleError, setPeopleError] = useState(null)
+
+  useEffect(() => {
+    if (!scopeKey || pillarSlug !== 'place') return
+    let alive = true
+    setPlaces(null)
+    setPlacesError(null)
+    fetchPlacesForCategories(scopeKey.split(',').map(Number))
+      .then(rows => { if (alive) setPlaces(rows) })
+      .catch(err => { if (alive) { setPlacesError(err); setPlaces([]) } })
+    return () => { alive = false }
+  }, [scopeKey, pillarSlug])
 
   useEffect(() => {
     if (!categoryName || pillarSlug !== 'people') return
@@ -165,52 +197,59 @@ export default function CategoryPage() {
 
       <div className="mt-8">
         {!pillar && (
-          <Notice variant="info" title="Not in Place or People yet">
-            This category is not assigned to a section yet, so it has no listings page.
+          <Notice variant="info" title="Not in Place or People">
+            This category is not assigned to a section, so it has no listings page.
           </Notice>
         )}
 
         {pillarSlug === 'place' && (
-          <Notice variant="info" title="Place listings are not linked to categories yet"
-            action={<Link to="/places" className="text-sm font-semibold text-[#C85F2D] hover:text-[#A8441D]">Browse all places →</Link>}>
-            Places are not yet grouped by category, so this page cannot list them. They will appear here once they are assigned.
-          </Notice>
+          places === null ? (
+            <Skeleton />
+          ) : placesError ? (
+            <Notice variant="error" title="We couldn't load places in this group">
+              Please refresh the page. If it keeps happening, try again shortly.
+            </Notice>
+          ) : places.length === 0 ? (
+            <Notice variant="info" title="No places in this group yet"
+              action={<Link to="/places" className="text-sm font-semibold text-[#C85F2D] hover:text-[#A8441D]">Browse all places →</Link>}>
+              Places appear here once they are assigned to this group.
+            </Notice>
+          ) : (
+            <motion.div variants={listVariants} initial="hidden" animate="show"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {places.map(place => (
+                <motion.div key={place.id} variants={itemVariants}>
+                  <PlaceCard place={place} />
+                </motion.div>
+              ))}
+            </motion.div>
+          )
         )}
 
         {pillarSlug === 'people' && (
-          <>
-            {people === null ? (
-              <Skeleton />
-            ) : peopleError ? (
-              <Notice variant="error" title="We couldn't load people in this group">
-                Please refresh the page. If it keeps happening, try again shortly.
-              </Notice>
-            ) : people.length === 0 ? (
-              <Notice variant="info" title="No verified providers in this group yet"
-                action={<Link to="/providers" className="text-sm font-semibold text-[#C85F2D] hover:text-[#A8441D]">Browse all people →</Link>}>
-                Providers appear here once they are identity and skill verified for this group.
-              </Notice>
-            ) : (
-              <motion.div variants={listVariants} initial="hidden" animate="show"
-                className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {people.map(person => (
-                  <motion.div key={person.id} variants={itemVariants}>
-                    <PersonCard person={person} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </>
+          people === null ? (
+            <Skeleton />
+          ) : peopleError ? (
+            <Notice variant="error" title="We couldn't load people in this group">
+              Please refresh the page. If it keeps happening, try again shortly.
+            </Notice>
+          ) : people.length === 0 ? (
+            <Notice variant="info" title="No verified providers in this group yet"
+              action={<Link to="/providers" className="text-sm font-semibold text-[#C85F2D] hover:text-[#A8441D]">Browse all people →</Link>}>
+              Providers appear here once they are identity and skill verified for this group.
+            </Notice>
+          ) : (
+            <motion.div variants={listVariants} initial="hidden" animate="show"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {people.map(person => (
+                <motion.div key={person.id} variants={itemVariants}>
+                  <PersonCard person={person} />
+                </motion.div>
+              ))}
+            </motion.div>
+          )
         )}
       </div>
     </Page>
-  )
-}
-
-function Page({ children }) {
-  return (
-    <main className="mx-auto w-full max-w-[1240px] px-4 py-8 md:px-7 md:py-12" style={{ backgroundColor: '#F7F4ED', minHeight: '60vh' }}>
-      {children}
-    </main>
   )
 }
