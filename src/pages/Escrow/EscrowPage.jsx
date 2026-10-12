@@ -9,10 +9,10 @@ import toast from 'react-hot-toast'
 const WHATSAPP = '2347057392060'
 
 const HOW_IT_WORKS = [
-  { icon: <Banknote size={28} className="text-terracotta" />, title:'Tenant deposits funds',  desc:'Tenant pays rent or deposit to DealMatch: not directly to landlord.' },
-  { icon: <Search size={28} className="text-terracotta" />, title:'DealMatch verifies',     desc:'We confirm property details, agreement terms, and both parties have signed.' },
-  { icon: <Home size={28} className="text-terracotta" />, title:'Tenant moves in',        desc:'Once tenant confirms successful move-in, funds are released to landlord.' },
-  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch deducts its 3% facilitation fee and sends balance to landlord within 24 hours.' },
+  { icon: <Banknote size={28} className="text-terracotta" />, title:'Tenant deposits funds',  desc:'The tenant pays the rent or deposit through DealMatch, not directly to the landlord.' },
+  { icon: <Search size={28} className="text-terracotta" />, title:'DealMatch records the deal', desc:'The property, the landlord and the tenant are recorded with the payment reference.' },
+  { icon: <Home size={28} className="text-terracotta" />, title:'Tenant moves in',        desc:'The tenant confirms move-in, and the funds are released to the landlord. If the tenant does not confirm, they are released 72 hours after move-in unless a dispute is filed.' },
+  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released: 3.75% from the tenant and 3.75% from the landlord on rentals. The landlord receives the amount minus their share.' },
 ]
 
 // ─── Request Modal ────────────────────────────────────────
@@ -103,7 +103,7 @@ function EscrowRequestModal({ onClose }) {
             <div className="flex justify-center mb-4"><ShieldCheck size={48} className="text-terracotta" /></div>
             <h4 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>Protection Initiated!</h4>
             <p className="text-sm leading-relaxed mb-6" style={{ color:'#647068' }}>
-              Payment received. DealMatch will confirm your protection and notify both parties within 2 hours.
+              Payment received. Your protection is being set up, and DealMatch will contact both parties on WhatsApp.
             </p>
             <button onClick={onClose} className="btn-primary w-full py-3">Done</button>
           </div>
@@ -181,7 +181,7 @@ function EscrowRequestModal({ onClose }) {
             </div>
 
             <button type="submit" className="btn-primary w-full py-4">Pay with Card / Bank →</button>
-            <p className="text-xs text-center" style={{ color:'#647068' }}>Funds held securely until move-in confirmed.</p>
+            <p className="text-xs text-center" style={{ color:'#647068' }}>Funds held until you confirm move-in.</p>
           </form>
         )}
       </motion.div>
@@ -265,7 +265,7 @@ export default function EscrowPage() {
               DealMatch Protection
             </h1>
             <p className="text-sm leading-relaxed mb-6" style={{ color:'rgba(255,255,255,0.55)' }}>
-              Pay your rent or property deposit safely through DealMatch. Funds held securely: released only after you confirm everything is in order.
+              Pay your rent or property deposit safely through DealMatch. Funds are held until you confirm move-in, so your money is protected until you have moved in.
             </p>
             <button onClick={() => setShowModal(true)} className="btn-primary px-8 py-4 text-base">
               Request Protection →
@@ -294,10 +294,10 @@ export default function EscrowPage() {
 
         {/* Benefits */}
         {[
-          { icon: <Shield size={28} className="text-terracotta" />, title:'Your money is safe',      desc:'Funds held by DealMatch until move-in confirmed. Landlord cannot access until you approve.' },
-          { icon: <Clipboard size={22} className="text-terracotta" />, title:'Legal protection',         desc:'Every protection payment is documented. Both parties protected by DealMatch agreement.' },
-          { icon: <Ban size={22} className="text-terracotta" />, title:'No bypass possible',       desc:'Contact details only shared after protection is initiated. Deals cannot happen outside platform.' },
-          { icon: <Zap size={22} className="text-terracotta" />, title:'Fast release',             desc:'Once you confirm move-in, landlord receives funds within 24 hours.' },
+          { icon: <Shield size={28} className="text-terracotta" />, title:'Your money is safe',      desc:'DealMatch holds the funds until you confirm move-in. The landlord does not receive them before then.' },
+          { icon: <Clipboard size={22} className="text-terracotta" />, title:'A clear record',            desc:'Every protected payment is recorded with its payment reference, the property and both parties.' },
+          { icon: <Ban size={22} className="text-terracotta" />, title:'Paid through DealMatch',    desc:'Keeping the payment on DealMatch means it is recorded and covered by this protection.' },
+          { icon: <Zap size={22} className="text-terracotta" />, title:'Release on move-in',        desc:'Once you confirm move-in, the funds are released to the landlord.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
             style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
