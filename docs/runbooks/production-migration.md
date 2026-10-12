@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 11 applied and verified (2026-10-12). File 12 pending its dry run.** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 12 applied and verified (2026-10-12).** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -18,7 +18,7 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 9 | 20261012000000_taxonomy_blueprint_v2 | Applied 2026-10-12 after a rolled-back dry run (success, no rows). Verified: 11 active groups (4 place, 7 people), 60 active leaves, 0 active categories without a pillar, 0 listings under inactive categories. Adds `categories.pillar` and `properties.category_id`. No listings or properties were moved. |
 | 10 | 20261012000100_universal_search_category_filter | Applied 2026-10-12 after a rolled-back dry run. Verified: 2-argument `universal_search` dropped, 3-argument version live with optional `p_category_slug`, grants on anon, authenticated, service_role, unfiltered and filtered calls both run. Depends on the `public_profiles` view from file 11, which was applied earlier on the same day. |
 | 11 | 20261009010000_page_audit_fixes | Applied 2026-10-12 after a rolled-back dry run. Verified: `public_profiles` view exists, listing status rule includes the admin statuses, `mortgage_applications.updated_at` exists, referral payout guard uses `is_superadmin`. |
-| 12 | 20261012010000_rental_fee_1_5_per_side | **Pending.** Dry run not yet run. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
+| 12 | 20261012010000_rental_fee_1_5_per_side | Applied 2026-10-12 after a rolled-back dry run. Verified: no 3.75% or 7.5% rate remains in `start_property_escrow_payment` or `fn_calculate_revenue_split`; both now use 1.5% (3% total) for rentals. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
 
 **Advisor state after apply:**
 - Security: `provider_stats` SECURITY DEFINER view is intentional. PostGIS and pg_net in `public` and `spatial_ref_sys` RLS need an extension move (deferred). ~16 anon-callable and ~42 authenticated-callable SECURITY DEFINER functions are an RPC grant audit (deferred). Leaked-password protection is disabled in Auth settings (action needed). `identity_doc_purge_queue` RLS with no policies is intended.
