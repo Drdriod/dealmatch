@@ -13,7 +13,7 @@ const HOW_IT_WORKS = [
   { icon: <Banknote size={28} className="text-terracotta" />, title:'Tenant deposits funds',  desc:'The tenant pays the rent or deposit through DealMatch, not directly to the landlord.' },
   { icon: <Search size={28} className="text-terracotta" />, title:'DealMatch records the deal', desc:'The property, the landlord and the tenant are recorded with the payment reference.' },
   { icon: <Home size={28} className="text-terracotta" />, title:'Tenant moves in',        desc:'The tenant confirms move-in, and the funds are released to the landlord. If the tenant does not confirm, they are released 72 hours after move-in unless a dispute is filed.' },
-  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released. On rentals, 3.75% comes from each side (7.5% in total). On sales, 1.5% comes from each side (3% in total).' },
+  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released: 1.5% from each side, 3% in total, for rentals and sales alike.' },
 ]
 
 // ─── Request Modal ────────────────────────────────────────
@@ -31,12 +31,12 @@ function EscrowRequestModal({ onClose }) {
   const [submitted,  setSubmitted]  = useState(false)
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
-  // Fee per side depends on the deal: rentals 3.75% each (7.5% total),
-  // sales 1.5% each (3% total). Matches the escrow release rules in the database.
-  const isSale            = form.type === 'sale'
-  const feeRate           = isSale ? 0.015 : 0.0375
-  const feeLabelPerSide   = isSale ? '1.5%' : '3.75%'
-  const feeLabelTotal     = isSale ? '3%' : '7.5%'
+  // One rate for every deal: 1.5% from each side, 3% in total.
+  // Must match the escrow split in the database (fn_calculate_revenue_split,
+  // start_property_escrow_payment).
+  const feeRate           = 0.015
+  const feeLabelPerSide   = '1.5%'
+  const feeLabelTotal     = '3%'
   const gross             = form.amount ? Number(form.amount) : 0
   const fee_per_party     = gross ? Math.round(gross * feeRate) : 0
   const platform_fee      = fee_per_party * 2   // total collected

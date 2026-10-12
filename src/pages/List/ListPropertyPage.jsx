@@ -187,7 +187,7 @@ export default function ListPropertyPage() {
               value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             {form.price && (() => {
               const gross       = Number(form.price)
-              const feeEach     = Math.round(gross * 0.0375)
+              const feeEach     = Math.round(gross * 0.015)
               const takeHome    = gross - feeEach
               const agentBonus  = Math.round(gross * 0.075 * 0.25)
               return (
@@ -199,7 +199,7 @@ export default function ListPropertyPage() {
                       <span style={{color:'#17211B', fontWeight:600}}>₦{gross.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span style={{color:'#647068'}}>DealMatch fee (3.75%)</span>
+                      <span style={{color:'#647068'}}>DealMatch fee (1.5% per side)</span>
                       <span style={{color:'#C85F2D'}}>-₦{feeEach.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs border-t pt-1 mt-1" style={{borderColor:'rgba(122,158,126,0.2)'}}>

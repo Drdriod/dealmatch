@@ -34,8 +34,8 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const [done, setDone] = useState(false)
 
   const gross = Number(amount) || 0
-  const feePerParty = gross ? Math.round(gross * 0.0375) : 0
-  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, matching EscrowPage's existing 3.75%+3.75% model
+  const feePerParty = gross ? Math.round(gross * 0.015) : 0
+  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, matching EscrowPage's 1.5%+1.5% model
 
   const pollForFunded = async (escrowId, attempts = 0) => {
     if (attempts > 10) { setConfirming(false); toast('Payment received - confirming with our team, this can take a few minutes.'); setDone(true); return }
@@ -153,7 +153,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <div className="rounded-2xl p-3 text-xs leading-relaxed" style={{ backgroundColor: 'rgba(122,158,126,0.1)', color: '#3E5A42' }}>
               Owner contact unlocks automatically once your payment is confirmed. DealMatch holds funds until move-in is confirmed by both sides.
-              {feePerParty > 0 && <> A 3.75% facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
+              {feePerParty > 0 && <> A 1.5% facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
             </div>
 
             <button onClick={handleReserve} disabled={submitting || confirming}
