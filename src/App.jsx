@@ -47,6 +47,7 @@ const StudentHostelsPage    = lazyWithRetry(() => import('@/pages/StudentHostels
 const ListHostelPage        = lazyWithRetry(() => import('@/pages/StudentHostels/ListHostelPage'))
 const StudentVerifyPage     = lazyWithRetry(() => import('@/pages/StudentHostels/StudentVerifyPage'))
 const RentalsPage           = lazyWithRetry(() => import('@/pages/Rentals/RentalsPage'))
+const CategoryPage          = lazyWithRetry(() => import('@/pages/Category/CategoryPage'))
 const HotelsPage            = lazyWithRetry(() => import('@/pages/Hotels/HotelsPage'))
 const ListRentalPage        = lazyWithRetry(() => import('@/pages/Rentals/ListRentalPage'))
 const EscrowPage            = lazyWithRetry(() => import('@/pages/Escrow/EscrowPage'))
@@ -374,6 +375,13 @@ function AnimatedRoutes() {
             Canonical route is /places. /rentals kept alive for existing
             links/bookmarks; /properties is the dead route the audit found
             on the live homepage, now redirected instead of 404ing. */}
+        <Route path="/category/:slug" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><CategoryPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
         <Route path="/places" element={
           <AppShell>
             <Suspense fallback={<PageSkeleton />}>
@@ -779,8 +787,9 @@ export default function App() {
               toastOptions={{
                 style:{
                   background:'#17211B', color:'#F7F4ED',
-                  borderRadius:'100px', padding:'14px 24px',
-                  fontSize:'14px', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
+                  borderRadius:'16px', padding:'14px 18px', maxWidth:'440px',
+                  boxShadow:'0 18px 40px -12px rgba(23,33,27,0.45)',
+                  fontSize:'14px', lineHeight:'1.45', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
                 },
                 success: { iconTheme:{ primary:'#7A9E7E', secondary:'#F7F4ED' } },
                 error:   { iconTheme:{ primary:'#C85F2D', secondary:'#F7F4ED' } },

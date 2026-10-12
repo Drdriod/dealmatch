@@ -1,6 +1,15 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'motion/react'
 import { Home, Lock, MapPin, ShieldCheck, ArrowRight } from 'lucide-react'
+
+// Link with a spring lift on hover and a slight press on tap.
+const MotionLink = motion.create(Link)
+const cardMotion = {
+  whileHover: { y: -4 },
+  whileTap: { scale: 0.985 },
+  transition: { type: 'spring', stiffness: 420, damping: 30 },
+}
 
 const formatPrice = (n) => {
   if (!n) return null
@@ -24,9 +33,10 @@ export default function PlaceCard({ place }) {
   const price = formatPrice(place.price)
 
   return (
-    <Link
+    <MotionLink
       to={`/property/${place.id}`}
-      className="group flex-shrink-0 block rounded-[19px] overflow-hidden transition-all hover:-translate-y-1 hover:shadow-card-hover"
+      {...cardMotion}
+      className="group flex-shrink-0 block rounded-[19px] overflow-hidden transition-shadow hover:shadow-card-hover"
       style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', width: 260 }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
@@ -68,6 +78,6 @@ export default function PlaceCard({ place }) {
           View place <ArrowRight size={11} className="transition-transform group-hover:translate-x-0.5" />
         </p>
       </div>
-    </Link>
+    </MotionLink>
   )
 }

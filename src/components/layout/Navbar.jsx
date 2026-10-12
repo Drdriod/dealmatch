@@ -5,6 +5,7 @@ import { AnimatePresence, LayoutGroup, motion, MotionConfig } from 'motion/react
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 import NotificationBell from '@/components/ui/NotificationBell'
+import PillarMenu from '@/components/layout/PillarMenu'
 import { PILLARS, isPillarActive } from '@/lib/taxonomy'
 
 const POST_ROUTE = '/request'
@@ -61,16 +62,10 @@ export default function Navbar() {
 
         <LayoutGroup id="desktop-nav">
           <nav className="hidden md:flex items-center gap-9 text-sm font-semibold text-[#17211B]">
-            {PILLARS.map(pillar => {
-              const active = isPillarActive(pillar, location.pathname)
-              return (
-                <Link key={pillar.slug} to={pillar.route}
-                  className={`relative py-2 hover:text-[#C85F2D] ${active ? 'text-[#C85F2D]' : ''}`}>
-                  {pillar.name}
-                  {active && <Underline id="nav-underline" />}
-                </Link>
-              )
-            })}
+            {PILLARS.map(pillar => (
+              <PillarMenu key={pillar.slug} pillar={pillar}
+                active={isPillarActive(pillar, location.pathname)} />
+            ))}
 
             <Link to={POST_ROUTE} className={`relative py-2 hover:text-[#C85F2D] ${postActive ? 'text-[#C85F2D]' : ''}`}>
               Post a Request
@@ -159,10 +154,9 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-1">
               {PILLARS.map(pillar => (
-                <Link key={pillar.slug} to={pillar.route}
-                  className="block text-[#17211B] font-semibold py-3" onClick={() => setMobileOpen(false)}>
-                  {pillar.name}
-                </Link>
+                <PillarMenu key={pillar.slug} pillar={pillar} variant="mobile"
+                  active={isPillarActive(pillar, location.pathname)}
+                  onNavigate={() => setMobileOpen(false)} />
               ))}
               <Link to={POST_ROUTE} className="block text-[#17211B] font-semibold py-3" onClick={() => setMobileOpen(false)}>
                 Post a Request
