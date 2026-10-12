@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 9 applied and verified (2026-10-12). File 10 pending its dry run.** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 10 applied and verified (2026-10-12).** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -16,7 +16,8 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 7 | 20261011030000_fix_fk_index_duplicates | Applied, by explicit choice. Rebuilt the same 85 FK indexes. Net effect on production was a rebuild, not a cleanup. |
 | 8 | 20261011040000_nigeria_points_invoker | Applied. `nigeria_state_points` has `security_invoker=true`. |
 | 9 | 20261012000000_taxonomy_blueprint_v2 | Applied 2026-10-12 after a rolled-back dry run (success, no rows). Verified: 11 active groups (4 place, 7 people), 60 active leaves, 0 active categories without a pillar, 0 listings under inactive categories. Adds `categories.pillar` and `properties.category_id`. No listings or properties were moved. |
-| 10 | 20261012000100_universal_search_category_filter | **Pending.** Dry run not yet run. Drops the 2-argument `universal_search` and replaces it with a 3-argument version (optional `p_category_slug`). Grants re-applied to anon, authenticated, service_role. |
+| 10 | 20261012000100_universal_search_category_filter | Applied 2026-10-12 after a rolled-back dry run. Verified: 2-argument `universal_search` dropped, 3-argument version live with optional `p_category_slug`, grants on anon, authenticated, service_role, unfiltered and filtered calls both run. Needs `public_profiles` (file 11). |
+| 11 | 20261009010000_page_audit_fixes | Applied 2026-10-12 after a rolled-back dry run. Verified: `public_profiles` view exists, listing status rule includes the admin statuses, `mortgage_applications.updated_at` exists, referral payout guard uses `is_superadmin`. |
 
 **Advisor state after apply:**
 - Security: `provider_stats` SECURITY DEFINER view is intentional. PostGIS and pg_net in `public` and `spatial_ref_sys` RLS need an extension move (deferred). ~16 anon-callable and ~42 authenticated-callable SECURITY DEFINER functions are an RPC grant audit (deferred). Leaked-password protection is disabled in Auth settings (action needed). `identity_doc_purge_queue` RLS with no policies is intended.
