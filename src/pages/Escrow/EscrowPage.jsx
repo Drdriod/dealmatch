@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, ShieldCheck, X, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
+import { supabase } from '@/lib/supabase'
 import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
 
@@ -12,7 +13,7 @@ const HOW_IT_WORKS = [
   { icon: <Banknote size={28} className="text-terracotta" />, title:'Tenant deposits funds',  desc:'The tenant pays the rent or deposit through DealMatch, not directly to the landlord.' },
   { icon: <Search size={28} className="text-terracotta" />, title:'DealMatch records the deal', desc:'The property, the landlord and the tenant are recorded with the payment reference.' },
   { icon: <Home size={28} className="text-terracotta" />, title:'Tenant moves in',        desc:'The tenant confirms move-in, and the funds are released to the landlord. If the tenant does not confirm, they are released 72 hours after move-in unless a dispute is filed.' },
-  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released: 3.75% from the tenant and 3.75% from the landlord on rentals. The landlord receives the amount minus their share.' },
+  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released. On rentals, 3.75% comes from each side (7.5% in total). On sales, 1.5% comes from each side (3% in total).' },
 ]
 
 // ─── Request Modal ────────────────────────────────────────
@@ -30,9 +31,14 @@ function EscrowRequestModal({ onClose }) {
   const [submitted,  setSubmitted]  = useState(false)
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
-  // 7.5% total rental fee split equally - 3.75% from each party
+  // Fee per side depends on the deal: rentals 3.75% each (7.5% total),
+  // sales 1.5% each (3% total). Matches the escrow release rules in the database.
+  const isSale            = form.type === 'sale'
+  const feeRate           = isSale ? 0.015 : 0.0375
+  const feeLabelPerSide   = isSale ? '1.5%' : '3.75%'
+  const feeLabelTotal     = isSale ? '3%' : '7.5%'
   const gross             = form.amount ? Number(form.amount) : 0
-  const fee_per_party     = gross ? Math.round(gross * 0.0375) : 0
+  const fee_per_party     = gross ? Math.round(gross * feeRate) : 0
   const platform_fee      = fee_per_party * 2   // total collected
   const landlordReceives  = gross ? gross - fee_per_party : 0
   const rawFee            = fee_per_party        // legacy compat
@@ -154,7 +160,7 @@ function EscrowRequestModal({ onClose }) {
                 <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Breakdown</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between"><span style={{ color:'#647068' }}>Total</span><strong style={{ color:'#17211B' }}>₦{Number(form.amount).toLocaleString()}</strong></div>
-                  <div className="flex justify-between"><span style={{ color:'#647068' }}>Platform Fee (3.75% per side = 7.5% total)</span><strong style={{ color:'#C85F2D' }}>-₦{platform_fee.toLocaleString()}</strong></div>
+                  <div className="flex justify-between"><span style={{ color:'#647068' }}>Platform Fee ({feeLabelPerSide} per side = {feeLabelTotal} total)</span><strong style={{ color:'#C85F2D' }}>-₦{platform_fee.toLocaleString()}</strong></div>
                   <div className="flex justify-between border-t pt-1" style={{ borderColor:'rgba(122,158,126,0.2)' }}>
                     <span style={{ color:'#5C8060', fontWeight:700 }}>Landlord receives</span>
                     <strong style={{ color:'#5C8060' }}>₦{landlordReceives.toLocaleString()}</strong>
@@ -224,7 +230,7 @@ function ActiveEscrowSection() {
       {escrows.map(e => (
         <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid #DEDDD6'}}>
           <p className="font-bold text-sm" style={{color:'#17211B'}}>{e.properties?.title}</p>
-          <p className="text-xs mb-3" style={{color:'#647068'}}>{e.properties?.city} · ₦{Number(e.amount).toLocaleString()}</p>
+          <p className="text-xs mb-3" style={{color:'#647068'}}>{e.properties?.city} · ₦{Number(e.gross_amount).toLocaleString()}</p>
           {e.move_in_date && (
             <p className="text-xs mb-2" style={{color:'#647068'}}>
               Move-in date: {new Date(e.move_in_date).toLocaleDateString()}
@@ -272,6 +278,8 @@ export default function EscrowPage() {
             </button>
           </div>
         </div>
+
+        <ActiveEscrowSection />
 
         {/* How it works */}
         <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
