@@ -403,11 +403,18 @@ export default async function handler(req, res) {
               ? 'Professional activated:' : 'Professional paid, awaiting identity verification:', customer.email)
           }
 
-          if (metadata?.type === 'rental_listing_fee') {
-            await supabase.from('properties')
-              .update({ status: 'active' })
+          // Hotel or short-let booking: the room was held as 'pending' when the
+          // payment was priced. The transfer confirms it. Only a pending booking
+          // is confirmed, so a repeated webhook cannot change a cancelled one.
+          if (metadata?.type === 'hotel_booking') {
+            const { data: confirmedBooking } = await supabase.from('bookings')
+              .update({ status: 'confirmed' })
+              .eq('id', metadata.booking_id)
               .eq('payment_ref', reference)
-            console.log('Rental listing activated:', reference)
+              .eq('status', 'pending')
+              .select('id')
+            if (confirmedBooking?.length) console.log('Hotel booking confirmed:', metadata.booking_id)
+            else console.warn('Hotel booking not confirmed (already handled or not pending):', reference)
           }
 
           // SEC-3: student hostel listing fee. The unlock happens here, on the
@@ -453,11 +460,12 @@ export default async function handler(req, res) {
           // enforcement principle as every other payment type in this
           // file (item 3/6 of the fix request).
           if (metadata?.type === 'contact_unlock_credits') {
-            // Credits are derived from the amount Flutterwave actually charged,
-            // never from client metadata. Keep this map in step with
-            // UNLOCK_CREDIT_PACKS in src/lib/flutterwave.js (prices in kobo).
-            const PACK_CREDITS_BY_KOBO = { 50000: 1, 200000: 5 }
-            const credits = PACK_CREDITS_BY_KOBO[amount] || 0
+            // Credits come from the metadata the server wrote when it priced
+            // this payment (payment-virtual-account), not from the browser or
+            // from a price table here. The amount was checked against the
+            // registry price at the same time.
+            const creditsFromMeta = Number(metadata.credits)
+            const credits = [1, 5].includes(creditsFromMeta) ? creditsFromMeta : 0
 
             // The buyer must be the account whose verified login email matches
             // the payer. metadata.user_id alone is client-supplied, so it is
@@ -531,10 +539,15 @@ export default async function handler(req, res) {
               // just landed) would have triggered an immediate release,
               // skipping the entire held-in-escrow protection window --
               // only `status`/`funded_at` belong at this step.
-              await supabase.from('escrow_transactions')
+              // Only a row still waiting for payment is funded. A late or
+              // repeated webhook cannot move a released or refunded escrow back.
+              const { data: funded } = await supabase.from('escrow_transactions')
                 .update({ status: 'funded', funded_at: new Date().toISOString() })
                 .eq('id', matchedEscrow.id)
-              console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
+                .eq('status', 'awaiting_payment')
+                .select('id')
+              if (funded?.length) console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
+              else console.warn('Escrow not funded (not awaiting payment):', reference)
             }
           }
 
@@ -568,9 +581,15 @@ export default async function handler(req, res) {
               // refuse rather than silently accepting a different amount.
               console.error('Transaction', matchedTx.id, 'amount mismatch: expected', matchedTx.amount_cents / 100, 'got', amountNgn, 'ref:', reference)
             } else {
-              await supabase.from('transactions')
+              const { data: funded } = await supabase.from('transactions')
                 .update({ status: 'FUNDED', updated_at: new Date().toISOString() })
                 .eq('id', matchedTx.id)
+                .eq('status', 'PENDING')
+                .select('id')
+              if (!funded?.length) {
+                console.warn('Transaction not funded (no longer PENDING):', matchedTx.id)
+                break
+              }
               console.log('Transaction escrow funded:', matchedTx.id, 'amount:', amountNgn)
 
               // Notify the provider directly -- not via src/lib/events.js,
@@ -626,6 +645,8 @@ export default async function handler(req, res) {
             if (mapping && referralUserId) {
               const dmCommission = metadata?.type === 'escrow_payment'
                 ? Number(escrowRow?.platform_amount) || 0   // trusted DB value only
+                : metadata?.type === 'hotel_booking'
+                  ? Number(metadata.platform_fee_ngn) || 0  // the fee the server priced, not a rate here
                 : mapping.feeRate === 1.0
                   ? amountNgn                       // flat-fee products: the whole amount IS the commission
                   : amountNgn * mapping.feeRate      // percentage products: commission is a cut of the deal

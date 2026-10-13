@@ -219,18 +219,20 @@ const jsonResources = {
       return res.status(503).json({ error: 'Payment service not configured' })
     }
 
-    const { reference, amountNaira, email } = req.body || {}
+    // The browser names what it is paying for and the record it belongs to.
+    // It does NOT name the amount or the metadata: the server works both out
+    // from the database (resolvePayment below), so a payer cannot pick a price
+    // or claim a different purpose.
+    const { reference, purpose, subject } = req.body || {}
     if (!reference || typeof reference !== 'string' || !/^[a-zA-Z0-9-]{6,42}$/.test(reference)) {
       return res.status(400).json({ error: 'Invalid reference' })
     }
-    const amountKobo = Math.round(Number(amountNaira) * 100)
-    if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
-      return res.status(400).json({ error: 'Invalid amount' })
+    // The payer is always the signed-in account. The webhook matches the
+    // transfer back to this email, so it must be the account's own email.
+    const email = user.email
+    if (!email || typeof email !== 'string' || email.length > 254) {
+      return res.status(400).json({ error: 'Your account needs an email address to pay' })
     }
-    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Invalid email' })
-    }
-    const metadata = cleanMetadata(req.body?.metadata)
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
@@ -243,6 +245,23 @@ const jsonResources = {
     if (existing) {
       if (existing.profile_id !== user.id) return res.status(409).json({ error: 'Reference already in use' })
       return res.status(200).json(publicVirtualAccount(existing))
+    }
+
+    // Price and validate the payment from the database. Throws PaymentError
+    // for anything the payer may not pay for (not their record, switched off,
+    // already paid, unavailable room).
+    let plan
+    try {
+      plan = await resolvePayment(svc, { purpose, subject: subject && typeof subject === 'object' ? subject : {}, reference, user })
+    } catch (err) {
+      if (err instanceof PaymentError) return res.status(err.status).json({ error: err.message })
+      console.error('payment-virtual-account: could not price payment:', err.message)
+      return res.status(500).json({ error: 'Could not start payment. Please try again.' })
+    }
+    const metadata = plan.metadata
+    const amountKobo = Math.round(plan.amountNaira * 100)
+    if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
+      return res.status(409).json({ error: 'This payment has no valid amount' })
     }
 
     try {
@@ -1024,17 +1043,6 @@ function idemKey(prefix, value) {
 }
 
 // Only short, simple string or number values go to Flutterwave and the DB.
-function cleanMetadata(input) {
-  const out = {}
-  if (!input || typeof input !== 'object' || Array.isArray(input)) return out
-  for (const [k, v] of Object.entries(input).slice(0, 20)) {
-    if (!/^[a-zA-Z0-9_]{1,40}$/.test(k)) continue
-    if (typeof v === 'string') out[k] = v.slice(0, 200)
-    else if (typeof v === 'number' && Number.isFinite(v)) out[k] = String(v)
-  }
-  return out
-}
-
 function publicVirtualAccount(row) {
   return {
     reference: row.reference,
@@ -1043,6 +1051,191 @@ function publicVirtualAccount(row) {
     amountNaira: Number(row.expected_kobo) / 100,
     expiresAt: row.expires_at,
     status: row.status,
+    // Lets the page open the record this payment created (a hotel booking).
+    bookingId: row.metadata?.booking_id || null,
+  }
+}
+
+// ─── Payment resolution ─────────────────────────────────────────────────────
+// Every paid purpose is priced here from the database. The browser supplies
+// only the id of the record being paid for (and, for unlock packs, the pack
+// key). The server checks that the signed-in user owns that record, reads the
+// amount from the record or from the platform fee registry, creates any pending
+// record needed, and returns the amount plus the metadata the webhook trusts.
+class PaymentError extends Error {
+  constructor(message, status = 400) {
+    super(message)
+    this.status = status
+  }
+}
+
+const clean = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+const UNLOCK_PACKS = { unlock_credit_single: 1, unlock_credit_pack_5: 5 } // key -> credits
+const PRO_PLAN_FEE = { monthly: 'professional_monthly', annual: 'professional_annual' }
+const HOSTEL_PLAN_FEE = { semester: 'hostel_listing_semester', annual: 'hostel_listing_annual' }
+
+// The current price for a channel. Refuses to charge while it is switched off.
+async function platformFeeNaira(svc, key) {
+  const { data, error } = await svc.from('platform_fees').select('value, is_active').eq('key', key).maybeSingle()
+  if (error) throw error
+  if (!data || !data.is_active) {
+    throw new PaymentError('This payment is not available right now. Please try again later.', 409)
+  }
+  return Number(data.value)
+}
+
+async function resolvePayment(svc, { purpose, subject, reference, user }) {
+  switch (purpose) {
+    // Rent or sale protection: the escrow row was created by
+    // start_property_escrow_payment with this reference, for this buyer.
+    case 'escrow_payment': {
+      const { data: esc } = await svc.from('escrow_transactions')
+        .select('id, property_id, gross_amount, status, buyer_id')
+        .eq('payment_ref', reference).maybeSingle()
+      if (!esc || esc.buyer_id !== user.id) throw new PaymentError('Reservation not found', 404)
+      if (esc.status !== 'awaiting_payment') throw new PaymentError('This reservation is no longer waiting for payment', 409)
+      return {
+        amountNaira: Number(esc.gross_amount),
+        metadata: { type: 'escrow_payment', user_id: user.id, escrow_id: esc.id, property_id: esc.property_id },
+      }
+    }
+
+    // Marketplace job: the transaction was bound to this reference server-side.
+    case 'transaction_escrow': {
+      const { data: tx } = await svc.from('transactions')
+        .select('id, requester_id, amount_cents, status')
+        .eq('payment_ref', reference).maybeSingle()
+      if (!tx || tx.requester_id !== user.id) throw new PaymentError('Transaction not found', 404)
+      if (tx.status !== 'PENDING') throw new PaymentError('This job is not waiting for payment', 409)
+      return {
+        amountNaira: Number(tx.amount_cents) / 100,
+        metadata: { type: 'transaction_escrow', user_id: user.id, transaction_id: tx.id },
+      }
+    }
+
+    case 'professional_subscription': {
+      const planType = subject.plan_type === 'annual' ? 'annual' : 'monthly'
+      const { data: app, error } = await svc.from('professional_applications')
+        .select('id, user_id, professional_type')
+        .eq('id', clean(subject.application_id, 64)).maybeSingle()
+      if (error || !app || app.user_id !== user.id) throw new PaymentError('Application not found', 404)
+      return {
+        amountNaira: await platformFeeNaira(svc, PRO_PLAN_FEE[planType]),
+        metadata: {
+          type: 'professional_subscription', user_id: user.id, application_id: app.id,
+          professional_type: app.professional_type || '', plan_type: planType,
+        },
+      }
+    }
+
+    case 'hostel_listing_fee': {
+      const plan = subject.plan === 'annual' ? 'annual' : 'semester'
+      const { data: hostel, error } = await svc.from('student_hostels')
+        .select('id, owner_id').eq('id', clean(subject.hostel_id, 64)).maybeSingle()
+      if (error || !hostel || hostel.owner_id !== user.id) throw new PaymentError('Listing not found', 404)
+      const amountNaira = await platformFeeNaira(svc, HOSTEL_PLAN_FEE[plan])
+      // The paid-listing check in the webhook compares against this row.
+      const { error: payErr } = await svc.from('hostel_payments').insert({
+        hostel_id: hostel.id, owner_id: user.id, reference, amount: amountNaira, plan, status: 'pending',
+      })
+      if (payErr) throw new PaymentError('Could not start the listing payment. Please try again.', 500)
+      return {
+        amountNaira,
+        metadata: { type: 'hostel_listing_fee', user_id: user.id, hostel_id: hostel.id, plan, listing_type: 'student_hostel' },
+      }
+    }
+
+    case 'contact_unlock_credits': {
+      const pack = clean(subject.pack, 64)
+      if (!Object.prototype.hasOwnProperty.call(UNLOCK_PACKS, pack)) throw new PaymentError('Unknown unlock pack', 400)
+      return {
+        amountNaira: await platformFeeNaira(svc, pack),
+        metadata: { type: 'contact_unlock_credits', user_id: user.id, credits: String(UNLOCK_PACKS[pack]), pack },
+      }
+    }
+
+    case 'hotel_booking':
+      return createHotelBooking(svc, { subject, reference, user })
+
+    default:
+      throw new PaymentError('Unknown payment type', 400)
+  }
+}
+
+// A hotel or short-let booking. The price, availability and fee are all
+// worked out here. The booking is created as 'pending' and becomes 'confirmed'
+// only when the webhook sees the transfer. Pending bookings stop holding rooms
+// after the payment window (VA_TTL_SECONDS) passes.
+async function createHotelBooking(svc, { subject, reference, user }) {
+  const s = subject || {}
+  const checkin = clean(s.checkin, 10)
+  const checkout = clean(s.checkout, 10)
+  const nights = Math.round((Date.parse(checkout) - Date.parse(checkin)) / 86400000)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(checkin) || !/^\d{4}-\d{2}-\d{2}$/.test(checkout)
+    || !(nights > 0) || nights > 90 || Date.parse(checkin) < Date.now() - 86400000) {
+    throw new PaymentError('Check-in and check-out dates are not valid', 400)
+  }
+  const rooms = Math.floor(Number(s.rooms))
+  if (!(rooms >= 1 && rooms <= 20)) throw new PaymentError('Choose between 1 and 20 rooms', 400)
+  const guestName = clean(s.guest_name, 120)
+  const guestPhone = clean(s.guest_phone, 30)
+  if (!guestName || !guestPhone) throw new PaymentError('Guest name and phone are required', 400)
+
+  const { data: property, error } = await svc.from('properties')
+    .select('id, category, status, room_categories(id, name, price_per_night, available_rooms, is_active)')
+    .eq('id', clean(s.property_id, 64)).maybeSingle()
+  if (error || !property || property.status !== 'active' || !['hotel', 'shortlet'].includes(property.category)) {
+    throw new PaymentError('This property is not available for booking', 404)
+  }
+  const cats = (property.room_categories || []).filter((c) => c.is_active !== false)
+  const cat = cats.find((c) => c.name === clean(s.room_type, 120)) || cats[0]
+  if (!cat || !(Number(cat.price_per_night) > 0)) throw new PaymentError('No room price is set for this property', 409)
+
+  // Rooms held for these dates: every confirmed booking, and pending ones still
+  // inside the payment window.
+  const since = new Date(Date.now() - VA_TTL_SECONDS * 1000).toISOString()
+  const overlapping = () => svc.from('bookings').select('rooms_booked')
+    .eq('property_id', property.id).eq('category_id', cat.id)
+    .lt('checkin_date', checkout).gt('checkout_date', checkin)
+  const [{ data: confirmed }, { data: pending }] = await Promise.all([
+    overlapping().eq('status', 'confirmed'),
+    overlapping().eq('status', 'pending').gte('created_at', since),
+  ])
+  const held = [...(confirmed || []), ...(pending || [])]
+    .reduce((n, b) => n + (Number(b.rooms_booked) || 1), 0)
+  if (held + rooms > Number(cat.available_rooms || 0)) {
+    throw new PaymentError('Sorry, those rooms are no longer available for these dates.', 409)
+  }
+
+  const feeRate = await platformFeeNaira(svc, 'hotel_booking') // a percentage of the room charge
+  const subtotal = Number(cat.price_per_night) * rooms * nights
+  const fee = Math.round(subtotal * feeRate / 100)
+  const total = subtotal + fee
+
+  const { data: booking, error: bookErr } = await svc.from('bookings').insert({
+    property_id: property.id,
+    category_id: cat.id,
+    room_type: cat.name,
+    guest_name: guestName,
+    guest_phone: guestPhone,
+    guest_email: clean(s.guest_email, 254) || user.email,
+    checkin_date: checkin,
+    checkout_date: checkout,
+    rooms_booked: rooms,
+    guests: Math.min(Math.max(Math.floor(Number(s.guests) || 1), 1), 50),
+    total_amount: total,
+    platform_fee_ngn: fee,
+    payment_ref: reference,
+    source: 'dealmatch',
+    status: 'pending',
+    notes: clean(s.notes, 500),
+    user_id: user.id,
+  }).select('id').single()
+  if (bookErr || !booking) throw new PaymentError('Could not reserve the rooms. Please try again.', 500)
+
+  return {
+    amountNaira: total,
+    metadata: { type: 'hotel_booking', user_id: user.id, booking_id: booking.id, platform_fee_ngn: String(fee) },
   }
 }
 

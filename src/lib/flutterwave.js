@@ -277,7 +277,7 @@ function openTransferModal({ account, error, onPaid, onClose }) {
         const json = await r.json().catch(() => null)
         if (r.ok && json?.paid) {
           finish()
-          onPaid?.({ reference: account.reference, status: 'paid' })
+          onPaid?.({ reference: account.reference, status: 'paid', bookingId: account.bookingId || null })
         }
       } catch {
         // Network blip: the next tick tries again.
@@ -296,17 +296,18 @@ function openTransferModal({ account, error, onPaid, onClose }) {
 // ─── Start a payment ───────────────────────────────────────
 // `amount` is in naira. `reference` is the payment reference (hyphenated, see
 // generateReference); the webhook resolves the payment by it.
+// The browser says WHAT it is paying for (purpose) and WHICH record (subject).
+// It never sends an amount or metadata: the server prices the payment from the
+// database and the platform fee registry (api/platform.js, resolvePayment).
 export const initializeFlutterwavePayment = async ({
-  email,
-  amount,
-  metadata = {},
+  purpose,
+  subject = {},
   onSuccess,
   onClose,
   reference,
 }) => {
   const ref = reference || generateReference()
-  const amountNaira = Number(amount)
-  if (!email || !(amountNaira > 0)) {
+  if (!purpose) {
     openTransferModal({ error: 'Missing payment details. Please try again.', onClose })
     return
   }
@@ -316,7 +317,7 @@ export const initializeFlutterwavePayment = async ({
     const r = await fetch('/api/payments/virtual-account', {
       method: 'POST',
       headers: await authHeaders(),
-      body: JSON.stringify({ reference: ref, amountNaira, email, metadata }),
+      body: JSON.stringify({ reference: ref, purpose, subject }),
     })
     const json = await r.json().catch(() => null)
     if (!r.ok) throw new Error(json?.error || 'Could not start payment')
@@ -341,16 +342,11 @@ export const UNLOCK_CREDIT_PACKS = [
   { key: 'unlock_credit_pack_5', credits: 5, label: '5 unlocks', badge: 'Best value' },
 ]
 
-export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose }) => {
+export const buyUnlockCredits = async ({ pack, onSuccess, onClose }) => {
   if (!(pack?.price > 0)) throw new Error('Prices are still loading. Please try again in a moment.')
   await initializeFlutterwavePayment({
-    email,
-    amount: pack.price,
-    metadata: {
-      type:    'contact_unlock_credits', // matches the webhook case that actually grants credits
-      user_id: userId,
-      credits: pack.credits,
-    },
+    purpose: 'contact_unlock_credits',
+    subject: { pack: pack.key }, // the server prices this pack and sets the credits
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
@@ -378,16 +374,9 @@ export const subscribeProfessional = async ({
   if (!(amount > 0)) throw new Error('Prices are still loading. Please try again in a moment.')
 
   await initializeFlutterwavePayment({
-    email,
-    amount,
-    metadata: {
-      type:               'professional_subscription', // matches webhook TYPE_MAP key
-      user_id:            userId,                       // required for automatic referral payout
-      application_id:     applicationId,
-      professional_type:  professionalType,
-      plan_type:          planType,
-      plan_name:          plan.name,
-    },
+    // The server prices the plan and reads the professional type from the application.
+    purpose: 'professional_subscription',
+    subject: { application_id: applicationId, plan_type: planType },
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
@@ -417,15 +406,9 @@ export const payHostelListingFee = async ({
   const reference = generateReference()
 
   await initializeFlutterwavePayment({
-    email,
-    amount:    planMeta.price,
+    purpose: 'hostel_listing_fee',
+    subject: { hostel_id: hostelId, plan },
     reference,
-    metadata: {
-      hostel_id:    hostelId,
-      plan,
-      listing_type: 'student_hostel',
-      owner_name:   ownerName,
-    },
     onSuccess,
     onClose,
   })
@@ -452,18 +435,14 @@ export const fundTransactionEscrow = async ({
   onSuccess,
   onClose,
 }) => {
-  if (!amountCents) return
-  const ref = reference || generateReference()
+  if (!amountCents || !reference) return
 
   await initializeFlutterwavePayment({
-    email,
-    amount:    amountCents / 100, // this function takes naira, not cents
-    reference: ref,
-    metadata: {
-      type:           'transaction_escrow', // matches webhook TYPE_MAP key -- add this case server-side
-      transaction_id: transactionId,
-      user_id:        requesterId,
-    },
+    // The job's amount is read from the transaction on the server. The
+    // reference must already be bound to this job (start_escrow_payment).
+    purpose: 'transaction_escrow',
+    subject: { transaction_id: transactionId },
+    reference,
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)

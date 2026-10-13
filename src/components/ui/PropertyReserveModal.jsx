@@ -28,7 +28,8 @@ import toast from 'react-hot-toast'
 export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const { user, profile } = useAuth()
   const { requireVerification } = useVerificationGuard()
-  const [amount, setAmount]     = useState(property?.price ? String(property.price) : '')
+  // Fixed to the listed price: the server only accepts the listed amount.
+  const amount = property?.price ? String(property.price) : ''
   const [moveInDate, setMoveInDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -86,16 +87,11 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
       return
     }
 
+    // The server charges the escrow row's amount (the listed price) for this reference.
     await initializeFlutterwavePayment({
-      email,
-      amount: gross,
+      purpose: 'escrow_payment',
+      subject: { escrow_id: escrowRow.id },
       reference,
-      metadata: {
-        type: 'escrow_payment',
-        escrow_id: escrowRow.id,
-        property_id: property.id,
-        property_title: property.title,
-      },
       onSuccess: () => {
         setSubmitting(false)
         setConfirming(true)
@@ -146,8 +142,10 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Amount (₦)</label>
-              <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
+              {/* The amount is the listed price. The database refuses any other amount. */}
+              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6', color: '#17211B' }}>
+                {property?.price ? formatNaira(Number(property.price)) : '—'}
+              </div>
             </div>
 
             {property?.listing_type !== 'sale' && (

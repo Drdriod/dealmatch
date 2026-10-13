@@ -200,15 +200,17 @@ export default function ListHostelPage() {
         amenities:        form.amenities,
         images:           form.images,
         status:           'pending_review',
-        listing_paid:     false,
         updated_at:       new Date().toISOString(),
       }
 
       let id = hostelId
       if (id) {
-        await supabase.from('student_hostels').update(payload).eq('id', id)
+        // listing_paid and payment_ref are not in this payload: only a confirmed
+        // payment sets them, so saving a paid listing never un-pays it.
+        const { error } = await supabase.from('student_hostels').update(payload).eq('id', id)
+        if (error) throw error
       } else {
-        const { data, error } = await supabase.from('student_hostels').insert(payload).select('id').single()
+        const { data, error } = await supabase.from('student_hostels').insert({ ...payload, listing_paid: false }).select('id').single()
         if (error) throw error
         id = data.id
         setHostelId(id)
@@ -233,28 +235,12 @@ export default function ListHostelPage() {
 
     const reference = generateReference()
 
-    // Save pending payment record first
-    await supabase.from('hostel_payments').insert({
-      hostel_id:  id,
-      owner_id:   user.id,
-      reference,
-      amount:     planMeta.price,
-      plan,
-      status:     'pending',
-    })
-
+    // The server creates the payment record and prices the plan from the
+    // registry. The browser sends only the hostel and the plan.
     await initializeFlutterwavePayment({
-      email:     user.email,
-      amount:    planMeta.price,
+      purpose:   'hostel_listing_fee',
+      subject:   { hostel_id: id, plan },
       reference,
-      metadata: {
-        type: 'hostel_listing_fee',
-        user_id: user?.id,
-        hostel_id: id,
-        plan,
-        listing_type: 'student_hostel',
-        owner_name: profile?.full_name || '',
-      },
       onSuccess: () => {
         // The server unlocks the listing when Flutterwave confirms the charge
         // (api/flutterwave-webhook.js). The browser must not write payment

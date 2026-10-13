@@ -63,6 +63,7 @@ export default async function handler(req, res) {
           .from('escrow_transactions')
           .update({ status: 'funded', funded_at: new Date().toISOString() })
           .eq('payment_ref', reference)
+          .eq('status', 'awaiting_payment')
         console.log('Escrow funded:', reference)
         break
       }
@@ -89,18 +90,9 @@ export default async function handler(req, res) {
         break
       }
 
-      case 'charge.success': {
-        // Payment confirmed (forwarded by the payment webhook) - fund the escrow
-        const { reference, metadata } = data
-        if (metadata?.type === 'escrow_payment' && reference) {
-          await supabase
-            .from('escrow_transactions')
-            .update({ status: 'funded', funded_at: new Date().toISOString() })
-            .eq('payment_ref', reference)
-          console.log('Escrow funded:', reference)
-        }
-        break
-      }
+      // NOTE: there is deliberately no charge.success case here. Payments are
+      // confirmed only by api/flutterwave-webhook.js, which checks the amount
+      // paid. Funding an escrow from a second, unchecked path would bypass it.
 
       default:
         break

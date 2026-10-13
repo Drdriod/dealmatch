@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/context/AuthContext'
 import { usePlatformFees, feeValue, feeText } from '@/lib/platformFees'
+import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
 
 const WHATSAPP = '2347057392060'
@@ -86,39 +87,45 @@ function BookingModal({ hotel, onClose }) {
 
     setSubmitting(true)
 
-    try {
-      await supabase.from('bookings').insert({
-        property_id:   hotel.id,
-        guest_name:    form.guest_name,
-        guest_phone:   form.guest_phone,
-        guest_email:   form.guest_email,
-        checkin_date:  form.checkin,
-        checkout_date: form.checkout,
-        rooms_booked:  form.rooms,
-        total_amount:  totalDue,
-        source:        'dealmatch',
-        status:        'confirmed',
-        notes:         form.special,
-      })
-
-      // Notify hotel owner via WhatsApp
-      const msg = encodeURIComponent(
-        `*New Booking: DealMatch*\n\n` +
-        `Hotel: ${hotel.title}\n` +
-        `Guest: ${form.guest_name} | ${form.guest_phone}\n` +
-        `Check-in: ${form.checkin}\nCheck-out: ${form.checkout}\n` +
-        `Rooms: ${form.rooms} × ${form.room_type || 'Standard'}\nGuests: ${form.guests}\n` +
-        (totalDue ? `Total: ₦${totalDue.toLocaleString()}\n` : '') +
-        (form.special ? `Special requests: ${form.special}\n` : '') +
-        `\nBooked via DealMatch`
-      )
-      window.open('https://wa.me/' + WHATSAPP + '?text=' + msg, '_blank')
-      setBooked(true)
-    } catch (err) {
-      toast.error('Booking failed. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
+    // Nothing is booked from the browser. The server re-checks availability,
+    // prices the room and the hotel_booking fee, and holds the room as pending.
+    // The booking is confirmed only when the bank transfer arrives (webhook).
+    await initializeFlutterwavePayment({
+      purpose:   'hotel_booking',
+      reference: generateReference(),
+      subject: {
+        property_id:  hotel.id,
+        checkin:      form.checkin,
+        checkout:     form.checkout,
+        rooms:        form.rooms,
+        guests:       form.guests,
+        room_type:    form.room_type,
+        guest_name:   form.guest_name,
+        guest_phone:  form.guest_phone,
+        guest_email:  form.guest_email,
+        notes:        form.special,
+      },
+      onSuccess: () => {
+        // Notify hotel owner via WhatsApp, now that the payment is confirmed
+        const msg = encodeURIComponent(
+          `*New Booking: DealMatch*\n\n` +
+          `Hotel: ${hotel.title}\n` +
+          `Guest: ${form.guest_name} | ${form.guest_phone}\n` +
+          `Check-in: ${form.checkin}\nCheck-out: ${form.checkout}\n` +
+          `Rooms: ${form.rooms} × ${form.room_type || 'Standard'}\nGuests: ${form.guests}\n` +
+          (totalDue ? `Total: ₦${totalDue.toLocaleString()}\n` : '') +
+          (form.special ? `Special requests: ${form.special}\n` : '') +
+          `\nBooked via DealMatch`
+        )
+        window.open('https://wa.me/' + WHATSAPP + '?text=' + msg, '_blank')
+        setBooked(true)
+        setSubmitting(false)
+      },
+      onClose: () => {
+        setSubmitting(false)
+        toast('Payment not completed. Your rooms were not booked.')
+      },
+    })
   }
 
   return (
