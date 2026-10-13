@@ -413,6 +413,7 @@ const jsonResources = {
     // Verification expiry runs on this daily cron (ADR-009), even when payouts are not configured.
     let demoted = null
     let purged = null
+    let released_bookings = null
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const maint = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
       const { data: n, error: demoteErr } = await maint.rpc('demote_expired_verifications')
@@ -420,10 +421,21 @@ const jsonResources = {
       else demoted = n
       // Identity documents are removed 90 days after account deletion (ADR-009).
       purged = await purgeIdentityDocs(maint)
+      // Hotel bookings never paid within the payment window release their rooms.
+      // The virtual account expires after 24 hours; 48 hours leaves room for a
+      // late bank transfer to be seen before the booking is closed.
+      const { data: released, error: releaseErr } = await maint
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('status', 'pending')
+        .lt('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+        .select('id')
+      if (releaseErr) console.error('cron: releasing unpaid hotel bookings failed:', releaseErr.message)
+      else released_bookings = released?.length ?? 0
     }
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
-      return res.status(200).json({ processed: 0, skipped: 'payouts not configured', demoted, purged })
+      return res.status(200).json({ processed: 0, skipped: 'payouts not configured', demoted, purged, released_bookings })
     }
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
@@ -563,15 +575,33 @@ const jsonResources = {
         const transfer = await flw('GET', `/transfers/${encodeURIComponent(tx.payout_ref)}`)
         if (transfer?.status === 'SUCCESSFUL') {
           if (await settlePayout(svc, row, 'paid')) reconciled++
-        } else if (transfer?.status === 'FAILED') {
-          if (await settlePayout(svc, row, 'failed', 'transfer reported failed on reconciliation')) reconciled++
+        } else if (transfer?.status === 'FAILED' || transfer?.status === 'REVERSED') {
+          if (await settlePayout(svc, row, 'failed', `transfer ${transfer.status.toLowerCase()} on reconciliation`)) reconciled++
+        } else if (Date.now() - new Date(row.created_at).getTime() > 3 * 24 * 60 * 60 * 1000) {
+          // Still NEW or PENDING after three days: a person needs to look at it.
+          // Alert superadmins once per payout, not on every run.
+          const { data: already } = await svc.from('notifications')
+            .select('id').eq('type', 'payout_stuck').ilike('message', `%payout #${row.id} %`).limit(1)
+          if (!already?.length) {
+            const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
+            for (const a of admins || []) {
+              await svc.from('notifications').insert({
+                user_id: a.id,
+                type: 'payout_stuck',
+                title: 'Payout still pending at Flutterwave',
+                message: `Payout #${row.id} (transfer ${tx.payout_ref}) is still ${transfer?.status || 'unknown'} after three days. Check it with Flutterwave.`,
+                link: '/admin',
+                created_at: new Date().toISOString(),
+              })
+            }
+          }
         }
       } catch (err) {
         console.error(`cron-process-payouts: reconciling row ${row.id} failed:`, err.message)
       }
     }
 
-    return res.status(200).json({ processed, failed, reconciled, total: (rows || []).length })
+    return res.status(200).json({ processed, failed, reconciled, total: (rows || []).length, released_bookings })
   },
 
   async ['payout-banks'](req, res) {

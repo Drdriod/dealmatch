@@ -495,7 +495,24 @@ export default async function handler(req, res) {
               .eq('status', 'pending')
               .select('id')
             if (confirmedBooking?.length) console.log('Hotel booking confirmed:', metadata.booking_id)
-            else console.warn('Hotel booking not confirmed (already handled or not pending):', reference)
+            else {
+              // Paid after the booking was released (or a repeat webhook). A repeat
+              // is already handled: the dedupe key stops a second row. A released
+              // booking has taken the money, so it goes on the refund list.
+              const { data: stillCancelled } = await supabase.from('bookings')
+                .select('id').eq('id', metadata.booking_id).eq('status', 'cancelled').maybeSingle()
+              if (stillCancelled) {
+                await recordMoneyToReturn(
+                  supabase,
+                  { reference, email: customer?.email, profile_id: metadata.user_id || null },
+                  amount,
+                  'overpaid',
+                  'Paid after the booking was released for non-payment',
+                  'booking-released:' + reference,
+                )
+              }
+              console.warn('Hotel booking not confirmed (already handled or not pending):', reference)
+            }
           }
 
           // SEC-3: student hostel listing fee. The unlock happens here, on the
