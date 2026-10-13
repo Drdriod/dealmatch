@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, Award, Briefcase, Building2, Camera, CheckCircle2, ClipboardList, GraduationCap, HardHat, Heart, Home, Landmark, Plus, User } from 'lucide-react'
+import { ArrowRight, Award, Briefcase, Building2, CheckCircle2, Circle, ClipboardList, GraduationCap, HardHat, Heart, Home, Landmark, Wallet } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { listMyListings } from '@/modules/listings/listingsService'
+import { CHART, Radial, KpiTile } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
+
+const SPARK_WEEKS = 8
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+const ACTIVE_STATUSES = ['active', 'ACTIVE', 'completed', 'COMPLETED']
+const CARD = { background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.07)' }
+const MUTED = 'rgba(255,255,255,0.55)'
+const FAINT = 'rgba(255,255,255,0.4)'
+
+// Buckets created_at timestamps into weekly counts, oldest week first.
+function weeklyCounts(rows) {
+  const buckets = new Array(SPARK_WEEKS).fill(0)
+  const now = Date.now()
+  rows.forEach((r) => {
+    const age = now - new Date(r.created_at).getTime()
+    const idx = SPARK_WEEKS - 1 - Math.floor(age / WEEK_MS)
+    if (idx >= 0 && idx < SPARK_WEEKS) buckets[idx] += 1
+  })
+  return buckets
+}
 
 export default function DashboardPage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -14,6 +34,8 @@ export default function DashboardPage() {
   const [myMatches,       setMyMatches]       = useState(0)
   const [completedDeals,  setCompletedDeals]  = useState(0)
   const [activity,        setActivity]        = useState([]) // combined recent listings + requests
+  const [listingTrend,    setListingTrend]    = useState(() => new Array(SPARK_WEEKS).fill(0))
+  const [enquiryTrend,    setEnquiryTrend]    = useState(() => new Array(SPARK_WEEKS).fill(0))
   const [loading,         setLoading]         = useState(true)
   const [becomingProvider, setBecomingProvider] = useState(false)
 
@@ -32,7 +54,8 @@ export default function DashboardPage() {
 
   const loadDashboard = async () => {
     try {
-      const [propListings, catListings, myRequests, matchRes, escrowRes, txRes] = await Promise.all([
+      const since = new Date(Date.now() - SPARK_WEEKS * WEEK_MS).toISOString()
+      const [propListings, catListings, myRequests, matchRes, escrowRes, txRes, propTrend, reqTrend] = await Promise.all([
         supabase.from('properties').select('id, title, price, status, category, created_at').eq('seller_id', user.id).order('created_at', { ascending: false }).limit(5),
         listMyListings(supabase, user.id).catch(() => []),
         // Unified view across rental_enquiries / professional_requests / transactions (see 20260813000000_dashboard_profile_spec.sql)
@@ -40,6 +63,9 @@ export default function DashboardPage() {
         supabase.from('matches').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('escrow_transactions').select('*', { count: 'exact', head: true }).eq('seller_id', user.id).in('status', ['funded', 'completed']),
         supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('provider_id', user.id).eq('status', 'COMPLETED'),
+        // Trend queries for the sparkline tiles: creation dates over the last SPARK_WEEKS weeks
+        supabase.from('properties').select('created_at').eq('seller_id', user.id).gte('created_at', since),
+        supabase.from('my_requests').select('created_at').gte('created_at', since),
       ])
 
       const properties = propListings.data || []
@@ -48,6 +74,8 @@ export default function DashboardPage() {
 
       setMyListingsCount(properties.length + categoryListings.length)
       setMyRequestsCount(requests.length)
+      setListingTrend(weeklyCounts([...(propTrend.data || []), ...categoryListings]))
+      setEnquiryTrend(weeklyCounts(reqTrend.data || []))
 
       // Matches: prefer the `matches` table's exact count; fall back to
       // swipes if that RPC/table path errors (same fallback the previous
@@ -105,124 +133,181 @@ export default function DashboardPage() {
     { to: '/manage-listings', icon: <Home size={22} className="text-terracotta" />,    label: 'My Listings',       active: true },
   ]
 
+  // Derived from fields this page already reads: name, photo, and whether
+  // the person has posted anything yet. No separate completeness field exists.
+  const firstName = profile?.full_name?.split(' ')[0] || 'there'
+  const profileDone = [!!profile?.full_name, !!profile?.avatar_url, myListingsCount + myRequestsCount > 0].filter(Boolean).length
+  const verifyScore = verificationLevel === 'live' ? 2 : verificationLevel === 'photo' ? 1 : 0
+  const VERIFY_SUB = { none: 'Not started', photo: 'Photo added', live: 'Live verified' }
+
+  const steps = [
+    { key: 'photo', done: !!profile?.avatar_url, title: 'Add a profile photo', sub: 'People trust a face they can see', to: '/verify-identity' },
+    { key: 'live', done: verificationLevel === 'live', title: 'Finish live verification', sub: 'Needed before any booking, payment or agreement', to: '/verify-identity' },
+    { key: 'post', done: myListingsCount + myRequestsCount > 0, title: 'Post a request or list your offer', sub: 'Get your first match moving', to: '/request' },
+    isProvider
+      ? { key: 'provider', done: true, title: 'Provider status', sub: 'Review your provider profile', to: '/verify-skill' }
+      : { key: 'provider', done: false, title: 'Become a Provider', sub: 'Starts real verification. It does not grant access by itself', onClick: handleBecomeProvider },
+  ]
+  const nextIdx = steps.findIndex(s => !s.done)
+
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#17211B' }}>
       <div className="max-w-2xl mx-auto px-4">
 
-        {/* Welcome */}
-        <div className="mb-6">
-          <h1 className="font-display text-3xl font-black" style={{ color: '#17211B' }}>
-            Hey, {profile?.full_name?.split(' ')[0] || 'there'}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: '#647068' }}>Here's your DealMatch overview</p>
-        </div>
+        {/* Journey hero: greeting plus two progress rings */}
+        <section className="rounded-3xl p-5 mb-4"
+          style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.18), rgba(255,255,255,0.03) 62%)', border: '1px solid rgba(212,168,83,0.25)' }}>
+          <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: CHART.indicator }}>Your journey</p>
+          <h1 className="font-display text-3xl mt-1" style={{ color: '#FFFAF5' }}>Hey, {firstName}</h1>
+          <p className="text-sm mt-1" style={{ color: MUTED }}>Here's your DealMatch overview</p>
 
-        {/* Verification alert */}
-        {verificationLevel !== 'live' && (
-          <Link to="/verify-identity"
-            className="flex items-center gap-3 p-4 rounded-2xl mb-5 border-2"
-            style={{ backgroundColor: 'rgba(200,95,45,0.06)', borderColor: 'rgba(200,95,45,0.3)' }}>
-            <span>{verificationLevel === 'none' ? <AlertTriangle size={22} className="text-amber-500" /> : <Camera size={22} className="text-terracotta" />}</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
-                {verificationLevel === 'none' ? 'Verify your identity' : 'Finish Live Verification'}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
-                {verificationLevel === 'none'
-                  ? 'Optional for now. Needed before any booking, payment or agreement.'
-                  : 'Photo uploaded! Complete the live check to unlock full access'}
-              </p>
+          <div className="flex items-start justify-around mt-5">
+            <div className="flex flex-col items-center gap-2">
+              <Radial value={profileDone} max={3} size={104} color={CHART.palette[1]}
+                label={`${Math.round((profileDone / 3) * 100)}%`} sub={`${profileDone} of 3`} />
+              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Profile</p>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0"
-              style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
-              Verify Now <ArrowRight size={12} />
+            <div className="flex flex-col items-center gap-2">
+              <Radial value={verifyScore} max={2} size={104} color={CHART.palette[0]}
+                label={`${Math.round((verifyScore / 2) * 100)}%`} sub={VERIFY_SUB[verificationLevel]} />
+              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Verification</p>
             </div>
-          </Link>
-        )}
+          </div>
+        </section>
 
-        {/* Primary Action Cards -- the two main entry points, most
-            visually prominent items on the page per spec */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Primary entry points */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <Link to="/rentals" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: '#17211B', minHeight: 140 }}>
-            <Home size={28} style={{ color: '#C85F2D' }} />
+            style={{ background: 'rgba(122,158,126,0.14)', border: '1px solid rgba(122,158,126,0.3)', minHeight: 140 }}>
+            <Home size={26} style={{ color: CHART.palette[0] }} />
             <div>
-              <p className="font-display font-black text-lg text-white leading-tight">Find a Place</p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Shortlets, rentals & housing</p>
+              <p className="font-display text-lg leading-tight" style={{ color: '#FFFAF5' }}>Find a Place</p>
+              <p className="text-xs mt-1" style={{ color: MUTED }}>Shortlets, rentals & housing</p>
             </div>
           </Link>
           <Link to="/find-provider" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
             style={{ backgroundColor: '#C85F2D', minHeight: 140 }}>
-            <HardHat size={28} className="text-white" />
+            <HardHat size={26} className="text-white" />
             <div>
-              <p className="font-display font-black text-lg text-white leading-tight">Find a Provider</p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.75)' }}>Skilled people & services</p>
+              <p className="font-display text-lg leading-tight text-white">Find a Provider</p>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>Skilled people & services</p>
             </div>
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-2.5 mb-6">
-          {[
-            { label: 'My Listings',   value: myListingsCount, link: '/manage-listings' },
-            { label: 'My Requests',   value: myRequestsCount, link: '/request' },
-            { label: 'Matches',       value: myMatches,       link: '/matches' },
-            { label: 'Completed',     value: completedDeals,  link: '/wallet' },
-          ].map(s => (
-            <Link key={s.label} to={s.link}
-              className="rounded-2xl p-3 text-center border transition-all hover:border-[#C85F2D]"
-              style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
-              <p className="font-display font-black text-xl" style={{ color: '#C85F2D' }}>{loading ? ' - ' : s.value}</p>
-              <p className="text-[10px] mt-0.5 leading-tight" style={{ color: '#647068' }}>{s.label}</p>
-            </Link>
-          ))}
+        {/* Next steps checklist */}
+        <section className="rounded-2xl p-5 mb-4" style={CARD}>
+          <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Next steps</p>
+          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>
+            {nextIdx === -1 ? "You're all set" : `${steps.filter(s => s.done).length} of ${steps.length} done`}
+          </h2>
+          <div className="space-y-2">
+            {steps.map((s, i) => {
+              const isNext = i === nextIdx
+              const inner = (
+                <>
+                  {s.done
+                    ? <CheckCircle2 size={20} style={{ color: CHART.palette[0] }} />
+                    : <Circle size={20} style={{ color: CHART.indicator }} />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold"
+                      style={{ color: s.done ? MUTED : '#FFFAF5', textDecoration: s.done ? 'line-through' : 'none' }}>
+                      {s.onClick && becomingProvider ? 'Saving…' : s.title}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: FAINT }}>{s.sub}</p>
+                  </div>
+                  <ArrowRight size={16} style={{ color: FAINT }} />
+                </>
+              )
+              const rowClass = 'w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all disabled:opacity-60'
+              const rowStyle = {
+                border: isNext ? '1px solid rgba(212,168,83,0.45)' : '1px solid rgba(255,255,255,0.06)',
+                background: isNext ? 'rgba(212,168,83,0.08)' : 'transparent',
+              }
+              return s.onClick ? (
+                <button key={s.key} type="button" onClick={s.onClick} disabled={becomingProvider} className={rowClass} style={rowStyle}>
+                  {inner}
+                </button>
+              ) : (
+                <Link key={s.key} to={s.to} className={rowClass} style={rowStyle}>
+                  {inner}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* Sparkline KPI tiles. Saved items have no data source in this page, so no tile. */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <Link to="/manage-listings" className="block rounded-2xl transition-all hover:-translate-y-0.5">
+            <KpiTile label="Listings" value={loading ? '–' : myListingsCount} icon={Home} color={CHART.palette[0]} spark={listingTrend} />
+          </Link>
+          <Link to="/request" className="block rounded-2xl transition-all hover:-translate-y-0.5">
+            <KpiTile label="Enquiries" value={loading ? '–' : myRequestsCount} icon={ClipboardList} color={CHART.palette[1]} spark={enquiryTrend} />
+          </Link>
+          <Link to="/matches" className="block rounded-2xl transition-all hover:-translate-y-0.5">
+            <KpiTile label="Matches" value={loading ? '–' : myMatches} icon={Heart} color={CHART.palette[2]} />
+          </Link>
+          <Link to="/wallet" className="block rounded-2xl transition-all hover:-translate-y-0.5">
+            <KpiTile label="Completed" value={loading ? '–' : completedDeals} icon={Wallet} color={CHART.palette[3]} />
+          </Link>
         </div>
 
-        {/* My Activity -- combined recent listings + requests */}
-        <div className="rounded-2xl border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
-          <div className="p-4 border-b" style={{ borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base" style={{ color: '#17211B' }}>My Activity</h3>
-          </div>
+        {/* Horizontal activity timeline */}
+        <section className="rounded-2xl p-5 mb-4" style={CARD}>
+          <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Timeline</p>
+          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>Recent activity</h2>
+
           {loading ? (
-            <div className="p-8 flex justify-center">
-              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C85F2D' }} />
+            <div className="py-8 flex justify-center">
+              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#D4A853' }} />
             </div>
           ) : activity.length === 0 ? (
-            <div className="p-8 text-center">
+            <div className="py-6 text-center">
               <div className="flex justify-center mb-3"><ClipboardList size={36} className="text-terracotta" /></div>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#17211B' }}>No activity yet</p>
-              <p className="text-xs mb-4" style={{ color: '#647068' }}>Post what you need or list what you offer to get started.</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#FFFAF5' }}>No activity yet</p>
+              <p className="text-xs mb-4" style={{ color: MUTED }}>Post what you need or list what you offer to get started.</p>
               <div className="flex gap-2 justify-center">
                 <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Post a Request</Link>
-                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
+                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#FFFAF5' }}>
                   List What I Offer
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: '#DEDDD6' }}>
-              {activity.map(item => {
-                const Wrapper = item.link ? Link : 'div'
-                return (
-                  <Wrapper key={item.kind + item.id} {...(item.link ? { to: item.link } : {})}
-                    className="p-4 flex items-center gap-4 hover:bg-[#F9F5F0] transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>
-                      <p className="text-xs mt-0.5 capitalize" style={{ color: '#647068' }}>{item.sub}</p>
+            <div className="-mx-5 px-5 pb-2 overflow-x-auto" style={{ scrollSnapType: 'x mandatory' }}>
+              <div className="relative flex gap-3 min-w-max">
+                <div className="absolute top-[5px] left-0 right-0 h-px" style={{ background: 'rgba(212,168,83,0.3)' }} />
+                {activity.map(item => {
+                  const done = ACTIVE_STATUSES.includes(item.status)
+                  const Wrapper = item.link ? Link : 'div'
+                  const date = new Date(item.at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })
+                  return (
+                    <div key={item.kind + item.id} className="relative shrink-0 w-56 pt-6" style={{ scrollSnapAlign: 'start' }}>
+                      <span className="absolute top-0 left-0 w-2.5 h-2.5 rounded-full"
+                        style={{ background: done ? CHART.palette[0] : CHART.indicator }} />
+                      <Wrapper {...(item.link ? { to: item.link } : {})}
+                        className="block h-full rounded-2xl p-3.5 transition-all hover:-translate-y-0.5" style={CARD}>
+                        <p className="text-[10px] uppercase tracking-wider" style={{ color: FAINT }}>
+                          {item.kind === 'listing' ? 'Listing' : 'Request'} · {date}
+                        </p>
+                        <p className="text-sm font-semibold truncate mt-1" style={{ color: '#FFFAF5' }}>{item.title}</p>
+                        <p className="text-xs mt-0.5 capitalize truncate" style={{ color: MUTED }}>{item.sub}</p>
+                        <span className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full mt-3 capitalize"
+                          style={{
+                            backgroundColor: done ? 'rgba(122,158,126,0.18)' : 'rgba(212,168,83,0.15)',
+                            color: done ? '#A9C7AD' : '#F3C96A',
+                          }}>
+                          {item.status?.toLowerCase()}
+                        </span>
+                      </Wrapper>
                     </div>
-                    <span className="text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 capitalize"
-                      style={{
-                        backgroundColor: ['active', 'ACTIVE', 'completed', 'COMPLETED'].includes(item.status) ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)',
-                        color: ['active', 'ACTIVE', 'completed', 'COMPLETED'].includes(item.status) ? '#5C8060' : '#8A6A20',
-                      }}>
-                      {item.status?.toLowerCase()}
-                    </span>
-                  </Wrapper>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Quick Links */}
         <div className="grid grid-cols-3 gap-3 mb-4">
@@ -230,37 +315,36 @@ export default function DashboardPage() {
             <div key={label}>
               {onClick ? (
                 <button onClick={onClick} disabled={becomingProvider}
-                  className="w-full flex flex-col items-center justify-center p-4 rounded-3xl border transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                  style={{ backgroundColor: 'white', borderColor: '#DEDDD6', minHeight: 90 }}>
+                  className="w-full flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5 disabled:opacity-60"
+                  style={{ ...CARD, minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#17211B' }}>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>
                     {becomingProvider ? 'Saving…' : label}
                   </span>
                 </button>
               ) : (
-                <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-3xl border transition-all hover:-translate-y-0.5"
-                  style={{ backgroundColor: 'white', borderColor: '#DEDDD6', minHeight: 90 }}>
+                <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5"
+                  style={{ ...CARD, minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#17211B' }}>{label}</span>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>{label}</span>
                 </Link>
               )}
             </div>
           ))}
         </div>
 
-        {/* Coming Soon -- quieter, lower priority, doesn't compete with
-            the main actions above */}
+        {/* Coming Soon -- quieter, lower priority, doesn't compete with the main actions above */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: <GraduationCap size={18} style={{ color: '#B5A99C' }} />, label: 'Student Hostels' },
-            { icon: <Landmark size={18} style={{ color: '#B5A99C' }} />,      label: 'Mortgages' },
+            { icon: <GraduationCap size={18} style={{ color: FAINT }} />, label: 'Student Hostels' },
+            { icon: <Landmark size={18} style={{ color: FAINT }} />,      label: 'Mortgages' },
           ].map(({ icon, label }) => (
             <div key={label} className="flex items-center gap-2 p-3 rounded-2xl border border-dashed opacity-60"
-              style={{ backgroundColor: 'rgba(23,33,27,0.02)', borderColor: '#DEDDD6' }}>
+              style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.12)' }}>
               {icon}
-              <span className="text-xs font-medium flex-1" style={{ color: '#647068' }}>{label}</span>
+              <span className="text-xs font-medium flex-1" style={{ color: MUTED }}>{label}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
-                style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: '#8A6A20' }}>Coming Soon</span>
+                style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: '#F3C96A' }}>Coming Soon</span>
             </div>
           ))}
         </div>
