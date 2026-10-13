@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 14 applied and verified (2026-10-13); file 15 pending.** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 15 applied and verified (2026-10-13).** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -20,7 +20,7 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 11 | 20261009010000_page_audit_fixes | Applied 2026-10-12 after a rolled-back dry run. Verified: `public_profiles` view exists, listing status rule includes the admin statuses, `mortgage_applications.updated_at` exists, referral payout guard uses `is_superadmin`. |
 | 13 | 20261013000000_platform_fees_registry | Applied 2026-10-13 after a rolled-back dry run and owner approval, as one transaction. Verified: 10 channels seeded (escrow 3% each, hotel 8%, job escrow 0%, hostel and professional and unlock flat fees), `platform_fee_history` exists, 4 fee functions exist, no 3.75% or 7.5% rate left in the two escrow functions. Admin write functions were not exercised with a real admin account. The frontend that reads this table is not wired yet. |
 | 14 | 20261013010000_payment_integrity | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor: the tool cancels DROP POLICY statements). Verified: 3 guard triggers, 0 client insert policies on bookings and hostel_payments, bookings.platform_fee_ngn exists, escrow start checks the listed price. |
-| 15 | 20261013020000_money_integrity_marketplace | PENDING. Dry run sent. Adds the job-insert guard on transactions and the payment_refunds table with mark_payment_refunded. Apply with the webhook and payout changes. |
+| 15 | 20261013020000_money_integrity_marketplace | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor as a wrapped transaction: the tool cancelled it). Verified: `job_guard` 1 (trigger enabled), `refunds_table` 1 with RLS on, `mark_fn` 1 and SECURITY DEFINER, admin-only policies `payment_refunds_admin_read` and `payment_refunds_admin_update`. Not yet exercised with a real admin account. |
 | 12 | 20261012010000_rental_fee_1_5_per_side | Applied 2026-10-12 after a rolled-back dry run. Verified: no 3.75% or 7.5% rate remains in `start_property_escrow_payment` or `fn_calculate_revenue_split`; both now use 1.5% (3% total) for rentals. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
 
 **Advisor state after apply:**
