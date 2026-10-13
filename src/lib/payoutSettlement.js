@@ -1,0 +1,78 @@
+// Settles one payout_queue row once Flutterwave has reported its transfer.
+// Used by the transfer webhook AND the reconciliation pass in cron-process-payouts,
+// so a payout is finished the same way whichever path learns about it first.
+//
+// Server only: takes a service-role Supabase client.
+
+const money = (kobo) => '₦' + (Number(kobo || 0) / 100).toLocaleString('en-NG')
+
+async function notify(svc, userId, row) {
+  if (!userId) return
+  await svc.from('notifications').insert({ user_id: userId, ...row, created_at: new Date().toISOString() })
+}
+
+// outcome: 'paid' | 'failed'. Returns true only when this call made the change,
+// so a webhook retry racing the reconciliation pass cannot double-count the money.
+export async function settlePayout(svc, queueRow, outcome, reason = null) {
+  const now = new Date().toISOString()
+
+  if (outcome === 'paid') {
+    // Only a row still 'processing' can be paid. The guard makes this idempotent.
+    const { data: flipped, error } = await svc.from('payout_queue')
+      .update({ status: 'paid', processed_at: now })
+      .eq('id', queueRow.id).eq('status', 'processing')
+      .select('id')
+    if (error) throw error
+    if (!flipped || flipped.length === 0) return false
+
+    await svc.from('transactions')
+      .update({ payout_status: 'paid', paid_out_at: now })
+      .eq('id', queueRow.transaction_id)
+    for (const entry_type of ['released', 'withdrawn']) {
+      await svc.from('commission_wallet_ledger').insert({
+        profile_id: queueRow.profile_id,
+        transaction_id: queueRow.transaction_id,
+        entry_type, // 'withdrawn' is the real bank settlement; 'released' is the internal marker
+        amount_cents: queueRow.amount_cents,
+        gateway: 'flutterwave',
+        gateway_ref: queueRow.gateway_ref,
+      })
+    }
+
+    await notify(svc, queueRow.profile_id, {
+      type: 'payout_paid',
+      title: 'Payout sent',
+      message: `${money(queueRow.amount_cents)} has been sent to your bank account.`,
+      link: '/wallet',
+    })
+    return true
+  }
+
+  // Failed or reversed. The provider is still owed this money, so the row stays
+  // visible and retryable from the admin Payouts tab.
+  const { data: flipped, error } = await svc.from('payout_queue')
+    .update({ status: 'failed', failure_reason: `Flutterwave: ${reason || 'transfer failed'}`.slice(0, 500) })
+    .eq('id', queueRow.id).in('status', ['processing', 'paid'])
+    .select('id')
+  if (error) throw error
+  if (!flipped || flipped.length === 0) return false
+
+  await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
+
+  await notify(svc, queueRow.profile_id, {
+    type: 'payout_failed',
+    title: 'Payout not received',
+    message: `Your payout of ${money(queueRow.amount_cents)} did not reach your bank account. Our team has been notified and will contact you.`,
+    link: '/wallet',
+  })
+  const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
+  for (const a of admins || []) {
+    await notify(svc, a.id, {
+      type: 'payout_failed_admin',
+      title: 'Payout failed',
+      message: `Payout #${queueRow.id} of ${money(queueRow.amount_cents)} failed. Review it in Payouts.`,
+      link: '/admin',
+    })
+  }
+  return true
+}

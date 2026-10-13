@@ -26,6 +26,7 @@ import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
 import { identityHmac, IdentityHashError } from '../src/lib/identityHash.js'
 import { flw, alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
+import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
@@ -536,7 +537,41 @@ const jsonResources = {
       }
     }
 
-    return res.status(200).json({ processed, failed, total: (rows || []).length })
+    // Reconcile payouts left in 'processing'. Flutterwave confirms each transfer
+    // by webhook, but a webhook can be missed, delayed or retried into a dead end.
+    // Ask Flutterwave directly for anything that has been in flight for 2 hours,
+    // and settle it the same way the webhook would. NEW or PENDING transfers are
+    // left alone and checked again on the next run.
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    const { data: stuck, error: stuckErr } = await svc
+      .from('payout_queue')
+      .select('id, transaction_id, profile_id, amount_cents, gateway_ref, created_at')
+      .eq('status', 'processing')
+      .lt('created_at', cutoff)
+      .order('created_at', { ascending: true })
+      .limit(20)
+    if (stuckErr) console.error('cron-process-payouts: failed to load processing rows', stuckErr.message)
+
+    let reconciled = 0
+    for (const row of stuckErr ? [] : stuck || []) {
+      try {
+        const { data: tx } = await svc.from('transactions').select('payout_ref').eq('id', row.transaction_id).maybeSingle()
+        if (!tx?.payout_ref) {
+          console.error(`cron-process-payouts: processing row ${row.id} has no transfer id to check`)
+          continue
+        }
+        const transfer = await flw('GET', `/transfers/${encodeURIComponent(tx.payout_ref)}`)
+        if (transfer?.status === 'SUCCESSFUL') {
+          if (await settlePayout(svc, row, 'paid')) reconciled++
+        } else if (transfer?.status === 'FAILED') {
+          if (await settlePayout(svc, row, 'failed', 'transfer reported failed on reconciliation')) reconciled++
+        }
+      } catch (err) {
+        console.error(`cron-process-payouts: reconciling row ${row.id} failed:`, err.message)
+      }
+    }
+
+    return res.status(200).json({ processed, failed, reconciled, total: (rows || []).length })
   },
 
   async ['payout-banks'](req, res) {

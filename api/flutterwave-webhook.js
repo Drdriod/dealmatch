@@ -21,6 +21,7 @@ export const config = { api: { bodyParser: false } }
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { flw } from '../src/lib/flutterwaveServer.js'
+import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
 const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
@@ -766,24 +767,7 @@ export default async function handler(req, res) {
           const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
           const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).eq('status', 'processing').maybeSingle()
           if (queueRow) {
-            await svc.from('payout_queue').update({ status: 'paid', processed_at: new Date().toISOString() }).eq('id', queueRow.id)
-            await svc.from('transactions').update({ payout_status: 'paid', paid_out_at: new Date().toISOString() }).eq('id', queueRow.transaction_id)
-            await svc.from('commission_wallet_ledger').insert({
-              profile_id: queueRow.profile_id,
-              transaction_id: queueRow.transaction_id,
-              entry_type: 'released',
-              amount_cents: queueRow.amount_cents,
-              gateway: 'flutterwave',
-              gateway_ref: transferCode,
-            })
-            await svc.from('commission_wallet_ledger').insert({
-              profile_id: queueRow.profile_id,
-              transaction_id: queueRow.transaction_id,
-              entry_type: 'withdrawn', // this is a real bank settlement, not just an internal "released" marker
-              amount_cents: queueRow.amount_cents,
-              gateway: 'flutterwave',
-              gateway_ref: transferCode,
-            })
+            await settlePayout(svc, queueRow, 'paid')
           } else {
             console.warn('transfer.success for unknown/already-finalized payout_queue row:', transferCode)
           }
@@ -803,8 +787,7 @@ export default async function handler(req, res) {
           const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
           const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
           if (queueRow) {
-            await svc.from('payout_queue').update({ status: 'failed', failure_reason: `Flutterwave ${event.event}` }).eq('id', queueRow.id)
-            await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
+            await settlePayout(svc, queueRow, 'failed', event.event)
           }
         }
         break

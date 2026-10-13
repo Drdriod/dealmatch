@@ -1623,7 +1623,11 @@ function MonetisationTab() {
     loadRefunds()
   }
 
-  const rows=fees?Object.values(fees):[]
+  // Marketplace job commission is set in Commission Schedules (the `commissions`
+  // table that accept_bid reads). The registry's job row is not used, so it is
+  // hidden here to keep one place to set that fee.
+  const JOB_COMMISSION_KEY='job_escrow'
+  const rows=fees?Object.values(fees).filter(r=>r.key!==JOB_COMMISSION_KEY):[]
   const labelOf=(key)=>fees?.[key]?.label||key
 
   const saveEdit=async()=>{
@@ -1672,6 +1676,11 @@ function MonetisationTab() {
       </div>
 
       {error&&<p className="text-xs" style={{color:'#C85F2D'}}>Could not load fees: {error.message}</p>}
+
+      <p className="text-xs" style={{color:'rgba(255,255,255,0.45)'}}>
+        Marketplace job commission is not listed here. Set it in{' '}
+        <a href="/admin/fees" className="underline" style={{color:'#D4A853'}}>Commission Schedules</a>.
+      </p>
 
       <TableWrap cols={['Channel','Area','Rate or fee','Status','Last changed','Actions']}>
         {rows.map(r=>(
