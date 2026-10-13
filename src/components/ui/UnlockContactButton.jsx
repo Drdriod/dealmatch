@@ -3,7 +3,8 @@ import { Lock, Phone, Coins, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
-import { buyUnlockCredits, UNLOCK_CREDIT_PACKS } from '@/lib/flutterwave'
+import { buyUnlockCredits, getFeeAmounts } from '@/lib/flutterwave'
+import { usePlatformFees } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 /**
@@ -27,6 +28,9 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
   const [contact, setContact] = useState(null)
   const [busy, setBusy] = useState(false)
   const [showPacks, setShowPacks] = useState(false)
+  // Pack prices come from the platform fee registry. A price is null while loading.
+  const { fees } = usePlatformFees()
+  const UNLOCK_CREDIT_PACKS = getFeeAmounts(fees).UNLOCK_CREDIT_PACKS
 
   useEffect(() => { if (user) { loadBalance(); checkExisting() } }, [user, targetId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,6 +67,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
   }
 
   async function handleBuy(pack) {
+    if (!(pack.price > 0)) { toast.error('Prices are still loading. Please try again in a moment.'); return }
     setBusy(true)
     await buyUnlockCredits({
       pack,
@@ -108,7 +113,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
             </p>
             <div className="space-y-2">
               {UNLOCK_CREDIT_PACKS.map(pack => (
-                <button key={pack.credits} onClick={() => handleBuy(pack)} disabled={busy}
+                <button key={pack.credits} onClick={() => handleBuy(pack)} disabled={busy || !(pack.price > 0)}
                   className="w-full flex items-center justify-between p-3.5 rounded-xl border disabled:opacity-50"
                   style={{ borderColor: pack.badge ? '#C85F2D' : '#DEDDD6', backgroundColor: pack.badge ? 'rgba(200,95,45,0.06)' : '#FFF' }}>
                   <div className="flex items-center gap-2">
@@ -118,7 +123,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
                       {pack.badge && <p className="text-[10px] font-bold" style={{ color: '#C85F2D' }}>{pack.badge}</p>}
                     </div>
                   </div>
-                  <p className="text-sm font-black" style={{ color: '#17211B' }}>{'\u20a6'}{pack.price.toLocaleString()}</p>
+                  <p className="text-sm font-black" style={{ color: '#17211B' }}>{pack.price > 0 ? `\u20a6${pack.price.toLocaleString()}` : '...'}</p>
                 </button>
               ))}
             </div>

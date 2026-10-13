@@ -4,6 +4,7 @@ import { Calendar, Check, Hotel, MapPin, PartyPopper, Search, Star, Users, X } f
 import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/context/AuthContext'
+import { usePlatformFees, feeValue, feeText } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 const WHATSAPP = '2347057392060'
@@ -27,27 +28,32 @@ function BookingModal({ hotel, onClose }) {
   })
   const [submitting, setSubmitting] = useState(false)
   const [booked,     setBooked]     = useState(false)
+  const { fees } = usePlatformFees()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   const setN = k => e => setForm(f => ({ ...f, [k]: Number(e.target.value) }))
 
-  // Price calculator
+  // Price calculator. The fee rate is the hotel_booking channel in the platform
+  // fee registry (a percentage). Null while loading: the total is not shown.
   const pricePerNight = hotel.room_categories?.find(c => c.name === form.room_type)?.price_per_night
     || hotel.room_categories?.[0]?.price_per_night
     || null
+  const hotelRate     = feeValue(fees, 'hotel_booking')
+  const hotelFeeLabel = feeText(fees, 'hotel_booking')
 
   const nights = form.checkin && form.checkout
     ? Math.max(0, Math.round((new Date(form.checkout) - new Date(form.checkin)) / 86400000))
     : 0
   const subtotal   = pricePerNight ? pricePerNight * form.rooms * nights : null
-  const platform_fee = subtotal ? Math.round(subtotal * 0.12) : null
-  const totalDue   = subtotal ? subtotal + platform_fee : null
+  const platform_fee = subtotal && hotelRate !== null ? Math.round(subtotal * hotelRate / 100) : null
+  const totalDue   = subtotal && platform_fee !== null ? subtotal + platform_fee : null
 
   const handleBook = async () => {
     if (!form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) {
       toast.error('Please fill all required fields'); return
     }
     if (nights <= 0) { toast.error('Check-out must be after check-in'); return }
+    if (hotelRate === null) { toast.error('Fees are still loading. Please try again in a moment.'); return }
 
     // ── Clash-prevention: check room availability for date range ──
     const selectedCategory = hotel.room_categories?.find(c => c.name === form.room_type)
@@ -237,7 +243,7 @@ function BookingModal({ hotel, onClose }) {
                     <strong style={{ color:'#17211B' }}>₦{subtotal?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color:'#647068' }}>Platform fee (8%)</span>
+                    <span style={{ color:'#647068' }}>{hotelFeeLabel ? `Platform fee (${hotelFeeLabel})` : 'Platform fee (loading)'}</span>
                     <strong style={{ color:'#C85F2D' }}>₦{platform_fee?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between border-t pt-1.5 font-black" style={{ borderColor:'rgba(200,95,45,0.2)', fontSize:'1rem' }}>
@@ -248,10 +254,10 @@ function BookingModal({ hotel, onClose }) {
               </div>
             )}
 
-            <button onClick={handleBook} disabled={submitting || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone}
+            <button onClick={handleBook} disabled={submitting || hotelRate === null || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone}
               className="btn-primary w-full py-4"
-              style={{ opacity: (!form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) ? 0.5 : 1 }}>
-              {submitting ? 'Confirming...' : `Confirm Booking${totalDue ? ` : ₦${totalDue.toLocaleString()}` : ''} →`}
+              style={{ opacity: (hotelRate === null || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) ? 0.5 : 1 }}>
+              {submitting ? 'Confirming...' : hotelRate === null ? 'Loading fees...' : `Confirm Booking${totalDue ? ` : ₦${totalDue.toLocaleString()}` : ''} →`}
             </button>
           </div>
         )}

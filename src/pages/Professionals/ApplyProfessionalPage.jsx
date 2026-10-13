@@ -4,7 +4,8 @@ import { ArrowLeft, ArrowRight, Briefcase, Building, Check, ChevronDown, Map } f
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { supabase } from '@/lib/supabase'
-import { PROFESSIONAL_PLANS, subscribeProfessional } from '@/lib/flutterwave'
+import { getFeeAmounts, subscribeProfessional } from '@/lib/flutterwave'
+import { usePlatformFees, feeText } from '@/lib/platformFees'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -83,8 +84,8 @@ const PROFESSION_GROUPS = [
 // Flat map for easy lookup
 const ALL_PROFESSIONS = PROFESSION_GROUPS.flatMap(g => g.options)
 
-// Map a profession id to a PROFESSIONAL_PLANS key for billing
-// Most map to 'surveyor' at N25,000/month; adjust per profession type
+// Map a profession id to a PROFESSIONAL_PLANS key for billing.
+// Most map to 'surveyor'. Prices come from the platform fee registry.
 const planKeyFor = (id) => {
   if (!id || id === 'other') return 'surveyor'
   if (id.includes('lawyer') || id.includes('conveyancer')) return 'lawyer'
@@ -101,6 +102,9 @@ export default function ApplyProfessionalPage() {
   const [saving, setSaving]     = useState(false)
   const [planType, setPlanType] = useState('monthly')
   const [showDropdown, setShowDropdown] = useState(false)
+  // Plan prices from the platform fee registry. A price is null while loading.
+  const { fees } = usePlatformFees()
+  const monthlyText = feeText(fees, 'professional_monthly')
 
   const [form, setForm] = useState({
     profession_id:   '',   // selected from dropdown
@@ -126,7 +130,8 @@ export default function ApplyProfessionalPage() {
     : selectedLabel
 
   const planKey = planKeyFor(form.profession_id)
-  const plan    = PROFESSIONAL_PLANS[planKey]
+  const plan    = getFeeAmounts(fees).PROFESSIONAL_PLANS[planKey]
+  const chosenAmount = planType === 'annual' ? plan.annualFee : plan.monthlyFee
 
   const canProceed = () => {
     if (step === 0) {
@@ -145,6 +150,7 @@ export default function ApplyProfessionalPage() {
 
   const handlePay = async () => {
     if (!user) { toast.error('Please sign in first'); return }
+    if (!(chosenAmount > 0)) { toast.error('Prices are still loading. Please try again in a moment.'); return }
 
     // Providers should not go live until verification is approved - this
     // sends unverified applicants to /verify-identity first and brings them
@@ -183,6 +189,7 @@ export default function ApplyProfessionalPage() {
     }
 
     await subscribeProfessional({
+      fees,
       applicationId:    application.id,
       userId:           user.id,
       professionalType: planKey,
@@ -333,7 +340,7 @@ export default function ApplyProfessionalPage() {
                 style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
                 <Check size={14} style={{ color: '#7A9E7E', flexShrink: 0 }} />
                 <p className="text-xs" style={{ color: '#5C4A3A' }}>
-                  <strong>{selectedLabel}</strong> selected. All types are listed at N25,000/month.
+                  <strong>{selectedLabel}</strong> selected. {monthlyText ? `All types are listed at ${monthlyText}/month.` : 'All types are listed at the same monthly rate.'}
                 </p>
               </div>
             )}
@@ -455,7 +462,7 @@ export default function ApplyProfessionalPage() {
             <div className="flex gap-2 mb-5">
               {[
                 { id: 'monthly', label: 'Monthly', price: plan.monthlyFee },
-                { id: 'annual',  label: 'Annual (save 10%)', price: plan.annualFee },
+                { id: 'annual',  label: plan.annualSavingPercent ? `Annual (save ${plan.annualSavingPercent}%)` : 'Annual', price: plan.annualFee },
               ].map(p => (
                 <button key={p.id} onClick={() => setPlanType(p.id)}
                   className="flex-1 rounded-2xl border-2 p-4 text-left transition-all"
@@ -465,16 +472,16 @@ export default function ApplyProfessionalPage() {
                   }}>
                   <p className="text-xs font-semibold" style={{ color: '#647068' }}>{p.label}</p>
                   <p className="font-display font-black text-lg" style={{ color: '#17211B' }}>
-                    N{p.price.toLocaleString()}
+                    {p.price ? `N${p.price.toLocaleString()}` : '...'}
                   </p>
                 </button>
               ))}
             </div>
 
-            <button onClick={handlePay} disabled={saving}
+            <button onClick={handlePay} disabled={saving || !(chosenAmount > 0)}
               className="btn-primary w-full py-4 flex items-center justify-center gap-2">
-              {saving ? 'Processing...' : 'Pay & Activate Profile'}
-              {!saving && <ArrowRight size={16} />}
+              {saving ? 'Processing...' : !(chosenAmount > 0) ? 'Loading prices...' : 'Pay & Activate Profile'}
+              {!saving && chosenAmount > 0 && <ArrowRight size={16} />}
             </button>
           </motion.div>
         )}

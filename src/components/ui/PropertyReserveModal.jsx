@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { initializeFlutterwavePayment, generateReference, formatNaira } from '@/lib/flutterwave'
+import { usePlatformFees, escrowRates, formatPlatformFee } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 /**
@@ -33,9 +34,14 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState(false)
 
+  // Escrow rate from the platform fee registry (rental_escrow or sale_escrow,
+  // one total split half per side). Null while loading: the pay action stays off.
+  const { fees } = usePlatformFees()
+  const escrow = escrowRates(fees, property?.listing_type === 'sale' ? 'sale_escrow' : 'rental_escrow')
+
   const gross = Number(amount) || 0
-  const feePerParty = gross ? Math.round(gross * 0.015) : 0
-  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, matching EscrowPage's 1.5%+1.5% model
+  const feePerParty = gross && escrow ? Math.round(gross * escrow.perSide / 100) : 0
+  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, as set in the platform fee registry
 
   const pollForFunded = async (escrowId, attempts = 0) => {
     if (attempts > 10) { setConfirming(false); toast('Payment received - confirming with our team, this can take a few minutes.'); setDone(true); return }
@@ -53,6 +59,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const handleReserve = async () => {
     if (!user) { toast.error('Please sign in to continue'); return }
     if (!gross || gross <= 0) { toast.error('Enter a valid amount'); return }
+    if (!escrow) { toast.error('Fees are still loading. Please try again in a moment.'); return }
     // Money is about to move: identity must be verified first.
     if (!(await requireVerification('escrow'))) return
     const email = user.email || `${user.id}@guest.dealmatch.com.ng`
@@ -153,15 +160,17 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <div className="rounded-2xl p-3 text-xs leading-relaxed" style={{ backgroundColor: 'rgba(122,158,126,0.1)', color: '#3E5A42' }}>
               Owner contact unlocks automatically once your payment is confirmed. DealMatch holds funds until move-in is confirmed by both sides.
-              {feePerParty > 0 && <> A 1.5% facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
+              {feePerParty > 0 && escrow && <> A {formatPlatformFee({ kind: 'percent', value: escrow.perSide })} facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
             </div>
 
-            <button onClick={handleReserve} disabled={submitting || confirming}
+            <button onClick={handleReserve} disabled={submitting || confirming || !escrow}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
               style={{ backgroundColor: '#C85F2D' }}>
               {submitting || confirming
                 ? <><Loader2 size={16} className="animate-spin" /> {confirming ? 'Confirming payment…' : 'Starting…'}</>
-                : `Pay ${formatNaira(youPay)} for protection`}
+                : !escrow
+                  ? 'Loading fees...'
+                  : `Pay ${formatNaira(youPay)} for protection`}
             </button>
           </div>
         )}

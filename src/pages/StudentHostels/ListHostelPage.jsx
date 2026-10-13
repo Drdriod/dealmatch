@@ -2,9 +2,8 @@
  * ListHostelPage - /list-hostel
  * ══════════════════════════════
  * Hostel owners list their rooms here.
- * Payment required before listing goes live:
- *   • Semester plan: ₦5,000
- *   • Annual plan:  ₦8,500
+ * Payment required before listing goes live. Plan prices come from the
+ * platform fee registry (hostel_listing_semester, hostel_listing_annual).
  *
  * Security: listing_paid = false until Flutterwave confirms payment.
  * The listing is created in DB immediately but stays in 'pending_review'
@@ -17,15 +16,10 @@ import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditC
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
+import { initializeFlutterwavePayment, generateReference, getFeeAmounts } from '@/lib/flutterwave'
+import { usePlatformFees } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const LISTING_PLANS = {
-  semester: { label: 'Semester Plan',  price: 5000,  duration: '~6 months', badge: 'Popular' },
-  annual:   { label: 'Annual Plan',    price: 8500,  duration: '12 months', badge: 'Best Value', saving: 'Save ₦1,500' },
-}
 
 const ROOM_TYPES = [
   { id: 'single',       label: 'Single Room',          desc: '1 person per room' },
@@ -137,6 +131,10 @@ export default function ListHostelPage() {
   const [hostelId,   setHostelId] = useState(null)
   const [paymentDone, setPaymentDone] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
+  // Plan prices from the platform fee registry. A price is null while loading.
+  const { fees } = usePlatformFees()
+  const LISTING_PLANS = getFeeAmounts(fees).HOSTEL_LISTING_PLANS
+  const plansReady = !!LISTING_PLANS[plan]?.price
 
   // institutions table removed - school name is now a free-text input
   // so listing owners can type their school name directly without
@@ -227,10 +225,12 @@ export default function ListHostelPage() {
 
   // ── Payment ────────────────────────────────────────────────────────────
   const handlePayment = async () => {
+    const planMeta  = LISTING_PLANS[plan]
+    if (!planMeta?.price) { toast.error('Prices are still loading. Please try again in a moment.'); return }
+
     const id = hostelId || await saveHostel()
     if (!id) return
 
-    const planMeta  = LISTING_PLANS[plan]
     const reference = generateReference()
 
     // Save pending payment record first
@@ -554,7 +554,7 @@ export default function ListHostelPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm" style={{ color: '#17211B' }}>{p.label}</span>
+                            <span className="font-bold text-sm" style={{ color: '#17211B' }}>{p.name}</span>
                             {p.badge && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-bold"
                                 style={{ backgroundColor: plan === key ? '#C85F2D' : '#DEDDD6', color: plan === key ? '#fff' : '#647068' }}>
@@ -567,7 +567,7 @@ export default function ListHostelPage() {
                         </div>
                         <div className="text-right">
                           <div className="font-black text-lg" style={{ color: plan === key ? '#C85F2D' : '#17211B' }}>
-                            ₦{p.price.toLocaleString()}
+                            {p.price ? `₦${p.price.toLocaleString()}` : '...'}
                           </div>
                           {plan === key && <Check size={14} style={{ color: '#C85F2D', marginLeft: 'auto' }} />}
                         </div>
@@ -600,12 +600,14 @@ export default function ListHostelPage() {
                   </p>
                 </div>
 
-                <button onClick={handlePayment} disabled={saving}
+                <button onClick={handlePayment} disabled={saving || !plansReady}
                   className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
                   style={{ backgroundColor: '#C85F2D', color: '#fff' }}>
                   {saving
                     ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
+                    : !plansReady
+                      ? 'Loading prices...'
+                      : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
                 </button>
 
                 <p className="text-xs text-center mt-3" style={{ color: '#647068' }}>

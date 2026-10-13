@@ -26,6 +26,35 @@ export function feeValue(fees, key) {
   return Number(row.value)
 }
 
+// The formatted fee for a channel ("3%", "₦270,000"), or null if it is
+// missing or switched off. Use this in copy.
+export function feeText(fees, key) {
+  if (feeValue(fees, key) === null) return null
+  return formatPlatformFee(fees[key])
+}
+
+// Escrow channels are one total, split half per side. Returns both as numbers
+// (percent), or null while loading or if the channel is switched off.
+export function escrowRates(fees, key) {
+  const total = feeValue(fees, key)
+  if (total === null) return null
+  return { total, perSide: total / 2 }
+}
+
+// The sentence used in copy for the escrow fee, e.g. "1.5% from each side,
+// 3% in total, for rentals and sales alike." Null if either rate is unavailable.
+export function escrowFeeSentence(fees) {
+  const r = escrowRates(fees, 'rental_escrow')
+  const s = escrowRates(fees, 'sale_escrow')
+  if (!r || !s) return null
+  const pct = (v) => formatPlatformFee({ kind: 'percent', value: v })
+  if (r.total === s.total) {
+    return `${pct(r.perSide)} from each side, ${pct(r.total)} in total, for rentals and sales alike.`
+  }
+  return `${pct(r.perSide)} from each side, ${pct(r.total)} in total, for rentals. ` +
+    `${pct(s.perSide)} from each side, ${pct(s.total)} in total, for sales.`
+}
+
 // Fetch every channel, keyed by key. Anyone can read these rows (RLS allows it).
 export async function fetchPlatformFees() {
   const { data, error } = await supabase

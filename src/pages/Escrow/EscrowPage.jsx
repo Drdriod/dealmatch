@@ -4,13 +4,14 @@ import { motion } from 'motion/react'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { usePlatformFees, escrowFeeSentence } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 const HOW_IT_WORKS = [
   { icon: <Banknote size={28} className="text-terracotta" />, title:'Tenant deposits funds',  desc:'The tenant pays the rent or deposit through DealMatch, not directly to the landlord.' },
   { icon: <Search size={28} className="text-terracotta" />, title:'DealMatch records the deal', desc:'The property, the landlord and the tenant are recorded with the payment reference.' },
   { icon: <Home size={28} className="text-terracotta" />, title:'Tenant moves in',        desc:'The tenant confirms move-in, and the funds are released to the landlord. If the tenant does not confirm, they are released 72 hours after move-in unless a dispute is filed.' },
-  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          desc:'DealMatch takes its fee when the funds are released: 1.5% from each side, 3% in total, for rentals and sales alike.' },
+  { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Deal complete',          fee: true },
 ]
 
 // ─── Main Page ────────────────────────────────────────────
@@ -70,6 +71,13 @@ function ActiveEscrowSection() {
 }
 
 export default function EscrowPage() {
+  const { fees } = usePlatformFees()
+  // Rates come from the platform fee registry. Until they load, show Loading.
+  const feeSentence = escrowFeeSentence(fees)
+  const feeLine = feeSentence
+    ? `DealMatch takes its fee when the funds are released: ${feeSentence}`
+    : 'Loading the current fee...'
+
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
       <div className="max-w-2xl mx-auto px-4">
@@ -112,7 +120,7 @@ export default function EscrowPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{s.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{s.desc}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{s.fee ? feeLine : s.desc}</p>
                 </div>
               </div>
             ))}

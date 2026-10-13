@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { analytics } from '@/lib/posthog'
 import { clientRateLimit } from '@/lib/security'
+import { usePlatformFees, feeText } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 // ─── Constants ────────────────────────────────────────────
@@ -359,6 +360,8 @@ function ProListCard({ pro, onContact, onSave, saved }) {
 // ─── Main Page ────────────────────────────────────────────
 export default function ProfessionalsPage() {
   const { user } = useAuth()
+  const { fees } = usePlatformFees()
+  const proMonthlyText = feeText(fees, 'professional_monthly') // null while loading
   const [pros,       setPros]       = useState([])
   const [queue,      setQueue]      = useState([])
   const [saved,      setSaved]      = useState([])
@@ -439,7 +442,7 @@ export default function ProfessionalsPage() {
           <div>
             <p className="text-sm font-bold" style={{ color: '#FFFFFF' }}>Are you a professional?</p>
             <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              Join for N25,000/month and get matched with clients
+              {proMonthlyText ? `Join for ${proMonthlyText}/month and get matched with clients` : 'Join and get matched with clients'}
             </p>
           </div>
           <span className="px-4 py-2 rounded-xl text-xs font-bold flex-shrink-0"
