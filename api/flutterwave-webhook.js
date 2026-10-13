@@ -204,9 +204,67 @@ function getServiceClient() {
   })
 }
 
+// Records money DealMatch holds and must return: an overpayment (after the item
+// is granted) or an underpayment (held until topped up or refunded). One row per
+// payment and reason, so a repeated webhook cannot duplicate it.
+async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey) {
+  const now = new Date().toISOString()
+  let error = null
+  if (reason === 'underpaid') {
+    // The held amount grows with each top-up, but only while still outstanding:
+    // a row already returned or resolved is never reopened.
+    const { data: open } = await svc.from('payment_refunds')
+      .update({ amount_kobo: amountKobo, updated_at: now, note })
+      .eq('dedupe_key', dedupeKey).eq('status', 'to_refund').select('id')
+    if (!open?.length) {
+      // No open row: create it, unless a returned row already exists (23505), which stays as it is.
+      const { error: insErr } = await svc.from('payment_refunds').insert({
+        dedupe_key: dedupeKey, reference: row.reference, reason, payer_email: row.email,
+        profile_id: row.profile_id || null, amount_kobo: amountKobo, status: 'to_refund', note,
+      })
+      error = insErr && insErr.code !== '23505' ? insErr : null
+    }
+  } else {
+    // One row per charge. A repeated webhook for the same charge is ignored,
+    // so it cannot reset a refund that was already returned.
+    ;({ error } = await svc.from('payment_refunds').upsert({
+      dedupe_key: dedupeKey, reference: row.reference, reason, payer_email: row.email,
+      profile_id: row.profile_id || null, amount_kobo: amountKobo, status: 'to_refund', note,
+    }, { onConflict: 'dedupe_key', ignoreDuplicates: true }))
+  }
+  if (error) console.error('Could not record money to return:', row.reference, error.message)
+
+  // Tell the payer, and the super admins who return the money.
+  if (row.profile_id) {
+    await svc.from('notifications').insert({
+      user_id: row.profile_id,
+      type: 'payment_return',
+      title: reason === 'overpaid' ? 'We will return your extra payment' : 'Your payment is short',
+      message: reason === 'overpaid'
+        ? `You paid ₦${(amountKobo / 100).toLocaleString()} more than the price. We will return it to you.`
+        : `We received ₦${(amountKobo / 100).toLocaleString()} of the price. Please contact us to complete or refund it.`,
+      link: '/wallet',
+      created_at: new Date().toISOString(),
+    })
+  }
+  const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
+  for (const a of admins || []) {
+    await svc.from('notifications').insert({
+      user_id: a.id,
+      type: 'refund_due',
+      title: 'Money to return',
+      message: `${reason} payment ${row.reference}: ₦${(amountKobo / 100).toLocaleString()}. Return it from Monetisation.`,
+      link: '/admin/monetisation',
+      created_at: new Date().toISOString(),
+    })
+  }
+}
+
 // A customer paid by bank transfer into one of our virtual accounts.
-// Re-fetch the charge, match it to our row by account number, check the amount,
-// and mark the row paid exactly once.
+// Re-fetch the charge, match it to our row by account number, add it to what
+// was already received, and grant only once the full price is in. The amount
+// returned is always the PRICE (never what was received), so the checks below
+// compare like with like.
 async function normalizeChargeEvent(eventData) {
   const charge = await flw('GET', `/charges/${encodeURIComponent(eventData.id)}`)
   if (charge?.status !== 'succeeded' || charge?.currency !== 'NGN') return null
@@ -226,30 +284,52 @@ async function normalizeChargeEvent(eventData) {
   }
 
   const paidKobo = Math.round(Number(charge.amount) * 100)
-  if (paidKobo < Number(row.expected_kobo)) {
-    // Part-payment: record it, grant nothing. Staff follow up.
-    await svc.from('payment_virtual_accounts')
-      .update({ status: 'underpaid', paid_kobo: paidKobo })
-      .eq('reference', row.reference)
-      .eq('status', 'pending')
-    console.warn('Underpaid virtual account payment:', row.reference, paidKobo, row.expected_kobo)
+  const expectedKobo = Number(row.expected_kobo)
+
+  // A transfer into an account that is already paid: never granted twice. The
+  // money is returned to the payer.
+  if (row.status === 'paid') {
+    await recordMoneyToReturn(svc, row, paidKobo, 'overpaid', 'Transfer received after the payment was complete', 'charge:' + charge.id)
     return null
   }
 
-  // Conditional update: only the first delivery of this credit flips the row
+  // Running total for this account. A second transfer tops up a short payment.
+  const totalKobo = Number(row.paid_kobo || 0) + paidKobo
+  if (totalKobo < expectedKobo) {
+    await svc.from('payment_virtual_accounts')
+      .update({ status: 'underpaid', paid_kobo: totalKobo })
+      .eq('reference', row.reference)
+      .in('status', ['pending', 'underpaid'])
+    await recordMoneyToReturn(svc, row, totalKobo, 'underpaid', 'Part payment held until topped up or returned', 'short:' + row.reference)
+    console.warn('Underpaid virtual account payment:', row.reference, totalKobo, expectedKobo)
+    return null
+  }
+
+  // Conditional update: only the first delivery of the completing credit flips the row
   const { data: flipped } = await svc
     .from('payment_virtual_accounts')
-    .update({ status: 'paid', paid_kobo: paidKobo, paid_at: new Date().toISOString() })
+    .update({ status: 'paid', paid_kobo: totalKobo, paid_at: new Date().toISOString() })
     .eq('reference', row.reference)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'underpaid'])
     .select('reference')
   if (!flipped || flipped.length === 0) return null // already processed
+
+  // The short payment is now complete, so it is no longer owed back.
+  if (Number(row.paid_kobo || 0) > 0) {
+    await svc.from('payment_refunds')
+      .update({ status: 'resolved', updated_at: new Date().toISOString() })
+      .eq('reference', row.reference).eq('reason', 'underpaid').eq('status', 'to_refund')
+  }
+  const excessKobo = totalKobo - expectedKobo
+  if (excessKobo > 0) {
+    await recordMoneyToReturn(svc, row, excessKobo, 'overpaid', 'Paid more than the price', 'charge:' + charge.id)
+  }
 
   return {
     event: 'charge.success',
     data: {
       reference: row.reference,
-      amount: paidKobo,
+      amount: expectedKobo, // the price the item costs, which is what was granted
       customer: { email: row.email },
       metadata: row.metadata || {},
     },

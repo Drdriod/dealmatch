@@ -445,6 +445,25 @@ const jsonResources = {
       try {
         await svc.from('payout_queue').update({ attempts: row.attempts + 1 }).eq('id', row.id)
 
+        // Defence in depth: pay only what the transaction says is owed, to the
+        // account it was accepted with, once the deal is completed. Anything
+        // else is held for a person to look at, not retried.
+        const { data: tx } = await svc.from('transactions')
+          .select('id, status, payout_status, provider_payout_account_id, amount_cents, commission_amount_cents')
+          .eq('id', row.transaction_id).maybeSingle()
+        const owedKobo = tx ? Number(tx.amount_cents || 0) - Number(tx.commission_amount_cents || 0) : null
+        const matches = tx
+          && tx.status === 'COMPLETED'
+          && tx.payout_status === 'queued'
+          && String(tx.provider_payout_account_id) === String(row.payout_account_id)
+          && Number(row.amount_cents) === owedKobo
+          && Number(row.amount_cents) > 0
+        if (!matches) {
+          const held = new Error('Payout does not match its completed transaction; held for review')
+          held.holdForReview = true
+          throw held
+        }
+
         const { data: account } = await svc
           .from('payout_accounts')
           .select('*')
@@ -505,11 +524,13 @@ const jsonResources = {
       } catch (err) {
         failed++
         console.error(`cron-process-payouts: row ${row.id} failed:`, err.message)
+        // A mismatch is never retried: it goes straight to 'failed' for review.
+        const giveUp = err.holdForReview || row.attempts + 1 >= 5
         await svc.from('payout_queue').update({
-          status: row.attempts + 1 >= 5 ? 'failed' : 'pending',
+          status: giveUp ? 'failed' : 'pending',
           failure_reason: String(err.message).slice(0, 500),
         }).eq('id', row.id)
-        if (row.attempts + 1 >= 5) {
+        if (giveUp) {
           await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', row.transaction_id)
         }
       }

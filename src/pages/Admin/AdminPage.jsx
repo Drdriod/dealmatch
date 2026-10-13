@@ -1599,6 +1599,30 @@ function MonetisationTab() {
   },[])
   useEffect(()=>{loadHistory()},[loadHistory])
 
+  const [refunds,setRefunds]=useState([])
+  const [refundBusy,setRefundBusy]=useState(null)
+  const loadRefunds=useCallback(async()=>{
+    const {data}=await supabase
+      .from('payment_refunds')
+      .select('id,reason,payer_email,reference,amount_kobo,status,created_at')
+      .eq('status','to_refund')
+      .order('created_at',{ascending:true})
+    setRefunds(data||[])
+  },[])
+  useEffect(()=>{loadRefunds()},[loadRefunds])
+
+  const naira=(kobo)=>'\u20a6'+(Number(kobo)/100).toLocaleString('en-NG')
+  const markRefunded=async(r)=>{
+    const bank=window.prompt(`Bank reference for the ${naira(r.amount_kobo)} sent back to ${r.payer_email||'the payer'}:`)
+    if(!bank||!bank.trim()) return
+    setRefundBusy(r.id)
+    const {error:err}=await supabase.rpc('mark_payment_refunded',{p_id:r.id,p_bank_reference:bank.trim()})
+    setRefundBusy(null)
+    if(err) return toast.error(err.message)
+    toast.success('Recorded as returned')
+    loadRefunds()
+  }
+
   const rows=fees?Object.values(fees):[]
   const labelOf=(key)=>fees?.[key]?.label||key
 
@@ -1685,6 +1709,27 @@ function MonetisationTab() {
                   : <>set to {h.new_value}</>}
               {h.note?` (${h.note})`:''}
               <span style={{color:'rgba(255,255,255,0.3)'}}> · {ago(h.changed_at)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl p-4" style={{backgroundColor:'rgba(200,95,45,0.06)',border:'1px solid rgba(200,95,45,0.25)'}}>
+        <p className="text-xs font-bold mb-1 text-white">Money to return ({refunds.length})</p>
+        <p className="text-[11px] mb-3" style={{color:'rgba(255,255,255,0.4)'}}>Overpayments and short payments. Send the money back from your bank, then record the bank reference here.</p>
+        {refunds.length===0&&<p className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>Nothing to return.</p>}
+        <div className="space-y-2">
+          {refunds.map(r=>(
+            <div key={r.id} className="flex items-center justify-between gap-3 flex-wrap text-xs" style={{color:'rgba(255,255,255,0.7)'}}>
+              <span>
+                <span className="text-white">{r.reason==='overpaid'?'Overpaid':'Short payment'}</span>
+                {' '}· {r.payer_email||'no email'} · {r.reference}
+                {' '}· <span className="text-white">{naira(r.amount_kobo)}</span>
+              </span>
+              <button onClick={()=>markRefunded(r)} disabled={refundBusy===r.id}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>
+                {refundBusy===r.id?'Saving...':'Mark returned'}
+              </button>
             </div>
           ))}
         </div>
