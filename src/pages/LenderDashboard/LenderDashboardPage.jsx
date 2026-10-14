@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Check, ChevronRight, Clock, FileText, Filter, Mail, MessageSquare, RefreshCw, Search, User, Users, Wallet, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchApplications, fetchPipeline, updateApplicationStatus } from '@/data/lenderRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -71,16 +71,7 @@ export default function LenderDashboardPage() {
 
   const loadApplications = async () => {
     setLoading(true)
-    let query = supabase
-      .from('mortgage_applications')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (filter !== 'all') {
-      query = query.eq('status', filter)
-    }
-
-    const { data, error } = await query
+    const { data, error } = await fetchApplications(filter !== 'all' ? filter : null)
     if (error) toast.error('Failed to load applications')
     else setApps(data || [])
     setLoading(false)
@@ -88,10 +79,7 @@ export default function LenderDashboardPage() {
 
   const loadPipeline = async () => {
     setPipelineLoading(true)
-    const { data, error } = await supabase
-      .from('mortgage_applications')
-      .select('id, ticket_id, full_name, status, property_value, down_payment, property_state, created_at, updated_at')
-      .order('created_at', { ascending: false })
+    const { data, error } = await fetchPipeline()
     if (error) toast.error('Failed to load pipeline')
     else setPipeline(data || [])
     setPipelineLoading(false)
@@ -104,14 +92,7 @@ export default function LenderDashboardPage() {
 
   const handleUpdateStatus = async (app, newStatus) => {
     setUpdating(true)
-    const { error } = await supabase
-      .from('mortgage_applications')
-      .update({
-        status: newStatus,
-        notes: note || app.notes,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', app.id)
+    const { error } = await updateApplicationStatus(app.id, { status: newStatus, notes: note || app.notes })
 
     if (error) {
       toast.error('Update failed: ' + error.message)
