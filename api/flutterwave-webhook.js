@@ -20,7 +20,7 @@ export const config = { api: { bodyParser: false } }
 
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
-import { flw } from '../src/lib/flutterwaveServer.js'
+import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
@@ -267,7 +267,7 @@ async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey
 // returned is always the PRICE (never what was received), so the checks below
 // compare like with like.
 async function normalizeChargeEvent(eventData) {
-  const charge = await flw('GET', `/charges/${encodeURIComponent(eventData.id)}`)
+  const charge = await paymentGateway.getCharge(eventData.id)
   if (charge?.status !== 'succeeded' || charge?.currency !== 'NGN') return null
 
   const accountNumber = charge.payment_method_details?.bank_transfer?.virtual_account_number
@@ -339,7 +339,7 @@ async function normalizeChargeEvent(eventData) {
 
 // A payout transfer finished. Re-fetch it and map to our payout reference.
 async function normalizeTransferEvent(eventData) {
-  const transfer = await flw('GET', `/transfers/${encodeURIComponent(eventData.id)}`)
+  const transfer = await paymentGateway.getTransfer(eventData.id)
   const reference = transfer?.reference
   if (!reference) return null
   // transfer_code carries our own payout reference: that is what

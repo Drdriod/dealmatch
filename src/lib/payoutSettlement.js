@@ -4,6 +4,8 @@
 //
 // Server only: takes a service-role Supabase client.
 
+import { movePayout } from './payoutStates.js'
+
 const money = (kobo) => '₦' + (Number(kobo || 0) / 100).toLocaleString('en-NG')
 
 async function notify(svc, userId, row) {
@@ -17,13 +19,9 @@ export async function settlePayout(svc, queueRow, outcome, reason = null) {
   const now = new Date().toISOString()
 
   if (outcome === 'paid') {
-    // Only a row still 'processing' can be paid. The guard makes this idempotent.
-    const { data: flipped, error } = await svc.from('payout_queue')
-      .update({ status: 'paid', processed_at: now })
-      .eq('id', queueRow.id).eq('status', 'processing')
-      .select('id')
-    if (error) throw error
-    if (!flipped || flipped.length === 0) return false
+    // Only a row still 'processing' can be paid. movePayout makes this idempotent.
+    const changed = await movePayout(svc, queueRow.id, 'paid', { processed_at: now }, { from: ['processing'] })
+    if (!changed) return false
 
     await svc.from('transactions')
       .update({ payout_status: 'paid', paid_out_at: now })
@@ -50,12 +48,13 @@ export async function settlePayout(svc, queueRow, outcome, reason = null) {
 
   // Failed or reversed. The provider is still owed this money, so the row stays
   // visible and retryable from the admin Payouts tab.
-  const { data: flipped, error } = await svc.from('payout_queue')
-    .update({ status: 'failed', failure_reason: `Flutterwave: ${reason || 'transfer failed'}`.slice(0, 500) })
-    .eq('id', queueRow.id).in('status', ['processing', 'paid'])
-    .select('id')
-  if (error) throw error
-  if (!flipped || flipped.length === 0) return false
+  // A transfer result only applies to a row that was sent (processing) or paid (a reversal).
+  const changed = await movePayout(
+    svc, queueRow.id, 'failed',
+    { failure_reason: `Flutterwave: ${reason || 'transfer failed'}`.slice(0, 500) },
+    { from: ['processing', 'paid'] },
+  )
+  if (!changed) return false
 
   await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
 

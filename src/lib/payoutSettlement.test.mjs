@@ -1,47 +1,8 @@
 // Run with: node --test src/lib/payoutSettlement.test.mjs
-// Uses an in-memory stand-in for the Supabase client that supports the query
-// shapes settlePayout uses: update/insert, eq, in, select, maybeSingle, and await.
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { settlePayout } from './payoutSettlement.js'
-
-function fakeSvc(tables) {
-  const log = { inserts: [] }
-  const svc = {
-    log,
-    from(table) {
-      const state = { table, filters: [], op: 'select', patch: null, insertRows: null }
-      const builder = {
-        select() { return builder },
-        update(patch) { state.op = 'update'; state.patch = patch; return builder },
-        insert(rows) { state.op = 'insert'; state.insertRows = rows; return builder },
-        eq(col, val) { state.filters.push((r) => r[col] === val); return builder },
-        in(col, vals) { state.filters.push((r) => vals.includes(r[col])); return builder },
-        maybeSingle() { state.single = true; return builder },
-        then(resolve, reject) {
-          try { resolve(execute(state)) } catch (e) { reject(e) }
-        },
-      }
-      return builder
-    },
-  }
-  function execute(state) {
-    const rows = tables[state.table] || (tables[state.table] = [])
-    if (state.op === 'insert') {
-      const list = Array.isArray(state.insertRows) ? state.insertRows : [state.insertRows]
-      rows.push(...list)
-      log.inserts.push({ table: state.table, rows: list })
-      return { data: list, error: null }
-    }
-    const matched = rows.filter((r) => state.filters.every((f) => f(r)))
-    if (state.op === 'update') {
-      matched.forEach((r) => Object.assign(r, state.patch))
-      return { data: matched.map((r) => ({ id: r.id })), error: null }
-    }
-    return { data: state.single ? (matched[0] ?? null) : matched, error: null }
-  }
-  return svc
-}
+import { fakeSupabase as fakeSvc } from './testing/fakeSupabase.mjs'
 
 const queued = (over = {}) => ({
   id: 7, transaction_id: 3, profile_id: 'prov-1', amount_cents: 500000,
@@ -56,16 +17,13 @@ test('paid: flips the row once, writes both ledger rows, notifies the provider',
     notifications: [],
   }
   const svc = fakeSvc(tables)
-  const changed = await settlePayout(svc, queued(), 'paid')
-  assert.equal(changed, true)
+  assert.equal(await settlePayout(svc, queued(), 'paid'), true)
   assert.equal(tables.payout_queue[0].status, 'paid')
   assert.equal(tables.transactions[0].payout_status, 'paid')
-  const ledger = tables.commission_wallet_ledger.map((r) => r.entry_type)
-  assert.deepEqual(ledger, ['released', 'withdrawn'])
-  const notes = tables.notifications
-  assert.equal(notes.length, 1)
-  assert.equal(notes[0].user_id, 'prov-1')
-  assert.equal(notes[0].type, 'payout_paid')
+  assert.deepEqual(tables.commission_wallet_ledger.map((r) => r.entry_type), ['released', 'withdrawn'])
+  assert.equal(tables.notifications.length, 1)
+  assert.equal(tables.notifications[0].user_id, 'prov-1')
+  assert.equal(tables.notifications[0].type, 'payout_paid')
 })
 
 test('paid twice (webhook then reconciliation): money is recorded once', async () => {
