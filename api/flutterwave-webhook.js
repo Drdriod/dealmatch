@@ -23,6 +23,7 @@ import { createClient } from '@supabase/supabase-js'
 import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
+import { recordMoneyToReturn, runChargePurpose } from '../src/lib/chargePurposes.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
 const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
@@ -188,47 +189,6 @@ function getServiceClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
-}
-
-// Records money DealMatch holds and must return: an overpayment (after the item
-// is granted) or an underpayment (held until topped up or refunded). One row per
-// payment and reason, so a repeated webhook cannot duplicate it.
-async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey) {
-  const now = new Date().toISOString()
-  let error = null
-  if (reason === 'underpaid') {
-    // The held amount grows with each top-up, but only while still outstanding:
-    // a row already returned or resolved is never reopened.
-    const { data: open } = await svc.from('payment_refunds')
-      .update({ amount_kobo: amountKobo, updated_at: now, note })
-      .eq('dedupe_key', dedupeKey).eq('status', 'to_refund').select('id')
-    if (!open?.length) {
-      // No open row: create it, unless a returned row already exists (23505), which stays as it is.
-      const { error: insErr } = await svc.from('payment_refunds').insert({
-        dedupe_key: dedupeKey, reference: row.reference, reason, payer_email: row.email,
-        profile_id: row.profile_id || null, amount_kobo: amountKobo, status: 'to_refund', note,
-      })
-      error = insErr && insErr.code !== '23505' ? insErr : null
-    }
-  } else {
-    // One row per charge. A repeated webhook for the same charge is ignored,
-    // so it cannot reset a refund that was already returned.
-    ;({ error } = await svc.from('payment_refunds').upsert({
-      dedupe_key: dedupeKey, reference: row.reference, reason, payer_email: row.email,
-      profile_id: row.profile_id || null, amount_kobo: amountKobo, status: 'to_refund', note,
-    }, { onConflict: 'dedupe_key', ignoreDuplicates: true }))
-  }
-  if (error) console.error('Could not record money to return:', row.reference, error.message)
-
-  // Tell the payer, and the super admins who return the money.
-  if (row.profile_id) {
-    await insertNotification(svc, reason === 'overpaid' ? 'payment_return_overpaid' : 'payment_return_short',
-      row.profile_id, { amountKobo })
-  }
-  const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
-  for (const a of admins || []) {
-    await insertNotification(svc, 'refund_due', a.id, { reason, reference: row.reference, amountKobo })
-  }
 }
 
 // A customer paid by bank transfer into one of our virtual accounts.
@@ -442,6 +402,7 @@ export default async function handler(req, res) {
         setTimeout(() => processedRefs.delete(reference), 86400000)
 
         const amountNgn = amount / 100
+        let escrowRow = null // set by the escrow_payment handler, used for the referral step
 
         // Activate in Supabase using service role
         if (process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -451,265 +412,10 @@ export default async function handler(req, res) {
             { auth: { autoRefreshToken: false, persistSession: false } }
           )
 
-          if (metadata?.type === 'professional_subscription') {
-            const expiresAt = metadata.plan_type === 'annual'
-              ? new Date(Date.now() + 365 * 86400000).toISOString()
-              : new Date(Date.now() +  30 * 86400000).toISOString()
-
-            // Providers should not go live until verification is approved -
-            // payment alone is not enough for a Skilled Person to appear in
-            // the public directory. Check identity verification before
-            // flipping status to 'approved'; if it isn't done yet, record
-            // the payment/subscription but leave status 'pending' so it
-            // shows in the directory only once identity is confirmed too.
-            // (trg_auto_approve_paid_professional on public.profiles closes
-            // the loop: the moment identity gets approved afterwards, it
-            // flips this row to 'approved' automatically - no re-payment,
-            // no manual admin step required.)
-            let identityApproved = false
-            if (metadata.user_id) {
-              const { data: applicantProfile } = await supabase
-                .from('profiles')
-                .select('identity_verification_status')
-                .eq('id', metadata.user_id)
-                .single()
-              identityApproved = applicantProfile?.identity_verification_status === 'approved'
-            }
-
-            const proUpdate = supabase.from('professional_applications')
-              .update({
-                status: identityApproved ? 'approved' : 'pending', // live CHECK: pending/approved/rejected/paused
-                subscription_plan: metadata.plan_type || 'monthly',
-                subscription_start: new Date().toISOString(),
-                subscription_expiry: expiresAt,
-                activated_at: identityApproved ? new Date().toISOString() : null,
-              })
-            // Match by application_id when available (most precise),
-            // fall back to email match for legacy payments.
-            await (metadata.application_id
-              ? proUpdate.eq('id', metadata.application_id)
-              : proUpdate.eq('email', customer.email))
-            console.log(identityApproved
-              ? 'Professional activated:' : 'Professional paid, awaiting identity verification:', customer.email)
-          }
-
-          // Hotel or short-let booking: the room was held as 'pending' when the
-          // payment was priced. The transfer confirms it. Only a pending booking
-          // is confirmed, so a repeated webhook cannot change a cancelled one.
-          if (metadata?.type === 'hotel_booking') {
-            const { data: confirmedBooking } = await supabase.from('bookings')
-              .update({ status: 'confirmed' })
-              .eq('id', metadata.booking_id)
-              .eq('payment_ref', reference)
-              .eq('status', 'pending')
-              .select('id')
-            if (confirmedBooking?.length) console.log('Hotel booking confirmed:', metadata.booking_id)
-            else {
-              // Paid after the booking was released (or a repeat webhook). A repeat
-              // is already handled: the dedupe key stops a second row. A released
-              // booking has taken the money, so it goes on the refund list.
-              const { data: stillCancelled } = await supabase.from('bookings')
-                .select('id').eq('id', metadata.booking_id).eq('status', 'cancelled').maybeSingle()
-              if (stillCancelled) {
-                await recordMoneyToReturn(
-                  supabase,
-                  { reference, email: customer?.email, profile_id: metadata.user_id || null },
-                  amount,
-                  'overpaid',
-                  'Paid after the booking was released for non-payment',
-                  'booking-released:' + reference,
-                )
-              }
-              console.warn('Hotel booking not confirmed (already handled or not pending):', reference)
-            }
-          }
-
-          // SEC-3: student hostel listing fee. The unlock happens here, on the
-          // server, after Flutterwave confirms the charge. The browser never
-          // writes listing_paid. The hostel and owner come from the
-          // hostel_payments row we created for this reference, not from
-          // client metadata, and the amount must match the plan price.
-          if (metadata?.type === 'hostel_listing_fee') {
-            const { data: payRow } = await supabase
-              .from('hostel_payments')
-              .select('id, hostel_id, owner_id, amount, status')
-              .eq('reference', reference)
-              .maybeSingle()
-
-            if (!payRow) {
-              console.error('[SEC-3] hostel_listing_fee with no hostel_payments row:', reference)
-            } else if (payRow.status === 'success') {
-              console.log('Hostel listing already unlocked, skipping:', reference)
-            } else if (Number(payRow.amount) !== amountNgn) {
-              // Money was taken but does not match the plan. Do not unlock.
-              // Mark failed so an admin can refund or reconcile.
-              await supabase.from('hostel_payments')
-                .update({ status: 'failed' })
-                .eq('id', payRow.id)
-                .eq('status', 'pending')
-              console.error('[SEC-3] hostel amount mismatch, not unlocked:', reference, amountNgn, payRow.amount)
-            } else {
-              const paidAt = new Date().toISOString()
-              await supabase.from('hostel_payments')
-                .update({ status: 'success', paid_at: paidAt })
-                .eq('id', payRow.id)
-                .eq('status', 'pending')
-              await supabase.from('student_hostels')
-                .update({ listing_paid: true, listing_paid_at: paidAt, payment_ref: reference })
-                .eq('id', payRow.hostel_id)
-              console.log('Hostel listing unlocked:', reference)
-            }
-          }
-
-          // NEW (item 2): credit-pack purchase for optional contact
-          // unlock. Credits are only ever granted here, after Flutterwave
-          // confirms the charge - never on the client's say-so - same
-          // enforcement principle as every other payment type in this
-          // file (item 3/6 of the fix request).
-          if (metadata?.type === 'contact_unlock_credits') {
-            // Credits come from the metadata the server wrote when it priced
-            // this payment (payment-virtual-account), not from the browser or
-            // from a price table here. The amount was checked against the
-            // registry price at the same time.
-            const creditsFromMeta = Number(metadata.credits)
-            const credits = [1, 5].includes(creditsFromMeta) ? creditsFromMeta : 0
-
-            // The buyer must be the account whose verified login email matches
-            // the payer. metadata.user_id alone is client-supplied, so it is
-            // not trusted on its own.
-            let buyerId = null
-            if (credits > 0 && metadata.user_id && customer?.email) {
-              const { data: authUser } = await supabase.auth.admin.getUserById(metadata.user_id)
-              if (authUser?.user && authUser.user.email?.toLowerCase() === String(customer.email).toLowerCase()) {
-                buyerId = authUser.user.id
-              }
-            }
-
-            if (credits > 0 && buyerId) {
-              // Flutterwave retries webhooks. Grant once per payment reference.
-              const { data: already } = await supabase
-                .from('unlock_credit_ledger')
-                .select('id')
-                .eq('payment_ref', reference)
-                .maybeSingle()
-              if (!already) {
-                await supabase.from('unlock_credit_ledger').insert({
-                  profile_id: buyerId,
-                  entry_type: 'purchased',
-                  credits,
-                  price_cents: amount,
-                  payment_ref: reference,
-                })
-                console.log(`Granted ${credits} unlock credit(s) to`, buyerId)
-              }
-            } else {
-              console.warn('Unlock purchase not granted (amount or buyer did not match):', reference, amount)
-            }
-          }
-
-          // ✅ SECURITY FIX: escrow metadata (user_id, platform_fee) is
-          // client-supplied at Flutterwave widget init and is NOT trustworthy.
-          // Previously this trusted metadata.user_id to pick which escrow
-          // row to confirm, and metadata.platform_fee as the commission
-          // figure downstream - both spoofable by paying a tiny real amount
-          // while claiming an arbitrary victim user_id / arbitrary large
-          // platform_fee. Now we resolve the row strictly by payment_ref
-          // (written server-side when the escrow was created) and use only
-          // that row's stored tenant_id + platform_amount for everything else.
-          //
-          // ✅ SCHEMA FIX (Aug 2026 hardening pass): this used to select
-          // `platform_fee, amount` and update status to 'confirmed' - none
-          // of that matches the real escrow_transactions schema
-          // (gross_amount/platform_amount are the real column names, and
-          // the RLS policy "Escrow strict update" as well as
-          // get_property_contact() both expect status = 'funded', not
-          // 'confirmed'). The SELECT was failing with a Postgres
-          // column-does-not-exist error on every single invocation,
-          // meaning no property escrow deal could ever be confirmed by
-          // this path. See supabase/migrations/20260812000000_production_hardening.sql.
-          let escrowRow = null
-          if (metadata?.type === 'escrow_payment') {
-            const { data: matchedEscrow, error: escrowErr } = await supabase
-              .from('escrow_transactions')
-              .select('id, tenant_id, platform_amount, gross_amount, status')
-              .eq('payment_ref', reference)
-              .single()
-
-            if (escrowErr || !matchedEscrow) {
-              console.error('Escrow payment with no matching payment_ref, refusing to confirm:', reference)
-            } else {
-              escrowRow = matchedEscrow
-              // NOTE: confirmed_at is a DIFFERENT signal in this schema --
-              // it means "tenant confirmed move-in" and a BEFORE UPDATE OF
-              // confirmed_at trigger (fn_release_on_move_in_confirm) uses
-              // it to auto-RELEASE the escrow. Setting it here (payment
-              // just landed) would have triggered an immediate release,
-              // skipping the entire held-in-escrow protection window --
-              // only `status`/`funded_at` belong at this step.
-              // Only a row still waiting for payment is funded. A late or
-              // repeated webhook cannot move a released or refunded escrow back.
-              const { data: funded } = await supabase.from('escrow_transactions')
-                .update({ status: 'funded', funded_at: new Date().toISOString() })
-                .eq('id', matchedEscrow.id)
-                .eq('status', 'awaiting_payment')
-                .select('id')
-              if (funded?.length) console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
-              else console.warn('Escrow not funded (not awaiting payment):', reference)
-            }
-          }
-
-          // ── ADR-009 marketplace transaction escrow (Nearest-Available /
-          // Multi-Attribute Reverse jobs) ─────────────────────────────
-          // Same resolve-by-payment_ref pattern as escrow_payment above,
-          // for the same reason: metadata.transaction_id is client-supplied
-          // at Flutterwave widget init and must not be trusted to pick which
-          // row to mark FUNDED. payment_ref was written server-side (via
-          // the authorization-checked start_escrow_payment RPC,
-          // 20260731000020) before this payment ever started, so resolving
-          // by it here means an attacker paying a real but wrong amount
-          // against a fabricated transaction_id cannot mark someone else's
-          // job funded -- there is no row to find unless payment_ref
-          // actually matches, and that value was never attacker-writable.
-          if (metadata?.type === 'transaction_escrow') {
-            const { data: matchedTx, error: txErr } = await supabase
-              .from('transactions')
-              .select('id, requester_id, provider_id, amount_cents, status')
-              .eq('payment_ref', reference)
-              .single()
-
-            if (txErr || !matchedTx) {
-              console.error('Transaction escrow payment with no matching payment_ref, refusing to confirm:', reference)
-            } else if (matchedTx.status !== 'PENDING') {
-              console.error('Transaction', matchedTx.id, 'is not PENDING (status=' + matchedTx.status + '), refusing to mark funded:', reference)
-            } else if (Math.round(matchedTx.amount_cents / 100) !== Math.round(amountNgn)) {
-              // Defense in depth: the amount actually charged (verified via
-              // HMAC signature above) should match what the transaction
-              // expected. A mismatch means something is wrong upstream --
-              // refuse rather than silently accepting a different amount.
-              console.error('Transaction', matchedTx.id, 'amount mismatch: expected', matchedTx.amount_cents / 100, 'got', amountNgn, 'ref:', reference)
-            } else {
-              const { data: funded } = await supabase.from('transactions')
-                .update({ status: 'FUNDED', updated_at: new Date().toISOString() })
-                .eq('id', matchedTx.id)
-                .eq('status', 'PENDING')
-                .select('id')
-              if (!funded?.length) {
-                console.warn('Transaction not funded (no longer PENDING):', matchedTx.id)
-                break
-              }
-              console.log('Transaction escrow funded:', matchedTx.id, 'amount:', amountNgn)
-
-              // Notify the provider directly -- not via src/lib/events.js,
-              // that module is written for the browser (imports the
-              // anon-key client) and isn't safe to import into this
-              // service-role serverless function. Same raw-insert pattern
-              // the referral payout code above already uses.
-              if (matchedTx.provider_id) {
-                await insertNotification(supabase, 'escrow_funded', matchedTx.provider_id,
-                  { amount: amountNgn, transactionId: matchedTx.id })
-              }
-            }
-          }
+          // Purpose handlers live in src/lib/chargePurposes.js (registry).
+          const purpose = await runChargePurpose(supabase, { reference, amount, customer, metadata })
+          escrowRow = purpose.escrowRow || null
+          if (purpose.stop) break
 
           // Log every charge.success to payments table
           // Column names match the live payments schema exactly.

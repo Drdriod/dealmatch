@@ -1,6 +1,6 @@
 // In-memory stand-in for the Supabase client, for unit tests only. It supports the
 // query shapes the payment code uses: select, insert, update, eq, in, gte, lt,
-// gt, maybeSingle, single, and await.
+// gt, maybeSingle, single, upsert (onConflict + ignoreDuplicates), and await.
 //
 // tables: { tableName: [rows...] }. Rows are mutated in place, so a test can
 // inspect them afterwards. `log.inserts` records every insert.
@@ -16,6 +16,7 @@ export function fakeSupabase(tables = {}) {
         select() { return builder },
         update(patch) { state.op = 'update'; state.patch = patch; return builder },
         insert(rows) { state.op = 'insert'; state.insertRows = rows; return builder },
+        upsert(rows, opts = {}) { state.op = 'upsert'; state.insertRows = rows; state.upsertOpts = opts; return builder },
         eq(col, val) { state.filters.push((r) => r[col] === val); return builder },
         in(col, vals) { state.filters.push((r) => vals.includes(r[col])); return builder },
         gte(col, val) { state.filters.push((r) => r[col] >= val); return builder },
@@ -39,6 +40,23 @@ export function fakeSupabase(tables = {}) {
       rows.push(...stored)
       log.inserts.push({ table: state.table, rows: stored })
       return { data: state.single ? stored[0] : stored, error: null }
+    }
+    if (state.op === 'upsert') {
+      const list = Array.isArray(state.insertRows) ? state.insertRows : [state.insertRows]
+      const key = state.upsertOpts.onConflict
+      const stored = []
+      for (const r of list) {
+        const hit = key ? rows.find((x) => x[key] === r[key]) : null
+        if (hit) {
+          if (!state.upsertOpts.ignoreDuplicates) Object.assign(hit, r)
+          continue
+        }
+        const row = { id: r.id ?? `${state.table}-${rows.length + 1}`, ...r }
+        rows.push(row)
+        stored.push(row)
+      }
+      log.inserts.push({ table: state.table, rows: stored })
+      return { data: stored, error: null }
     }
     const matched = rows.filter((r) => state.filters.every((f) => f(r)))
     if (state.op === 'update') {
