@@ -5,7 +5,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchStudentVerifications, setStudentVerificationStatus, setStudentVerified, signedDocumentUrl,
+} from '@/data/adminVerificationRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -31,9 +33,7 @@ export function StudentVerificationsTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('student_verifications').select('*,profiles(full_name,email)').order('created_at',{ascending:false}).limit(200)
-    if(filter!=='all') q=q.eq('status',filter)
-    const {data}=await q
+    const {data}=await fetchStudentVerifications(filter)
     // ✅ Student ID images now live in the private 'identity-docs' bucket
     // (previously the fully public 'property-images' - security fix).
     // Older rows still hold a full public URL from the old code and can
@@ -41,26 +41,25 @@ export function StudentVerificationsTab() {
     const withSigned = await Promise.all((data||[]).map(async v=>{
       if(!v.id_image_url) return v
       if(v.id_image_url.startsWith('http')) return {...v, id_image_signed: v.id_image_url} // legacy public URL
-      const {data:sd} = await supabase.storage.from('identity-docs').createSignedUrl(v.id_image_url,1800)
-      return {...v, id_image_signed: sd?.signedUrl || null}
+      return {...v, id_image_signed: await signedDocumentUrl('identity-docs', v.id_image_url)}
     }))
     setItems(withSigned); setLoading(false)
   },[filter])
   useEffect(()=>{load()},[load])
 
   const approve=async(id,userId,name)=>{
-    const {error}=await supabase.from('student_verifications').update({status:'approved',reviewed_by:admin?.id,reviewed_at:new Date().toISOString()}).eq('id',id)
+    const {error}=await setStudentVerificationStatus(id,{status:'approved',adminId:admin?.id})
     if(error){toast.error('Failed');return}
-    await supabase.from('profiles').update({is_student_verified:true}).eq('id',userId)
+    await setStudentVerified(userId,true)
     await auditLog('student_verified',{id,user_id:userId,by:admin?.id})
     toast.success(`${name} - student verified`); setConfirm(null); load()
   }
 
   const doReject=async()=>{
     if(!reason.trim()){toast.error('Enter rejection reason');return}
-    const {error}=await supabase.from('student_verifications').update({status:'rejected',reviewed_by:admin?.id,reviewed_at:new Date().toISOString(),rejection_reason:reason.trim()}).eq('id',reject.id)
+    const {error}=await setStudentVerificationStatus(reject.id,{status:'rejected',adminId:admin?.id,reason:reason.trim()})
     if(error){toast.error('Failed');return}
-    await supabase.from('profiles').update({is_student_verified:false}).eq('id',reject.userId)
+    await setStudentVerified(reject.userId,false)
     await auditLog('student_rejected',{id:reject.id,reason,by:admin?.id})
     toast.success(`${reject.name} - rejected`); setReject(null); setReason(''); load()
   }

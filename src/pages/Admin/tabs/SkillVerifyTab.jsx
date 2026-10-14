@@ -5,7 +5,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchSkillSubmissions, fetchContactProfiles, reviewSkillSubmission, signedDocumentUrl,
+} from '@/data/adminVerificationRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -37,18 +39,13 @@ export function SkillVerifyTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('verification_submissions').select('id,user_id,level,kind,submission_data,status,admin_note,created_at').eq('level',2).order('created_at',{ascending:false}).limit(200)
-    q = filter==='all' ? q : q.eq('status',filter)
-    const {data,error}=await q
+    const {data,error}=await fetchSkillSubmissions(filter)
     if(error){toast.error('Could not load submissions');setLoading(false);return}
     const userIds=[...new Set((data||[]).map(s=>s.user_id))]
-    const {data:profiles}=userIds.length?await supabase.from('profiles').select('id,full_name,email,phone').in('id',userIds):{data:[]}
+    const {data:profiles}=userIds.length?await fetchContactProfiles(userIds):{data:[]}
     const enriched=await Promise.all((data||[]).map(async s=>{
       const paths=s.submission_data?.portfolio_paths||[]
-      const signedUrls=await Promise.all(paths.slice(0,6).map(async p=>{
-        const {data:sd}=await supabase.storage.from('provider-portfolio').createSignedUrl(p,1800)
-        return sd?.signedUrl||null
-      }))
+      const signedUrls=await Promise.all(paths.slice(0,6).map(p=>signedDocumentUrl('provider-portfolio',p)))
       return {...s, profile:profiles?.find(p=>p.id===s.user_id), signedUrls:signedUrls.filter(Boolean)}
     }))
     setItems(enriched); setLoading(false)
@@ -58,7 +55,7 @@ export function SkillVerifyTab() {
 
   const approve=async(item)=>{
     setBusyId(item.id)
-    const {error}=await supabase.rpc('review_verification_submission',{p_submission_id:item.id,p_approve:true,p_note:null})
+    const {error}=await reviewSkillSubmission(item.id,true,null)
     setBusyId(null)
     if(error){toast.error(error.message||'Failed');return}
     await auditLog('skill_verification_approved',{submission_id:item.id,user_id:item.user_id})
@@ -67,7 +64,7 @@ export function SkillVerifyTab() {
   const doReject=async()=>{
     if(!reason.trim()){toast.error('Enter a reason');return}
     setBusyId(reject.id)
-    const {error}=await supabase.rpc('review_verification_submission',{p_submission_id:reject.id,p_approve:false,p_note:reason.trim()})
+    const {error}=await reviewSkillSubmission(reject.id,false,reason.trim())
     setBusyId(null)
     if(error){toast.error(error.message||'Failed');return}
     await auditLog('skill_verification_rejected',{submission_id:reject.id,reason})

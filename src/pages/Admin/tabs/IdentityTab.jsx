@@ -5,7 +5,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchIdentitySubmissions, approveIdentity, rejectIdentity, signedDocumentUrl,
+} from '@/data/adminVerificationRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -32,23 +34,18 @@ export function IdentityTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('profiles').select('id,full_name,email,phone,role,identity_photo_url,identity_selfie_url,identity_doc_type,identity_verification_status,identity_verified_at,identity_rejection_note,identity_nin_submitted_at,created_at').order('created_at',{ascending:false}).limit(200)
-    if(filter==='all') q=q.in('identity_verification_status',['submitted','approved','rejected'])
-    else q=q.eq('identity_verification_status',filter)
-    const {data,error}=await q
+    const {data,error}=await fetchIdentitySubmissions(filter)
     if(error){console.error('[Identity verify load]', error.message); toast.error('Could not load identity submissions. Please retry, or contact support if this keeps happening.'); setLoading(false); return}
     // Generate 30-min signed URLs for private identity-docs bucket
     const enriched=await Promise.all((data||[]).map(async u=>{
       let photo_signed=null,selfie_signed=null
       if(u.identity_photo_url){
         const path=u.identity_photo_url.replace(/^identity-docs\//,'')
-        const {data:sd}=await supabase.storage.from('identity-docs').createSignedUrl(path,1800)
-        photo_signed=sd?.signedUrl||null
+        photo_signed=await signedDocumentUrl('identity-docs',path)
       }
       if(u.identity_selfie_url){
         const path=u.identity_selfie_url.replace(/^identity-docs\//,'')
-        const {data:sd}=await supabase.storage.from('identity-docs').createSignedUrl(path,1800)
-        selfie_signed=sd?.signedUrl||null
+        selfie_signed=await signedDocumentUrl('identity-docs',path)
       }
       return{...u,photo_signed,selfie_signed}
     }))
@@ -58,7 +55,7 @@ export function IdentityTab() {
   useEffect(()=>{load()},[load])
 
   const approve=async(id,name)=>{
-    const {error}=await supabase.from('profiles').update({identity_verification_status:'approved',is_photo_verified:true,is_live_verified:true,identity_verified_at:new Date().toISOString(),identity_verified_by:admin?.id,identity_rejection_note:null,verification_skipped:false}).eq('id',id)
+    const {error}=await approveIdentity(id, admin?.id)
     if(error){toast.error(friendlyDbError(error,'Could not approve. Please try again.'));return}
     await auditLog('identity_approved',{user_id:id,by:admin?.id})
     // Let the user know in-app (bell + email) and via a status they'll see
@@ -70,7 +67,7 @@ export function IdentityTab() {
 
   const doReject=async()=>{
     if(!reason.trim()){toast.error('Enter rejection reason');return}
-    const {error}=await supabase.from('profiles').update({identity_verification_status:'rejected',is_photo_verified:false,is_live_verified:false,identity_rejection_note:reason.trim(),identity_verified_by:admin?.id}).eq('id',reject.id)
+    const {error}=await rejectIdentity(reject.id, admin?.id, reason.trim())
     if(error){toast.error('Failed');return}
     await auditLog('identity_rejected',{user_id:reject.id,reason,by:admin?.id})
     notifyIdentityRejected(reject.id, reason.trim())
