@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 import { friendlyDbError } from '@/lib/dbErrors'
 import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
+import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
 
 const SUPERADMIN_EMAILS = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
@@ -1590,11 +1591,7 @@ function MonetisationTab() {
   const [busy,setBusy]=useState(false)
 
   const loadHistory=useCallback(async()=>{
-    const {data}=await supabase
-      .from('platform_fee_history')
-      .select('fee_key,old_value,new_value,old_active,new_active,note,changed_at')
-      .order('changed_at',{ascending:false})
-      .limit(25)
+    const {data}=await fetchFeeHistory()
     setHistory(data||[])
   },[])
   useEffect(()=>{loadHistory()},[loadHistory])
@@ -1602,11 +1599,7 @@ function MonetisationTab() {
   const [refunds,setRefunds]=useState([])
   const [refundBusy,setRefundBusy]=useState(null)
   const loadRefunds=useCallback(async()=>{
-    const {data}=await supabase
-      .from('payment_refunds')
-      .select('id,reason,payer_email,reference,amount_kobo,status,created_at')
-      .eq('status','to_refund')
-      .order('created_at',{ascending:true})
+    const {data}=await fetchPendingRefunds()
     setRefunds(data||[])
   },[])
   useEffect(()=>{loadRefunds()},[loadRefunds])
@@ -1616,7 +1609,7 @@ function MonetisationTab() {
     const bank=window.prompt(`Bank reference for the ${naira(r.amount_kobo)} sent back to ${r.payer_email||'the payer'}:`)
     if(!bank||!bank.trim()) return
     setRefundBusy(r.id)
-    const {error:err}=await supabase.rpc('mark_payment_refunded',{p_id:r.id,p_bank_reference:bank.trim()})
+    const {error:err}=await markRefundReturned(r.id,bank.trim())
     setRefundBusy(null)
     if(err) return toast.error(err.message)
     toast.success('Recorded as returned')
@@ -1634,12 +1627,7 @@ function MonetisationTab() {
     const v=Number(editing.value)
     if(!Number.isFinite(v)||v<0) return toast.error('Enter a number of zero or more')
     setBusy(true)
-    const {error:err}=await supabase.rpc('admin_set_platform_fee',{
-      p_key:editing.key,
-      p_value:v,
-      p_is_active:!!editing.is_active,
-      p_note:editing.note?.trim()||null,
-    })
+    const {error:err}=await setPlatformFee({key:editing.key,value:v,isActive:editing.is_active,note:editing.note})
     setBusy(false)
     if(err) return toast.error(err.message)
     toast.success('Saved. Every user has been notified of a change.')
@@ -1650,14 +1638,7 @@ function MonetisationTab() {
     const f=adding
     if(!f.key.trim()||!f.label.trim()) return toast.error('A key and a label are required')
     setBusy(true)
-    const {error:err}=await supabase.rpc('admin_create_platform_fee',{
-      p_key:f.key.trim(),
-      p_label:f.label.trim(),
-      p_area:f.area,
-      p_kind:f.kind,
-      p_value:Number(f.value)||0,
-      p_description:f.description?.trim()||null,
-    })
+    const {error:err}=await createPlatformFee({key:f.key,label:f.label,area:f.area,kind:f.kind,value:f.value,description:f.description})
     setBusy(false)
     if(err) return toast.error(err.message)
     toast.success('Channel added. Every user has been notified.')

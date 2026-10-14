@@ -3,15 +3,8 @@
 // so a payout is finished the same way whichever path learns about it first.
 //
 // Server only: takes a service-role Supabase client.
-
 import { movePayout } from './payoutStates.js'
-
-const money = (kobo) => '₦' + (Number(kobo || 0) / 100).toLocaleString('en-NG')
-
-async function notify(svc, userId, row) {
-  if (!userId) return
-  await svc.from('notifications').insert({ user_id: userId, ...row, created_at: new Date().toISOString() })
-}
+import { insertNotification } from './notificationFactory.js'
 
 // outcome: 'paid' | 'failed'. Returns true only when this call made the change,
 // so a webhook retry racing the reconciliation pass cannot double-count the money.
@@ -37,12 +30,7 @@ export async function settlePayout(svc, queueRow, outcome, reason = null) {
       })
     }
 
-    await notify(svc, queueRow.profile_id, {
-      type: 'payout_paid',
-      title: 'Payout sent',
-      message: `${money(queueRow.amount_cents)} has been sent to your bank account.`,
-      link: '/wallet',
-    })
+    await insertNotification(svc, 'payout_paid', queueRow.profile_id, { amountCents: queueRow.amount_cents })
     return true
   }
 
@@ -58,19 +46,12 @@ export async function settlePayout(svc, queueRow, outcome, reason = null) {
 
   await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
 
-  await notify(svc, queueRow.profile_id, {
-    type: 'payout_failed',
-    title: 'Payout not received',
-    message: `Your payout of ${money(queueRow.amount_cents)} did not reach your bank account. Our team has been notified and will contact you.`,
-    link: '/wallet',
-  })
+  await insertNotification(svc, 'payout_failed', queueRow.profile_id, { amountCents: queueRow.amount_cents })
   const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
   for (const a of admins || []) {
-    await notify(svc, a.id, {
-      type: 'payout_failed_admin',
-      title: 'Payout failed',
-      message: `Payout #${queueRow.id} of ${money(queueRow.amount_cents)} failed. Review it in Payouts.`,
-      link: '/admin',
+    await insertNotification(svc, 'payout_failed_admin', a.id, {
+      payoutId: queueRow.id,
+      amountCents: queueRow.amount_cents,
     })
   }
   return true

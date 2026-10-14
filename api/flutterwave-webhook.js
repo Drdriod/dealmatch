@@ -21,6 +21,7 @@ export const config = { api: { bodyParser: false } }
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { paymentGateway } from '../src/lib/paymentGateway.js'
+import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
@@ -120,15 +121,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
       })
 
       if (!error) {
-        await supabase.from('notifications').insert({
-          user_id:    userId,
-          type:       'referral_cash',
-          title:      '💰 You earned N' + amount.toLocaleString() + ' on DealMatch!',
-          message:    'Someone in your referral network (Level ' + lvl + ') just closed a deal. N' + amount.toLocaleString() + ' has been added to your pending earnings.',
-          amount,
-          link:       '/referrals',
-          created_at: new Date().toISOString(),
-        })
+        await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
       }
     } else {
       const points = calcPoints(lvl)
@@ -169,15 +162,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
         created_at:       new Date().toISOString(),
       })
 
-      await supabase.from('notifications').insert({
-        user_id:    userId,
-        type:       'referral_points',
-        title:      '⭐ You earned ' + points + ' loyalty points!',
-        message:    'A deal closed in your network (Level ' + lvl + '). ' + points + ' points have been added to your balance. Redeem 100 points for N10,000 cash anytime.',
-        amount:     points,
-        link:       '/referrals',
-        created_at: new Date().toISOString(),
-      })
+      await insertNotification(supabase, 'referral_points', userId, { points, level: lvl })
     }
   }
 }
@@ -237,27 +222,12 @@ async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey
 
   // Tell the payer, and the super admins who return the money.
   if (row.profile_id) {
-    await svc.from('notifications').insert({
-      user_id: row.profile_id,
-      type: 'payment_return',
-      title: reason === 'overpaid' ? 'We will return your extra payment' : 'Your payment is short',
-      message: reason === 'overpaid'
-        ? `You paid ₦${(amountKobo / 100).toLocaleString()} more than the price. We will return it to you.`
-        : `We received ₦${(amountKobo / 100).toLocaleString()} of the price. Please contact us to complete or refund it.`,
-      link: '/wallet',
-      created_at: new Date().toISOString(),
-    })
+    await insertNotification(svc, reason === 'overpaid' ? 'payment_return_overpaid' : 'payment_return_short',
+      row.profile_id, { amountKobo })
   }
   const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
   for (const a of admins || []) {
-    await svc.from('notifications').insert({
-      user_id: a.id,
-      type: 'refund_due',
-      title: 'Money to return',
-      message: `${reason} payment ${row.reference}: ₦${(amountKobo / 100).toLocaleString()}. Return it from Monetisation.`,
-      link: '/admin/monetisation',
-      created_at: new Date().toISOString(),
-    })
+    await insertNotification(svc, 'refund_due', a.id, { reason, reference: row.reference, amountKobo })
   }
 }
 
@@ -365,6 +335,45 @@ async function normalizeFlutterwaveEvent(body) {
 // ✅ SECURITY: idempotency guard: track processed references in memory
 // In production replace with Redis or a DB table
 const processedRefs = new Set()
+
+async function transferSucceeded(event) {
+  // The payout_queue row this transfer belongs to is matched by the transfer
+  // reference stored as gateway_ref when cron-process-payouts started it. The
+  // settlement itself is shared with reconciliation (see payoutSettlement.js).
+  const transferCode = event.data.transfer_code || event.data.reference
+  if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).eq('status', 'processing').maybeSingle()
+    if (queueRow) {
+      await settlePayout(svc, queueRow, 'paid')
+    } else {
+      console.warn('transfer.success for unknown/already-finalized payout_queue row:', transferCode)
+    }
+  }
+}
+
+// A failed or reversed transfer must NOT silently disappear: the provider is
+// still owed the money. The queue row is marked failed (visible and retryable
+// from the admin Payouts tab), not left at processing forever.
+async function transferFailed(event) {
+  const transferCode = event.data.transfer_code || event.data.reference
+  console.error(`Transfer ${event.event}:`, transferCode)
+  if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
+    if (queueRow) {
+      await settlePayout(svc, queueRow, 'failed', event.event)
+    }
+  }
+}
+
+// Strategy (behavioural pattern): one handler per transfer outcome. This table
+// is the only place that decides which handler runs for a transfer event.
+const TRANSFER_STRATEGIES = {
+  'transfer.success': transferSucceeded,
+  'transfer.failed': transferFailed,
+  'transfer.reversed': transferFailed,
+}
 
 export default async function handler(req, res) {
   // ✅ SECURITY: method guard
@@ -696,15 +705,8 @@ export default async function handler(req, res) {
               // service-role serverless function. Same raw-insert pattern
               // the referral payout code above already uses.
               if (matchedTx.provider_id) {
-                await supabase.from('notifications').insert({
-                  user_id:    matchedTx.provider_id,
-                  type:       'escrow_funded',
-                  title:      '🔒 Escrow funded',
-                  message:    `₦${amountNgn.toLocaleString()} is now held in escrow. Contact details have been unlocked.`,
-                  amount:     amountNgn,
-                  link:       `/jobs/${matchedTx.id}`,
-                  created_at: new Date().toISOString(),
-                })
+                await insertNotification(supabase, 'escrow_funded', matchedTx.provider_id,
+                  { amount: amountNgn, transactionId: matchedTx.id })
               }
             }
           }
@@ -771,44 +773,11 @@ export default async function handler(req, res) {
         break
       }
 
-      case 'transfer.success': {
-        // FIX (item 8): this used to just console.log the reference and
-        // stop - nothing here ever marked a payout as actually done, so
-        // commission_wallet_ledger never got a 'released' row and
-        // transactions.payout_status never left 'queued'. Now it finds
-        // the payout_queue row this transfer belongs to (matched by the
-        // transfer_code stored as gateway_ref when cron-process-payouts
-        // initiated it) and finalizes everything in one place.
-        const transferCode = event.data.transfer_code || event.data.reference
-        if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-          const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).eq('status', 'processing').maybeSingle()
-          if (queueRow) {
-            await settlePayout(svc, queueRow, 'paid')
-          } else {
-            console.warn('transfer.success for unknown/already-finalized payout_queue row:', transferCode)
-          }
-        }
-        break
-      }
-
+      case 'transfer.success':
       case 'transfer.failed':
-      case 'transfer.reversed': {
-        // A failed/reversed transfer must NOT silently disappear - the
-        // provider is still owed this money. Mark the queue row 'failed'
-        // (visible + retryable from the admin Payouts tab) rather than
-        // leaving it stuck at 'processing' forever with no signal to anyone.
-        const transferCode = event.data.transfer_code || event.data.reference
-        console.error(`Transfer ${event.event}:`, transferCode)
-        if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-          const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
-          if (queueRow) {
-            await settlePayout(svc, queueRow, 'failed', event.event)
-          }
-        }
+      case 'transfer.reversed':
+        await TRANSFER_STRATEGIES[event.event](event)
         break
-      }
 
             default:
         // Don't log unknown events in detail: potential info leak

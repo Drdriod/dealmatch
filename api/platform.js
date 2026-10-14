@@ -29,6 +29,7 @@ import { alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/f
 import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { PaymentError, resolvePayment, clean, VA_TTL_SECONDS } from '../src/lib/paymentPurposes.js'
 import { movePayout } from '../src/lib/payoutStates.js'
+import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
@@ -588,13 +589,10 @@ const jsonResources = {
           if (!already?.length) {
             const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
             for (const a of admins || []) {
-              await svc.from('notifications').insert({
-                user_id: a.id,
-                type: 'payout_stuck',
-                title: 'Payout still pending at Flutterwave',
-                message: `Payout #${row.id} (transfer ${tx.payout_ref}) is still ${transfer?.status || 'unknown'} after three days. Check it with Flutterwave.`,
-                link: '/admin',
-                created_at: new Date().toISOString(),
+              await insertNotification(svc, 'payout_stuck', a.id, {
+                payoutId: row.id,
+                transferRef: tx.payout_ref,
+                status: transfer?.status || 'unknown',
               })
             }
           }
