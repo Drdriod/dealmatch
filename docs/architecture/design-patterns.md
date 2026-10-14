@@ -23,15 +23,16 @@ Run them with: `node --test src/lib/*.test.mjs`
 
 ## Still to do
 
-Counts are from a scan on 2026-10-14. They are a starting point, not a target.
+Counts are from a scan on 2026-10-14, updated as items are completed. They are a starting point, not a target.
 
 1. **Admin console (largest).** `src/pages/Admin/AdminPage.jsx` is about 3,400 lines
    with roughly 70 direct database calls outside the Monetisation tab. Split it into
    one module per tab, each with its own repository under `src/data/`.
-2. **Other pages and components.** About 190 direct `supabase.from` / `supabase.rpc`
-   calls across 40 files in `src/pages` and `src/components`. Move each feature's
-   calls into `src/data/<feature>Repository.js`, starting with Wallet, Dashboard,
-   Messages and Referral.
+2. **Other pages and components. In progress.** Repositories now exist for Wallet,
+   Referral, Notifications, Messages, the user Dashboard and the Landlord Dashboard.
+   Still direct: Jobs/JobPosting (11 calls), StudentVerify, ProviderProfile, FindProvider,
+   Auth, Rentals, Verification, Profile, ManageListings, Home and several smaller files.
+   Direct calls across `src` are down from 256 to 225 (ratchet baseline).
 3. **Webhook `charge.success` case. Done.** The six purpose handlers moved to
    `src/lib/chargePurposes.js` (registry, own-property lookup), with 19 tests in
    `src/lib/chargePurposes.test.mjs`. Known behaviour kept on purpose: a transaction
@@ -40,11 +41,11 @@ Counts are from a scan on 2026-10-14. They are a starting point, not a target.
    was not funded.
 4. **API database calls.** About 77 direct calls in `api/`. Move the payment-related
    ones behind the same repositories.
-5. **Client notifications.** Five direct `notifications` inserts in `src`. Route them
-   through one client-side notification helper.
-6. **Dashboards.** Four dashboards (user, agent, landlord, lender) each load data
-   inline. A shared data hook per dashboard would keep the layout code separate
-   from loading and error handling.
+5. **Client notifications. Done.** The only client-side insert is in the `notifications.js`
+   facade, which is the allowed site (check 5 enforces it). Realtime reads still use the client.
+6. **Dashboards. In progress.** User and Landlord dashboards read through repositories.
+   Still to do: a data hook per dashboard (loading and error state out of the layout code),
+   and the Lender and Agent dashboards (the Agent dashboard has about 10 direct calls).
 7. **Database enforcement of payout states.** The admin Payouts tab writes status
    straight from the browser. Migration `20261014000000_payout_state_guard.sql` enforces
    `PAYOUT_TRANSITIONS` in the database. It is written and dry-run, and awaits owner

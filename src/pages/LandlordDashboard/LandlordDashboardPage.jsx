@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ClipboardList, Eye, Home, Hotel, Key, Pause, RefreshCw } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchMyListings, fetchMyPropertyIds, fetchBookingsForProperties,
+  fetchEnquiriesForProperties, fetchRentPayments, setListingStatus,
+} from '@/data/landlordRepository'
 import { useAuth } from '@/context/AuthContext'
 import { BarChart, Donut, KpiTile, Panel, fmtNum, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
@@ -67,55 +70,33 @@ export default function LandlordDashboardPage() {
   }
 
   const loadListings = async () => {
-    const { data } = await supabase
-      .from('properties')
-      .select('*')
-      .eq('seller_id', user.id)
-      .order('created_at', { ascending: false })
+    const { data } = await fetchMyListings(user.id)
     setListings(data || [])
   }
 
   const loadBookings = async () => {
-    const { data } = await supabase
-      .from('bookings')
-      .select('*, properties(title, city, state, category)')
-      .in('property_id',
-        (await supabase.from('properties').select('id').eq('seller_id', user.id)).data?.map(p => p.id) || []
-      )
-      .order('created_at', { ascending: false })
-      .limit(20)
+    const ids = (await fetchMyPropertyIds(user.id)).data?.map(p => p.id) || []
+    const { data } = await fetchBookingsForProperties(ids)
     setBookings(data || [])
   }
 
   const loadEnquiries = async () => {
-    const { data: props } = await supabase.from('properties').select('id').eq('seller_id', user.id)
+    const { data: props } = await fetchMyPropertyIds(user.id)
     const ids = (props || []).map(p => p.id)
     if (!ids.length) { setEnquiries([]); return }
-    const { data } = await supabase
-      .from('rental_enquiries')
-      .select('id, property_id, status, created_at')
-      .in('property_id', ids)
-      .order('created_at', { ascending: false })
-      .limit(200)
+    const { data } = await fetchEnquiriesForProperties(ids)
     setEnquiries(data || [])
   }
 
   // Rent collected: rental escrow deposits the landlord can see (funded or released).
   const loadRentPayments = async () => {
-    const { data } = await supabase
-      .from('escrow_transactions')
-      .select('id, property_id, gross_amount, status, created_at')
-      .eq('seller_id', user.id)
-      .eq('transaction_type', 'rental')
-      .in('status', ['funded', 'completed'])
-      .order('created_at', { ascending: false })
-      .limit(500)
+    const { data } = await fetchRentPayments(user.id)
     setRentPayments(data || [])
   }
 
   const togglePause = async (listing) => {
     const newStatus = listing.status === 'active' ? 'paused' : 'active'
-    const { error } = await supabase.from('properties').update({ status: newStatus }).eq('id', listing.id)
+    const { error } = await setListingStatus(listing.id, newStatus)
     if (error) { toast.error('Update failed'); return }
     toast.success(`Listing ${newStatus === 'active' ? 'activated' : 'paused'}`)
     loadListings()

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Award, Briefcase, Building2, CheckCircle2, Circle, ClipboardList, GraduationCap, HardHat, Heart, Home, Landmark, Wallet } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
-import { listMyListings } from '@/modules/listings/listingsService'
+import {
+  fetchMyPropertyListings, fetchMyCategoryListings, fetchMyRequests, countMyMatches,
+  countMySwipeLikes, countCompletedEscrowSales, countCompletedProviderTransactions,
+  fetchMyPropertyDatesSince, fetchRequestDatesSince, subscribeToMySwipes, markOfferingServices,
+} from '@/data/dashboardRepository'
 import { CHART, Radial, KpiTile } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
 
@@ -42,30 +45,22 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return
     loadDashboard()
-    const channel = supabase
-      .channel('swipes-changes')
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'swipes',
-        filter: `user_id=eq.${user.id}`
-      }, () => loadDashboard())
-      .subscribe()
-    return () => supabase.removeChannel(channel)
+    return subscribeToMySwipes(user.id, () => loadDashboard())
   }, [user])
 
   const loadDashboard = async () => {
     try {
       const since = new Date(Date.now() - SPARK_WEEKS * WEEK_MS).toISOString()
       const [propListings, catListings, myRequests, matchRes, escrowRes, txRes, propTrend, reqTrend] = await Promise.all([
-        supabase.from('properties').select('id, title, price, status, category, created_at').eq('seller_id', user.id).order('created_at', { ascending: false }).limit(5),
-        listMyListings(supabase, user.id).catch(() => []),
-        // Unified view across rental_enquiries / professional_requests / transactions (see 20260813000000_dashboard_profile_spec.sql)
-        supabase.from('my_requests').select('request_type, request_id, title, status, created_at').order('created_at', { ascending: false }).limit(5),
-        supabase.from('matches').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('escrow_transactions').select('*', { count: 'exact', head: true }).eq('seller_id', user.id).in('status', ['funded', 'completed']),
-        supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('provider_id', user.id).eq('status', 'COMPLETED'),
+        fetchMyPropertyListings(user.id),
+        fetchMyCategoryListings(user.id),
+        fetchMyRequests(),
+        countMyMatches(user.id),
+        countCompletedEscrowSales(user.id),
+        countCompletedProviderTransactions(user.id),
         // Trend queries for the sparkline tiles: creation dates over the last SPARK_WEEKS weeks
-        supabase.from('properties').select('created_at').eq('seller_id', user.id).gte('created_at', since),
-        supabase.from('my_requests').select('created_at').gte('created_at', since),
+        fetchMyPropertyDatesSince(user.id, since),
+        fetchRequestDatesSince(since),
       ])
 
       const properties = propListings.data || []
@@ -83,7 +78,7 @@ export default function DashboardPage() {
       if (!matchRes.error) {
         setMyMatches(matchRes.count || 0)
       } else {
-        const { count: sc } = await supabase.from('swipes').select('*', { count: 'exact', head: true }).eq('user_id', user.id).in('action', ['like', 'super'])
+        const { count: sc } = await countMySwipeLikes(user.id)
         setMyMatches(sc || 0)
       }
 
@@ -114,7 +109,7 @@ export default function DashboardPage() {
   const handleBecomeProvider = async () => {
     if (!user) return
     setBecomingProvider(true)
-    const { error } = await supabase.from('profiles').update({ offers_services: true }).eq('id', user.id)
+    const { error } = await markOfferingServices(user.id)
     setBecomingProvider(false)
     if (error) { toast.error('Could not save. Try again.'); return }
     await refreshProfile()
