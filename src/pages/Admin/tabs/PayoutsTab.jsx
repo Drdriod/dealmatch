@@ -5,7 +5,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchPayoutAccounts, fetchPayoutQueue, fetchWithdrawalRequests, fetchProfileSummaries,
+  verifyPayoutAccount, rejectPayoutAccount, requeuePayout, fulfillWithdrawal, rejectWithdrawal,
+} from '@/data/adminPayoutsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -34,20 +37,13 @@ export function PayoutsTab() {
     try{
       let rows=[]
       if(section==='accounts'){
-        const {data}=await supabase.from('payout_accounts')
-          .select('id,profile_id,bank_name,bank_code,account_number,account_name,status,gateway_recipient_code,created_at')
-          .in('status',['pending','verified','rejected'])
-          .order('created_at',{ascending:false}).limit(100)
+        const {data}=await fetchPayoutAccounts()
         rows=data||[]
       }else if(section==='queue'){
-        const {data}=await supabase.from('payout_queue')
-          .select('id,transaction_id,profile_id,amount_cents,status,gateway_ref,attempts,failure_reason,created_at,processed_at')
-          .order('created_at',{ascending:false}).limit(100)
+        const {data}=await fetchPayoutQueue()
         rows=data||[]
       }else{
-        const {data}=await supabase.from('withdrawal_requests')
-          .select('id,profile_id,amount_cents,status,requested_at')
-          .order('requested_at',{ascending:false}).limit(100)
+        const {data}=await fetchWithdrawalRequests()
         rows=data||[]
       }
       // Fetched separately rather than a `profiles:profile_id(...)` embed -
@@ -58,7 +54,7 @@ export function PayoutsTab() {
       const ids=[...new Set(rows.map(r=>r.profile_id))]
       let byId={}
       if(ids.length){
-        const {data:profs}=await supabase.from('profiles').select('id,full_name,email').in('id',ids)
+        const {data:profs}=await fetchProfileSummaries(ids)
         byId=Object.fromEntries((profs||[]).map(p=>[p.id,p]))
       }
       setItems(rows.map(r=>({...r,profiles:byId[r.profile_id]||null})))
@@ -69,13 +65,13 @@ export function PayoutsTab() {
   useEffect(()=>{load()},[load])
 
   const verifyAccount=async(id)=>{
-    const {error}=await supabase.rpc('verify_payout_account',{p_id:id})
+    const {error}=await verifyPayoutAccount(id)
     if(error) return toast.error(error.message)
     toast.success('Payout account verified'); load()
   }
   const rejectAccount=async()=>{
     if(!rejectReason.trim()) return toast.error('A reason is required')
-    const {error}=await supabase.rpc('reject_payout_account',{p_id:rejectTarget,p_reason:rejectReason.trim()})
+    const {error}=await rejectPayoutAccount(rejectTarget,rejectReason.trim())
     if(error) return toast.error(error.message)
     toast.success('Payout account rejected'); setRejectTarget(null); setRejectReason(''); load()
   }
@@ -84,18 +80,18 @@ export function PayoutsTab() {
     // processor's own 5-attempt ceiling still applies) so the next
     // scheduled tick picks it up again - no separate retry endpoint
     // needed since the queue itself is the source of truth.
-    const {error}=await supabase.from('payout_queue').update({status:'pending',failure_reason:null}).eq('id',id)
+    const {error}=await requeuePayout(id)
     if(error) return toast.error(error.message)
     toast.success('Queued for retry on the next cron run'); load()
   }
 
   const fulfillWithdrawal=async(id)=>{
-    const {error}=await supabase.rpc('fulfill_withdrawal_request',{p_request_id:id})
+    const {error}=await fulfillWithdrawal(id)
     if(error) return toast.error(error.message)
     toast.success('Marked as paid'); load()
   }
   const rejectWithdrawal=async(id)=>{
-    const {error}=await supabase.rpc('reject_withdrawal_request',{p_request_id:id})
+    const {error}=await rejectWithdrawal(id)
     if(error) return toast.error(error.message)
     toast.success('Rejected'); load()
   }

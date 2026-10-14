@@ -5,7 +5,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchPlatformSettings, upsertPlatformSetting, fetchBankAccounts, insertBankAccount,
+  updateBankAccount, clearOtherPrimaryBankAccounts, deleteBankAccount,
+} from '@/data/adminSettingsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -73,7 +76,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
 
   const load=async()=>{
     setLoading(true)
-    const {data}=await supabase.from('platform_settings').select('key,value')
+    const {data}=await fetchPlatformSettings()
     const map={}
     for(const row of data||[]) map[row.key]=row.value||''
     setSettings(map)
@@ -84,9 +87,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
   const saveField=async(key)=>{
     if(!isSuperAdmin){toast.error('Only the superadmin can edit settings');return}
     setSaving(s=>({...s,[key]:true}))
-    const {error}=await supabase.from('platform_settings').upsert({
-      key, value:settings[key]||'', updated_by:admin?.id, updated_at:new Date().toISOString(),
-    },{onConflict:'key'})
+    const {error}=await upsertPlatformSetting({ key, value:settings[key]||'', updatedBy:admin?.id })
     setSaving(s=>({...s,[key]:false}))
     if(error){toast.error('Could not save: '+error.message);return}
     await auditLog('platform_setting_updated',{key,by:admin?.id})
@@ -147,7 +148,7 @@ function BankDetailsSection({isSuperAdmin}) {
 
   const load=async()=>{
     setLoading(true)
-    const {data,error}=await supabase.from('bank_details').select('*').order('is_primary',{ascending:false}).order('created_at',{ascending:false})
+    const {data,error}=await fetchBankAccounts()
     if(error){console.error(error.message);setAccounts([]);setLoading(false);return}
     setAccounts(data||[])
     setLoading(false)
@@ -173,8 +174,8 @@ function BankDetailsSection({isSuperAdmin}) {
     setSaving(true)
     const payload={...form,updated_by:admin?.id,updated_at:new Date().toISOString()}
     const {error}=editing==='new'
-      ? await supabase.from('bank_details').insert(payload)
-      : await supabase.from('bank_details').update(payload).eq('id',editing)
+      ? await insertBankAccount(payload)
+      : await updateBankAccount(editing,payload)
     setSaving(false)
     if(error){toast.error('Could not save: '+error.message);return}
     await auditLog('bank_details_'+(editing==='new'?'added':'updated'),{by:admin?.id})
@@ -186,7 +187,7 @@ function BankDetailsSection({isSuperAdmin}) {
   const toggleActive=async(acc)=>{
     if(!isSuperAdmin)return
     if(!(await requireReauth()))return
-    await supabase.from('bank_details').update({is_active:!acc.is_active}).eq('id',acc.id)
+    await updateBankAccount(acc.id,{is_active:!acc.is_active})
     await auditLog('bank_details_'+(acc.is_active?'deactivated':'activated'),{id:acc.id,by:admin?.id})
     load()
   }
@@ -194,8 +195,8 @@ function BankDetailsSection({isSuperAdmin}) {
     if(!isSuperAdmin)return
     if(!(await requireReauth()))return
     // Only one primary at a time - clear others first
-    await supabase.from('bank_details').update({is_primary:false}).neq('id',acc.id)
-    await supabase.from('bank_details').update({is_primary:true}).eq('id',acc.id)
+    await clearOtherPrimaryBankAccounts(acc.id)
+    await updateBankAccount(acc.id,{is_primary:true})
     await auditLog('bank_details_primary_set',{id:acc.id,by:admin?.id})
     toast.success(acc.bank_name+' set as primary account')
     load()
@@ -204,7 +205,7 @@ function BankDetailsSection({isSuperAdmin}) {
     if(!isSuperAdmin)return
     if(!window.confirm('Delete this bank account? This cannot be undone.'))return
     if(!(await requireReauth()))return
-    await supabase.from('bank_details').delete().eq('id',acc.id)
+    await deleteBankAccount(acc.id)
     await auditLog('bank_details_deleted',{id:acc.id,by:admin?.id})
     toast.success('Deleted')
     load()
