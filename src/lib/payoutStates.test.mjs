@@ -63,3 +63,21 @@ test('without an explicit source, movePayout uses every legal source', async () 
   assert.equal(await movePayout(svc, 3, 'paid', { processed_at: 'now' }), true)
   assert.equal(tables.payout_queue[0].status, 'paid')
 })
+
+// The database trigger (supabase/migrations/20261014000000_payout_state_guard.sql)
+// must allow exactly the moves in PAYOUT_TRANSITIONS. This reads the SQL and checks.
+test('the database trigger allows exactly the same moves as PAYOUT_TRANSITIONS', async () => {
+  const { readFileSync } = await import('node:fs')
+  const sql = readFileSync(new URL('../../supabase/migrations/20261014000000_payout_state_guard.sql', import.meta.url), 'utf8')
+  const fromSql = {}
+  const re = /OLD\.status = '(\w+)'\s+AND NEW\.status (?:IN \(([^)]*)\)|= '(\w+)')/g
+  let m
+  while ((m = re.exec(sql))) {
+    const targets = m[2] ? [...m[2].matchAll(/'(\w+)'/g)].map((x) => x[1]) : [m[3]]
+    fromSql[m[1]] = (fromSql[m[1]] || []).concat(targets)
+  }
+  const normalise = (t) => Object.fromEntries(
+    Object.entries(t).map(([k, v]) => [k, [...v].sort()]).sort(([a], [b]) => a.localeCompare(b)),
+  )
+  assert.deepEqual(normalise(fromSql), normalise(PAYOUT_TRANSITIONS))
+})

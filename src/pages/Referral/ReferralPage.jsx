@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react'
 import { Check, ChevronRight, Copy, Gift, Home, Hotel, Share2, Star, TrendingUp, Users, Zap } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { saveInviteCode, loadReferralSummary } from '@/data/referralRepository'
 import { useAuth } from '@/context/AuthContext'
 import { pointsToCash, MIN_REDEEM_POINTS, redeemPoints, POINTS_CASH_VALUE, POINTS_TO_CASH_RATE } from '@/lib/referral'
 import toast from 'react-hot-toast'
@@ -60,20 +60,12 @@ export default function ReferralPage() {
       let code = profile?.invite_code
       if (!code) {
         const newCode = 'DM' + Math.random().toString(36).slice(2, 8).toUpperCase()
-        const { data } = await supabase.from('profiles')
-          .update({ invite_code: newCode }).eq('id', user.id)
-          .select('invite_code').single()
+        const { data } = await saveInviteCode(user.id, newCode)
         code = data?.invite_code || newCode
       }
       setInviteCode(code)
 
-      const [txnsRes, countRes, ptsRes] = await Promise.all([
-        supabase.from('referral_transactions').select('*')
-          .eq('referrer_id', user.id).order('created_at', { ascending: false }).limit(100),
-        supabase.from('profiles').select('*', { count: 'exact', head: true })
-          .eq('invited_by', user.id),
-        supabase.from('loyalty_points').select('*').eq('user_id', user.id).single(),
-      ])
+      const [txnsRes, countRes, ptsRes] = await loadReferralSummary(user.id)
 
       const list = txnsRes.data || []
       setEarnings(list)

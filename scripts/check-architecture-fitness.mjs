@@ -28,7 +28,7 @@
  * Run: npm run check:fitness
  */
 
-import { readdirSync, readFileSync, statSync } from 'fs'
+import { readdirSync, readFileSync, statSync, existsSync, writeFileSync } from 'fs'
 import { join, relative, extname } from 'path'
 
 const ROOT = process.cwd()
@@ -100,8 +100,89 @@ function checkFunctionCount() {
   return apiFiles.length
 }
 
+// ── Architecture rules added with the design-pattern work ──────────────────
+// See docs/architecture/design-patterns.md and docs/ARCHITECTURE.md section 9.
+
+// 4. Adapter rule (BLOCKING, zero tolerance): only the gateway adapter may
+//    call Flutterwave. Everything else calls paymentGateway.<operation>().
+const GATEWAY_FILES = ['src/lib/paymentGateway.js', 'src/lib/flutterwaveServer.js']
+const FLW_RAW = /\bflw\(|'\/(charges|transfers|virtual-accounts|customers|banks)\b/
+
+function checkGatewayAdapter() {
+  const offenders = []
+  for (const scope of ['src', 'api']) {
+    for (const file of walk(join(ROOT, scope), ['.js', '.jsx', '.mjs'])) {
+      const rel = relative(ROOT, file)
+      if (GATEWAY_FILES.includes(rel) || rel.endsWith('.test.mjs')) continue
+      const lines = readFileSync(file, 'utf8').split('\n')
+      lines.forEach((line, i) => {
+        if (FLW_RAW.test(line)) offenders.push({ file: rel, line: i + 1 })
+      })
+    }
+  }
+  return offenders
+}
+
+// 5. Factory rule (BLOCKING, zero tolerance): notification rows are written only
+//    by the factory (server) and the client facade. Everything else calls
+//    insertNotification() or notifyUser().
+const NOTIFICATION_WRITERS = ['src/lib/notificationFactory.js', 'src/lib/notifications.js']
+const NOTIFICATION_INSERT = /from\('notifications'\)\s*\.insert\(/
+
+function checkNotificationFactory() {
+  const offenders = []
+  for (const scope of ['src', 'api']) {
+    for (const file of walk(join(ROOT, scope), ['.js', '.jsx'])) {
+      const rel = relative(ROOT, file)
+      if (NOTIFICATION_WRITERS.includes(rel)) continue
+      const text = readFileSync(file, 'utf8')
+      if (NOTIFICATION_INSERT.test(text)) offenders.push({ file: rel })
+    }
+  }
+  return offenders
+}
+
+// 6. Repository ratchet (BLOCKING, cannot grow): each file's direct database
+//    calls may go down, never up. A new file with database calls must go
+//    through a repository in src/data/. The baseline is committed in
+//    scripts/architecture-baseline.json; lower it with --update-baseline.
+const DB_CALL = /\b(supabase|svc)\.(from|rpc)\(/g
+const DB_SCOPES = ['src/pages', 'src/components', 'api']
+const BASELINE_PATH = join(ROOT, 'scripts', 'architecture-baseline.json')
+
+function dbCallsByFile() {
+  const counts = {}
+  for (const scope of DB_SCOPES) {
+    for (const file of walk(join(ROOT, scope), ['.js', '.jsx'])) {
+      const n = (readFileSync(file, 'utf8').match(DB_CALL) || []).length
+      if (n > 0) counts[relative(ROOT, file)] = n
+    }
+  }
+  return counts
+}
+
+function checkDbRatchet(counts) {
+  const baseline = existsSync(BASELINE_PATH) ? JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) : {}
+  const problems = []
+  for (const [file, n] of Object.entries(counts)) {
+    if (!(file in baseline)) {
+      problems.push(`${file}: new file with ${n} direct database call(s); add a repository in src/data/`)
+    } else if (n > baseline[file]) {
+      problems.push(`${file}: ${baseline[file]} -> ${n} direct database calls; move the new query into a repository`)
+    }
+  }
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  const baseTotal = Object.values(baseline).reduce((a, b) => a + b, 0)
+  return { problems, total, baseTotal, files: Object.keys(counts).length }
+}
+
 function main() {
   console.log('DealMatch Architecture Fitness Functions\n' + '='.repeat(42))
+
+  if (process.argv.includes('--update-baseline')) {
+    writeFileSync(BASELINE_PATH, JSON.stringify(dbCallsByFile(), null, 2) + '\n')
+    console.log(`Baseline written to ${relative(ROOT, BASELINE_PATH)}`)
+  }
 
   let failed = false
 
@@ -140,6 +221,41 @@ function main() {
   } else {
     failed = true
     console.log(`    FAIL: ${fnCount}/${FUNCTION_COUNT_BUDGET} functions. Consolidate into api/platform.js before adding more.`)
+  }
+
+  // 4. Adapter rule
+  const rawFlw = checkGatewayAdapter()
+  console.log('\n[4] Flutterwave calls only through the gateway adapter (BLOCKING)')
+  if (rawFlw.length === 0) {
+    console.log('    PASS: no raw Flutterwave paths outside src/lib/paymentGateway.js.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${rawFlw.length} raw call(s):`)
+    for (const v of rawFlw) console.log(`      ${v.file}:${v.line}`)
+  }
+
+  // 5. Factory rule
+  const rawNotif = checkNotificationFactory()
+  console.log('\n[5] Notification rows written only by the factory or the client facade (BLOCKING)')
+  if (rawNotif.length === 0) {
+    console.log('    PASS: no inline notification inserts.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${rawNotif.length} inline insert(s):`)
+    for (const v of rawNotif) console.log(`      ${v.file}`)
+  }
+
+  // 6. Repository ratchet
+  const dbCounts = dbCallsByFile()
+  const ratchet = checkDbRatchet(dbCounts)
+  console.log('\n[6] Direct database calls may not grow (BLOCKING, ratchet)')
+  console.log(`    ${ratchet.total} direct call(s) in ${ratchet.files} file(s); baseline ${ratchet.baseTotal}.`)
+  if (ratchet.problems.length === 0) {
+    console.log('    PASS: no file has grown.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${ratchet.problems.length} file(s) grew:`)
+    for (const p of ratchet.problems) console.log(`      ${p}`)
   }
 
   console.log('\n' + '='.repeat(42))

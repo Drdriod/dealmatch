@@ -180,3 +180,34 @@ Live switch checklist: live keys from an activated business account, `FLUTTERWAV
 4. Payout retry: confirm the reference stays the same across retries.
 5. Hero headline: keep Fraunces (`feat/flutterwave-v4-sandbox`) or revert?
 6. Auto-release window after `COMPLETED`: how many days before funds release without sign-off?
+
+## 15. Patterns, Characteristics and Decisions (2026-10-14)
+
+Full record: `docs/adr/ADR-010-patterns-and-payment-boundaries.md` and `docs/architecture/design-patterns.md`.
+
+**Architectural characteristics we are optimising for, in order:**
+
+1. Money correctness: a payment can be wrong in one place only if the database and server both allow it, and we aim to close both.
+2. Changeability: a provider, a payment channel or a notification kind changes in one module.
+3. Operability: every money write is idempotent, logged, and recoverable by a reversing row or a conditional update.
+4. Efficiency: decisions come from measurements (bundle sizes, query counts, function budget).
+
+**Structural and behavioural rules now in force:**
+
+- Adapter for Flutterwave (`src/lib/paymentGateway.js`); check 4 blocks raw paths elsewhere.
+- One state table for payouts (`src/lib/payoutStates.js`), mirrored in SQL (migration 17, pending owner approval) and tested against it.
+- Registry for payment purposes (`src/lib/paymentPurposes.js`); unknown purposes are refused.
+- Strategy table for transfer outcomes in the webhook.
+- Factory for notifications (`src/lib/notificationFactory.js`); check 5 blocks inline inserts.
+- Repositories in `src/data/` for Wallet, Referral, Notifications and Monetisation; check 6 is a ratchet on direct database calls (baseline 256 in 43 files).
+
+**Efficiency findings (measured, not yet acted on unless noted):**
+
+- AdminPage chunk about 156 KB: lazy, admin-only. Split by tab in a later round.
+- Supabase vendor chunk about 212 KB: shared, needed.
+- PostHog about 211 KB: preloaded only by analytics pages, not on first paint. No change made.
+- 49 lazy routes already in place.
+- 38 `select('*')` queries. Narrow the most-used ones first (feeds, dashboards).
+- Serverless functions: 10 of 11 budget (the Hobby limit is 12).
+
+**Still open:** payout state guard (migration 17) needs owner approval; the three pre-existing fitness violations; the remaining repository work listed in `design-patterns.md`.

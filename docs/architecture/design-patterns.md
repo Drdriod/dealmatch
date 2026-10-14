@@ -42,8 +42,9 @@ Counts are from a scan on 2026-10-14. They are a starting point, not a target.
    inline. A shared data hook per dashboard would keep the layout code separate
    from loading and error handling.
 7. **Database enforcement of payout states.** The admin Payouts tab writes status
-   straight from the browser. A database trigger that enforces `PAYOUT_TRANSITIONS`
-   would close that path. This needs a migration and owner approval.
+   straight from the browser. Migration `20261014000000_payout_state_guard.sql` enforces
+   `PAYOUT_TRANSITIONS` in the database. It is written and dry-run, and awaits owner
+   approval (runbook row 17). Until it is applied, the browser path is open.
 8. **Known architecture violations.** Three module-boundary violations remain from
    before this work (`category_listings` in `api/platform.js` and
    `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not

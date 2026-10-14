@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 16 applied and verified (2026-10-13).** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 16 applied and verified (2026-10-13). File 17 (payout state guard) written and dry-run, awaiting owner approval.** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -22,6 +22,7 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 14 | 20261013010000_payment_integrity | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor: the tool cancels DROP POLICY statements). Verified: 3 guard triggers, 0 client insert policies on bookings and hostel_payments, bookings.platform_fee_ngn exists, escrow start checks the listed price. |
 | 15 | 20261013020000_money_integrity_marketplace | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor as a wrapped transaction: the tool cancelled it). Verified: `job_guard` 1 (trigger enabled), `refunds_table` 1 with RLS on, `mark_fn` 1 and SECURITY DEFINER, admin-only policies `payment_refunds_admin_read` and `payment_refunds_admin_update`. Not yet exercised with a real admin account. |
 | 16 | 20261013030000_retire_job_escrow_registry_row | Applied 2026-10-13 after a rolled-back dry run and owner approval. Verified: `job_escrow` is_active=false, 9 other channels still active. Job commission is set in Commission Schedules. |
+| 17 | 20261014000000_payout_state_guard | **PENDING, not applied.** Adds `fn_guard_payout_transition` and `trg_guard_payout_transition` (BEFORE UPDATE OF status on `payout_queue`). Allows only pending→processing/failed, processing→paid/failed, paid→failed, failed→pending, the same table as `src/lib/payoutStates.js`. Dry run in a rolled-back DO block passed 13/13 checks; the trigger and function were confirmed absent afterwards. Apply in the SQL editor as one wrapped transaction (the tool cancels DROP statements). Before applying, confirm no code path writes an illegal status (the server cron and webhook already use `movePayout`; the admin Payouts tab writes from the browser and must be checked). Verify after apply: trigger enabled, one illegal move raises `check_violation`, one legal move succeeds (roll back the test). |
 | 12 | 20261012010000_rental_fee_1_5_per_side | Applied 2026-10-12 after a rolled-back dry run. Verified: no 3.75% or 7.5% rate remains in `start_property_escrow_payment` or `fn_calculate_revenue_split`; both now use 1.5% (3% total) for rentals. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
 
 **Advisor state after apply:**
