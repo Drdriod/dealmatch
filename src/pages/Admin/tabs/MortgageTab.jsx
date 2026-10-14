@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchMortgageApplications, setMortgageStatus } from '@/data/adminRecordsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -28,16 +28,14 @@ export function MortgageTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('mortgage_applications').select('*,profiles(full_name,email,phone)').order('created_at',{ascending:false}).limit(200)
-    if(filter!=='all') q=q.eq('status',filter)
-    const {data,error}=await q
+    const {data,error}=await fetchMortgageApplications(filter)
     if(error){ console.error('[Mortgage load]', error.message); toast.error('Could not load mortgage applications. Please retry, or contact support if this keeps happening.') }
     setItems(data||[]); setLoading(false)
   },[filter])
   useEffect(()=>{load()},[load])
 
   const setStatus=async(id,s,name)=>{
-    const {error}=await supabase.from('mortgage_applications').update({status:s,updated_at:new Date().toISOString()}).eq('id',id)
+    const {error}=await setMortgageStatus(id,s)
     if(error){toast.error('Failed');return}
     await auditLog('mortgage_status',{id,status:s,by:admin?.id})
     toast.success(`${name}: ${s.replace('_',' ')}`); load(); setConfirm(null)

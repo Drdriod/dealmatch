@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchPayments, fetchEscrowTransactionsForAdmin } from '@/data/adminRecordsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -28,7 +28,7 @@ export function TransactionsTab() {
   const load=useCallback(async()=>{
     setLoading(true)
     try{
-      if(tab==='payments'){const{data}=await supabase.from('payments').select('id,reference,amount,payment_type,email,status,created_at').order('created_at',{ascending:false}).limit(200);setItems(data||[])}
+      if(tab==='payments'){const{data}=await fetchPayments();setItems(data||[])}
       else if(tab==='escrow'){
         // ✅ SCHEMA FIX (Aug 2026 hardening pass): was selecting amount/
         // platform_fee, which don't exist on escrow_transactions (the real
@@ -40,7 +40,7 @@ export function TransactionsTab() {
         // `profiles(full_name)` is ambiguous and PostgREST rejects it --
         // pinned to seller_id (the landlord/seller, most relevant party
         // for an admin transactions list).
-        const{data}=await supabase.from('escrow_transactions').select('id,amount:gross_amount,platform_fee:platform_amount,status,payment_ref,created_at,properties(title),profiles:profiles!escrow_transactions_seller_id_fkey(full_name)').order('created_at',{ascending:false}).limit(200);setItems(data||[])
+        const{data}=await fetchEscrowTransactionsForAdmin();setItems(data||[])
       }
     }catch(e){console.error(e)}
     setLoading(false)

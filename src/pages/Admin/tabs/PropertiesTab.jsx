@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchProperties, setPropertyStatus } from '@/data/adminRecordsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -29,9 +29,7 @@ export function PropertiesTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    let q=supabase.from('properties').select('id,title,category,listing_type,price,status,state,city,created_at,profiles(full_name,email)').order('created_at',{ascending:false}).limit(200)
-    if(filter!=='all') q=q.eq('status',filter)
-    const {data,error}=await q
+    const {data,error}=await fetchProperties(filter)
     if(error) toast.error('Failed to load properties')
     setItems(data||[]); setLoading(false)
   },[filter])
@@ -39,7 +37,7 @@ export function PropertiesTab() {
   useEffect(()=>{load()},[load])
 
   const setStatus=async(id,s,title)=>{
-    const {error}=await supabase.from('properties').update({status:s,verified_by:user?.id,verified_at:s==='active'?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq('id',id)
+    const {error}=await setPropertyStatus(id,{status:s,adminId:user?.id})
     if(error){toast.error('Failed');return}
     await auditLog('property_status',{id,status:s,by:user?.id})
     toast.success(`"${title}" → ${SM[s]?.label||s}`)

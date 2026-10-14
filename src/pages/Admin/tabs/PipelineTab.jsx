@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchDealPipeline, cancelDeal } from '@/data/adminRecordsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -26,7 +26,7 @@ export function PipelineTab() {
 
   const load=useCallback(async()=>{
     setLoading(true)
-    const {data,error}=await supabase.from('admin_deal_pipeline').select('*').order('created_at',{ascending:false}).limit(300)
+    const {data,error}=await fetchDealPipeline()
     if(error){toast.error('Could not load pipeline');setLoading(false);return}
     setRows(data||[]); setLoading(false)
   },[])
@@ -39,10 +39,7 @@ export function PipelineTab() {
   const cancelDeal = async (item) => {
     if (!window.confirm(`Cancel "${item.listing_title||'this job'}"? This cannot be undone.`)) return
     setCancellingId(item.deal_id)
-    const { error } = await supabase.rpc('cancel_transaction', {
-      p_transaction_id: Number(item.deal_id),
-      p_reason: 'Cancelled by admin via Pipeline',
-    })
+    const { error } = await cancelDeal(Number(item.deal_id), 'Cancelled by admin via Pipeline')
     setCancellingId(null)
     if (error) { toast.error(error.message || 'Could not cancel this deal'); return }
     toast.success('Deal cancelled')

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchAnnouncements, insertAnnouncement } from '@/data/adminRecordsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -29,7 +29,7 @@ export function AnnouncementsTab() {
 
   const load=async()=>{
     setLoading(true)
-    const {data}=await supabase.from('admin_announcements').select('*').order('created_at',{ascending:false}).limit(50)
+    const {data}=await fetchAnnouncements()
     setItems(data||[]); setLoading(false)
   }
   useEffect(()=>{load()},[])
@@ -37,7 +37,7 @@ export function AnnouncementsTab() {
   const publish=async()=>{
     if(!form.title.trim()||!form.body.trim()){toast.error('Fill in title and message');return}
     setSaving(true)
-    const {error}=await supabase.from('admin_announcements').insert({title:form.title.trim(),body:form.body.trim(),type:form.type,target:form.target,created_by:admin?.id,created_at:new Date().toISOString()})
+    const {error}=await insertAnnouncement({title:form.title.trim(),body:form.body.trim(),type:form.type,target:form.target,adminId:admin?.id})
     if(error){
       if(error.code==='42P01') toast.error('Run sections 11–13 of run-once-live-db.sql in Supabase first')
       else toast.error('Failed: '+error.message)
