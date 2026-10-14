@@ -33,7 +33,7 @@ import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
-import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
+import { createListing, listMyListings, getListing, getListingForIndexing } from '../src/modules/listings/listingsService.js'
 import { findMatches, findCounterpartMatches, universalMatch } from '../src/modules/matching/matchingService.js'
 import { clearValidatorCache } from '../src/lib/schemaValidation.js'
 import { universalSearch } from '../src/modules/search/searchService.js'
@@ -662,13 +662,9 @@ const jsonResources = {
     const { listingId } = req.body || {}
     if (!listingId) return res.status(400).json({ error: 'listingId required' })
 
-    const { data: listing, error: fetchErr } = await supabase
-      .from('category_listings')
-      .select('id, user_id, category_id, type, title, description, price_cents, location_name, status, attributes, categories(slug, name)')
-      .eq('id', listingId)
-      .single()
+    const listing = await getListingForIndexing(supabase, listingId)
 
-    if (fetchErr || !listing) return res.status(404).json({ error: 'Listing not found' })
+    if (!listing) return res.status(404).json({ error: 'Listing not found' })
     if (listing.user_id !== user.id) return res.status(403).json({ error: 'Forbidden' })
 
     if (!process.env.PINECONE_API_KEY) return res.status(200).json({ success: true, skipped: 'no Pinecone key' })

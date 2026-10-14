@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import ReportModal from '@/components/ui/ReportModal'
 import UnlockContactButton from '@/components/ui/UnlockContactButton'
+import { listActiveListingsForUser } from '@/modules/listings/listingsService'
 
 const memberSince = (ts) => {
   if (!ts) return null
@@ -56,13 +57,8 @@ export default function ProviderProfilePage() {
         // duplicated onto the page row, so a page with zero listings
         // still renders, it just shows an empty state.
         supabase.from('business_pages').select('*').eq('profile_id', id).maybeSingle(),
-        supabase
-          .from('category_listings')
-          .select('id, title, price_cents, type, status, created_at')
-          .eq('user_id', id)
-          .eq('status', 'ACTIVE')
-          .order('created_at', { ascending: false })
-          .limit(6),
+        // Same { data } shape as the other reads here. A failed read shows an empty list.
+        listActiveListingsForUser(supabase, id, { limit: 6 }).then((data) => ({ data }), () => ({ data: null })),
         // Only meaningful when the viewer owns this profile, harmless
         // no-op read otherwise since RLS restricts it to the owner anyway.
         user?.id === id

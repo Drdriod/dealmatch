@@ -105,3 +105,32 @@ export async function listMyListings(supabase, userId, { categoryId, withCategor
   if (error) throw new Error(`listMyListings failed: ${error.message}`)
   return data
 }
+
+/**
+ * A listing with its category name and slug, for the AI indexer. Returns the
+ * row or null when it does not exist (the caller decides what 404 means).
+ */
+export async function getListingForIndexing(supabase, id) {
+  const { data, error } = await supabase
+    .from('category_listings')
+    .select('id, user_id, category_id, type, title, description, price_cents, location_name, status, attributes, categories(slug, name)')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) throw new Error(`getListingForIndexing(${id}) failed: ${error.message}`)
+  return data
+}
+
+/** A user's active listings, newest first, for a public profile. */
+export async function listActiveListingsForUser(supabase, userId, { limit = 6 } = {}) {
+  const { data, error } = await supabase
+    .from('category_listings')
+    .select('id, title, price_cents, type, status, created_at')
+    .eq('user_id', userId)
+    .eq('status', 'ACTIVE')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(`listActiveListingsForUser failed: ${error.message}`)
+  return data
+}

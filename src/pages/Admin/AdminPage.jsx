@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 import { friendlyDbError } from '@/lib/dbErrors'
 import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
+import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
 
@@ -1456,9 +1457,10 @@ function PlatformFeesTab() {
 
   const load=async()=>{
     setLoading(true)
-    const [{data:comm},{data:cats}]=await Promise.all([
+    const [{data:comm},cats]=await Promise.all([
       supabase.from('commissions').select('*').order('effective_date',{ascending:false}),
-      supabase.from('categories').select('id,name,slug'),
+      // Inactive categories too: a schedule can still point at one.
+      listCategories(supabase,{includeInactive:true}).catch(()=>[]),
     ])
     setItems(comm||[]); setCategories(cats||[])
     setLoading(false)
