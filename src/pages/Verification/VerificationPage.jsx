@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { fetchPropertiesByStatus, updatePropertyVerification } from '@/data/verificationRepository'
 import { Camera, Check, CheckCircle, Clock, Home, MapPin, RefreshCw, Shield, Video, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
@@ -38,28 +38,20 @@ export default function VerificationPage() {
 
   const loadListings = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('properties')
-      .select('*, profiles(full_name, phone, email, avatar_url)')
-      .eq('status', filter)
-      .order('created_at', { ascending: true })
-      .limit(50)
+    const { data } = await fetchPropertiesByStatus(filter)
     setListings(data || [])
     setLoading(false)
   }
 
   const updateStatus = async (property, newStatus) => {
     setSaving(true)
-    const { error } = await supabase
-      .from('properties')
-      .update({
-        status:            newStatus,
-        verified_by:       user.id,
-        verified_at:       newStatus === 'active' ? new Date().toISOString() : null,
-        verification_note: note || null,
-        updated_at:        new Date().toISOString(),
-      })
-      .eq('id', property.id)
+    const { error } = await updatePropertyVerification(property.id, {
+      status:            newStatus,
+      verified_by:       user.id,
+      verified_at:       newStatus === 'active' ? new Date().toISOString() : null,
+      verification_note: note || null,
+      updated_at:        new Date().toISOString(),
+    })
     setSaving(false)
 
     if (error) { toast.error('Update failed: ' + error.message); return }

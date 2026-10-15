@@ -32,6 +32,7 @@ import React, { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Camera, Car, Check, Clock, CreditCard, Eye, Info, Lock, Shield, SkipForward, Store, Upload, Users, Vote, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { markVerificationSkipped, fetchLiveVerified, saveIdentitySubmission } from '@/data/identityVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
@@ -88,9 +89,7 @@ export default function VerifyIdentityPage() {
   const handleSkip = async () => {
     setSkipping(true)
     try {
-      await supabase.from('profiles')
-        .update({ verification_skipped: true })
-        .eq('id', user.id)
+      await markVerificationSkipped(user.id)
       await refreshProfile()
       toast('Verification skipped. You can verify anytime from your profile.', {
         icon: 'ℹ️', duration: 4000,
@@ -193,8 +192,7 @@ export default function VerifyIdentityPage() {
         return
       }
 
-      const { data: freshProfile } = await supabase
-        .from('profiles').select('is_live_verified').eq('id', user.id).single()
+      const { data: freshProfile } = await fetchLiveVerified(user.id)
       if (freshProfile?.is_live_verified) {
         toast.success('You are already verified!')
         navigate(returnTo || '/browse', { replace: true })
@@ -226,14 +224,14 @@ export default function VerifyIdentityPage() {
       // Store the storage paths (not public URLs) - bucket is PRIVATE
       // Admin will generate short-lived signed URLs when viewing submissions
 
-      await supabase.from('profiles').update({
+      await saveIdentitySubmission(user.id, {
         identity_photo_url:           idPath,   // storage path - private bucket, signed URL generated on read
         identity_selfie_url:          facePath, // storage path - private bucket, signed URL generated on read
         identity_doc_type:            idType,
         identity_verification_status: 'submitted',
         verification_skipped:         false,
         // SECURITY: is_photo_verified / is_live_verified set ONLY by admin
-      }).eq('id', user.id).then(({ error, count }) => {
+      }).then(({ error, count }) => {
         // This call's result was previously discarded entirely - if the
         // update failed for any reason (an RLS policy, a trigger, a
         // constraint), the code would still show "Submitted!" with no way

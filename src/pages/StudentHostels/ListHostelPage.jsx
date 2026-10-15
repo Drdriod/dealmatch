@@ -15,6 +15,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
+import { updateHostel, insertHostel } from '@/data/hostelListingRepository'
 import { useAuth } from '@/context/AuthContext'
 import { initializeFlutterwavePayment, generateReference, getFeeAmounts } from '@/lib/flutterwave'
 import { usePlatformFees } from '@/lib/platformFees'
@@ -207,10 +208,10 @@ export default function ListHostelPage() {
       if (id) {
         // listing_paid and payment_ref are not in this payload: only a confirmed
         // payment sets them, so saving a paid listing never un-pays it.
-        const { error } = await supabase.from('student_hostels').update(payload).eq('id', id)
+        const { error } = await updateHostel(id, payload)
         if (error) throw error
       } else {
-        const { data, error } = await supabase.from('student_hostels').insert({ ...payload, listing_paid: false }).select('id').single()
+        const { data, error } = await insertHostel(payload)
         if (error) throw error
         id = data.id
         setHostelId(id)

@@ -14,6 +14,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Clock, GraduationCap, Info, Shield, Upload, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
+import { loadStudentVerifyData, updateStudentVerification, insertStudentVerification, saveStudentInstitution } from '@/data/studentVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -48,10 +49,7 @@ export default function StudentVerifyPage() {
 
   const loadData = async () => {
     setLoading(true)
-    const [{ data: instData }, { data: verif }] = await Promise.all([
-      supabase.from('institutions').select('id,name,short_name,state').order('name'),
-      supabase.from('student_verifications').select('*').eq('user_id', user.id).maybeSingle(),
-    ])
+    const [{ data: instData }, { data: verif }] = await loadStudentVerifyData(user.id)
     setInstitutions(instData || [])
     setExisting(verif)
     if (verif) {
@@ -127,13 +125,13 @@ export default function StudentVerifyPage() {
       }
 
       if (existing) {
-        await supabase.from('student_verifications').update(payload).eq('id', existing.id)
+        await updateStudentVerification(existing.id, payload)
       } else {
-        await supabase.from('student_verifications').insert(payload)
+        await insertStudentVerification(payload)
       }
 
       // Update profile with student institution
-      await supabase.from('profiles').update({ student_institution: selectedInstitution?.name || '' }).eq('id', user.id)
+      await saveStudentInstitution(user.id, selectedInstitution?.name || '')
       await refreshProfile()
 
       toast.success('Verification submitted! We\'ll review within 24 hours.')

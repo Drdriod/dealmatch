@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Ban, Banknote, CheckCircle, Clipboard, Home, Search, Shield, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { fetchFundedEscrowsForTenant, recordMoveInConfirmation } from '@/data/escrowViewRepository'
 import { usePlatformFees, escrowFeeSentence } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
@@ -23,20 +23,13 @@ function ActiveEscrowSection() {
 
   React.useEffect(() => {
     if (!user) return
-    supabase.from('escrow_transactions')
-      .select('*,properties(title,city)')
-      .eq('tenant_id', user.id)
-      .eq('status', 'funded')
-      .order('created_at', { ascending: false })
+    fetchFundedEscrowsForTenant(user.id)
       .then(({ data }) => setEscrows(data || []))
   }, [user])
 
   const confirmMoveIn = async (escrowId) => {
     setConfirming(escrowId)
-    const { error } = await supabase.from('escrow_transactions')
-      .update({ confirmed_at: new Date().toISOString() })
-      .eq('id', escrowId)
-      .eq('tenant_id', user.id)
+    const { error } = await recordMoveInConfirmation(escrowId, user.id)
     if (error) toast.error('Could not confirm. Please try again.')
     else toast.success('Move-in confirmed! Funds released to landlord.')
     setConfirming(null)

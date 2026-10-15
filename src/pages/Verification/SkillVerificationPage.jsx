@@ -17,6 +17,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Camera, CheckCircle2, Clock, ShieldCheck, Upload, X, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { loadSkillVerificationState, submitSkillVerification } from '@/data/verificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
@@ -47,13 +48,7 @@ export default function SkillVerificationPage() {
 
   const load = async () => {
     setLoading(true)
-    const [{ data: sub }, { data: vp }] = await Promise.all([
-      supabase.from('verification_submissions')
-        .select('id, status, created_at, level')
-        .eq('user_id', user.id).eq('level', 2)
-        .order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      supabase.from('verified_providers').select('level').eq('user_id', user.id).maybeSingle(),
-    ])
+    const [{ data: sub }, { data: vp }] = await loadSkillVerificationState(user.id)
     setExisting(sub || null)
     setCurrentLevel(vp?.level || 0)
     setLoading(false)
@@ -81,21 +76,17 @@ export default function SkillVerificationPage() {
         uploadedPaths.push(path) // storage path, not a public URL -- bucket is private; staff view via signed URLs
       }
 
-      const { error: rpcError } = await supabase.rpc('submit_verification', {
-        p_level: 2,
-        p_kind: 'portfolio',
-        p_data: {
-          category: category.trim() || null,
-          category_type: categoryType,
-          area: area.trim() || null,
-          description: description.trim(),
-          years_experience: yearsExperience ? Number(yearsExperience) : null,
-          references: references.trim() || null,
-          price_cents: (!openPrice && price) ? Math.round(Number(price) * 100) : null,
-          open_price: openPrice,
-          portfolio_paths: uploadedPaths,
-          submitted_at: new Date().toISOString(),
-        },
+      const { error: rpcError } = await submitSkillVerification({
+        category: category.trim() || null,
+        category_type: categoryType,
+        area: area.trim() || null,
+        description: description.trim(),
+        years_experience: yearsExperience ? Number(yearsExperience) : null,
+        references: references.trim() || null,
+        price_cents: (!openPrice && price) ? Math.round(Number(price) * 100) : null,
+        open_price: openPrice,
+        portfolio_paths: uploadedPaths,
+        submitted_at: new Date().toISOString(),
       })
       if (rpcError) throw rpcError
 
