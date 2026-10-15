@@ -5,14 +5,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchCommissions, fetchCategoriesForFees, insertCommission, setCommissionStatus } from '@/data/adminCommissionsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 import { friendlyDbError } from '@/lib/dbErrors'
 import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
-import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
 import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
@@ -36,9 +35,9 @@ export function PlatformFeesTab() {
   const load=async()=>{
     setLoading(true)
     const [{data:comm},cats]=await Promise.all([
-      supabase.from('commissions').select('*').order('effective_date',{ascending:false}),
+      fetchCommissions(),
       // Inactive categories too: a schedule can still point at one.
-      listCategories(supabase,{includeInactive:true}).catch(()=>[]),
+      fetchCategoriesForFees(),
     ])
     setItems(comm||[]); setCategories(cats||[])
     setLoading(false)
@@ -51,7 +50,7 @@ export function PlatformFeesTab() {
     if(!form.name?.trim()) return toast.error('Give this fee schedule a name')
     if(!form.percentage_rate&&!form.fixed_fee_cents) return toast.error('Set a percentage rate and/or a fixed fee')
     const effectiveDate = form.effective_date ? new Date(form.effective_date).toISOString() : new Date().toISOString()
-    const {error} = await supabase.from('commissions').insert({
+    const {error} = await insertCommission({
       name: form.name.trim(),
       description: form.description?.trim() || null,
       target_category_id: form.target_category_id || null,
@@ -71,12 +70,12 @@ export function PlatformFeesTab() {
   }
 
   const expireNow=async(row)=>{
-    const {error}=await supabase.from('commissions').update({status:'EXPIRED',expiry_date:new Date().toISOString()}).eq('id',row.id)
+    const {error}=await setCommissionStatus(row.id,{status:'EXPIRED',expiry_date:new Date().toISOString()})
     if(error) return toast.error(error.message)
     toast.success('Expired'); load()
   }
   const archive=async(row)=>{
-    const {error}=await supabase.from('commissions').update({status:'ARCHIVED'}).eq('id',row.id)
+    const {error}=await setCommissionStatus(row.id,{status:'ARCHIVED'})
     if(error) return toast.error(error.message)
     toast.success('Archived'); load()
   }

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchAnalyticsFallback } from '@/data/adminOverviewRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -28,20 +28,7 @@ export function AnalyticsTab() {
       const d=await adminFetch('stats'); setData(d)
     }catch{
       try{
-        const [{count:tu},{count:tp},{count:ap},{count:pp},{count:tpr},{count:apr},{count:ma},{count:et},{data:pd},{count:re},{count:pi}]=await Promise.all([
-          supabase.from('profiles').select('*',{count:'exact',head:true}),
-          supabase.from('properties').select('*',{count:'exact',head:true}),
-          supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','active'),
-          supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
-          supabase.from('professional_applications').select('*',{count:'exact',head:true}),
-          supabase.from('professional_applications').select('*',{count:'exact',head:true}).eq('status','approved'),
-          supabase.from('mortgage_applications').select('*',{count:'exact',head:true}),
-          supabase.from('escrow_transactions').select('*',{count:'exact',head:true}),
-          supabase.from('payments').select('amount').eq('status','success'),
-          supabase.from('rental_enquiries').select('*',{count:'exact',head:true}),
-          supabase.from('profiles').select('*',{count:'exact',head:true}).eq('identity_verification_status','submitted'),
-        ])
-        setData({totalUsers:tu,totalProps:tp,activeListings:ap,pendingListings:pp,totalPros:tpr,activePros:apr,mortgageApps:ma,escrowTxns:et,totalRevenue:(pd||[]).reduce((s,p)=>s+(p.amount||0),0),rentalEnquiries:re,pendingIdentity:pi})
+        setData(await fetchAnalyticsFallback())
       }catch(e){console.error(e)}
     }
     setLoading(false)

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { resolveComplaint, fetchComplaints } from '@/data/adminPeopleRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -29,13 +29,7 @@ export function ComplaintsTab({ admin }) {
 
   const load = async () => {
     setLoading(true)
-    let q = supabase
-      .from('complaints')
-      .select('*, properties(title,city,state), profiles!complainant_id(full_name,email), agent:profiles!agent_id(full_name,email)')
-      .order('created_at', { ascending: false })
-      .limit(100)
-    if (filter !== 'all') q = q.eq('status', filter)
-    const { data } = await q
+    const { data } = await fetchComplaints(filter)
     setComplaints(data || [])
     setLoading(false)
   }
@@ -43,13 +37,7 @@ export function ComplaintsTab({ admin }) {
   const resolve = async (complaint, newStatus) => {
     if (!resolutionNote.trim()) { toast.error('Enter a resolution note'); return }
     setResolving(complaint.id)
-    const { error } = await supabase.from('complaints').update({
-      status: newStatus,
-      resolution_note: resolutionNote,
-      resolved_by: admin?.id,
-      resolved_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq('id', complaint.id)
+    const { error } = await resolveComplaint(complaint.id, { status: newStatus, note: resolutionNote, adminId: admin?.id })
     if (error) toast.error('Failed to resolve complaint')
     else { toast.success(newStatus === 'upheld' ? 'Complaint upheld - strike issued to agent' : 'Complaint dismissed'); load() }
     setResolving(null); setResolutionNote('')

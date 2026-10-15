@@ -5,7 +5,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchStaffDirectory, revokeStaffInvite, setAccountStatus, setProfileRole,
+} from '@/data/adminPeopleRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -30,10 +32,7 @@ export function StaffTab({isSuperAdmin}) {
 
   const loadStaff=async()=>{
     setLoading(true)
-    const [{data:staffData},{data:inviteData}]=await Promise.all([
-      supabase.from('profiles').select('id,full_name,email,role,created_at').in('role',['agent','verifier','admin']).order('created_at',{ascending:false}),
-      isSuperAdmin?supabase.from('staff_invites').select('id,email,full_name,role,status,created_at,expires_at').eq('status','pending').order('created_at',{ascending:false}):Promise.resolve({data:[]}),
-    ])
+    const [{data:staffData},{data:inviteData}]=await fetchStaffDirectory(isSuperAdmin, STAFF_ROLES)
     setStaff(staffData||[]); setInvites(inviteData||[]); setLoading(false)
   }
   useEffect(()=>{loadStaff()},[])
@@ -55,7 +54,7 @@ export function StaffTab({isSuperAdmin}) {
   }
 
   const revokeInvite=async(invite)=>{
-    const {error}=await supabase.rpc('revoke_staff_invite',{p_invite_id:invite.id})
+    const {error}=await revokeStaffInvite(invite.id)
     if(error){toast.error(error.message||'Could not revoke invite');return}
     toast.success(`Invite to ${invite.email} revoked`); loadStaff()
   }
@@ -65,7 +64,7 @@ export function StaffTab({isSuperAdmin}) {
     // member's real role (agent/verifier/admin) with no way back short of
     // a superadmin manually re-assigning it. account_status is the
     // correct place for this - role stays intact.
-    const {error}=await supabase.from('profiles').update({account_status:'suspended'}).eq('id',id)
+    const {error}=await setAccountStatus(id,'suspended')
     if(error){toast.error('Failed');return}
     await auditLog('staff_deactivated',{target_id:id,by:admin?.id})
     toast.success(`${name} deactivated`); loadStaff(); setConfirm(null)
@@ -73,7 +72,7 @@ export function StaffTab({isSuperAdmin}) {
 
   const changeRole=async(id,newRole,name)=>{
     if(newRole==='admin'&&!isSuperAdmin){toast.error('Only the superadmin can grant the admin role');return}
-    const {error}=await supabase.from('profiles').update({role:newRole}).eq('id',id)
+    const {error}=await setProfileRole(id,newRole)
     if(error){toast.error(error.message||'Failed');return}
     await auditLog('staff_role_changed',{target_id:id,new_role:newRole,by:admin?.id})
     toast.success(`${name} -> ${ROLE_LABELS[newRole]}`); loadStaff()

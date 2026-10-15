@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchUsersDirect } from '@/data/adminPeopleRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -49,14 +49,7 @@ export function UsersTab() {
     }
     // Second try: direct Supabase query (works if admin RLS policy is applied)
     try{
-      let q2=supabase.from('profiles')
-        .select('id,full_name,email,phone,role,account_status,is_photo_verified,is_live_verified,onboarding_completed,created_at,identity_verification_status,is_deactivated',{count:'exact'})
-        .order('created_at',{ascending:false})
-        .range(pg*PAGE, pg*PAGE+PAGE-1)
-      if(q) q2=q2.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
-      if(role) q2=q2.eq('role',role)
-      if(status) q2=q2.eq('account_status',status)
-      const {data,count,error}=await q2
+      const {data,count,error}=await fetchUsersDirect({q,role,status,from:pg*PAGE,to:pg*PAGE+PAGE-1})
       if(error) throw error
       setItems(data||[]); setTotal(count||data?.length||0); setPage(pg)
     }catch(dbErr){

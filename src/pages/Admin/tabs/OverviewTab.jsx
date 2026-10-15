@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { fetchCommandCentre, fetchOverviewFallback } from '@/data/adminOverviewRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -33,31 +33,7 @@ export function OverviewTab() {
     // its own panel, never the KPI strip.
     const d30 = new Date(); d30.setHours(0,0,0,0); d30.setDate(d30.getDate()-29)
     const since = d30.toISOString()
-    const count = (table, apply) => Promise.resolve(apply(supabase.from(table).select('*',{count:'exact',head:true})))
-      .then(r=>r.error?null:(r.count??0)).catch(()=>null)
-    const rows = (table, cols, apply) => Promise.resolve(apply(supabase.from(table).select(cols,{count:'exact'})))
-      .then(r=>r.error?null:{ rows:r.data||[], total:r.count??0 }).catch(()=>null)
-    const commandP = Promise.all([
-      count('properties', q=>q.eq('status','active')),
-      count('properties', q=>q.eq('status','pending_review')),
-      count('properties', q=>q.eq('status','paused')),
-      count('properties', q=>q.eq('status','sold')),
-      count('properties', q=>q.eq('status','rejected')),
-      count('student_verifications', q=>q.eq('status','pending')),
-      count('complaints', q=>q.in('status',['open','escalated'])),
-      count('payout_queue', q=>q.eq('status','failed')),
-      count('withdrawal_requests', q=>q.eq('status','pending')),
-      count('payout_accounts', q=>q.eq('status','pending')),
-      rows('profiles', 'created_at', q=>q.gte('created_at',since)),
-      rows('properties', 'created_at', q=>q.gte('created_at',since)),
-      rows('payments', 'amount,created_at', q=>q.eq('status','success').gte('created_at',since)),
-      supabase.from('payments').select('id,amount,payment_type,status,created_at').order('created_at',{ascending:false}).limit(6)
-        .then(r=>r.error?[]:(r.data||[])).catch(()=>[]),
-    ]).then(v=>({
-      mix: { active:v[0], pending_review:v[1], paused:v[2], sold:v[3], rejected:v[4] },
-      studentIds:v[5], complaints:v[6], failedPayouts:v[7], withdrawals:v[8], bankAccounts:v[9],
-      signups:v[10], listings:v[11], payments:v[12], recentPayments:v[13],
-    })).catch(()=>null)
+    const commandP = fetchCommandCentre(since) // starts now, alongside the stats call
 
     try {
       const d = await adminFetch('stats')
@@ -65,14 +41,8 @@ export function OverviewTab() {
     } catch(apiErr) {
       console.warn('Stats API failed:', apiErr.message)
       try {
-        const [{count:u},{count:a},{count:p},{data:pay},{data:rp}]=await Promise.all([
-          supabase.from('profiles').select('*',{count:'exact',head:true}),
-          supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','active'),
-          supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
-          supabase.from('payments').select('amount').eq('status','success'),
-          supabase.from('properties').select('id,title,status,created_at,profiles(full_name)').order('created_at',{ascending:false}).limit(6),
-        ])
-        setStats({totalUsers:u,activeListings:a,pendingListings:p,totalRevenue:(pay||[]).reduce((s,x)=>s+(x.amount||0),0)})
+        const {stats:fb, recent:rp} = await fetchOverviewFallback()
+        setStats(fb)
         setRecent(rp||[])
       } catch(e2){console.error(e2)}
     }

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
+import { setAgentScoreStatus, setAccountStatus, fetchAgentScorecard, fetchAgentVerifications } from '@/data/adminPeopleRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -28,39 +28,32 @@ export function AgentScoresTab({ admin }) {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('v_agent_scorecard')
-      .select('*')
+    const { data } = await fetchAgentScorecard()
     setAgents(data || [])
     setLoading(false)
   }
 
   const loadVerifications = async (agentId) => {
-    const { data } = await supabase
-      .from('agent_verifications')
-      .select('*, properties(title,city,state)')
-      .eq('agent_id', agentId)
-      .order('submitted_at', { ascending: false })
-      .limit(20)
+    const { data } = await fetchAgentVerifications(agentId)
     setVerifications(data || [])
   }
 
   const reinstateAgent = async (agentId) => {
-    await supabase.from('agent_scores').update({ status:'active', strike_count:0, updated_at:new Date().toISOString() }).eq('agent_id', agentId)
+    await setAgentScoreStatus(agentId, { status:'active', resetStrikes:true })
     // FIX: account_status, not role - the agent's role never changed in
     // the first place, only their status did (see suspendAgent below).
-    await supabase.from('profiles').update({ account_status:'active' }).eq('id', agentId)
+    await setAccountStatus(agentId, 'active')
     toast.success('Agent reinstated'); load()
   }
 
   const suspendAgent = async (agentId) => {
-    await supabase.from('agent_scores').update({ status:'suspended', updated_at:new Date().toISOString() }).eq('agent_id', agentId)
+    await setAgentScoreStatus(agentId, { status:'suspended' })
     // FIX: this used to overwrite role:'suspended', wiping out role:'agent'
     // entirely - reinstateAgent then had to hardcode role:'agent' back,
     // which only worked because this action is agent-specific. Using
     // account_status instead means role is never touched by a moderation
     // action anywhere in this file now.
-    await supabase.from('profiles').update({ account_status:'suspended' }).eq('id', agentId)
+    await setAccountStatus(agentId, 'suspended')
     toast.success('Agent suspended'); load()
   }
 

@@ -6,6 +6,7 @@ import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-d
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
+import { fetchSidebarBadgeCounts } from '@/data/adminOverviewRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
 import { useAuth } from '@/context/AuthContext'
@@ -53,12 +54,7 @@ export default function AdminPage() {
   useEffect(()=>{
     const loadBadges=async()=>{
       try{
-        const [{count:identity},{count:properties},{count:students}]=await Promise.all([
-          supabase.from('profiles').select('*',{count:'exact',head:true}).eq('identity_verification_status','submitted'),
-          supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
-          supabase.from('student_verifications').select('*',{count:'exact',head:true}).eq('status','pending'),
-        ])
-        setBadges({identity,properties,'student-verifications':students})
+        setBadges(await fetchSidebarBadgeCounts())
       }catch{}
     }
     loadBadges()

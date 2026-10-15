@@ -146,7 +146,7 @@ function checkNotificationFactory() {
 //    calls may go down, never up. A new file with database calls must go
 //    through a repository in src/data/. The baseline is committed in
 //    scripts/architecture-baseline.json; lower it with --update-baseline.
-const DB_CALL = /\b(supabase|svc)\.(from|rpc)\(/g
+const DB_CALL = /\b(supabase|svc)\s*\.\s*(from|rpc)\s*\(/g
 const DB_SCOPES = ['src/pages', 'src/components', 'api']
 const BASELINE_PATH = join(ROOT, 'scripts', 'architecture-baseline.json')
 

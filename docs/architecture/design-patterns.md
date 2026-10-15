@@ -32,7 +32,9 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    Referral, Notifications, Messages, the user Dashboard and the Landlord Dashboard.
    Still direct: Jobs/JobPosting (11 calls), StudentVerify, ProviderProfile, FindProvider,
    Auth, Rentals, Verification, Profile, ManageListings, Home and several smaller files.
-   Direct calls across `src` are down from 256 to 225 (ratchet baseline).
+   Direct calls across `src`: 208 by the corrected counter (see note below). The counter
+   previously missed calls split across lines, so earlier figures (256, 242, 225, 195, 180)
+   were understated and are not comparable.
 3. **Webhook `charge.success` case. Done.** The six purpose handlers moved to
    `src/lib/chargePurposes.js` (registry, own-property lookup), with 19 tests in
    `src/lib/chargePurposes.test.mjs`. Known behaviour kept on purpose: a transaction
@@ -44,7 +46,7 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
 5. **Client notifications. Done.** The only client-side insert is in the `notifications.js`
    facade, which is the allowed site (check 5 enforces it). Realtime reads still use the client.
 6. **Dashboards. In progress.** User and Landlord dashboards read through repositories.
-   Still to do: a data hook per dashboard (loading and error state out of the layout code),
+   Lender dashboard reads through `lenderRepository.js`. Still to do: a data hook per dashboard (loading and error state out of the layout code),
    and the Lender and Agent dashboards (the Agent dashboard has about 10 direct calls).
 7. **Database enforcement of payout states.** The admin Payouts tab writes status
    straight from the browser. Migration `20261014000000_payout_state_guard.sql` enforces
