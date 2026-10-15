@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { Bath, Bed, CheckCircle, Heart, Home, Key, Lock, MapPin, MessageCircle, PartyPopper, Phone, Search, ShieldCheck, X } from 'lucide-react'
-import { recordSwipe, supabase } from '@/lib/supabase'
+import { recordSwipe } from '@/lib/supabase'
+import { fetchActiveRentals, fetchHostVerification, insertRentalEnquiry } from '@/data/rentalsRepository'
+import { fetchPropertyContact } from '@/data/propertyDetailRepository'
 import { useAuth } from '@/context/AuthContext'
 import SwipeCard from '@/components/matching/SwipeCard'
 import PropertyReserveModal from '@/components/ui/PropertyReserveModal'
@@ -47,7 +49,7 @@ function InterestModal({ rental, onClose }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const checkContact = async () => {
-    const { data } = await supabase.rpc('get_property_contact', { p_property_id: rental.id })
+    const { data } = await fetchPropertyContact(rental.id)
     setContact(Array.isArray(data) ? data[0] || null : data || null)
   }
 
@@ -60,7 +62,7 @@ function InterestModal({ rental, onClose }) {
     // Save enquiry to Supabase - this is a lead signal only, it does NOT
     // reveal any contact details or move the deal forward on its own.
     try {
-      await supabase.from('rental_enquiries').insert({
+      await insertRentalEnquiry({
         property_id:  rental.id,
         user_id:      user?.id || null, // null for a true guest with no session -- attribution only when signed in
         tenant_name:  form.name,
@@ -283,23 +285,14 @@ export default function RentalsPage() {
 
   const loadRentals = async () => {
     setLoading(true)
-    let q = supabase.from('properties').select('*')
-      .in('category', ['rental','shortlet'])
-      .eq('status','active')
-      .or('occupancy_status.is.null,occupancy_status.eq.vacant') // hide units marked occupied offline - prevents double booking; NULL = legacy listings, treated as vacant
-      .order('created_at',{ ascending:false }).limit(40)
-    if (type === 'Rental')   q = q.eq('category', 'rental')
-    if (type === 'Short-let') q = q.eq('category', 'shortlet')
-    if (stateF !== 'All States') q = q.eq('state', stateF)
-    const { data } = await q
+    const { data } = await fetchActiveRentals(type, stateF)
     let list = data || []
 
     // Verified Host badge reflects the seller's real identity verification
     // status - never shown unless it's actually true.
     const sellerIds = [...new Set(list.map(r => r.seller_id).filter(Boolean))]
     if (sellerIds.length > 0) {
-      const { data: sellers } = await supabase.from('public_profiles')
-        .select('id, identity_verification_status').in('id', sellerIds)
+      const { data: sellers } = await fetchHostVerification(sellerIds)
       list = list.map(r => ({
         ...r,
         hostVerified: sellers?.find(s => s.id === r.seller_id)?.identity_verification_status === 'approved',

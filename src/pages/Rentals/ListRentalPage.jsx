@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Camera, Check, CheckCircle, Hotel, PartyPopper, Store, Upload, Video, Wifi, X } from 'lucide-react'
 import { supabase, stripControlChars } from '@/lib/supabase'
+import { insertListedProperty } from '@/data/rentalsRepository'
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
@@ -252,7 +253,7 @@ export default function ListRentalPage() {
       // elsewhere; applying it here closes the gap where this page's direct
       // insert bypassed it entirely, which is what surfaced in production as
       // "null character not permitted" when a host tried to publish.
-      const { data: created, error } = await supabase.from('properties').insert(stripControlChars({
+      const { data: created, error } = await insertListedProperty(stripControlChars({
         title:        form.title,
         property_type: isHotel ? form.category : 'apartment',
         listing_type: isHotel ? (form.category === 'hotel' ? 'Hotel' : 'Short-let') : 'Rental',
@@ -271,7 +272,7 @@ export default function ListRentalPage() {
         seller_id:    user.id,
         status:       'pending_review',  // agent must verify before going live
         category:     form.category,
-      })).select('id').single()
+      }))
 
       if (error || !created?.id) throw error || new Error('Listing was not confirmed by the server')
       setListingId(created.id)

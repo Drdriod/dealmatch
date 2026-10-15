@@ -14,7 +14,7 @@ import PlacesRail from '@/components/home/PlacesRail'
 import PeopleRail from '@/components/home/PeopleRail'
 import HowItWorksFlip from '@/components/home/HowItWorksFlip'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { fetchHomeCounts } from '@/data/homeRepository'
 
 // Stats are now fetched live from the database (see loadStats below) -
 // no hardcoded numbers. A new platform should show its real, honest
@@ -56,11 +56,7 @@ export default function HomePage() {
   // A new platform should show what it actually has, not fabricated traction.
   const loadRealStats = async () => {
     try {
-      const [{ count: propertyCount }, { count: verifiedCount }, { count: soldCount }] = await Promise.all([
-        supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_live_verified', true),
-        supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'sold'),
-      ])
+      const [{ count: propertyCount }, { count: verifiedCount }, { count: soldCount }] = await fetchHomeCounts()
 
       // A raw "0" (or a near-zero count) as social proof is worse than no
       // number at all -- it reads as "nobody uses this" to a first-time,

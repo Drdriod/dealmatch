@@ -1,8 +1,4 @@
 {
-  "src/pages/Admin/AdminLoginPage.jsx": 4,
-  "src/pages/Home/HomePage.jsx": 3,
-  "src/pages/Rentals/ListRentalPage.jsx": 1,
-  "src/pages/Rentals/RentalsPage.jsx": 4,
   "src/components/ui/AvailabilityManager.jsx": 6,
   "src/components/ui/AvailabilityPageContent.jsx": 6,
   "src/components/ui/GuestAuthModal.jsx": 1,
