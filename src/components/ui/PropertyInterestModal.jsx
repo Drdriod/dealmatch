@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Calendar, Clock, Heart, MessageSquare, X, Zap } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { upsertPropertyInterest } from '@/data/propertyInterestRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -52,7 +52,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
     if (!timeline) return toast.error('Please select your timeline')
     setSaving(true)
     const score = calculateScore()
-    const { error } = await supabase.from('property_interest').upsert({
+    const { error } = await upsertPropertyInterest({
       user_id:     user.id,
       property_id: property.id,
       intent,
@@ -61,7 +61,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
       message:     message || null,
       lead_score:  score,
       status:      'new',
-    }, { onConflict: 'user_id,property_id' })
+    })
     setSaving(false)
     if (error) { toast.error('Failed to save. Please try again.'); return }
     setStep(3)

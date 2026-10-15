@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Shield, ShieldCheck, X, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchEscrowStatus, startPropertyEscrowPayment } from '@/data/propertyReserveRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { initializeFlutterwavePayment, generateReference, formatNaira } from '@/lib/flutterwave'
@@ -46,7 +46,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
   const pollForFunded = async (escrowId, attempts = 0) => {
     if (attempts > 10) { setConfirming(false); toast('Payment received - confirming with our team, this can take a few minutes.'); setDone(true); return }
-    const { data } = await supabase.from('escrow_transactions').select('status').eq('id', escrowId).single()
+    const { data } = await fetchEscrowStatus(escrowId)
     if (data?.status === 'confirmed' || data?.status === 'funded') {
       setConfirming(false)
       setDone(true)
@@ -71,14 +71,14 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     // Write the escrow row FIRST, server-side, authoritatively - this is
     // what the Flutterwave webhook resolves by payment_ref. Without this
     // step the payment would succeed but never be reflected as escrow.
-    const { data: escrowRow, error: rpcError } = await supabase.rpc('start_property_escrow_payment', {
-      p_property_id:      property.id,
-      p_reference:         reference,
-      p_transaction_type:  property.listing_type === 'sale' ? 'sale' : 'rental',
-      p_gross_amount:      gross,
-      p_tenant_name:       profile?.full_name || user.user_metadata?.full_name || 'DealMatch user',
-      p_tenant_phone:      profile?.phone || '',
-      p_move_in_date:      moveInDate || null,
+    const { data: escrowRow, error: rpcError } = await startPropertyEscrowPayment({
+      propertyId:      property.id,
+      reference,
+      transactionType: property.listing_type === 'sale' ? 'sale' : 'rental',
+      grossAmount:     gross,
+      tenantName:      profile?.full_name || user.user_metadata?.full_name || 'DealMatch user',
+      tenantPhone:     profile?.phone || '',
+      moveInDate:      moveInDate || null,
     })
 
     if (rpcError || !escrowRow) {

@@ -29,6 +29,15 @@ export function saveOnboardingProfile(userId, payload) {
   return supabase.from('profiles').update(payload).eq('id', userId)
 }
 
+// Best effort after a guest verifies their phone: stores the name and number, but only if the
+// profile that was created automatically has no name yet, so it never overwrites a real one.
+export function saveGuestName(userId, { fullName, phone }) {
+  return supabase.from('profiles')
+    .update({ full_name: fullName, phone })
+    .eq('id', userId)
+    .is('full_name', null)
+}
+
 // "Become a provider" is an honest toggle. It does not grant provider status;
 // staff still review the evidence the user submits afterwards.
 export function markOffersServices(userId) {

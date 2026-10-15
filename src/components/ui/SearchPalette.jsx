@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight, Home, Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { searchActiveProperties } from '@/data/searchRepository'
 
 export default function SearchPalette({ isOpen, onClose }) {
   const [query, setQuery]       = useState('')
@@ -23,12 +23,7 @@ export default function SearchPalette({ isOpen, onClose }) {
     if (!query || query.length < 2) { setResults([]); return }
     const t = setTimeout(async () => {
       setLoading(true)
-      const { data } = await supabase
-        .from('properties')
-        .select('id, title, city, state, price, property_type')
-        .eq('status', 'active')
-        .or(`title.ilike.%${query}%,city.ilike.%${query}%,state.ilike.%${query}%`)
-        .limit(6)
+      const { data } = await searchActiveProperties(query)
       setResults(data || [])
       setLoading(false)
     }, 300)

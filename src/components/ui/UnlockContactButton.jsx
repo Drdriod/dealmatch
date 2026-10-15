@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Lock, Phone, Coins, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchUnlockCreditBalance, fetchUnlockedContact, spendUnlockCredit } from '@/data/unlockCreditsRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { buyUnlockCredits, getFeeAmounts } from '@/lib/flutterwave'
@@ -35,14 +35,12 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
   useEffect(() => { if (user) { loadBalance(); checkExisting() } }, [user, targetId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadBalance() {
-    const { data } = await supabase.rpc('get_unlock_credit_balance')
+    const { data } = await fetchUnlockCreditBalance()
     setBalance(typeof data === 'number' ? data : 0)
   }
 
   async function checkExisting() {
-    const fn = targetType === 'property' ? 'get_property_contact' : 'get_provider_contact'
-    const arg = targetType === 'property' ? { p_property_id: targetId } : { p_provider_id: targetId }
-    const { data } = await supabase.rpc(fn, arg)
+    const { data } = await fetchUnlockedContact(targetType, targetId)
     const row = Array.isArray(data) ? data[0] : data
     if (row?.phone) { setContact(row); onUnlocked?.(row) }
   }
@@ -54,7 +52,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
     if (!balance) { setShowPacks(true); return }
     setBusy(true)
     try {
-      const { error } = await supabase.rpc('spend_unlock_credit', { p_target_type: targetType, p_target_id: String(targetId) })
+      const { error } = await spendUnlockCredit(targetType, targetId)
       if (error) throw error
       await checkExisting()
       await loadBalance()

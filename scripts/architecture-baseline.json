@@ -1,11 +1,4 @@
 {
   "src/components/ui/AvailabilityManager.jsx": 6,
-  "src/components/ui/AvailabilityPageContent.jsx": 6,
-  "src/components/ui/GuestAuthModal.jsx": 1,
-  "src/components/ui/PropertyInterestModal.jsx": 1,
-  "src/components/ui/PropertyReserveModal.jsx": 2,
-  "src/components/ui/ReportModal.jsx": 1,
-  "src/components/ui/SearchPalette.jsx": 1,
-  "src/components/ui/TestimonialsSection.jsx": 4,
-  "src/components/ui/UnlockContactButton.jsx": 3
+  "src/components/ui/AvailabilityPageContent.jsx": 6
 }
