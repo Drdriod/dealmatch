@@ -2,6 +2,7 @@
 // scores, complaints and the user directory. Moderation changes set
 // account_status, never role, so a suspended staff member keeps their role.
 import { supabase } from '@/lib/supabase'
+import { cleanSearchTerm } from '@/lib/searchTerm'
 
 // Staff profiles, plus pending invites when the caller is a superadmin.
 export function fetchStaffDirectory(isSuperAdmin, staffRoles) {
@@ -42,13 +43,15 @@ export function resolveComplaint(complaintId, { status, note, adminId }) {
 }
 
 // Direct user-directory query, used when the API route is unavailable.
-// The page builds the range; this module applies the filters.
+// The page builds the range; this module applies the filters. The search text is cleaned
+// first, as the API route does, so commas and brackets are not read as filter syntax.
 export function fetchUsersDirect({ q, role, status, from, to }) {
+  const term = cleanSearchTerm(q)
   let query = supabase.from('profiles')
     .select('id,full_name,email,phone,role,account_status,is_photo_verified,is_live_verified,onboarding_completed,created_at,identity_verification_status,is_deactivated',{count:'exact'})
     .order('created_at', { ascending: false })
     .range(from, to)
-  if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
+  if (term) query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`)
   if (role) query = query.eq('role', role)
   if (status) query = query.eq('account_status', status)
   return query

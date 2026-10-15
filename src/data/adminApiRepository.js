@@ -5,6 +5,8 @@
 // The caller's own client is used where the route reads on the caller's behalf,
 // so row-level security applies. Everything else runs on the service-role client.
 
+import { cleanSearchTerm } from '../lib/searchTerm.js'
+
 export function findCallerRole(userClient, userId) {
   return userClient.from('profiles').select('role').eq('id', userId).single()
 }
@@ -31,10 +33,9 @@ export function fetchStatsQueries(svc) {
 }
 
 // The search text goes into a PostgREST filter string, where commas, parentheses and
-// asterisks have meaning. They are replaced, so the text cannot add filter clauses.
-export function cleanSearchTerm(raw) {
-  return String(raw || '').replace(/[,()*"\\]/g, ' ').trim()
-}
+// asterisks have meaning, so it is cleaned first. The helper lives in lib/searchTerm.js so the
+// browser repositories can use the same one. It is re-exported here for existing callers.
+export { cleanSearchTerm }
 
 // Paged user list. Search runs over name and email; role and status are exact matches.
 export function listUsers(svc, { from, to, search, role, status }) {
