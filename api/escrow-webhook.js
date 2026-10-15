@@ -72,18 +72,21 @@ export default async function handler(req, res) {
       case 'escrow.released': {
         const { reference } = data
         if (!reference) break
-        const { error } = await markEscrowReleased(supabase, reference, now)
+        const { data: changed, error } = await markEscrowReleased(supabase, reference, now)
         if (error) throw error
-        console.log('Escrow released:', reference)
+        // Only a funded escrow is released. Anything else is logged, not applied.
+        if (changed?.length) console.log('Escrow released:', reference)
+        else console.warn('Escrow release ignored (not funded, or unknown reference):', reference)
         break
       }
 
       case 'escrow.refunded': {
         const { reference } = data
         if (!reference) break
-        const { error } = await markEscrowRefunded(supabase, reference)
+        const { data: changed, error } = await markEscrowRefunded(supabase, reference)
         if (error) throw error
-        console.log('Escrow refunded:', reference)
+        if (changed?.length) console.log('Escrow refunded:', reference)
+        else console.warn('Escrow refund ignored (not funded, or unknown reference):', reference)
         break
       }
 

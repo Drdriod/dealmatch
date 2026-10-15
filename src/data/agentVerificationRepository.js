@@ -30,11 +30,16 @@ export function setSessionStatus(svc, sessionId, status) {
     .eq('status', 'active')
 }
 
-export function setSessionAttempts(svc, sessionId, attempts) {
+// Counts one attempt, but only if the count is still the value the caller read. Two
+// submits racing on one session cannot both count from the same starting value.
+// Returns the updated row, or no rows if another attempt got there first.
+export function claimSessionAttempt(svc, sessionId, readAttempts) {
   return svc.from('verification_sessions')
-    .update({ attempts })
+    .update({ attempts: readAttempts + 1 })
     .eq('id', sessionId)
     .eq('status', 'active')
+    .eq('attempts', readAttempts)
+    .select('id')
 }
 
 // Returns the consumed row, or no rows if the session was no longer active.

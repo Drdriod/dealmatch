@@ -11,17 +11,22 @@ export function markEscrowFunded(svc, reference, nowIso) {
     .eq('status', 'awaiting_payment')
 }
 
-// Not guarded by current status. This is the existing behaviour of the route; whether
-// release should be limited to funded escrows is an open product question.
+// Releases money, so it applies only to a funded escrow. A duplicate release finds
+// nothing to change. The returned rows say whether anything moved: none means the escrow
+// was not funded or does not exist, and the caller logs it.
 export function markEscrowReleased(svc, reference, nowIso) {
   return svc.from('escrow_transactions')
     .update({ status: 'released', released_at: nowIso })
     .eq('payment_ref', reference)
+    .eq('status', 'funded')
+    .select('id')
 }
 
-// Not guarded by current status. Same note as markEscrowReleased.
+// Refunds money, so it applies only to a funded escrow. Same return rule as markEscrowReleased.
 export function markEscrowRefunded(svc, reference) {
   return svc.from('escrow_transactions')
     .update({ status: 'refunded' })
     .eq('payment_ref', reference)
+    .eq('status', 'funded')
+    .select('id')
 }

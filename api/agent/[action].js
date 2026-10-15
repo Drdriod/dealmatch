@@ -8,7 +8,7 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import {
-  findPropertyForStart, insertVerificationSession, findSession, setSessionStatus, setSessionAttempts,
+  findPropertyForStart, insertVerificationSession, findSession, setSessionStatus, claimSessionAttempt,
   consumeActiveSession, findPropertyForSubmit, upsertAgentVerification, markPropertyUnderVerification,
 } from '../../src/data/agentVerificationRepository.js'
 
@@ -111,7 +111,9 @@ async function handleSubmit(req, res, user) {
     await setSessionStatus(svc, session_id, 'rejected')
     return res.status(429).json({ error: 'Too many attempts on this session' })
   }
-  await setSessionAttempts(svc, session_id, session.attempts + 1)
+  const { data: claimed, error: claimErr } = await claimSessionAttempt(svc, session_id, session.attempts)
+  if (claimErr) return res.status(500).json({ error: 'Could not start verification. Please try again.' })
+  if (!claimed?.length) return res.status(409).json({ error: 'This session is busy. Try again in a moment, or request a new session.' })
 
   const sessionKey = crypto.createHmac('sha256', process.env.VERIFICATION_MASTER_SECRET).update(session_id).digest('hex')
   const expectedHmac = crypto.createHmac('sha256', sessionKey)

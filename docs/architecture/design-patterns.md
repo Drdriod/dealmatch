@@ -44,17 +44,18 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    was not funded.
 4. **API database calls. Done.** Every table and RPC call in `api/` goes through a
    repository in `src/data/`. The ratchet has no `api/` entries, and a new direct call in
-   `api/` fails the check. Two things sit outside the repositories:
-   `platform.js` removes identity-document files from Supabase Storage directly (storage,
-   not a table), and the agent submit's attempt counter is still read and then written, so
-   concurrent attempts can undercount.
-   Changed on the way: the agent submit consumes a session only while it is still active,
-   so two submits racing on one session cannot both succeed (checked with a concurrent
-   harness: before, both were accepted; after, one is). The escrow webhook returns 500 when
-   a write fails, so the sender retries instead of losing the event.
-   Open, not changed: `escrow.released` and `escrow.refunded` are not guarded by the
-   escrow's current status. The route has no caller in this repo, so confirm with whoever
-   sends it events before changing it.
+   `api/` fails the check. The one call outside the repositories is `platform.js`
+   removing identity-document files from Supabase Storage (storage, not a table).
+   Changed on the way:
+   - The agent submit counts an attempt only from the value it read, and consumes a
+     session only while it is active. Two submits racing on one session: before, both
+     were accepted; now one is accepted and the other gets 409 or 410 (checked with a
+     concurrent harness against a stub Supabase).
+   - The escrow webhook returns 500 when a write fails, so the sender retries. Release and
+     refund apply only to a funded escrow; anything else is logged and not applied. If a
+     `funded` event was ever missed, that escrow cannot be released until it is corrected.
+   - Admin user search strips the characters PostgREST uses for filters, so search text
+     cannot add filter clauses.
 5. **Client notifications. Done.** The only client-side insert is in the `notifications.js`
    facade, which is the allowed site (check 5 enforces it). Realtime reads still use the client.
 6. **Dashboards. In progress.** User and Landlord dashboards read through repositories.

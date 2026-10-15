@@ -30,13 +30,20 @@ export function fetchStatsQueries(svc) {
   ])
 }
 
+// The search text goes into a PostgREST filter string, where commas, parentheses and
+// asterisks have meaning. They are replaced, so the text cannot add filter clauses.
+export function cleanSearchTerm(raw) {
+  return String(raw || '').replace(/[,()*"\\]/g, ' ').trim()
+}
+
 // Paged user list. Search runs over name and email; role and status are exact matches.
 export function listUsers(svc, { from, to, search, role, status }) {
   let q = svc.from('profiles')
     .select('id,full_name,email,phone,role,account_status,is_photo_verified,is_live_verified,onboarding_completed,created_at,identity_verification_status,is_deactivated', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
-  if (search) q = q.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+  const term = cleanSearchTerm(search)
+  if (term) q = q.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`)
   if (role)   q = q.eq('role', role)
   if (status) q = q.eq('account_status', status)
   return q

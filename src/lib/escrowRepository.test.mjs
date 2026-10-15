@@ -59,12 +59,37 @@ test('refunded sets status refunded for the matching escrow', async () => {
   assert.equal(tables.escrow_transactions[0].status, 'refunded')
 })
 
+test('release does not move an escrow that was never funded, and says so', async () => {
+  const tables = { escrow_transactions: [{ id: 1, payment_ref: 'ESC-11', status: 'awaiting_payment' }] }
+  const { data } = await markEscrowReleased(fakeSupabase(tables), 'ESC-11', NOW)
+  assert.equal(tables.escrow_transactions[0].status, 'awaiting_payment')
+  assert.equal(data.length, 0)
+})
+
+test('refund does not move an escrow that was never funded', async () => {
+  const tables = { escrow_transactions: [{ id: 1, payment_ref: 'ESC-12', status: 'awaiting_payment' }] }
+  const { data } = await markEscrowRefunded(fakeSupabase(tables), 'ESC-12')
+  assert.equal(tables.escrow_transactions[0].status, 'awaiting_payment')
+  assert.equal(data.length, 0)
+})
+
+test('a duplicate release does not change a released escrow again', async () => {
+  const tables = { escrow_transactions: [{ id: 1, payment_ref: 'ESC-13', status: 'funded' }] }
+  const svc = fakeSupabase(tables)
+  const first = await markEscrowReleased(svc, 'ESC-13', NOW)
+  const second = await markEscrowReleased(svc, 'ESC-13', '2026-10-16T00:00:00.000Z')
+  assert.equal(first.data.length, 1)
+  assert.equal(second.data.length, 0)
+  assert.equal(tables.escrow_transactions[0].released_at, NOW)
+})
+
 // The handler throws on a returned error so the sender retries. These tests check
 // that the repository hands the client's error back instead of swallowing it.
 function failingSupabase(message) {
   const builder = {
     update() { return builder },
     eq() { return builder },
+    select() { return builder },
     then(resolve) { resolve({ data: null, error: { message } }) },
   }
   return { from: () => builder }

@@ -2,8 +2,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  consumeActiveSession, setSessionStatus, setSessionAttempts,
+  consumeActiveSession, setSessionStatus, claimSessionAttempt,
 } from '../data/agentVerificationRepository.js'
+import { listUsers, cleanSearchTerm } from '../data/adminApiRepository.js'
 import { findInviterFirstName } from '../data/inviteRepository.js'
 import { findRecipientEmail, logOutboundMessage } from '../data/outboundMessageRepository.js'
 import { fakeSupabase } from './testing/fakeSupabase.mjs'
@@ -26,16 +27,41 @@ test('a consumed session is not moved back to rejected', async () => {
   assert.equal(tables.verification_sessions[0].status, 'consumed')
 })
 
-test('attempts are counted only while the session is still active', async () => {
+test('an attempt is counted once, from the value the caller read', async () => {
   const tables = { verification_sessions: [
     { id: 's3', status: 'active', attempts: 1 },
     { id: 's4', status: 'expired', attempts: 1 },
   ] }
   const svc = fakeSupabase(tables)
-  await setSessionAttempts(svc, 's3', 2)
-  await setSessionAttempts(svc, 's4', 2)
+  const first = await claimSessionAttempt(svc, 's3', 1)
+  const stale = await claimSessionAttempt(svc, 's3', 1) // a second request that read the same value
+  const expired = await claimSessionAttempt(svc, 's4', 1)
+  assert.equal(first.data.length, 1)
+  assert.equal(stale.data.length, 0)
+  assert.equal(expired.data.length, 0)
   assert.equal(tables.verification_sessions[0].attempts, 2)
   assert.equal(tables.verification_sessions[1].attempts, 1)
+})
+
+// ── Admin user search: user text cannot add filter clauses ──
+
+test('search text has its filter characters removed', () => {
+  assert.equal(cleanSearchTerm('ada,role.eq.admin'), 'ada role.eq.admin')
+  assert.equal(cleanSearchTerm('  (x)*  '), 'x')
+})
+
+test('a search cannot add a clause to the user filter', async () => {
+  const seen = []
+  const builder = {
+    select() { return builder },
+    order() { return builder },
+    range() { return builder },
+    eq() { return builder },
+    or(expr) { seen.push(expr); return builder },
+    then(resolve) { resolve({ data: [], error: null, count: 0 }) },
+  }
+  await listUsers({ from: () => builder }, { from: 0, to: 9, search: 'ada,role.eq.admin', role: '', status: '' })
+  assert.deepEqual(seen, ['full_name.ilike.%ada role.eq.admin%,email.ilike.%ada role.eq.admin%'])
 })
 
 // ── Invite codes: only active members can be invited by ──
