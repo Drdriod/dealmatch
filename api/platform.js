@@ -31,6 +31,16 @@ import { PaymentError, resolvePayment, clean, VA_TTL_SECONDS } from '../src/lib/
 import { movePayout } from '../src/lib/payoutStates.js'
 import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
+import { findDeletionBlockers, eraseAccountData, findIdentityStatus, saveIdentityHash } from '../src/data/accountRepository.js'
+import { sweepOrphanIdentityDocs, findDuePurges, recordPurgeFailure, markPurged } from '../src/data/identityDocsRepository.js'
+import { findVirtualAccountByReference, findCustomerIdForEmail, insertVirtualAccount, findPaymentStatus } from '../src/data/paymentVirtualAccountRepository.js'
+import {
+  findPendingPayouts, incrementPayoutAttempts, findPayoutTransaction, findVerifiedPayoutAccount,
+  saveRecipientCode, saveTransactionPayoutRef, saveFailureReason, markTransactionPayoutFailed,
+  findStuckProcessingPayouts, findTransactionPayoutRef, findStuckPayoutAlert, findSuperadmins,
+} from '../src/data/payoutQueueRepository.js'
+import { demoteExpiredVerifications, cancelUnpaidBookings } from '../src/data/maintenanceRepository.js'
+import { findListingLatLng } from '../src/data/listingRepository.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing, getListingForIndexing } from '../src/modules/listings/listingsService.js'
@@ -104,17 +114,10 @@ async function handleRenderPublic(req, res) {
 async function purgeIdentityDocs(svc) {
   // Queue unreferenced files (superseded or legacy uploads) before purging.
   // Failure here is logged and does not block purging what is already queued.
-  const { error: sweepErr } = await svc.rpc('sweep_orphan_identity_docs')
+  const { error: sweepErr } = await sweepOrphanIdentityDocs(svc)
   if (sweepErr) console.error('purge: orphan sweep failed:', sweepErr.message)
 
-  const { data: due, error } = await svc
-    .from('identity_doc_purge_queue')
-    .select('id, storage_path, attempts')
-    .is('purged_at', null)
-    .lte('purge_after', new Date().toISOString())
-    .lt('attempts', 5)
-    .order('purge_after', { ascending: true })
-    .limit(200)
+  const { data: due, error } = await findDuePurges(svc, new Date().toISOString())
   if (error) {
     console.error('purge: failed to load queue', error.message)
     return { purged: 0, failed: 0, error: 'load_failed' }
@@ -133,19 +136,14 @@ async function purgeIdentityDocs(svc) {
   if (removeErr) {
     console.error('purge: storage remove failed:', removeErr.message)
     for (const r of due) {
-      await svc.from('identity_doc_purge_queue')
-        .update({ attempts: r.attempts + 1, last_error: removeErr.message.slice(0, 500) })
-        .eq('id', r.id)
+      await recordPurgeFailure(svc, r, removeErr.message)
     }
     return { purged: 0, failed: due.length }
   }
 
   // Rows with no path have nothing to delete; they are closed out as well.
   const ids = due.map((r) => r.id)
-  const { error: updErr } = await svc
-    .from('identity_doc_purge_queue')
-    .update({ purged_at: now, storage_path: null, last_error: null })
-    .in('id', ids)
+  const { error: updErr } = await markPurged(svc, ids, now)
   if (updErr) console.error('purge: marking rows purged failed:', updErr.message)
   return { purged: ids.length, failed: 0 }
 }
@@ -169,7 +167,7 @@ const jsonResources = {
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
     if (req.method === 'GET') {
-      const { data, error } = await svc.rpc('account_deletion_blockers', { p_user: user.id })
+      const { data, error } = await findDeletionBlockers(svc, user.id)
       if (error) return res.status(500).json({ error: 'Could not check your account' })
       return res.status(200).json({ blockers: data || [] })
     }
@@ -178,7 +176,7 @@ const jsonResources = {
       return res.status(400).json({ error: 'Type DELETE to confirm' })
     }
 
-    const { data, error } = await svc.rpc('erase_account_data', { p_user: user.id })
+    const { data, error } = await eraseAccountData(svc, user.id)
     if (error) {
       console.error('[platform:delete-account] erase failed', error.message)
       return res.status(500).json({ error: 'Could not delete your account. Please try again or contact support.' })
@@ -242,11 +240,7 @@ const jsonResources = {
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
     // Retries of the same reference return the same account, but only to its owner.
-    const { data: existing } = await svc
-      .from('payment_virtual_accounts')
-      .select('*')
-      .eq('reference', reference)
-      .maybeSingle()
+    const { data: existing } = await findVirtualAccountByReference(svc, reference)
     if (existing) {
       if (existing.profile_id !== user.id) return res.status(409).json({ error: 'Reference already in use' })
       return res.status(200).json(publicVirtualAccount(existing))
@@ -272,14 +266,7 @@ const jsonResources = {
     try {
       // Flutterwave rejects a second customer with the same email, so reuse the
       // one we already created for this email. Only our own rows are used.
-      const { data: prior } = await svc
-        .from('payment_virtual_accounts')
-        .select('customer_id')
-        .eq('email', email)
-        .not('customer_id', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      const { data: prior } = await findCustomerIdForEmail(svc, email)
       const customer = prior?.customer_id
         ? { id: prior.customer_id }
         : await paymentGateway.createCustomer({
@@ -316,7 +303,7 @@ const jsonResources = {
         metadata,
         expires_at: va.account_expiration_datetime ?? new Date(Date.now() + VA_TTL_SECONDS * 1000).toISOString(),
       }
-      const { error: insErr } = await svc.from('payment_virtual_accounts').insert(row)
+      const { error: insErr } = await insertVirtualAccount(svc, row)
       if (insErr) {
         console.error('payment-virtual-account: insert failed', insErr.message)
         return res.status(500).json({ error: 'Could not start payment. Please try again.' })
@@ -338,11 +325,7 @@ const jsonResources = {
       return res.status(400).json({ error: 'Invalid reference' })
     }
     // The elevated client runs under the payer's own RLS, so only their row is visible.
-    const { data: row, error } = await supabase
-      .from('payment_virtual_accounts')
-      .select('reference, status, expected_kobo, paid_kobo, paid_at, profile_id')
-      .eq('reference', reference)
-      .maybeSingle()
+    const { data: row, error } = await findPaymentStatus(supabase, reference)
     if (error) return res.status(500).json({ error: 'Could not load payment' })
     if (!row || row.profile_id !== user.id) return res.status(404).json({ error: 'Payment not found' })
 
@@ -384,16 +367,12 @@ const jsonResources = {
     }
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
-    const { data: current } = await svc
-      .from('profiles').select('identity_verification_status').eq('id', user.id).maybeSingle()
+    const { data: current } = await findIdentityStatus(svc, user.id)
     if (current?.identity_verification_status === 'approved') {
       return res.status(409).json({ error: 'Your identity is already verified.' })
     }
 
-    const { error } = await svc.from('profiles').update({
-      identity_hmac: hash,
-      identity_nin_submitted_at: new Date().toISOString(),
-    }).eq('id', user.id)
+    const { error } = await saveIdentityHash(svc, user.id, hash, new Date().toISOString())
     if (error) {
       if (error.code === '23505') {
         return res.status(409).json({ error: 'This NIN/BVN is already linked to another account. Contact support if this is a mistake.' })
@@ -420,7 +399,7 @@ const jsonResources = {
     let released_bookings = null
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const maint = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-      const { data: n, error: demoteErr } = await maint.rpc('demote_expired_verifications')
+      const { data: n, error: demoteErr } = await demoteExpiredVerifications(maint)
       if (demoteErr) console.error('cron: demote_expired_verifications failed:', demoteErr.message)
       else demoted = n
       // Identity documents are removed 90 days after account deletion (ADR-009).
@@ -428,12 +407,9 @@ const jsonResources = {
       // Hotel bookings never paid within the payment window release their rooms.
       // The virtual account expires after 24 hours; 48 hours leaves room for a
       // late bank transfer to be seen before the booking is closed.
-      const { data: released, error: releaseErr } = await maint
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('status', 'pending')
-        .lt('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
-        .select('id')
+      const { data: released, error: releaseErr } = await cancelUnpaidBookings(
+        maint, new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      )
       if (releaseErr) console.error('cron: releasing unpaid hotel bookings failed:', releaseErr.message)
       else released_bookings = released?.length ?? 0
     }
@@ -444,13 +420,7 @@ const jsonResources = {
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
-    const { data: rows, error } = await svc
-      .from('payout_queue')
-      .select('id, transaction_id, profile_id, payout_account_id, amount_cents, attempts')
-      .eq('status', 'pending')
-      .lt('attempts', 5) // never retry forever - a row stuck at 5 failures needs an admin
-      .order('created_at', { ascending: true })
-      .limit(20)
+    const { data: rows, error } = await findPendingPayouts(svc)
 
     if (error) {
       console.error('cron-process-payouts: failed to load queue', error.message)
@@ -460,14 +430,12 @@ const jsonResources = {
     let processed = 0, failed = 0
     for (const row of rows || []) {
       try {
-        await svc.from('payout_queue').update({ attempts: row.attempts + 1 }).eq('id', row.id)
+        await incrementPayoutAttempts(svc, row)
 
         // Defence in depth: pay only what the transaction says is owed, to the
         // account it was accepted with, once the deal is completed. Anything
         // else is held for a person to look at, not retried.
-        const { data: tx } = await svc.from('transactions')
-          .select('id, status, payout_status, provider_payout_account_id, amount_cents, commission_amount_cents')
-          .eq('id', row.transaction_id).maybeSingle()
+        const { data: tx } = await findPayoutTransaction(svc, row.transaction_id)
         const owedKobo = tx ? Number(tx.amount_cents || 0) - Number(tx.commission_amount_cents || 0) : null
         const matches = tx
           && tx.status === 'COMPLETED'
@@ -481,12 +449,7 @@ const jsonResources = {
           throw held
         }
 
-        const { data: account } = await svc
-          .from('payout_accounts')
-          .select('*')
-          .eq('id', row.payout_account_id)
-          .eq('status', 'verified')
-          .maybeSingle()
+        const { data: account } = await findVerifiedPayoutAccount(svc, row.payout_account_id)
 
         if (!account) {
           throw new Error('No verified payout account for this transaction')
@@ -507,7 +470,7 @@ const jsonResources = {
             idempotencyKey: idemKey('dmrcp', account.id),
           })
           recipientId = recipient.id
-          await svc.from('payout_accounts').update({ gateway_recipient_code: recipientId }).eq('id', account.id)
+          await saveRecipientCode(svc, account.id, recipientId)
         }
 
         // The reference is stable per queue row: Flutterwave rejects a
@@ -532,7 +495,7 @@ const jsonResources = {
         // Still in flight until the transfer.success / transfer.failed
         // webhook confirms it. gateway_ref is our reference, which the webhook matches.
         await movePayout(svc, row.id, 'processing', { gateway_ref: transferReference }, { from: ['pending'] })
-        await svc.from('transactions').update({ payout_ref: String(transfer.id ?? transferReference) }).eq('id', row.transaction_id)
+        await saveTransactionPayoutRef(svc, row.transaction_id, String(transfer.id ?? transferReference))
 
         processed++
       } catch (err) {
@@ -545,10 +508,10 @@ const jsonResources = {
           await movePayout(svc, row.id, 'failed', { failure_reason }, { from: ['pending'] })
         } else {
           // Stays pending for the next run; only the reason is recorded.
-          await svc.from('payout_queue').update({ failure_reason }).eq('id', row.id)
+          await saveFailureReason(svc, row.id, failure_reason)
         }
         if (giveUp) {
-          await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', row.transaction_id)
+          await markTransactionPayoutFailed(svc, row.transaction_id)
         }
       }
     }
@@ -559,19 +522,13 @@ const jsonResources = {
     // and settle it the same way the webhook would. NEW or PENDING transfers are
     // left alone and checked again on the next run.
     const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    const { data: stuck, error: stuckErr } = await svc
-      .from('payout_queue')
-      .select('id, transaction_id, profile_id, amount_cents, gateway_ref, created_at')
-      .eq('status', 'processing')
-      .lt('created_at', cutoff)
-      .order('created_at', { ascending: true })
-      .limit(20)
+    const { data: stuck, error: stuckErr } = await findStuckProcessingPayouts(svc, cutoff)
     if (stuckErr) console.error('cron-process-payouts: failed to load processing rows', stuckErr.message)
 
     let reconciled = 0
     for (const row of stuckErr ? [] : stuck || []) {
       try {
-        const { data: tx } = await svc.from('transactions').select('payout_ref').eq('id', row.transaction_id).maybeSingle()
+        const { data: tx } = await findTransactionPayoutRef(svc, row.transaction_id)
         if (!tx?.payout_ref) {
           console.error(`cron-process-payouts: processing row ${row.id} has no transfer id to check`)
           continue
@@ -584,10 +541,9 @@ const jsonResources = {
         } else if (Date.now() - new Date(row.created_at).getTime() > 3 * 24 * 60 * 60 * 1000) {
           // Still NEW or PENDING after three days: a person needs to look at it.
           // Alert superadmins once per payout, not on every run.
-          const { data: already } = await svc.from('notifications')
-            .select('id').eq('type', 'payout_stuck').ilike('message', `%payout #${row.id} %`).limit(1)
+          const { data: already } = await findStuckPayoutAlert(svc, row.id)
           if (!already?.length) {
-            const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
+            const { data: admins } = await findSuperadmins(svc)
             for (const a of admins || []) {
               await insertNotification(svc, 'payout_stuck', a.id, {
                 payoutId: row.id,
@@ -1074,7 +1030,7 @@ async function getListingLatLng(supabase, id) {
   // location is a PostGIS geography column, not directly readable as
   // lat/lng over PostgREST - reuses the existing RPC (see
   // matchingService.js:findCounterpartMatches for the same pattern).
-  const { data } = await supabase.rpc('get_listing_with_latlng', { p_id: id }).single()
+  const { data } = await findListingLatLng(supabase, id)
   return { lat: typeof data?.lat === 'number' ? data.lat : null, lng: typeof data?.lng === 'number' ? data.lng : null }
 }
 
