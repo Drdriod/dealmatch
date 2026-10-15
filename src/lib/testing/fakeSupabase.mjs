@@ -3,7 +3,7 @@
 // gt, maybeSingle, single, upsert (onConflict + ignoreDuplicates), and await.
 //
 // tables: { tableName: [rows...] }. Rows are mutated in place, so a test can
-// inspect them afterwards. `log.inserts` records every insert.
+// inspect them afterwards. Reads return copies. `log.inserts` records every insert.
 export function fakeSupabase(tables = {}) {
   const log = { inserts: [] }
 
@@ -63,7 +63,10 @@ export function fakeSupabase(tables = {}) {
       matched.forEach((r) => Object.assign(r, state.patch))
       return { data: matched.map((r) => ({ id: r.id })), error: null }
     }
-    return { data: state.single ? (matched[0] ?? null) : matched, error: null }
+    // Reads return copies, as a real client does: a caller keeps the value it read,
+    // even if the row changes afterwards.
+    const copy = (r) => ({ ...r })
+    return { data: state.single ? (matched[0] ? copy(matched[0]) : null) : matched.map(copy), error: null }
   }
 
   return svc

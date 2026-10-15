@@ -24,6 +24,11 @@ import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 import { recordMoneyToReturn, runChargePurpose } from '../src/lib/chargePurposes.js'
+import {
+  findInviterOf, insertReferralTransaction, addLoyaltyPoints, upsertPaymentRecord,
+  findVirtualAccountByNumber, markVirtualAccountUnderpaid, markVirtualAccountPaid,
+  resolveUnderpaidRefunds, findPayoutByGatewayRef,
+} from '../src/data/webhookRepository.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
 const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
@@ -85,11 +90,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
   const seen = new Set([buyerUserId]) // prevents self-referral / circular invite loops from paying out
 
   while (currentId && level <= 10) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, invited_by')
-      .eq('id', currentId)
-      .single()
+    const { data } = await findInviterOf(supabase, currentId)
 
     if (!data?.invited_by) break
     if (seen.has(data.invited_by)) break // would be a self-referral or a loop - stop walking
@@ -108,7 +109,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
       const amount = calcCashReferral(dmCommission, lvl)
       if (amount <= 0) continue
 
-      const { error } = await supabase.from('referral_transactions').insert({
+      const { error } = await insertReferralTransaction(supabase, {
         referrer_id:      userId,
         buyer_id:         buyerUserId,
         transaction_id:   transactionId,
@@ -127,29 +128,9 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
     } else {
       const points = calcPoints(lvl)
 
-      const { data: existing } = await supabase
-        .from('loyalty_points')
-        .select('id, points_balance, points_lifetime')
-        .eq('user_id', userId)
-        .single()
+      await addLoyaltyPoints(supabase, userId, points)
 
-      if (existing) {
-        await supabase.from('loyalty_points').update({
-          points_balance:  existing.points_balance + points,
-          points_lifetime: existing.points_lifetime + points,
-          updated_at:      new Date().toISOString(),
-        }).eq('user_id', userId)
-      } else {
-        await supabase.from('loyalty_points').insert({
-          user_id:         userId,
-          points_balance:  points,
-          points_lifetime: points,
-          created_at:      new Date().toISOString(),
-          updated_at:      new Date().toISOString(),
-        })
-      }
-
-      await supabase.from('referral_transactions').insert({
+      await insertReferralTransaction(supabase, {
         referrer_id:      userId,
         buyer_id:         buyerUserId,
         transaction_id:   transactionId,
@@ -204,11 +185,7 @@ async function normalizeChargeEvent(eventData) {
   if (!accountNumber) return null // card or other method: not a DealMatch virtual account
 
   const svc = getServiceClient()
-  const { data: row } = await svc
-    .from('payment_virtual_accounts')
-    .select('*')
-    .eq('account_number', accountNumber)
-    .maybeSingle()
+  const { data: row } = await findVirtualAccountByNumber(svc, accountNumber)
   if (!row) {
     console.warn('Credit to unknown virtual account:', accountNumber)
     return null
@@ -227,29 +204,19 @@ async function normalizeChargeEvent(eventData) {
   // Running total for this account. A second transfer tops up a short payment.
   const totalKobo = Number(row.paid_kobo || 0) + paidKobo
   if (totalKobo < expectedKobo) {
-    await svc.from('payment_virtual_accounts')
-      .update({ status: 'underpaid', paid_kobo: totalKobo })
-      .eq('reference', row.reference)
-      .in('status', ['pending', 'underpaid'])
+    await markVirtualAccountUnderpaid(svc, row.reference, totalKobo)
     await recordMoneyToReturn(svc, row, totalKobo, 'underpaid', 'Part payment held until topped up or returned', 'short:' + row.reference)
     console.warn('Underpaid virtual account payment:', row.reference, totalKobo, expectedKobo)
     return null
   }
 
   // Conditional update: only the first delivery of the completing credit flips the row
-  const { data: flipped } = await svc
-    .from('payment_virtual_accounts')
-    .update({ status: 'paid', paid_kobo: totalKobo, paid_at: new Date().toISOString() })
-    .eq('reference', row.reference)
-    .in('status', ['pending', 'underpaid'])
-    .select('reference')
+  const { data: flipped } = await markVirtualAccountPaid(svc, row.reference, totalKobo)
   if (!flipped || flipped.length === 0) return null // already processed
 
   // The short payment is now complete, so it is no longer owed back.
   if (Number(row.paid_kobo || 0) > 0) {
-    await svc.from('payment_refunds')
-      .update({ status: 'resolved', updated_at: new Date().toISOString() })
-      .eq('reference', row.reference).eq('reason', 'underpaid').eq('status', 'to_refund')
+    await resolveUnderpaidRefunds(svc, row.reference)
   }
   const excessKobo = totalKobo - expectedKobo
   if (excessKobo > 0) {
@@ -302,8 +269,8 @@ async function transferSucceeded(event) {
   // settlement itself is shared with reconciliation (see payoutSettlement.js).
   const transferCode = event.data.transfer_code || event.data.reference
   if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-    const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).eq('status', 'processing').maybeSingle()
+    const svc = getServiceClient()
+    const { data: queueRow } = await findPayoutByGatewayRef(svc, transferCode, { processingOnly: true })
     if (queueRow) {
       await settlePayout(svc, queueRow, 'paid')
     } else {
@@ -319,8 +286,8 @@ async function transferFailed(event) {
   const transferCode = event.data.transfer_code || event.data.reference
   console.error(`Transfer ${event.event}:`, transferCode)
   if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-    const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
+    const svc = getServiceClient()
+    const { data: queueRow } = await findPayoutByGatewayRef(svc, transferCode)
     if (queueRow) {
       await settlePayout(svc, queueRow, 'failed', event.event)
     }
@@ -419,7 +386,7 @@ export default async function handler(req, res) {
 
           // Log every charge.success to payments table
           // Column names match the live payments schema exactly.
-          await supabase.from('payments').upsert({
+          await upsertPaymentRecord(supabase, {
             reference,
             amount:            amountNgn,
             currency:          'NGN',
@@ -429,7 +396,7 @@ export default async function handler(req, res) {
             status:            'success',
             user_id:           metadata?.user_id || null,
             // payment_type and verified_at do NOT exist in live schema - omitted
-          }, { onConflict: 'reference', ignoreDuplicates: true })
+          })
 
           // ── AUTOMATIC REFERRAL PAYOUT ──────────────────────────────
           // Triggers the moment real money lands - no manual lookup,

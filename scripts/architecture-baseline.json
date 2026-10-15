@@ -40,7 +40,6 @@
   "api/admin/[resource].js": 21,
   "api/agent/[action].js": 14,
   "api/escrow-webhook.js": 3,
-  "api/flutterwave-webhook.js": 13,
   "api/index-property.js": 1,
   "api/platform.js": 25,
   "api/send-email.js": 2,
