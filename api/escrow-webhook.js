@@ -4,6 +4,7 @@
 
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { markEscrowFunded, markEscrowReleased, markEscrowRefunded } from '../src/data/escrowRepository.js'
 
 function getSupabase() {
   return createClient(
@@ -54,16 +55,16 @@ export default async function handler(req, res) {
 
   try {
     const supabase = getSupabase()
+    const now = new Date().toISOString()
 
+    // A failed write throws, so the sender gets a 500 and retries. Before, the
+    // error was ignored and a lost update was acknowledged with 200.
     switch (event) {
       case 'escrow.funded': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'funded', funded_at: new Date().toISOString() })
-          .eq('payment_ref', reference)
-          .eq('status', 'awaiting_payment')
+        const { error } = await markEscrowFunded(supabase, reference, now)
+        if (error) throw error
         console.log('Escrow funded:', reference)
         break
       }
@@ -71,10 +72,8 @@ export default async function handler(req, res) {
       case 'escrow.released': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'released', released_at: new Date().toISOString() })
-          .eq('payment_ref', reference)
+        const { error } = await markEscrowReleased(supabase, reference, now)
+        if (error) throw error
         console.log('Escrow released:', reference)
         break
       }
@@ -82,10 +81,8 @@ export default async function handler(req, res) {
       case 'escrow.refunded': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'refunded' })
-          .eq('payment_ref', reference)
+        const { error } = await markEscrowRefunded(supabase, reference)
+        if (error) throw error
         console.log('Escrow refunded:', reference)
         break
       }

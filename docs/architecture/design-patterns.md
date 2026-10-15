@@ -14,6 +14,7 @@ is still to do. Update it when a pattern is applied or a new one is added.
 | Creational | Factory | `src/lib/notificationFactory.js` | Builds every server-side notification from one table of kinds. Copy is pinned by tests. |
 | Creational | Registry (charge purposes) | `src/lib/chargePurposes.js` | Each confirmed-charge purpose has one handler. Used by the webhook. |
 | Structural | Repository | `src/data/monetisationRepository.js` | The Monetisation tab's database access. The page never builds a query. |
+| Structural | Repository (server) | `src/data/webhookRepository.js`, `src/data/escrowRepository.js` | Payment writes made by the Flutterwave and escrow webhooks. Functions take the service client, so tests pass a fake. Failed writes are returned to the caller, which fails the request. |
 | Structural | Facade (existing) | `src/lib/platformFees.js`, `src/lib/notifications.js` | Hide fee lookup and notification delivery behind small functions. |
 
 Tests for these live next to the code (`src/lib/*.test.mjs`) and share the
@@ -41,8 +42,13 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    escrow that does not match (no row, not PENDING, amount mismatch) still writes the
    payments row, as before. Review whether that row should say `success` for a job that
    was not funded.
-4. **API database calls.** About 77 direct calls in `api/`. Move the payment-related
-   ones behind the same repositories.
+4. **API database calls. In progress.** The Flutterwave webhook and the escrow webhook
+   are done. 66 direct calls remain in `api/` (ratchet count): `platform.js` 25,
+   `admin/[resource].js` 21, `agent/[action].js` 14, `send-email.js` 2,
+   `send-whatsapp.js` 2, `index-property.js` 1, `validate-invite.js` 1.
+   Open, not changed: `escrow.released` and `escrow.refunded` are not guarded by the
+   escrow's current status. The route has no caller in this repo, so confirm with whoever
+   sends it events before changing it.
 5. **Client notifications. Done.** The only client-side insert is in the `notifications.js`
    facade, which is the allowed site (check 5 enforces it). Realtime reads still use the client.
 6. **Dashboards. In progress.** User and Landlord dashboards read through repositories.
