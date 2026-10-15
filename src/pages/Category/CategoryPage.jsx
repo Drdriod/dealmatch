@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ChevronRight } from 'lucide-react'
 import useCategoryTree from '@/hooks/useCategoryTree'
-import { supabase } from '@/lib/supabase'
+import { fetchVerifiedProvidersInCategory, fetchPublicProfilesByIds } from '@/data/categoryRepository'
 import PersonCard from '@/components/cards/PersonCard'
 import PlaceCard from '@/components/cards/PlaceCard'
 import Notice from '@/components/ui/Notice'
@@ -36,20 +36,12 @@ function findCategory(tree, slug) {
 // PersonCard rule. The category is a text label on the provider record, so it
 // is matched by the category name.
 async function loadPeople(categoryName) {
-  const { data: vp, error } = await supabase
-    .from('verified_providers')
-    .select('user_id, level, level_data')
-    .gte('level', 2)
-    .eq('level_data->>category', categoryName)
-    .limit(24)
+  const { data: vp, error } = await fetchVerifiedProvidersInCategory(categoryName)
   if (error) throw error
   if (!vp?.length) return []
 
   const ids = vp.map(v => v.user_id)
-  const { data: profiles } = await supabase
-    .from('public_profiles')
-    .select('id, full_name, avatar_url, city, state')
-    .in('id', ids)
+  const { data: profiles } = await fetchPublicProfilesByIds(ids)
 
   return vp.map(v => {
     const p = profiles?.find(x => x.id === v.user_id)

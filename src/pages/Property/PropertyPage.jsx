@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Bath, Bed, Flag, Frown, Heart, Home, Key, Lock, Map, MapPin, Maximize, MessageCircle, Share2, Shield, User } from 'lucide-react'
-import { getProperty, recordSwipe, supabase } from '@/lib/supabase'
+import { getProperty, recordSwipe } from '@/lib/supabase'
+import { fetchPropertyContact } from '@/data/propertyDetailRepository'
 import { useAuth } from '@/context/AuthContext'
 import { PropertyMap } from '@/components/ui/PropertyMap'
 import ImageGallery from '@/components/ui/ImageGallery'
@@ -44,7 +45,7 @@ export default function PropertyPage() {
   // get_property_contact() in supabase/migrations/20260812000000_production_hardening.sql).
   const checkContact = useCallback(async () => {
     if (!id) return
-    const { data } = await supabase.rpc('get_property_contact', { p_property_id: id })
+    const { data } = await fetchPropertyContact(id)
     setContact(Array.isArray(data) ? data[0] || null : data || null)
     setContactChecked(true)
   }, [id])

@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Briefcase, Building, Check, ChevronDown, Map } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
-import { supabase } from '@/lib/supabase'
+import { insertProfessionalApplication } from '@/data/professionalsRepository'
 import { getFeeAmounts, subscribeProfessional } from '@/lib/flutterwave'
 import { usePlatformFees, feeText } from '@/lib/platformFees'
 import { useNavigate } from 'react-router-dom'
@@ -165,22 +165,18 @@ export default function ApplyProfessionalPage() {
     const monthlyFee = planType === 'annual' ? plan.annualFee : plan.monthlyFee
 
     // Insert using live schema column names exactly
-    const { data: application, error } = await supabase
-      .from('professional_applications')
-      .insert({
-        user_id:           user.id,
-        professional_type: professionForDB,   // the actual profession label/name
-        full_name:         form.full_name,
-        company_name:      form.company || null,
-        phone:             form.phone,
-        email:             form.email,
-        license_number:    form.license_no || null,
-        coverage_areas:    form.coverage_areas || null,
-        plan_type:         planType,
-        status:            'pending',
-      })
-      .select('id')
-      .single()
+    const { data: application, error } = await insertProfessionalApplication({
+      user_id:           user.id,
+      professional_type: professionForDB,   // the actual profession label/name
+      full_name:         form.full_name,
+      company_name:      form.company || null,
+      phone:             form.phone,
+      email:             form.email,
+      license_number:    form.license_no || null,
+      coverage_areas:    form.coverage_areas || null,
+      plan_type:         planType,
+      status:            'pending',
+    })
 
     if (error || !application) {
       toast.error('Could not save application: ' + (error?.message || 'unknown error'))

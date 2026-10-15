@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react'
 import { Award, Briefcase, Building2, CheckCircle, ChevronLeft, ChevronRight, Clock, Filter, HardHat, Heart, MapPin, MessageCircle, PartyPopper, Phone, Search, Shield, Star, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchApprovedProfessionals, insertProfessionalRequest } from '@/data/professionalsRepository'
 import { useAuth } from '@/context/AuthContext'
 import { analytics } from '@/lib/posthog'
 import { clientRateLimit } from '@/lib/security'
@@ -56,7 +56,7 @@ function ContactModal({ pro, onClose }) {
 
     setSending(true)
     try {
-      const { error } = await supabase.from('professional_requests').insert({
+      const { error } = await insertProfessionalRequest({
         user_id:           user?.id || null,
         professional_id:   pro.id,
         professional_type: pro.type,
@@ -376,14 +376,7 @@ export default function ProfessionalsPage() {
   const loadPros = async () => {
     setLoading(true)
     setEmpty(false)
-    let q = supabase
-      .from('professional_applications')
-      .select('*')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-    if (typeFilter !== 'all') q = q.eq('professional_type', typeFilter)
-
-    const { data } = await q
+    const { data } = await fetchApprovedProfessionals(typeFilter)
     // Show only real, active professionals. No fake fallback list, no
     // randomly generated ratings - a professional with zero reviews
     // simply shows zero reviews until a real client rates them.
