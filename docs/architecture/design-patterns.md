@@ -14,7 +14,7 @@ is still to do. Update it when a pattern is applied or a new one is added.
 | Creational | Factory | `src/lib/notificationFactory.js` | Builds every server-side notification from one table of kinds. Copy is pinned by tests. |
 | Creational | Registry (charge purposes) | `src/lib/chargePurposes.js` | Each confirmed-charge purpose has one handler. Used by the webhook. |
 | Structural | Repository | `src/data/monetisationRepository.js` | The Monetisation tab's database access. The page never builds a query. |
-| Structural | Repository (server) | `src/data/webhookRepository.js`, `escrowRepository.js`, `accountRepository.js`, `identityDocsRepository.js`, `paymentVirtualAccountRepository.js`, `payoutQueueRepository.js`, `maintenanceRepository.js`, `listingRepository.js` | Database access for the API routes and cron jobs: the Flutterwave and escrow webhooks, account deletion, identity, virtual accounts and payouts. Functions take the client as an argument, so tests pass a fake. Failed writes are returned to the caller, which fails the request. |
+| Structural | Repository (server) | `src/data/`: `webhookRepository`, `escrowRepository`, `accountRepository`, `identityDocsRepository`, `paymentVirtualAccountRepository`, `payoutQueueRepository`, `maintenanceRepository`, `listingRepository`, `adminApiRepository`, `agentVerificationRepository`, `outboundMessageRepository`, `inviteRepository`, `propertyRepository` | Database access for the API routes and cron jobs. Functions take the client as an argument, so tests pass a fake. Failed writes are returned to the caller, which fails the request. |
 | Structural | Facade (existing) | `src/lib/platformFees.js`, `src/lib/notifications.js` | Hide fee lookup and notification delivery behind small functions. |
 
 Tests for these live next to the code (`src/lib/*.test.mjs`) and share the
@@ -42,12 +42,16 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    escrow that does not match (no row, not PENDING, amount mismatch) still writes the
    payments row, as before. Review whether that row should say `success` for a job that
    was not funded.
-4. **API database calls. In progress.** The Flutterwave webhook, the escrow webhook and
-   `api/platform.js` are done. 41 direct calls remain in `api/` (ratchet count):
-   `admin/[resource].js` 21, `agent/[action].js` 14, `send-email.js` 2,
-   `send-whatsapp.js` 2, `index-property.js` 1, `validate-invite.js` 1.
-   `platform.js` still removes identity-document files from Supabase Storage directly.
-   The ratchet counts table and RPC calls only, so that call is not in the count.
+4. **API database calls. Done.** Every table and RPC call in `api/` goes through a
+   repository in `src/data/`. The ratchet has no `api/` entries, and a new direct call in
+   `api/` fails the check. Two things sit outside the repositories:
+   `platform.js` removes identity-document files from Supabase Storage directly (storage,
+   not a table), and the agent submit's attempt counter is still read and then written, so
+   concurrent attempts can undercount.
+   Changed on the way: the agent submit consumes a session only while it is still active,
+   so two submits racing on one session cannot both succeed (checked with a concurrent
+   harness: before, both were accepted; after, one is). The escrow webhook returns 500 when
+   a write fails, so the sender retries instead of losing the event.
    Open, not changed: `escrow.released` and `escrow.refunded` are not guarded by the
    escrow's current status. The route has no caller in this repo, so confirm with whoever
    sends it events before changing it.
@@ -68,7 +72,7 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
 ## Rules for new code
 
 - Talk to a service (Flutterwave, WhatsApp, Pinecone, email) only through an adapter.
-- Put database queries for a feature in its repository, not in the page.
+- Put database queries for a feature in its repository, not in the page or the API route.
 - Use a registry or table when a `switch` on a type or status would grow.
 - Use a state table when a status can only move in certain ways.
 - Build notifications through the factory. Never write the copy inline.

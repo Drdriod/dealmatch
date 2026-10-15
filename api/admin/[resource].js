@@ -15,6 +15,11 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { redisRateLimit } from '../../src/lib/redis.js'
+import {
+  findCallerRole, findProfileRoleAndName, fetchStatsQueries, listUsers, findProfileForModeration,
+  updateProfileById, insertAdminAudit, listTestimonials, updateTestimonialReview,
+  findProfileIdByEmail, insertStaffInvite, revokePendingStaffInvites,
+} from '../../src/data/adminApiRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 const ADMIN_EMAILS   = new Set(['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com'])
@@ -60,7 +65,7 @@ async function handleLogin(req, res) {
     if (error) return res.status(401).json({ error: 'Incorrect email or password.' })
 
     const svc = getServiceClient()
-    const { data: profile } = await svc.from('profiles').select('role, full_name').eq('id', data.user.id).single()
+    const { data: profile } = await findProfileRoleAndName(svc, data.user.id)
     const isAdminEmail = ADMIN_EMAILS.has(data.user.email)
     const isAdminRole  = new Set(['admin', 'agent']).has(profile?.role)
 
@@ -86,18 +91,7 @@ async function handleStats(req, res, { user, callerProfile }) {
 
   const svc = getServiceClient()
   try {
-    const results = await Promise.all([
-      svc.from('profiles').select('*', { count: 'exact', head: true }),
-      svc.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-      svc.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending_review'),
-      svc.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-      svc.from('profiles').select('*', { count: 'exact', head: true }).eq('identity_verification_status', 'submitted'),
-      svc.from('mortgage_applications').select('*', { count: 'exact', head: true }),
-      svc.from('rental_enquiries').select('*', { count: 'exact', head: true }),
-      svc.from('payments').select('amount').eq('status', 'success'),
-      svc.from('profiles').select('id,full_name,email,role,created_at').order('created_at', { ascending: false }).limit(5),
-      svc.from('properties').select('id,title,status,created_at,profiles(full_name)').order('created_at', { ascending: false }).limit(8),
-    ])
+    const results = await fetchStatsQueries(svc)
     const [
       rTotalUsers, rActiveListings, rPendingListings, rTotalPros, rPendingIdentity,
       rMortgageApps, rRentalEnquiries, rPayments, rRecentUsers, rRecentProps,
@@ -159,15 +153,7 @@ async function handleUsers(req, res, { user, callerProfile }) {
     const from   = page * limit
     const to     = from + limit - 1
 
-    let q = svc.from('profiles')
-      .select('id,full_name,email,phone,role,account_status,is_photo_verified,is_live_verified,onboarding_completed,created_at,identity_verification_status,is_deactivated', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to)
-    if (search) q = q.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
-    if (role)   q = q.eq('role', role)
-    if (status) q = q.eq('account_status', status)
-
-    const { data, count, error } = await q
+    const { data, count, error } = await listUsers(svc, { from, to, search, role, status })
     if (error) { console.error(error.message); return res.status(500).json({ error: 'Fetch failed' }) }
     return res.status(200).json({ users: data || [], total: count || 0, page, limit })
   }
@@ -176,7 +162,7 @@ async function handleUsers(req, res, { user, callerProfile }) {
     const { action, userId, role: newRole, reason } = req.body || {}
     if (!userId || typeof userId !== 'string') return res.status(400).json({ error: 'userId required' })
 
-    const { data: target } = await svc.from('profiles').select('email,role').eq('id', userId).single()
+    const { data: target } = await findProfileForModeration(svc, userId)
     if (ADMIN_EMAILS.has(target?.email)) return res.status(403).json({ error: 'Cannot modify superadmin' })
 
     const ALLOWED_ACTIONS = new Set(['set_role','suspend','unsuspend','deactivate'])
@@ -208,10 +194,10 @@ async function handleUsers(req, res, { user, callerProfile }) {
     if (action === 'unsuspend')  update = { account_status: 'active' }
     if (action === 'deactivate') update = { is_deactivated: true, account_status: 'deleted' }
 
-    const { error: updateErr } = await svc.from('profiles').update(update).eq('id', userId)
+    const { error: updateErr } = await updateProfileById(svc, userId, update)
     if (updateErr) { console.error(updateErr.message); return res.status(500).json({ error: 'Update failed' }) }
 
-    await svc.from('admin_audit_log').insert({
+    await insertAdminAudit(svc, {
       action: `admin_${action}`, target_id: userId, performed_by: user.id,
       metadata: { new_role: newRole, reason: reason?.substring(0, 200) },
       created_at: new Date().toISOString(),
@@ -234,9 +220,7 @@ async function handleTestimonials(req, res, { user, callerProfile }) {
 
   if (req.method === 'GET') {
     const status = req.query?.status || 'pending'
-    const { data, error } = await svc.from('testimonials')
-      .select('id, user_id, name, role_label, content, rating, status, created_at')
-      .eq('status', status).order('created_at', { ascending: false }).limit(100)
+    const { data, error } = await listTestimonials(svc, status)
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ testimonials: data })
   }
@@ -244,11 +228,11 @@ async function handleTestimonials(req, res, { user, callerProfile }) {
   if (req.method === 'POST') {
     const { id, action } = req.body || {}
     if (!id || !['approve', 'reject'].includes(action)) return res.status(400).json({ error: 'id and valid action required' })
-    const { error } = await svc.from('testimonials').update({
+    const { error } = await updateTestimonialReview(svc, id, {
       status: action === 'approve' ? 'approved' : 'rejected',
       reviewed_at: new Date().toISOString(),
       reviewed_by: user.id,
-    }).eq('id', id)
+    })
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ ok: true })
   }
@@ -280,10 +264,10 @@ async function handleStaffInvite(req, res, { user }) {
 
   const svc = getServiceClient()
 
-  const { data: existingProfile } = await svc.from('profiles').select('id').eq('email', cleanEmail).maybeSingle()
+  const { data: existingProfile } = await findProfileIdByEmail(svc, cleanEmail)
   if (existingProfile) return res.status(409).json({ error: 'An account with this email already exists' })
 
-  const { error: inviteRowErr } = await svc.from('staff_invites').insert({
+  const { error: inviteRowErr } = await insertStaffInvite(svc, {
     email: cleanEmail, full_name: cleanName, role, invited_by: user.id,
   })
   if (inviteRowErr) {
@@ -297,12 +281,12 @@ async function handleStaffInvite(req, res, { user }) {
     data: { full_name: cleanName },
   })
   if (sendErr) {
-    await svc.from('staff_invites').update({ status: 'revoked' }).eq('email', cleanEmail).eq('status', 'pending')
+    await revokePendingStaffInvites(svc, cleanEmail)
     console.error('Staff invite email failed:', sendErr.message)
     return res.status(500).json({ error: 'Could not send invite email' })
   }
 
-  await svc.from('admin_audit_log').insert({
+  await insertAdminAudit(svc, {
     action: 'staff_invited', metadata: { email: cleanEmail, role }, performed_by: user.id,
     created_at: new Date().toISOString(),
   }).catch(() => {})
@@ -342,7 +326,7 @@ export default async function handler(req, res) {
     const anonClient = getAnonClient(token)
     const { data: { user }, error: authErr } = await anonClient.auth.getUser()
     if (authErr || !user) return res.status(401).json({ error: 'Invalid session' })
-    const { data: callerProfile } = await anonClient.from('profiles').select('role').eq('id', user.id).single()
+    const { data: callerProfile } = await findCallerRole(anonClient, user.id)
     const ctx = { user, callerProfile }
 
     if (resource === 'stats')        return handleStats(req, res, ctx)

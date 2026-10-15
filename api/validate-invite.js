@@ -4,6 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { redisRateLimit } from '../src/lib/redis.js'
+import { findInviterFirstName } from '../src/data/inviteRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 
@@ -50,12 +51,7 @@ export default async function handler(req, res) {
     process.env.VITE_SUPABASE_ANON_KEY
   )
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('invite_code', clean)
-    .eq('is_deactivated', false) // suspended/deactivated users can't earn
-    .single()
+  const { data, error } = await findInviterFirstName(supabase, clean)
 
   if (error || !data) {
     // Deliberate: same response for "not found" and DB error
