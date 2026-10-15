@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Search, ShieldCheck, Star, Zap, ChevronRight, Crosshair } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchStatePoints, searchProvidersNear, fetchProviderCardDetails } from '@/data/providerSearchRepository'
 import { useAuth } from '@/context/AuthContext'
 import { NIGERIAN_STATES } from '@/lib/location'
 
@@ -67,7 +67,7 @@ export default function FindProviderPage() {
   // Load state centroids once, then choose a default origin from the viewer's state
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from('nigeria_state_points').select('state, lat, lng')
+      const { data } = await fetchStatePoints()
       const map = {}
       ;(data || []).forEach(r => { map[r.state] = { lat: r.lat, lng: r.lng } })
       setStatePoints(map)
@@ -91,23 +91,19 @@ export default function FindProviderPage() {
     let cancelled = false
     ;(async () => {
       setLoading(true)
-      const { data: hits, error } = await supabase.rpc('search_providers_rpc', {
-        client_lat: origin.lat,
-        client_lng: origin.lng,
-        radius_m: activeChips.includes('nearby') && origin.precise ? RADIUS_NEAR_M : radiusM,
-        min_level: minLevel,
-        page_limit: 50,
-        page_offset: 0,
+      const { data: hits, error } = await searchProvidersNear({
+        lat: origin.lat,
+        lng: origin.lng,
+        radiusM: activeChips.includes('nearby') && origin.precise ? RADIUS_NEAR_M : radiusM,
+        minLevel,
+        limit: 50,
+        offset: 0,
       })
       if (cancelled) return
       if (error || !hits?.length) { setRows([]); setLoading(false); return }
 
       const ids = hits.map(h => h.user_id)
-      const [{ data: vp }, { data: profiles }, { data: stats }] = await Promise.all([
-        supabase.from('verified_providers').select('user_id, level, level_data, updated_at').in('user_id', ids),
-        supabase.from('public_profiles').select('id, full_name, avatar_url, city, state, bio').in('id', ids),
-        supabase.from('provider_stats').select('provider_id, review_count, avg_rating, completion_rate').in('provider_id', ids),
-      ])
+      const [{ data: vp }, { data: profiles }, { data: stats }] = await fetchProviderCardDetails(ids)
       if (cancelled) return
 
       const merged = hits.map(h => {

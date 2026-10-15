@@ -1,11 +1,7 @@
 {
   "src/pages/Admin/AdminLoginPage.jsx": 4,
-  "src/pages/Agent/AgentDashboardPage.jsx": 6,
   "src/pages/Availability/AvailabilityPage.jsx": 12,
   "src/pages/Home/HomePage.jsx": 3,
-  "src/pages/Hotels/HotelsPage.jsx": 3,
-  "src/pages/Provider/FindProviderPage.jsx": 5,
-  "src/pages/Provider/ProviderProfilePage.jsx": 7,
   "src/pages/Rentals/ListRentalPage.jsx": 1,
   "src/pages/Rentals/RentalsPage.jsx": 4,
   "src/components/ui/AvailabilityManager.jsx": 6,

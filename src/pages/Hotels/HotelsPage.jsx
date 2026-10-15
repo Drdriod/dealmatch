@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Check, Hotel, MapPin, PartyPopper, Search, Star, Users, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchActiveHotels, checkBookingAvailability, fetchClashingBookings } from '@/data/hotelsRepository'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/context/AuthContext'
 import { usePlatformFees, feeValue, feeText } from '@/lib/platformFees'
@@ -58,22 +58,20 @@ function BookingModal({ hotel, onClose }) {
 
     // ── Clash-prevention: check room availability for date range ──
     const selectedCategory = hotel.room_categories?.find(c => c.name === form.room_type)
-    const { data: availCheck, error: availErr } = await supabase.rpc('check_booking_availability', {
-      p_property_id: hotel.id,
-      p_checkin:     form.checkin,
-      p_checkout:    form.checkout,
-      p_rooms:       form.rooms,
-      p_category_id: selectedCategory?.id || null,
+    const { data: availCheck, error: availErr } = await checkBookingAvailability({
+      propertyId: hotel.id,
+      checkin:    form.checkin,
+      checkout:   form.checkout,
+      rooms:      form.rooms,
+      categoryId: selectedCategory?.id || null,
     })
     if (availErr) {
       // Function may not exist yet - fallback: count existing confirmed bookings manually
-      const { data: clashData } = await supabase
-        .from('bookings')
-        .select('rooms_booked')
-        .eq('property_id', hotel.id)
-        .not('status', 'in', '(cancelled,no_show)')
-        .lt('checkin_date', form.checkout)
-        .gt('checkout_date', form.checkin)
+      const { data: clashData } = await fetchClashingBookings({
+        propertyId: hotel.id,
+        checkin:    form.checkin,
+        checkout:   form.checkout,
+      })
       const bookedRooms = (clashData || []).reduce((sum, b) => sum + (b.rooms_booked || 1), 0)
       const totalAvail  = hotel.room_categories?.reduce((s, c) => s + (c.available_rooms || 0), 0) || 0
       if (bookedRooms + form.rooms > totalAvail) {
@@ -355,15 +353,7 @@ export default function HotelsPage() {
 
   const loadHotels = async () => {
     setLoading(true)
-    let q = supabase
-      .from('properties')
-      .select('*, room_categories(id, name, price_per_night, available_rooms)')
-      .in('category', ['hotel', 'shortlet'])
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(30)
-    if (state !== 'All States') q = q.eq('state', state)
-    const { data } = await q
+    const { data } = await fetchActiveHotels(state)
     setHotels(data || [])
     setLoading(false)
   }

@@ -6,6 +6,10 @@ import {
   ChevronDown, ChevronUp, Clock, FileText, Award, Ban, Trophy
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import {
+  fetchAssignedProperties, fetchAgentScore, fetchAgentComplaints,
+  saveAgentVerification, recordPropertyVerdict, respondToComplaint,
+} from '@/data/agentDashboardRepository'
 import { useAuth } from '@/context/AuthContext'
 import { AreaChart, HBars, Radial, Panel, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
@@ -74,29 +78,17 @@ export default function AgentDashboardPage() {
   }
 
   const loadAssigned = async () => {
-    const { data } = await supabase
-      .from('properties')
-      .select('*, profiles(full_name, phone, email), agent_verifications(id,verdict,submitted_at)')
-      .eq('assigned_agent_id', user.id)
-      .order('created_at', { ascending: false })
+    const { data } = await fetchAssignedProperties(user.id)
     setListings(data || [])
   }
 
   const loadScore = async () => {
-    const { data } = await supabase
-      .from('agent_scores')
-      .select('*')
-      .eq('agent_id', user.id)
-      .maybeSingle()
+    const { data } = await fetchAgentScore(user.id)
     setScore(data)
   }
 
   const loadComplaints = async () => {
-    const { data } = await supabase
-      .from('complaints')
-      .select('*, properties(title)')
-      .eq('agent_id', user.id)
-      .order('created_at', { ascending: false })
+    const { data } = await fetchAgentComplaints(user.id)
     setComplaints(data || [])
   }
 
@@ -161,34 +153,29 @@ export default function AgentDashboardPage() {
     setSubmitting(true)
     try {
       // Insert evidence record
-      const { error: evErr } = await supabase
-        .from('agent_verifications')
-        .upsert({
-          property_id:           property.id,
-          agent_id:              user.id,
-          photos:                ev.photos,
-          gps_lat:               ev.gps.lat,
-          gps_lng:               ev.gps.lng,
-          gps_accuracy_m:        ev.gps.acc,
-          checklist:             checks,
-          verdict,
-          rejection_reason:      verdict === 'rejected' ? (ev.notes || 'See checklist') : null,
-          liability_acknowledged: true,
-          visited_at:            new Date().toISOString(),
-        }, { onConflict: 'property_id,agent_id' })
+      const { error: evErr } = await saveAgentVerification({
+        property_id:           property.id,
+        agent_id:              user.id,
+        photos:                ev.photos,
+        gps_lat:               ev.gps.lat,
+        gps_lng:               ev.gps.lng,
+        gps_accuracy_m:        ev.gps.acc,
+        checklist:             checks,
+        verdict,
+        rejection_reason:      verdict === 'rejected' ? (ev.notes || 'See checklist') : null,
+        liability_acknowledged: true,
+        visited_at:            new Date().toISOString(),
+      })
       if (evErr) throw evErr
 
       // Update property status
       const newStatus = verdict === 'verified' ? 'active' : 'rejected'
-      const { error: propErr } = await supabase
-        .from('properties')
-        .update({
-          status:            newStatus,
-          verified_by:       user.id,
-          verification_date: new Date().toISOString(),
-          verification_notes: ev.notes || null,
-        })
-        .eq('id', property.id)
+      const { error: propErr } = await recordPropertyVerdict(property.id, {
+        status:            newStatus,
+        verified_by:       user.id,
+        verification_date: new Date().toISOString(),
+        verification_notes: ev.notes || null,
+      })
       if (propErr) throw propErr
 
       toast.success(verdict === 'verified' ? 'Property verified and now live!' : 'Property rejected')
@@ -668,7 +655,7 @@ export default function AgentDashboardPage() {
                       onClick={async () => {
                         const txt = document.getElementById(`response-${c.id}`)?.value?.trim()
                         if (!txt) { toast.error('Enter a response'); return }
-                        await supabase.from('complaints').update({ agent_response: txt, agent_responded_at: new Date().toISOString(), status:'under_review' }).eq('id', c.id)
+                        await respondToComplaint(c.id, txt)
                         toast.success('Response submitted'); loadComplaints()
                       }}
                       className="mt-2 w-full py-2 rounded-xl text-xs font-bold"
