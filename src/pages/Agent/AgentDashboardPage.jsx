@@ -655,7 +655,8 @@ export default function AgentDashboardPage() {
                       onClick={async () => {
                         const txt = document.getElementById(`response-${c.id}`)?.value?.trim()
                         if (!txt) { toast.error('Enter a response'); return }
-                        await respondToComplaint(c.id, txt)
+                        const { error: respErr } = await respondToComplaint(c.id, txt)
+                        if (respErr) { toast.error('Could not submit your response. Please try again.'); return }
                         toast.success('Response submitted'); loadComplaints()
                       }}
                       className="mt-2 w-full py-2 rounded-xl text-xs font-bold"
