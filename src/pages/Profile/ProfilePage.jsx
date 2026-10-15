@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Award, Briefcase, Camera, Edit3, HardHat, Heart, Home, LayoutDashboard, LogOut, Save, Shield, ShieldCheck, User } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { uploadAvatar, supabase } from '@/lib/supabase'
+import { markOffersServices } from '@/data/profileRepository'
+import { loadProviderSummary } from '@/data/verificationRepository'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DeleteAccountPanel from '@/components/DeleteAccountPanel'
@@ -46,11 +48,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user?.id || !profile?.offers_services) { setLoadingProvider(false); return }
     (async () => {
-      const [{ data: vp }, { data: sub }] = await Promise.all([
-        supabase.from('verified_providers').select('level, level_data').eq('user_id', user.id).maybeSingle(),
-        supabase.from('verification_submissions').select('status, submission_data, created_at')
-          .eq('user_id', user.id).eq('level', 2).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      ])
+      const [{ data: vp }, { data: sub }] = await loadProviderSummary(user.id)
       setProviderInfo({ level: vp?.level || 0, submission: sub || null })
       setLoadingProvider(false)
     })()
@@ -107,7 +105,7 @@ export default function ProfilePage() {
   const handleBecomeProvider = async () => {
     if (!user) return
     setBecomingProvider(true)
-    const { error } = await supabase.from('profiles').update({ offers_services: true }).eq('id', user.id)
+    const { error } = await markOffersServices(user.id)
     setBecomingProvider(false)
     if (error) { toast.error('Could not save. Try again.'); return }
     await refreshProfile()

@@ -30,6 +30,16 @@ export function loadSkillVerificationState(userId) {
   ])
 }
 
+// The provider's current tier and their most recent level 2 submission (whatever its
+// status), in that order. ProfilePage shows what they already submitted.
+export function loadProviderSummary(userId) {
+  return Promise.all([
+    supabase.from('verified_providers').select('level, level_data').eq('user_id', userId).maybeSingle(),
+    supabase.from('verification_submissions').select('status, submission_data, created_at')
+      .eq('user_id', userId).eq('level', 2).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  ])
+}
+
 // Creates a pending level 2 submission. A provider cannot approve their own submission;
 // only staff can, through the review function in the database.
 export function submitSkillVerification(data) {

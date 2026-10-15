@@ -22,6 +22,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Check, Eye, EyeOff, Lock, Shield, User, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { fetchProfileRole } from '@/data/profileRepository'
 import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
@@ -83,11 +84,7 @@ export default function ResetPasswordPage() {
         }
         // Check if the signed-in user is an admin
         if (data?.session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, email')
-            .eq('id', data.session.user.id)
-            .maybeSingle()
+          const { data: profile } = await fetchProfileRole(data.session.user.id)
           setIsAdmin(
             data.session.user.email === 'divineandbassey@gmail.com' ||
             ['admin', 'superadmin', 'agent', 'verifier'].includes(profile?.role)
@@ -102,11 +99,7 @@ export default function ResetPasswordPage() {
       // automatically sets the session from the URL fragment before we load.
       const { data: sessionData } = await supabase.auth.getSession()
       if (sessionData?.session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', sessionData.session.user.id)
-          .maybeSingle()
+        const { data: profile } = await fetchProfileRole(sessionData.session.user.id)
         setIsAdmin(
           sessionData.session.user.email === 'divineandbassey@gmail.com' ||
           ['admin', 'superadmin', 'agent', 'verifier'].includes(profile?.role)
