@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { AlertCircle, BedDouble, Building2, Check, GraduationCap, Home, Hotel, Lightbulb, Minus, Plus, RefreshCw, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchHotelProperties, fetchActiveRoomCategories, insertRoomCategory, setRoomsAvailable,
+  fetchRentalUnits, setOccupancy, fetchHostelRooms, setHostelRoomsAvailable,
+} from '@/data/availabilityRepository'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -28,7 +31,7 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
       return
     }
     setSaving(true)
-    const { error } = await supabase.from('room_categories').insert({
+    const { error } = await insertRoomCategory({
       property_id:     propertyId,
       name:            form.name,
       total_rooms:     Number(form.total_rooms),
@@ -129,10 +132,7 @@ function CategoryCard({ cat, onUpdate }) {
     const newVal = Math.max(0, Math.min(total, available + delta))
     if (newVal === available) return
     setUpdating(true)
-    const { error } = await supabase
-      .from('room_categories')
-      .update({ available_rooms: newVal, updated_at: new Date().toISOString() })
-      .eq('id', cat.id)
+    const { error } = await setRoomsAvailable(cat.id, newVal)
     setUpdating(false)
     if (error) { toast.error('Update failed'); return }
 
@@ -152,10 +152,7 @@ function CategoryCard({ cat, onUpdate }) {
 
   const markAllBooked = async () => {
     setUpdating(true)
-    const { error } = await supabase
-      .from('room_categories')
-      .update({ available_rooms: 0, updated_at: new Date().toISOString() })
-      .eq('id', cat.id)
+    const { error } = await setRoomsAvailable(cat.id, 0)
     setUpdating(false)
     if (error) { toast.error('Update failed'); return }
     toast.success(cat.name + ' marked as fully booked')
@@ -164,10 +161,7 @@ function CategoryCard({ cat, onUpdate }) {
 
   const markAllAvailable = async () => {
     setUpdating(true)
-    const { error } = await supabase
-      .from('room_categories')
-      .update({ available_rooms: total, updated_at: new Date().toISOString() })
-      .eq('id', cat.id)
+    const { error } = await setRoomsAvailable(cat.id, total)
     setUpdating(false)
     if (error) { toast.error('Update failed'); return }
     toast.success('All ' + cat.name + ' rooms marked available')
@@ -286,12 +280,7 @@ export default function AvailabilityPage() {
 
   const loadProperties = async () => {
   try {
-    const { data } = await supabase
-      .from('properties')
-      .select('id, title, city, state, category')
-      .eq('seller_id', user.id)
-      .in('category', ['hotel', 'shortlet'])
-      .order('created_at', { ascending: false })
+    const { data } = await fetchHotelProperties(user.id)
     setProperties(data || [])
     if (data?.length > 0) setSelectedProp(data[0].id)
     setLoading(false)
@@ -302,12 +291,7 @@ export default function AvailabilityPage() {
 
   const loadCategories = async (propId) => {
   try {
-    const { data } = await supabase
-      .from('room_categories')
-      .select('*')
-      .eq('property_id', propId)
-      .eq('is_active', true)
-      .order('name')
+    const { data } = await fetchActiveRoomCategories(propId)
     // Attach property title to each category for WhatsApp notifications
     const prop = properties.find(p => p.id === propId)
     setCategories((data || []).map(c => ({...c, property_title: prop?.title})))
@@ -524,12 +508,7 @@ function RentalManagerPanel({ user }) {
   const load = async () => {
     setLoading(true)
     try {
-      const { data } = await supabase
-        .from('properties')
-        .select('id, title, city, state, status, price, occupancy_status')
-        .eq('seller_id', user.id)
-        .eq('category', 'rental')
-        .order('created_at', { ascending: false })
+      const { data } = await fetchRentalUnits(user.id)
       setRentals(data || [])
     } catch (err) {
       console.error('RentalManagerPanel load error:', err.message)
@@ -540,10 +519,7 @@ function RentalManagerPanel({ user }) {
   const toggleOccupancy = async (rental) => {
     const next = rental.occupancy_status === 'occupied' ? 'vacant' : 'occupied'
     setUpdating(rental.id)
-    const { error } = await supabase
-      .from('properties')
-      .update({ occupancy_status: next, updated_at: new Date().toISOString() })
-      .eq('id', rental.id)
+    const { error } = await setOccupancy(rental.id, next)
     setUpdating(null)
     if (error) { toast.error('Could not update: ' + error.message); return }
     toast.success(next === 'occupied' ? 'Marked occupied - hidden from new enquiries' : 'Marked vacant - visible to renters again')
@@ -626,11 +602,7 @@ function HostelManagerPanel({ user }) {
   const load = async () => {
     setLoading(true)
     try {
-      const { data } = await supabase
-        .from('student_hostels')
-        .select('id, title, city, state, room_type, rooms_available, total_rooms, status')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
+      const { data } = await fetchHostelRooms(user.id)
       setHostels(data || [])
     } catch (err) {
       console.error('HostelManagerPanel load error:', err.message)
@@ -642,10 +614,7 @@ function HostelManagerPanel({ user }) {
     const next = Math.max(0, Math.min(hostel.total_rooms, hostel.rooms_available + delta))
     if (next === hostel.rooms_available) return
     setUpdating(hostel.id)
-    const { error } = await supabase
-      .from('student_hostels')
-      .update({ rooms_available: next, updated_at: new Date().toISOString() })
-      .eq('id', hostel.id)
+    const { error } = await setHostelRoomsAvailable(hostel.id, next)
     setUpdating(null)
     if (error) { toast.error('Update failed'); return }
     load()
@@ -653,10 +622,7 @@ function HostelManagerPanel({ user }) {
 
   const markFull = async (hostel) => {
     setUpdating(hostel.id)
-    const { error } = await supabase
-      .from('student_hostels')
-      .update({ rooms_available: 0, updated_at: new Date().toISOString() })
-      .eq('id', hostel.id)
+    const { error } = await setHostelRoomsAvailable(hostel.id, 0)
     setUpdating(null)
     if (error) { toast.error('Update failed'); return }
     toast.success('Marked fully booked')
@@ -665,10 +631,7 @@ function HostelManagerPanel({ user }) {
 
   const restoreAll = async (hostel) => {
     setUpdating(hostel.id)
-    const { error } = await supabase
-      .from('student_hostels')
-      .update({ rooms_available: hostel.total_rooms, updated_at: new Date().toISOString() })
-      .eq('id', hostel.id)
+    const { error } = await setHostelRoomsAvailable(hostel.id, hostel.total_rooms)
     setUpdating(null)
     if (error) { toast.error('Update failed'); return }
     toast.success('All rooms marked available')
