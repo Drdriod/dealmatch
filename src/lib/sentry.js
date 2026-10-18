@@ -11,6 +11,18 @@ export const captureError = (error, context = {}) => {
   } catch {}
 }
 
+// A render crash caught by the app's error boundary. Sent as a real exception (so the Sentry
+// title shows the actual error and similar crashes group together), with the React component
+// stack attached. Previously these went out as a generic "[DealMatch Security] render_error".
+export const captureRenderError = (error, componentStack) => {
+  try {
+    Sentry.captureException(error, {
+      tags: { boundary: 'app' },
+      contexts: { react: { componentStack: String(componentStack || '').slice(0, 2000) } },
+    })
+  } catch {}
+}
+
 export const captureMessage = (msg, level = 'info') => {
   try {
     Sentry.captureMessage(msg, level)

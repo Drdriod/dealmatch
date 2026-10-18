@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { lazyWithRetry } from '@/lib/lazyLoad'
+import { captureRenderError } from '@/lib/sentry'
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { Home } from 'lucide-react'
 
@@ -84,13 +85,7 @@ class ErrorBoundary extends Component {
     return { hasError: true, error }
   }
   componentDidCatch(error, info) {
-    try {
-      window.__sentry_capture?.('render_error', {
-        message:        error?.message,
-        stack:          error?.stack?.substring(0, 500),
-        componentStack: info?.componentStack?.substring(0, 500),
-      })
-    } catch { /* Sentry not initialised */ }
+    captureRenderError(error, info?.componentStack)
     console.error('[DealMatch ErrorBoundary]', error, info)
   }
   render() {
@@ -142,7 +137,6 @@ const LoadingScreen = () => (
     position:'relative', overflow:'hidden',
   }}>
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
       @keyframes dm-spin{to{transform:rotate(360deg)}}
       @keyframes dm-pulse-ring{0%{transform:scale(0.8);opacity:0.8}100%{transform:scale(1.6);opacity:0}}
       @keyframes dm-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
