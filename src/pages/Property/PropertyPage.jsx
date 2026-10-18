@@ -122,8 +122,6 @@ export default function PropertyPage() {
     </div>
   )
 
-  const PROP_EMOJI = { land: 'land', apartment: 'apartment', duplex: 'duplex', detached: 'detached', terrace: 'terrace', commercial: 'commercial' }
-
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: '#FFFAF5' }}>
 
@@ -135,8 +133,8 @@ export default function PropertyPage() {
           style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFFFF' }}>
           <ArrowLeft size={16} style={{ color: '#17211B' }} />
         </button>
-        <span className="font-display font-black text-base" style={{ color: '#17211B' }}>
-          {PROP_EMOJI[property.property_type] || 'home'} {property.property_type}
+        <span className="font-display font-black text-base capitalize" style={{ color: '#17211B' }}>
+          {property.property_type || 'Property'}
         </span>
         <button onClick={handleShare}
           className="w-9 h-9 rounded-full flex items-center justify-center border"

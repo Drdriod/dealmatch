@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { Bath, Bed, Heart, MapPin, Maximize, Star, X } from 'lucide-react'
+import { Bath, Bed, Building2, Heart, MapPin, Maximize, Star, X } from 'lucide-react'
 import { recordSwipe } from '@/lib/supabase'
 import { analytics } from '@/lib/posthog'
 import { useAuth } from '@/context/AuthContext'
@@ -92,11 +92,6 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
     opacity = 0
   }
 
-  const PROP_EMOJI = {
-    land: 'land', apartment: 'apartment', duplex: 'duplex',
-    detached: 'detached', terrace: 'terrace', commercial: 'commercial',
-  }
-
   return (
     <div
       ref={cardRef}
@@ -137,8 +132,8 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
             draggable={false}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-7xl">
-            {PROP_EMOJI[property?.property_type] || 'house'}
+          <div className="w-full h-full flex items-center justify-center">
+            <Building2 size={72} className="text-terracotta/40" aria-hidden="true" />
           </div>
         )}
         {matchScore != null && (

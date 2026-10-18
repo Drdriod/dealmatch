@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, Fence, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
 import { updateHostel, insertHostel } from '@/data/hostelListingRepository'
@@ -37,7 +37,7 @@ const AMENITIES = [
   { id: 'gen',      label: 'Generator',     icon: <Zap size={18} className="text-terracotta" /> },
   { id: 'water',    label: 'Running Water', icon: <Droplets size={18} className="text-terracotta" /> },
   { id: 'security', label: 'Security',      icon: <Shield size={18} className="text-terracotta" /> },
-  { id: 'fence',    label: 'Fenced',        icon: 'hard-hat' },
+  { id: 'fence',    label: 'Fenced',        icon: <Fence size={18} className="text-terracotta" /> },
   { id: 'cctv',     label: 'CCTV',          icon: <Camera size={18} className="text-terracotta" /> },
   { id: 'parking',  label: 'Parking',       icon: <Car size={18} className="text-terracotta" /> },
   { id: 'kitchen',  label: 'Kitchen',       icon: <Utensils size={18} className="text-terracotta" /> },

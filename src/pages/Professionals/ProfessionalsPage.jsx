@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react'
-import { Award, Briefcase, Building2, CheckCircle, ChevronLeft, ChevronRight, Clock, Filter, HardHat, Heart, MapPin, MessageCircle, PartyPopper, Phone, Search, Shield, Star, X } from 'lucide-react'
+import { Award, Briefcase, CheckCircle, ChevronLeft, ChevronRight, Clock, Filter, Heart, MapPin, MessageCircle, PartyPopper, Phone, Search, Shield, Star, X } from 'lucide-react'
+import DmIcon from '@/components/ui/DmIcon'
 import { fetchApprovedProfessionals, insertProfessionalRequest } from '@/data/professionalsRepository'
 import { useAuth } from '@/context/AuthContext'
 import { analytics } from '@/lib/posthog'
@@ -10,15 +11,18 @@ import { usePlatformFees, feeText } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 // ─── Constants ────────────────────────────────────────────
+// Icon key (resolved by DmIcon) for each professional type.
+const TYPE_ICON = { agent:'users', surveyor:'ruler', inspector:'search', valuer:'bar-chart-2', lawyer:'scale', lender:'landmark', architect:'hard-hat', contractor:'hammer' }
+
 const PRO_TYPES = [
   { id:'all',         label:'All',        icon:'users' },
-  { id:'agent',       label:'Agents',     icon: <Building2 size={20} className="text-terracotta" /> },
+  { id:'agent',       label:'Agents',     icon:'building-2' },
   { id:'surveyor',    label:'Surveyors',  icon:'ruler' },
   { id:'inspector',   label:'Inspectors', icon:'search' },
-  { id:'valuer',      label:'Valuers',    emoji:'bar-chart' },
+  { id:'valuer',      label:'Valuers',    icon:'bar-chart' },
   { id:'lawyer',      label:'Lawyers',    icon:'scale' },
-  { id:'lender',      label:'Lenders',    emoji:'landmark' },
-  { id:'architect',   label:'Architects', icon: <HardHat size={20} className="text-terracotta" /> },
+  { id:'lender',      label:'Lenders',    icon:'landmark' },
+  { id:'architect',   label:'Architects', icon:'hard-hat' },
   { id:'contractor',  label:'Contractors',icon:'hammer' },
 ]
 
@@ -86,7 +90,6 @@ function ContactModal({ pro, onClose }) {
     }
   }
 
-  const EMOJI = { agent:'users', surveyor:'ruler', inspector:'search', valuer:'bar-chart-2', lawyer:'scale', lender:'landmark', architect:'hard-hat', contractor:'hammer' }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4"
@@ -111,7 +114,7 @@ function ContactModal({ pro, onClose }) {
             <div className="p-5 border-b flex items-center gap-3" style={{ borderColor:'#DEDDD6' }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
                 style={{ backgroundColor:'rgba(200,95,45,0.08)' }}>
-                {EMOJI[pro.type] || 'user'}
+                <DmIcon name={TYPE_ICON[pro.type] || 'user'} size={24} className="text-terracotta" />
               </div>
               <div className="flex-1">
                 <h3 className="font-display font-black text-base" style={{ color:'#17211B' }}>Request {pro.full_name}</h3>
@@ -186,7 +189,6 @@ function ProSwipeCard({ pro, onPass, onSave, onContact }) {
     if (info.offset.x < -100)      { onPass(pro);    return }
   }
 
-  const EMOJI = { agent:'users', surveyor:'ruler', inspector:'search', valuer:'bar-chart-2', lawyer:'scale', lender:'landmark', architect:'hard-hat', contractor:'hammer' }
   const initials = pro.full_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase()
 
   return (
@@ -235,7 +237,7 @@ function ProSwipeCard({ pro, onPass, onSave, onContact }) {
           {/* Type badge */}
           <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
             style={{ backgroundColor:'rgba(255,255,255,0.12)', color:'#FFFFFF', backdropFilter:'blur(8px)' }}>
-            <span>{EMOJI[pro.type]}</span>
+            <DmIcon name={TYPE_ICON[pro.type] || 'user'} size={14} />
             <span className="capitalize">{pro.type}</span>
           </div>
           {/* Verified badge */}
@@ -298,7 +300,6 @@ function ProSwipeCard({ pro, onPass, onSave, onContact }) {
 
 // ─── Pro Card (List View) ─────────────────────────────────
 function ProListCard({ pro, onContact, onSave, saved }) {
-  const EMOJI = { agent:'users', surveyor:'ruler', inspector:'search', valuer:'bar-chart-2', lawyer:'scale', lender:'landmark', architect:'hard-hat', contractor:'hammer' }
   const initials = pro.full_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase()
 
   return (
@@ -323,7 +324,7 @@ function ProListCard({ pro, onContact, onSave, saved }) {
           <div className="flex items-start justify-between gap-2 mb-0.5">
             <div>
               <p className="font-display font-black text-base" style={{ color:'#17211B' }}>{pro.full_name}</p>
-              <p className="text-xs capitalize" style={{ color:'#C85F2D' }}>{EMOJI[pro.professional_type]} {pro.professional_type} · {pro.years_exp}yr exp</p>
+              <p className="text-xs capitalize" style={{ color:'#C85F2D' }}><DmIcon name={TYPE_ICON[pro.professional_type] || 'user'} size={12} className="inline -mt-0.5" /> {pro.professional_type} · {pro.years_exp}yr exp</p>
             </div>
             {pro.is_verified && (
               <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold flex-shrink-0"
@@ -454,7 +455,7 @@ export default function ProfessionalsPage() {
                 color:           typeFilter === t.id ? '#FFFFFF'  : '#5C4A3A',
                 borderColor:     typeFilter === t.id ? '#17211B'  : '#DEDDD6',
               }}>
-              <span>{t.emoji}</span> {t.label}
+              <DmIcon name={t.icon} size={14} /> {t.label}
             </button>
           ))}
         </div>
