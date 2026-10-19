@@ -7,10 +7,6 @@ export function fetchMyListings(userId) {
     .eq('seller_id', userId).order('created_at', { ascending: false })
 }
 
-export function fetchMyPropertyIds(userId) {
-  return supabase.from('properties').select('id').eq('seller_id', userId)
-}
-
 export function fetchBookingsForProperties(propertyIds) {
   return supabase.from('bookings')
     .select('*, properties(title, city, state, category)')
