@@ -7,9 +7,10 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
-  fetchAssignedProperties, fetchAgentScore, fetchAgentComplaints,
   saveAgentVerification, recordPropertyVerdict, respondToComplaint,
 } from '@/data/agentDashboardRepository'
+import { useAgentDashboard } from '@/hooks/useAgentDashboard'
+import LoadNotice from '@/components/ui/LoadNotice'
 import { useAuth } from '@/context/AuthContext'
 import { AreaChart, HBars, Radial, Panel, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
@@ -54,10 +55,6 @@ export default function AgentDashboardPage() {
   const fileRef = useRef()
 
   const [tab, setTab]           = useState('assigned')
-  const [listings, setListings] = useState([])
-  const [score, setScore]       = useState(null)
-  const [complaints, setComplaints] = useState([])
-  const [loading, setLoading]   = useState(true)
   const [expanded, setExpanded] = useState(null)
 
   // Evidence submission state
@@ -65,32 +62,14 @@ export default function AgentDashboardPage() {
   const [evidenceForm, setEvidenceForm] = useState({})
   // { [propertyId]: { photos:[], checklist:{...}, gps:{lat,lng,acc}, notes:'', acknowledged:false } }
 
+  const allowed = ['admin', 'superadmin', 'agent'].includes(profile?.role)
+  // Assigned properties, score and complaints, with loading and error state.
+  const { listings, score, complaints, loading, error, issues, reload } = useAgentDashboard({ user, enabled: allowed })
+
   useEffect(() => {
     if (!user) return
-    if (!['admin','superadmin','agent'].includes(profile?.role)) { navigate('/'); return }
-    loadAll()
-  }, [user, profile])
-
-  const loadAll = async () => {
-    setLoading(true)
-    await Promise.all([loadAssigned(), loadScore(), loadComplaints()])
-    setLoading(false)
-  }
-
-  const loadAssigned = async () => {
-    const { data } = await fetchAssignedProperties(user.id)
-    setListings(data || [])
-  }
-
-  const loadScore = async () => {
-    const { data } = await fetchAgentScore(user.id)
-    setScore(data)
-  }
-
-  const loadComplaints = async () => {
-    const { data } = await fetchAgentComplaints(user.id)
-    setComplaints(data || [])
-  }
+    if (!allowed) navigate('/')
+  }, [user, allowed, navigate])
 
   // ── GPS capture ───────────────────────────────────────────────
   const captureGPS = (propertyId) => {
@@ -181,7 +160,7 @@ export default function AgentDashboardPage() {
       toast.success(verdict === 'verified' ? 'Property verified and now live!' : 'Property rejected')
       setEvidenceForm(f => { const n = {...f}; delete n[property.id]; return n })
       setExpanded(null)
-      loadAll()
+      reload()
     } catch (e) {
       toast.error(e.message || 'Submission failed')
     }
@@ -262,6 +241,8 @@ export default function AgentDashboardPage() {
             </button>
           </div>
         </div>
+
+        <LoadNotice error={error} issues={issues} onRetry={reload} what="your assignments" className="mb-4" />
 
         {/* Leaderboard hero */}
         <div className="rounded-3xl p-5 mb-4" style={{ background:'linear-gradient(135deg, rgba(212,168,83,0.16), rgba(122,158,126,0.06) 60%, rgba(255,255,255,0.02))', border:'1px solid rgba(212,168,83,0.2)' }}>
@@ -657,7 +638,7 @@ export default function AgentDashboardPage() {
                         if (!txt) { toast.error('Enter a response'); return }
                         const { error: respErr } = await respondToComplaint(c.id, txt)
                         if (respErr) { toast.error('Could not submit your response. Please try again.'); return }
-                        toast.success('Response submitted'); loadComplaints()
+                        toast.success('Response submitted'); reload({ silent: true })
                       }}
                       className="mt-2 w-full py-2 rounded-xl text-xs font-bold"
                       style={{ backgroundColor:'#D4A853', color:'#17211B' }}>

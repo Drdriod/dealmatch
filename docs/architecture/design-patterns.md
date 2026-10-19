@@ -15,6 +15,9 @@ is still to do. Update it when a pattern is applied or a new one is added.
 | Creational | Registry (charge purposes) | `src/lib/chargePurposes.js` | Each confirmed-charge purpose has one handler. Used by the webhook. |
 | Structural | Repository | `src/data/monetisationRepository.js` | The Monetisation tab's database access. The page never builds a query. |
 | Structural | Repository (server) | `src/data/`: `webhookRepository`, `escrowRepository`, `accountRepository`, `identityDocsRepository`, `paymentVirtualAccountRepository`, `payoutQueueRepository`, `maintenanceRepository`, `listingRepository`, `adminApiRepository`, `agentVerificationRepository`, `outboundMessageRepository`, `inviteRepository`, `propertyRepository` | Database access for the API routes and cron jobs. Functions take the client as an argument, so tests pass a fake. Failed writes are returned to the caller, which fails the request. |
+| Structural | Repository (client) | `src/data/`: `dashboardRepository`, `landlordRepository`, `lenderRepository`, `agentDashboardRepository`, `rentalsRepository`, `hotelsRepository`, `matchesRepository`, `walletRepository`, `referralRepository`, `notificationsRepository`, `messagesRepository`, `profileRepository` and the other `*Repository.js` files that import `supabase` | Database access for pages and components. A page asks for what it shows and never builds a query. Results keep the Supabase `{ data, error }` shape. |
+| Behavioural | Loader (data hooks) | `src/lib/loader.js`, `src/hooks/useLoader.js`, `useUserDashboard`, `useLandlordDashboard`, `useLenderDashboard`, `useAgentDashboard` | Loading, error and data state for a dashboard, outside the layout code. The newest request wins, a failed reload keeps the data on screen, and a failed query is reported instead of shown as 0. `LoadNotice` shows it. `loader.js` has no React in it, so the rules are tested in `loader.test.mjs`. |
+| Structural | Column allow-list | `src/lib/propertyColumns.js` | The `properties` columns any visitor may read. A test requires every baseline column to be classed public or private. |
 | Structural | Facade (existing) | `src/lib/platformFees.js`, `src/lib/notifications.js` | Hide fee lookup and notification delivery behind small functions. |
 
 Tests for these live next to the code (`src/lib/*.test.mjs`) and share the
@@ -26,16 +29,18 @@ Run them with: `node --test src/lib/*.test.mjs`
 
 Counts are from a scan on 2026-10-14, updated as items are completed. They are a starting point, not a target.
 
-1. **Admin console (largest).** `src/pages/Admin/AdminPage.jsx` is about 3,400 lines
-   with roughly 70 direct database calls outside the Monetisation tab. Split it into
-   one module per tab, each with its own repository under `src/data/`.
-2. **Other pages and components. In progress.** Repositories now exist for Wallet,
-   Referral, Notifications, Messages, the user Dashboard and the Landlord Dashboard.
-   Still direct: Jobs/JobPosting (11 calls), StudentVerify, ProviderProfile, FindProvider,
-   Auth, Rentals, Verification, Profile, ManageListings, Home and several smaller files.
-   Direct calls across `src`: 208 by the corrected counter (see note below). The counter
-   previously missed calls split across lines, so earlier figures (256, 242, 225, 195, 180)
-   were understated and are not comparable.
+1. **Admin console. Done.** `src/pages/Admin/AdminPage.jsx` is 144 lines. Each of the 22
+   tabs in `src/pages/Admin/tabs/` is its own file, and none makes a direct table or RPC
+   call; they read through the `admin*Repository` files in `src/data/`.
+2. **Other pages and components. Done for `src/pages` and `src/components`.** Check 6
+   counts direct `supabase`/`svc` table and RPC calls in `src/pages`, `src/components` and
+   `api/`: it is 0 and the baseline is empty, so a new one fails the check. What is
+   still direct, counted on 2026-10-19 with the same pattern: 52 in `src/lib` (the
+   `supabase.js` helpers, `chargePurposes.js`, `homeFeed.js`, `categoryFeed.js` and
+   similar), 27 in `src/modules` (forum 12, catalog 6, listings 6, matching 2, search 1;
+   the WhatsApp module uses its own client, so it is not in this count), 2 in `src/hooks`
+   and 1 in `src/context`. These are feature services and helpers rather than pages.
+   Whether they should move behind repositories too is a decision for the owner, not a gap in the pattern.
 3. **Webhook `charge.success` case. Done.** The six purpose handlers moved to
    `src/lib/chargePurposes.js` (registry, own-property lookup), with 19 tests in
    `src/lib/chargePurposes.test.mjs`. Known behaviour kept on purpose: a transaction
@@ -58,14 +63,32 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
      cannot add filter clauses.
 5. **Client notifications. Done.** The only client-side insert is in the `notifications.js`
    facade, which is the allowed site (check 5 enforces it). Realtime reads still use the client.
-6. **Dashboards. In progress.** User and Landlord dashboards read through repositories.
-   Lender dashboard reads through `lenderRepository.js`. Still to do: a data hook per dashboard (loading and error state out of the layout code),
-   and the Lender and Agent dashboards (the Agent dashboard has about 10 direct calls).
+6. **Dashboards. Done.** The user, landlord, lender and agent dashboards read through
+   repositories and through one data hook each (`src/hooks/use*Dashboard.js`). The hook
+   owns loading and error state. The page lays out what it gets, and shows `LoadNotice`
+   when the main read failed (an error with Try again) or a side figure failed (named,
+   so a failed count is not read as a real 0). Before, every page copied `data` into
+   state and dropped `error`. The landlord dashboard also stopped asking for the owner's
+   property ids twice. Verified in a browser with injected failures (17 checks:
+   normal load, main read failing, side read failing, retry, role redirects, request
+   count). Plain hooks, no query library: a cache would only matter if two components
+   shared the same data, and none do. TanStack Query (MIT licence) is the option if that changes.
 7. **Database enforcement of payout states.** The admin Payouts tab writes status
    straight from the browser. Migration `20261014000000_payout_state_guard.sql` enforces
    `PAYOUT_TRANSITIONS` in the database. It is written and dry-run, and awaits owner
    approval (runbook row 17). Until it is applied, the browser path is open.
-8. **Known architecture violations.** Three module-boundary violations remain from
+8. **Wildcard property reads. Done in the client; the database change is open.**
+   The "Active properties are public" policy exposes every column of an active listing,
+   so `select('*')` returned `contact_phone`, `contact_email`, `payment_ref` and the
+   verification notes to anonymous visitors. Public reads now name their columns
+   (`propertyColumns.js`), the interest modal and Matches page use only the DealMatch
+   WhatsApp number (`src/lib/contact.js`), and fitness checks 7 and 8 stop it coming
+   back. Still open, owner decision: the policy itself still allows a direct API call
+   with `select=*` to read those columns. Closing that needs a column-level grant or a
+   public view, and only after confirming nothing else reads the table with `*`. Audit
+   what is stored first:
+   `select count(*) filter (where contact_phone is not null), count(*) filter (where contact_email is not null) from properties where status = 'active';`
+9. **Known architecture violations.** Three module-boundary violations remain from
    before this work (`category_listings` in `api/platform.js` and
    `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not
    introduced by these patterns.
@@ -77,3 +100,5 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
 - Use a registry or table when a `switch` on a type or status would grow.
 - Use a state table when a status can only move in certain ways.
 - Build notifications through the factory. Never write the copy inline.
+- Read `properties` with named columns (`PROPERTY_PUBLIC_COLUMNS`), never `select('*')`, unless the code serves the owner, an assigned agent or staff and is on the allow-list in check 7.
+- Give a dashboard a data hook built on `useLoader`. Report a failed read with `LoadNotice`; do not turn it into an empty list or a 0.

@@ -1,103 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Award, Briefcase, Building2, CheckCircle2, Circle, ClipboardList, GraduationCap, HardHat, Heart, Home, Landmark, Wallet } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import {
-  fetchMyPropertyListings, fetchMyCategoryListings, fetchMyRequests, countMyMatches,
-  countMySwipeLikes, countCompletedEscrowSales, countCompletedProviderTransactions,
-  fetchMyPropertyDatesSince, fetchRequestDatesSince, subscribeToMySwipes, markOfferingServices,
-} from '@/data/dashboardRepository'
+import { markOfferingServices } from '@/data/dashboardRepository'
+import { useUserDashboard } from '@/hooks/useUserDashboard'
+import LoadNotice from '@/components/ui/LoadNotice'
 import { CHART, Radial, KpiTile } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
 
-const SPARK_WEEKS = 8
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const ACTIVE_STATUSES = ['active', 'ACTIVE', 'completed', 'COMPLETED']
 const CARD = { background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.07)' }
 const MUTED = 'rgba(255,255,255,0.55)'
 const FAINT = 'rgba(255,255,255,0.4)'
 
-// Buckets created_at timestamps into weekly counts, oldest week first.
-function weeklyCounts(rows) {
-  const buckets = new Array(SPARK_WEEKS).fill(0)
-  const now = Date.now()
-  rows.forEach((r) => {
-    const age = now - new Date(r.created_at).getTime()
-    const idx = SPARK_WEEKS - 1 - Math.floor(age / WEEK_MS)
-    if (idx >= 0 && idx < SPARK_WEEKS) buckets[idx] += 1
-  })
-  return buckets
-}
-
 export default function DashboardPage() {
   const { user, profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
-  const [myListingsCount, setMyListingsCount] = useState(0)
-  const [myRequestsCount, setMyRequestsCount] = useState(0)
-  const [myMatches,       setMyMatches]       = useState(0)
-  const [completedDeals,  setCompletedDeals]  = useState(0)
-  const [activity,        setActivity]        = useState([]) // combined recent listings + requests
-  const [listingTrend,    setListingTrend]    = useState(() => new Array(SPARK_WEEKS).fill(0))
-  const [enquiryTrend,    setEnquiryTrend]    = useState(() => new Array(SPARK_WEEKS).fill(0))
-  const [loading,         setLoading]         = useState(true)
   const [becomingProvider, setBecomingProvider] = useState(false)
-
-  useEffect(() => {
-    if (!user) return
-    loadDashboard()
-    return subscribeToMySwipes(user.id, () => loadDashboard())
-  }, [user])
-
-  const loadDashboard = async () => {
-    try {
-      const since = new Date(Date.now() - SPARK_WEEKS * WEEK_MS).toISOString()
-      const [propListings, catListings, myRequests, matchRes, escrowRes, txRes, propTrend, reqTrend] = await Promise.all([
-        fetchMyPropertyListings(user.id),
-        fetchMyCategoryListings(user.id),
-        fetchMyRequests(),
-        countMyMatches(user.id),
-        countCompletedEscrowSales(user.id),
-        countCompletedProviderTransactions(user.id),
-        // Trend queries for the sparkline tiles: creation dates over the last SPARK_WEEKS weeks
-        fetchMyPropertyDatesSince(user.id, since),
-        fetchRequestDatesSince(since),
-      ])
-
-      const properties = propListings.data || []
-      const categoryListings = catListings || []
-      const requests = myRequests.data || []
-
-      setMyListingsCount(properties.length + categoryListings.length)
-      setMyRequestsCount(requests.length)
-      setListingTrend(weeklyCounts([...(propTrend.data || []), ...categoryListings]))
-      setEnquiryTrend(weeklyCounts(reqTrend.data || []))
-
-      // Matches: prefer the `matches` table's exact count; fall back to
-      // swipes if that RPC/table path errors (same fallback the previous
-      // version used, preserved here).
-      if (!matchRes.error) {
-        setMyMatches(matchRes.count || 0)
-      } else {
-        const { count: sc } = await countMySwipeLikes(user.id)
-        setMyMatches(sc || 0)
-      }
-
-      setCompletedDeals((escrowRes.count || 0) + (txRes.count || 0))
-
-      // My Activity: merge recent listings (both kinds) + recent requests
-      // into one chronological feed, capped to 6 for the dashboard card.
-      const listingActivity = [
-        ...properties.map(p => ({ kind: 'listing', id: p.id, title: p.title, sub: `₦${Number(p.price).toLocaleString()} · ${p.category}`, status: p.status, at: p.created_at, link: `/property/${p.id}` })),
-        ...categoryListings.map(l => ({ kind: 'listing', id: l.id, title: l.title, sub: l.type, status: l.status, at: l.created_at, link: null })),
-      ]
-      const requestActivity = requests.map(r => ({ kind: 'request', id: r.request_id, title: r.title, sub: r.request_type, status: r.status, at: r.created_at, link: null }))
-      setActivity([...listingActivity, ...requestActivity].sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 6))
-    } catch (err) {
-      console.error('loadDashboard error:', err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Loading, error and the figures all come from the hook; this page only lays them out.
+  const {
+    myListingsCount, myRequestsCount, myMatches, completedDeals, activity,
+    listingTrend, enquiryTrend, loading, error, issues, reload,
+  } = useUserDashboard(user)
 
   const verificationLevel = profile?.is_live_verified ? 'live' : profile?.avatar_url ? 'photo' : 'none'
   const isProvider = !!profile?.offers_services
@@ -109,9 +33,9 @@ export default function DashboardPage() {
   const handleBecomeProvider = async () => {
     if (!user) return
     setBecomingProvider(true)
-    const { error } = await markOfferingServices(user.id)
+    const { error: saveError } = await markOfferingServices(user.id)
     setBecomingProvider(false)
-    if (error) { toast.error('Could not save. Try again.'); return }
+    if (saveError) { toast.error('Could not save. Try again.'); return }
     await refreshProfile()
     toast.success("You're on your way to becoming a provider!")
     navigate('/verify-skill')
@@ -148,6 +72,8 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#17211B' }}>
       <div className="max-w-2xl mx-auto px-4">
+
+        <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
 
         {/* Journey hero: greeting plus two progress rings */}
         <section className="rounded-3xl p-5 mb-4"

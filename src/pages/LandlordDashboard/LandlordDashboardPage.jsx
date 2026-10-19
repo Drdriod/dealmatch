@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ClipboardList, Eye, Home, Hotel, Key, Pause, RefreshCw } from 'lucide-react'
-import {
-  fetchMyListings, fetchMyPropertyIds, fetchBookingsForProperties,
-  fetchEnquiriesForProperties, fetchRentPayments, setListingStatus,
-} from '@/data/landlordRepository'
+import { setListingStatus } from '@/data/landlordRepository'
+import { useLandlordDashboard } from '@/hooks/useLandlordDashboard'
+import LoadNotice from '@/components/ui/LoadNotice'
 import { useAuth } from '@/context/AuthContext'
 import { BarChart, Donut, KpiTile, Panel, fmtNum, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
@@ -52,54 +51,18 @@ const rentBadge = (p, paidThisMonth) => {
 }
 
 export default function LandlordDashboardPage() {
-  const { user, profile } = useAuth()
-  const [listings,    setListings]    = useState([])
-  const [bookings,    setBookings]    = useState([])
-  const [enquiries,   setEnquiries]   = useState([])
-  const [rentPayments, setRentPayments] = useState([])
-  const [loading,     setLoading]     = useState(true)
+  const { user } = useAuth()
   const [tab,         setTab]         = useState('listings')
   const [selectedProp, setSelectedProp] = useState('all')
-
-  useEffect(() => { if (user) loadAll() }, [user])
-
-  const loadAll = async () => {
-    setLoading(true)
-    await Promise.all([loadListings(), loadBookings(), loadEnquiries(), loadRentPayments()])
-    setLoading(false)
-  }
-
-  const loadListings = async () => {
-    const { data } = await fetchMyListings(user.id)
-    setListings(data || [])
-  }
-
-  const loadBookings = async () => {
-    const ids = (await fetchMyPropertyIds(user.id)).data?.map(p => p.id) || []
-    const { data } = await fetchBookingsForProperties(ids)
-    setBookings(data || [])
-  }
-
-  const loadEnquiries = async () => {
-    const { data: props } = await fetchMyPropertyIds(user.id)
-    const ids = (props || []).map(p => p.id)
-    if (!ids.length) { setEnquiries([]); return }
-    const { data } = await fetchEnquiriesForProperties(ids)
-    setEnquiries(data || [])
-  }
-
-  // Rent collected: rental escrow deposits the landlord can see (funded or released).
-  const loadRentPayments = async () => {
-    const { data } = await fetchRentPayments(user.id)
-    setRentPayments(data || [])
-  }
+  // Loading, error and the four lists come from the hook; this page only lays them out.
+  const { listings, bookings, enquiries, rentPayments, loading, error, issues, reload } = useLandlordDashboard(user)
 
   const togglePause = async (listing) => {
     const newStatus = listing.status === 'active' ? 'paused' : 'active'
     const { error } = await setListingStatus(listing.id, newStatus)
     if (error) { toast.error('Update failed'); return }
     toast.success(`Listing ${newStatus === 'active' ? 'activated' : 'paused'}`)
-    loadListings()
+    reload({ silent: true })
   }
 
   const totalRevenue = bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + (b.total_amount || 0), 0)
@@ -155,12 +118,14 @@ export default function LandlordDashboardPage() {
             </h1>
             <p className="text-xs mt-0.5" style={{ color: '#647068' }}>Manage your properties</p>
           </div>
-          <button onClick={loadAll}
+          <button onClick={() => reload()}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
             <RefreshCw size={16} style={{ color: '#5C4A3A' }} />
           </button>
         </div>
+
+        <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
 
         {loading && <div className="text-center py-12" style={{ color: '#647068' }}>Loading...</div>}
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Check, ChevronRight, Clock, FileText, Filter, Mail, MessageSquare, RefreshCw, Search, User, Users, Wallet, X } from 'lucide-react'
-import { fetchApplications, fetchPipeline, updateApplicationStatus } from '@/data/lenderRepository'
+import { updateApplicationStatus } from '@/data/lenderRepository'
+import { useLenderDashboard } from '@/hooks/useLenderDashboard'
+import LoadNotice from '@/components/ui/LoadNotice'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -41,54 +43,25 @@ const EmptyNote = ({ children }) => (
 )
 
 export default function LenderDashboardPage() {
-  const { user, profile } = useAuth()
+  const { profile } = useAuth()
   const navigate = useNavigate()
-  const [apps, setApps] = useState([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [note, setNote] = useState('')
   const [updating, setUpdating] = useState(false)
-  const [pipeline, setPipeline] = useState([])
-  const [pipelineLoading, setPipelineLoading] = useState(true)
+  const allowed = !!profile && (profile.role === 'lender' || profile.role === 'admin')
+  // Applications (follows the filter) and the unfiltered pipeline (funnel, charts, KPIs, board).
+  const { apps, pipeline, loading, pipelineLoading, error, reload } = useLenderDashboard({ filter, enabled: allowed })
 
   useEffect(() => {
     if (!profile) return
-    if (profile.role !== 'lender' && profile.role !== 'admin') {
+    if (!allowed) {
       toast.error('Access denied: Lender role required')
       navigate('/dashboard')
-      return
     }
-    loadApplications()
-  }, [profile, filter])
+  }, [profile, allowed, navigate])
 
-  // Unfiltered query that feeds the funnel, weekly chart, radial, KPIs and board
-  useEffect(() => {
-    if (!profile) return
-    if (profile.role !== 'lender' && profile.role !== 'admin') return
-    loadPipeline()
-  }, [profile])
-
-  const loadApplications = async () => {
-    setLoading(true)
-    const { data, error } = await fetchApplications(filter !== 'all' ? filter : null)
-    if (error) toast.error('Failed to load applications')
-    else setApps(data || [])
-    setLoading(false)
-  }
-
-  const loadPipeline = async () => {
-    setPipelineLoading(true)
-    const { data, error } = await fetchPipeline()
-    if (error) toast.error('Failed to load pipeline')
-    else setPipeline(data || [])
-    setPipelineLoading(false)
-  }
-
-  const refreshAll = () => {
-    loadApplications()
-    loadPipeline()
-  }
+  const refreshAll = () => reload()
 
   const handleUpdateStatus = async (app, newStatus) => {
     setUpdating(true)
@@ -100,8 +73,7 @@ export default function LenderDashboardPage() {
       toast.success(`Application ${app.ticket_id} updated to ${newStatus}`)
       setSelected(null)
       setNote('')
-      loadApplications()
-      loadPipeline()
+      reload()
     }
     setUpdating(false)
   }
@@ -195,6 +167,8 @@ export default function LenderDashboardPage() {
             <RefreshCw size={18} className={loading || pipelineLoading ? 'animate-spin' : ''} />
           </button>
         </div>
+
+        <LoadNotice error={error} onRetry={reload} what="your applications" className="mb-6" />
 
         {/* KPI tiles */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
