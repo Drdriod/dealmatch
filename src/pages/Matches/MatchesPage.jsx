@@ -4,6 +4,7 @@ import { Bath, Bed, Heart, HeartCrack, Home, MapPin, Maximize, MessageCircle, Tr
 import { getMatches } from '@/lib/supabase'
 import { removeSwipe } from '@/data/matchesRepository'
 import { useAuth } from '@/context/AuthContext'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
@@ -45,8 +46,7 @@ export default function MatchesPage() {
       `Price: ₦${Number(property.price).toLocaleString()}\n` +
       `Location: ${property.city}, ${property.state}\n\nCould we discuss further?`
     )
-    const phone = property.profiles?.phone?.replace(/\D/g, '') || '2347057392060'
-    window.open('https://wa.me/' + phone + '?text=' + msg, '_blank')
+    window.open('https://wa.me/' + DEALMATCH_WHATSAPP + '?text=' + msg, '_blank')
   }
 
   const filtered = filter === 'super'

@@ -7,8 +7,9 @@ import { useAuth } from '@/context/AuthContext'
 import { usePlatformFees, feeValue, feeText } from '@/lib/platformFees'
 import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 
-const WHATSAPP = '2347057392060'
+const WHATSAPP = DEALMATCH_WHATSAPP
 const formatPrice = (n) => n ? `₦${Number(n).toLocaleString()}` : 'Contact'
 const HOTEL_TYPES = ['All', 'Luxury', 'Budget', 'Resort', 'Short-let', 'Boutique']
 const STATES = ['All States','Lagos','Abuja','Rivers','Akwa Ibom','Delta','Oyo','Kano','Cross River','Edo']

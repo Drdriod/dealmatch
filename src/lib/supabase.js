@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { PROPERTY_PUBLIC_COLUMNS } from './propertyColumns'
 
 const SUPABASE_URL      = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -138,9 +139,11 @@ export const getProperties = async ({ limit = 20, filters = {} } = {}) => {
   // no-image placeholder. Joining property_images here is what those
   // components' existing `p.images?.find(...)` logic already assumed was
   // happening.
+  // Named columns, never '*': the "Active properties are public" policy exposes every column of
+  // a row, including the seller's contact_phone and contact_email. See lib/propertyColumns.js.
   let query = supabase
     .from('properties')
-    .select('*, images:property_images(id, url, is_primary, caption)')
+    .select(`${PROPERTY_PUBLIC_COLUMNS}, images:property_images(id, url, is_primary, caption)`)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -168,7 +171,7 @@ export const getProperty = async (id) => {
   // of an embed (which returned null for anonymous viewers).
   const { data, error } = await supabase
     .from('properties')
-    .select('*, images:property_images(id, url, is_primary, caption)')
+    .select(`${PROPERTY_PUBLIC_COLUMNS}, images:property_images(id, url, is_primary, caption)`)
     .eq('id', id)
     .single()
   if (error || !data) return { data, error }
@@ -199,7 +202,9 @@ export const recordSwipe = async ({ userId, propertyId, action }) => {
 export const getMatches = async (userId) => {
   const { data, error } = await supabase
     .from('swipes')
-    .select('*, properties(*, profiles(full_name, phone, avatar_url))')
+    // The seller's phone is not read here: profiles RLS hides it from everyone but its owner, and
+    // contact goes through the DealMatch gateway or get_property_contact().
+    .select(`*, properties(${PROPERTY_PUBLIC_COLUMNS}, profiles(full_name, avatar_url))`)
     .eq('user_id', userId)
     .in('action', ['like', 'super'])
     .order('created_at', { ascending: false })

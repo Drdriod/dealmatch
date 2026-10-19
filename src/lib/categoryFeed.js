@@ -10,7 +10,8 @@ export async function fetchPlacesForCategories(categoryIds) {
 
   const { data, error } = await supabase
     .from('properties')
-    .select('id, title, price, city, state, category, images, created_at')
+    // Photos come from property_images; properties has no `images` column.
+    .select('id, title, price, city, state, category, created_at, images:property_images(url, is_primary)')
     .in('category_id', categoryIds)
     .eq('status', 'active')
     .or('occupancy_status.is.null,occupancy_status.eq.vacant')

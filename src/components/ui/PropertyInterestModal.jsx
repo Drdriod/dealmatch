@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Calendar, Clock, Heart, MessageSquare, X, Zap } from 'lucide-react'
 import { upsertPropertyInterest } from '@/data/propertyInterestRepository'
 import { useAuth } from '@/context/AuthContext'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 import toast from 'react-hot-toast'
 
 const INTENTS = [
@@ -69,8 +70,8 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
   }
 
   const handleWhatsApp = () => {
-    const phone = property.contact_phone || property.profiles?.phone || '2347057392060'
-    const clean = phone.replace(/\D/g,'')
+    // Always the DealMatch gateway. The seller's number is not on the row any visitor can read.
+    const clean = DEALMATCH_WHATSAPP
     const msg = encodeURIComponent(
       `Hi, I'm interested in *"${property.title}"* on DealMatch.\n\n` +
       `Intent: ${selectedIntent?.label}\nTimeline: ${selectedTimeline?.label}\n` +

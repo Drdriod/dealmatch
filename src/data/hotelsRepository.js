@@ -1,13 +1,14 @@
 // Repository (structural pattern) for browsing and booking hotels and short-lets (HotelsPage).
 // The page calls these and never builds a query.
 import { supabase } from '@/lib/supabase'
+import { PROPERTY_PUBLIC_COLUMNS } from '@/lib/propertyColumns'
 
 // Active hotels and short-lets, newest first, at most 30, with their room categories.
 // Pass 'All States' for no state filter.
 export function fetchActiveHotels(state) {
   let q = supabase
     .from('properties')
-    .select('*, room_categories(id, name, price_per_night, available_rooms)')
+    .select(`${PROPERTY_PUBLIC_COLUMNS}, room_categories(id, name, price_per_night, available_rooms)`)
     .in('category', ['hotel', 'shortlet'])
     .eq('status', 'active')
     .order('created_at', { ascending: false })

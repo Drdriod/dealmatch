@@ -8,8 +8,9 @@ import {
 } from '@/data/availabilityRepository'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 
-const WHATSAPP = '2347057392060'
+const WHATSAPP = DEALMATCH_WHATSAPP
 
 const CATEGORY_PRESETS = [
   'Standard', 'Executive', 'Luxury', 'Suite',
