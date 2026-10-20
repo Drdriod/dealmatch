@@ -36,10 +36,15 @@ export function rejectPayoutAccount(id, reason) {
   return supabase.rpc('reject_payout_account', { p_id: id, p_reason: reason })
 }
 
-// Resets a queue row to pending with attempts kept, so the next cron run picks it up.
-// The cron processor's own attempt ceiling still applies.
+// Resets a failed queue row to pending with attempts kept, so the next cron run picks it up.
+// The cron processor's own attempt ceiling still applies. Only a failed row moves (failed to
+// pending is the one move an admin may make; the database trigger enforces the same table), and
+// the write returns the rows it changed, so the page can tell when the row had already moved on.
 export function requeuePayout(id) {
-  return supabase.from('payout_queue').update({ status: 'pending', failure_reason: null }).eq('id', id)
+  return supabase.from('payout_queue')
+    .update({ status: 'pending', failure_reason: null })
+    .eq('id', id).eq('status', 'failed')
+    .select('id')
 }
 
 export function fulfillWithdrawal(requestId) {

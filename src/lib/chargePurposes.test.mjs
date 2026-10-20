@@ -226,13 +226,127 @@ test('transaction escrow: a PENDING job with the right amount is funded and the 
   } finally { restore() }
 })
 
-test('transaction escrow: an amount mismatch leaves the job PENDING and does not stop the payments log', async () => {
+// ── Transaction escrow: money that cannot fund a job ─────────────────────────────────────────
+// Flutterwave has taken the money, so it is never logged as a plain success. It goes on the refund
+// list ('unapplied:<reference>'), the payments row says 'unapplied', and the webhook skips referrals.
+const job = (over = {}) => ({
+  id: 'j1', payment_ref: 'ref-1', provider_id: 'p1', requester_id: 'r1', amount_cents: 500000, status: 'PENDING', ...over,
+})
+const unappliedTables = (jobs) => ({
+  transactions: jobs, payment_refunds: [], notifications: [],
+  profiles: [{ id: 'admin-1', role: 'superadmin' }],
+})
+
+test('transaction escrow: an amount mismatch is unapplied, the job stays PENDING, the payer is told once', async () => {
   const restore = quiet()
   try {
-    const tables = { transactions: [{ id: 'j1', payment_ref: 'ref-1', provider_id: 'p1', amount_cents: 999900, status: 'PENDING' }] }
+    const tables = unappliedTables([job({ amount_cents: 999900 })])
     const out = await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow' }))
     assert.equal(tables.transactions[0].status, 'PENDING')
-    assert.equal(out.stop, undefined) // kept as before: the payments row is still written
+    assert.equal(out.stop, undefined)            // the payments row is still written ...
+    assert.equal(out.paymentStatus, 'unapplied') // ... but not as a success
+    assert.equal(tables.payment_refunds.length, 1)
+    const refund = tables.payment_refunds[0]
+    assert.equal(refund.dedupe_key, 'unapplied:ref-1')
+    assert.equal(refund.reason, 'overpaid')      // the table only knows overpaid / underpaid
+    assert.equal(refund.amount_kobo, 500000)
+    assert.equal(refund.profile_id, 'r1')        // named from our job row
+    assert.match(refund.note, /Not applied to a job/)
+    const payer = tables.notifications.filter((n) => n.user_id === 'r1')
+    assert.equal(payer.length, 1)
+    assert.equal(payer[0].type, 'payment_return_unapplied')
+    assert.equal(tables.notifications.filter((n) => n.type === 'refund_due').length, 1)
+    // Flutterwave sends the same webhook again: nothing more is written or sent.
+    await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow' }))
+    assert.equal(tables.payment_refunds.length, 1)
+    assert.equal(tables.notifications.length, 2)
+  } finally { restore() }
+})
+
+test('transaction escrow: no job with this reference is unapplied, and nobody is named from client metadata', async () => {
+  const restore = quiet()
+  try {
+    const tables = unappliedTables([])
+    const out = await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow', user_id: 'someone-else' }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds[0].profile_id, null)
+    assert.equal(tables.payment_refunds[0].payer_email, 'payer@x.ng')
+    assert.equal(tables.notifications.some((n) => n.type === 'payment_return_unapplied'), false)
+    assert.equal(tables.notifications.filter((n) => n.type === 'refund_due').length, 1) // staff still told
+  } finally { restore() }
+})
+
+test('transaction escrow: a job that is OPEN or CANCELLED is not funded and the money is unapplied', async () => {
+  const restore = quiet()
+  try {
+    for (const status of ['OPEN', 'CANCELLED']) {
+      const tables = unappliedTables([job({ status })])
+      const out = await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow' }))
+      assert.equal(tables.transactions[0].status, status)
+      assert.equal(out.paymentStatus, 'unapplied')
+      assert.equal(tables.payment_refunds.length, 1)
+    }
+  } finally { restore() }
+})
+
+test('transaction escrow: a job this reference already paid for is a repeat delivery, not a refund', async () => {
+  const restore = quiet()
+  try {
+    for (const status of ['FUNDED', 'COMPLETED', 'DISPUTED']) {
+      const tables = unappliedTables([job({ status })])
+      const out = await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow' }))
+      assert.deepEqual(out, {})
+      assert.equal(tables.transactions[0].status, status)
+      assert.equal(tables.payment_refunds.length, 0)
+      assert.equal(tables.notifications.length, 0)
+    }
+  } finally { restore() }
+})
+
+test('transaction escrow: a failed read throws, so the webhook answers 500 and Flutterwave retries', async () => {
+  const restore = quiet()
+  try {
+    const tables = unappliedTables([job()])
+    const svc = svcWith(tables)
+    const real = svc.from.bind(svc)
+    svc.from = (table) => table === 'transactions'
+      ? { select: () => ({ eq: () => ({ single: async () => ({ data: null, error: { code: '57014', message: 'timeout' } }) }) }) }
+      : real(table)
+    await assert.rejects(runChargePurpose(svc, charge({ type: 'transaction_escrow' })), /timeout/)
+    assert.equal(tables.payment_refunds.length, 0)
+  } finally { restore() }
+})
+
+test('transaction escrow: if the refund row cannot be written it throws, and the retry then records it once', async () => {
+  const restore = quiet()
+  try {
+    const tables = unappliedTables([job({ amount_cents: 999900 })])
+    const svc = svcWith(tables)
+    const real = svc.from.bind(svc)
+    let failWrites = true
+    svc.from = (table) => {
+      const b = real(table)
+      if (table === 'payment_refunds' && failWrites) {
+        return { ...b, upsert: async () => ({ error: { code: '08006', message: 'connection lost' } }) }
+      }
+      return b
+    }
+    await assert.rejects(runChargePurpose(svc, charge({ type: 'transaction_escrow' })), /Could not record money to return/)
+    assert.equal(tables.payment_refunds.length, 0)
+    failWrites = false
+    const out = await runChargePurpose(svc, charge({ type: 'transaction_escrow' }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
+  } finally { restore() }
+})
+
+test('transaction escrow: a charge with no amount writes no refund row and does not loop on 500', async () => {
+  const restore = quiet()
+  try {
+    const tables = unappliedTables([])
+    const out = await runChargePurpose(svcWith(tables), charge({ type: 'transaction_escrow' }, { amount: 0 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 0)
   } finally { restore() }
 })
 

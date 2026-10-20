@@ -65,6 +65,12 @@ const KINDS = {
     link: '/wallet',
   }),
 
+  payment_return_unapplied: ({ amountKobo }) => ({
+    title: 'We could not apply your payment',
+    message: `We received ${money(amountKobo)}, but it could not be applied to the job. We will return it to you.`,
+    link: '/wallet',
+  }),
+
   payment_return_short: ({ amountKobo }) => ({
     title: 'Your payment is short',
     message: `We received ${money(amountKobo)} of the price. Please contact us to complete or refund it.`,

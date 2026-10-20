@@ -6,6 +6,11 @@
 //
 // A handler returns:
 //   { stop: true }            the webhook must not write the payments log or pay referrals
+//   { paymentStatus }         the status for the payments log row. Default 'success'.
+//                             'unapplied' means Flutterwave took the money but it was not
+//                             applied to anything, so it is on the refund list and is not
+//                             counted as revenue (admin totals count status 'success' only).
+//                             The webhook also skips referral payouts for it.
 //   { escrowRow }             escrow_payment only: the row used for the referral step
 //   undefined                 continue as normal
 //
@@ -16,7 +21,10 @@ import { insertNotification } from './notificationFactory.js'
 // Records money DealMatch holds and must return: an overpayment (after the item
 // is granted) or an underpayment (held until topped up or refunded). One row per
 // payment and reason, so a repeated webhook cannot duplicate it.
-export async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey) {
+//
+// `payerKind` picks the notification the payer gets; it defaults to the overpaid or short
+// wording. Returns true when the row was recorded (or already existed), false when the write failed.
+export async function recordMoneyToReturn(svc, row, amountKobo, reason, note, dedupeKey, payerKind) {
   const now = new Date().toISOString()
   let error = null
   if (reason === 'underpaid') {
@@ -45,13 +53,15 @@ export async function recordMoneyToReturn(svc, row, amountKobo, reason, note, de
 
   // Tell the payer, and the super admins who return the money.
   if (row.profile_id) {
-    await insertNotification(svc, reason === 'overpaid' ? 'payment_return_overpaid' : 'payment_return_short',
+    await insertNotification(svc,
+      payerKind || (reason === 'overpaid' ? 'payment_return_overpaid' : 'payment_return_short'),
       row.profile_id, { amountKobo })
   }
   const { data: admins } = await svc.from('profiles').select('id').eq('role', 'superadmin')
   for (const a of admins || []) {
     await insertNotification(svc, 'refund_due', a.id, { reason, reference: row.reference, amountKobo })
   }
+  return !error
 }
 
 // Professional subscription: activate the application, but only as 'approved'
@@ -234,32 +244,75 @@ async function escrowPayment(svc, { reference, amountNgn }) {
   return { escrowRow: matchedEscrow }
 }
 
-// ADR-009 marketplace transaction escrow. Resolved by payment_ref for the same
-// reason as escrowPayment. Only a job that was PENDING and then could not be
-// moved to FUNDED returns stop, which skips the payments log. A refused match
-// (no row, not PENDING, amount mismatch) only logs, as it always has, so the
-// payments row is still written. That last part is kept on purpose, see the
-// note in the webhook.
-async function transactionEscrow(svc, { reference, amountNgn, metadata }, notify = insertNotification) {
+// Flutterwave took this money but it was not applied to any job. It goes on the refund list
+// (the same list as an overpayment: reason 'overpaid', with a note that says why), the payer is
+// told when we know who they are, and the payments log row says 'unapplied' instead of 'success'.
+// A repeat of the same webhook finds the refund row and does nothing more, so the payer and the
+// admins are told once. If the refund row cannot be written this throws, the webhook answers 500
+// and Flutterwave sends it again; every write here is deduplicated, so the retry is safe.
+async function returnUnapplied(svc, { reference, amount, customer }, matchedTx, why) {
+  const dedupeKey = 'unapplied:' + reference
+  // payment_refunds only accepts amount_kobo > 0. A charge with no amount has nothing to return,
+  // and trying to write it would fail the check, answer 500 and be retried forever.
+  if (!(amount > 0)) return { paymentStatus: 'unapplied' }
+  const { data: existing } = await svc.from('payment_refunds')
+    .select('id').eq('dedupe_key', dedupeKey).maybeSingle()
+  if (!existing) {
+    const ok = await recordMoneyToReturn(
+      svc,
+      // The payer is named only from our own job row. Client metadata is never trusted for that.
+      { reference, email: customer?.email || null, profile_id: matchedTx?.requester_id || null },
+      amount,
+      'overpaid',
+      'Not applied to a job: ' + why,
+      dedupeKey,
+      'payment_return_unapplied',
+    )
+    if (!ok) throw new Error('Could not record money to return for ' + reference)
+  }
+  return { paymentStatus: 'unapplied' }
+}
+
+// ADR-009 marketplace transaction escrow. Resolved by payment_ref for the same reason as
+// escrowPayment. A job that was PENDING and then could not be moved to FUNDED returns stop,
+// which skips the payments log: another delivery of the same webhook funded it and logs it.
+//
+// A charge that cannot fund a job is not logged as a success. Cases:
+//   - the job is already FUNDED, COMPLETED or DISPUTED: this reference already paid for it, so
+//     this is a repeated delivery and nothing changes;
+//   - no job has this reference, the job is OPEN or CANCELLED, or the amount is wrong: the money
+//     is unapplied (returnUnapplied) and the job is left as it was, so the payer can try again.
+async function transactionEscrow(svc, { reference, amount, amountNgn, customer }, notify = insertNotification) {
   const { data: matchedTx, error: txErr } = await svc
     .from('transactions')
     .select('id, requester_id, provider_id, amount_cents, status')
     .eq('payment_ref', reference)
     .single()
 
-  if (txErr || !matchedTx) {
+  // PGRST116 is "no row". Any other error is a failed read, not a missing job: throw, so the
+  // webhook answers 500 and Flutterwave retries, instead of treating real money as unmatched.
+  if (txErr && txErr.code !== 'PGRST116') {
+    throw Object.assign(new Error('Could not read the job for ' + reference + ': ' + txErr.message), { code: txErr.code })
+  }
+  const ctx = { reference, amount, customer }
+
+  if (!matchedTx) {
     console.error('Transaction escrow payment with no matching payment_ref, refusing to confirm:', reference)
-    return {}
+    return returnUnapplied(svc, ctx, null, 'no job is waiting on this payment reference')
   }
   if (matchedTx.status !== 'PENDING') {
+    if (['FUNDED', 'COMPLETED', 'DISPUTED'].includes(matchedTx.status)) {
+      console.warn('Transaction', matchedTx.id, 'already paid by this reference (repeat delivery):', reference)
+      return {}
+    }
     console.error('Transaction', matchedTx.id, 'is not PENDING (status=' + matchedTx.status + '), refusing to mark funded:', reference)
-    return {}
+    return returnUnapplied(svc, ctx, matchedTx, 'the job was ' + String(matchedTx.status).toLowerCase() + ', not waiting for payment')
   }
   if (Math.round(matchedTx.amount_cents / 100) !== Math.round(amountNgn)) {
     // Defense in depth: the amount actually charged (verified via HMAC
     // signature) should match what the transaction expected.
     console.error('Transaction', matchedTx.id, 'amount mismatch: expected', matchedTx.amount_cents / 100, 'got', amountNgn, 'ref:', reference)
-    return {}
+    return returnUnapplied(svc, ctx, matchedTx, 'paid ' + amountNgn + ' but the job costs ' + matchedTx.amount_cents / 100)
   }
   const { data: funded } = await svc.from('transactions')
     .update({ status: 'FUNDED', updated_at: new Date().toISOString() })

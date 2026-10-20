@@ -19,7 +19,7 @@ export function fetchFeeHistory(limit = 25) {
 export function fetchPendingRefunds() {
   return supabase
     .from('payment_refunds')
-    .select('id,reason,payer_email,reference,amount_kobo,status,created_at')
+    .select('id,reason,payer_email,reference,amount_kobo,status,note,dedupe_key,created_at')
     .eq('status', 'to_refund')
     .order('created_at', { ascending: true })
 }

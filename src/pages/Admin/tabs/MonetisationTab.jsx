@@ -140,15 +140,16 @@ export function MonetisationTab() {
 
       <div className="rounded-2xl p-4" style={{backgroundColor:'rgba(200,95,45,0.06)',border:'1px solid rgba(200,95,45,0.25)'}}>
         <p className="text-xs font-bold mb-1 text-white">Money to return ({refunds.length})</p>
-        <p className="text-[11px] mb-3" style={{color:'rgba(255,255,255,0.4)'}}>Overpayments and short payments. Send the money back from your bank, then record the bank reference here.</p>
+        <p className="text-[11px] mb-3" style={{color:'rgba(255,255,255,0.4)'}}>Overpayments, short payments and payments that could not be applied to a job. Send the money back from your bank, then record the bank reference here.</p>
         {refunds.length===0&&<p className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>Nothing to return.</p>}
         <div className="space-y-2">
           {refunds.map(r=>(
             <div key={r.id} className="flex items-center justify-between gap-3 flex-wrap text-xs" style={{color:'rgba(255,255,255,0.7)'}}>
               <span>
-                <span className="text-white">{r.reason==='overpaid'?'Overpaid':'Short payment'}</span>
+                <span className="text-white">{String(r.dedupe_key||'').startsWith('unapplied:')?'Not applied':r.reason==='overpaid'?'Overpaid':'Short payment'}</span>
                 {' '}· {r.payer_email||'no email'} · {r.reference}
                 {' '}· <span className="text-white">{naira(r.amount_kobo)}</span>
+                {r.note&&<span className="block text-[11px]" style={{color:'rgba(255,255,255,0.4)'}}>{r.note}</span>}
               </span>
               <button onClick={()=>markRefunded(r)} disabled={refundBusy===r.id}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>

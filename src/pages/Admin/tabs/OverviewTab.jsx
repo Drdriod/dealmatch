@@ -121,7 +121,7 @@ export function OverviewTab() {
   const feed = [
     ...recentUsers.map(u=>({ key:`u-${u.id}`, at:u.created_at, icon:UserPlus, color:'#5B8DEF', title:u.full_name||'New member', sub:`Signed up as ${ROLE_LABELS[u.role]||'Member'}` })),
     ...recent.map(p=>({ key:`p-${p.id}`, at:p.created_at, icon:Home, color:SC[p.status]||'#888', title:p.title||'Untitled listing', sub:`${p.profiles?.full_name||'Unknown'} · ${String(p.status||'').replace('_',' ')}` })),
-    ...(command?.recentPayments||[]).map(x=>({ key:`pay-${x.id}`, at:x.created_at, icon:Wallet, color:'#D4A853', title:fmt(Number(x.amount)||0), sub:`${String(x.payment_type||'payment').replace(/_/g,' ')} · ${String(x.status||'').replace(/_/g,' ')}` })),
+    ...(command?.recentPayments||[]).map(x=>({ key:`pay-${x.id}`, at:x.created_at, icon:Wallet, color:'#D4A853', title:fmt(Number(x.amount)||0), sub:`${String(x.professional_type||x.plan_type||'payment').replace(/_/g,' ')} · ${String(x.status||'').replace(/_/g,' ')}` })),
   ].filter(e=>e.at).sort((a,b)=>new Date(b.at)-new Date(a.at)).slice(0,10)
 
   const emptyBox = (text) => (

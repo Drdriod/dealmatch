@@ -352,6 +352,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true, ignored: true })
   }
 
+  // The charge reference this request claimed in processedRefs, so a failure can release it.
+  let claimedRef = null
+
   try {
     switch (event.event) {
 
@@ -365,8 +368,10 @@ export default async function handler(req, res) {
           break
         }
         processedRefs.add(reference)
+        claimedRef = reference
         // Evict after 24h to prevent unbounded growth
-        setTimeout(() => processedRefs.delete(reference), 86400000)
+        // unref: this timer must never keep the process alive (it would stall a test run for a day).
+        setTimeout(() => processedRefs.delete(reference), 86400000).unref?.()
 
         const amountNgn = amount / 100
         let escrowRow = null // set by the escrow_payment handler, used for the referral step
@@ -393,10 +398,15 @@ export default async function handler(req, res) {
             professional_type: metadata?.professional_type || null, // live col exists
             plan_type:         metadata?.plan_type || null,          // live col exists
             email:             customer.email,
-            status:            'success',
+            // 'success' unless the handler says the money was not applied (see chargePurposes.js).
+            // Admin revenue totals count 'success' only.
+            status:            purpose.paymentStatus || 'success',
             user_id:           metadata?.user_id || null,
             // payment_type and verified_at do NOT exist in live schema - omitted
           })
+
+          // Money that was not applied to anything is on the refund list and earns no referral.
+          if (purpose.paymentStatus === 'unapplied') break
 
           // ── AUTOMATIC REFERRAL PAYOUT ──────────────────────────────
           // Triggers the moment real money lands - no manual lookup,
@@ -461,6 +471,10 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('Webhook processing error:', err.message)
+    // Answering 500 asks Flutterwave to send this again. Release the claim first, or a retry that
+    // reaches this same warm instance would be skipped as a duplicate and answered 200, and the
+    // charge would never be processed.
+    if (claimedRef) processedRefs.delete(claimedRef)
     return res.status(500).json({ error: 'Processing failed' })
   }
 }

@@ -46,7 +46,8 @@ export function fetchDealPipeline() {
 // ── Payments and escrow ──
 export function fetchPayments() {
   return supabase.from('payments')
-    .select('id,reference,amount,payment_type,email,status,created_at')
+    // payments has no payment_type column. professional_type and plan_type are what the webhook stores.
+    .select('id,reference,amount,professional_type,plan_type,email,status,created_at')
     .order('created_at', { ascending: false }).limit(200)
 }
 

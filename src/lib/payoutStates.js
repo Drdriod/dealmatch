@@ -10,7 +10,9 @@
 //     changed under us is not overwritten by a stale decision.
 //
 // The admin Payouts tab writes status directly through the browser client, so
-// this table cannot stop that path. A database trigger would be the next step.
+// this table cannot stop that path. The database trigger in migration
+// 20261014000000_payout_state_guard.sql (applied on production 2026-10-20) enforces the
+// same table for every writer. Keep PAYOUT_TRANSITIONS and that trigger identical.
 
 export const PAYOUT_TRANSITIONS = {
   pending:    ['processing', 'failed'], // send to Flutterwave, or give up before sending

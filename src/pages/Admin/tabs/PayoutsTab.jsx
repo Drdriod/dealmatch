@@ -80,8 +80,9 @@ export function PayoutsTab() {
     // processor's own 5-attempt ceiling still applies) so the next
     // scheduled tick picks it up again - no separate retry endpoint
     // needed since the queue itself is the source of truth.
-    const {error}=await requeuePayout(id)
+    const {data,error}=await requeuePayout(id)
     if(error) return toast.error(error.message)
+    if(!data?.length){ toast.error('This payout is no longer failed, so it was not queued again.'); load(); return }
     toast.success('Queued for retry on the next cron run'); load()
   }
 

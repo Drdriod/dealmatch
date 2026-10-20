@@ -23,12 +23,15 @@ export function TransactionsTab() {
   const [items,setItems]=useState([])
   const [loading,setLoading]=useState(true)
   const [search,setSearch]=useState('')
-  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#C85F2D',rejected:'#C85F2D',disputed:'#C85F2D',refunded:'#888'}
+  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#C85F2D',rejected:'#C85F2D',disputed:'#C85F2D',refunded:'#888',unapplied:'#C85F2D'}
 
   const load=useCallback(async()=>{
     setLoading(true)
     try{
-      if(tab==='payments'){const{data}=await fetchPayments();setItems(data||[])}
+      if(tab==='payments'){const{data,error}=await fetchPayments()
+        // A failed read must not look like an empty list.
+        if(error)toast.error(friendlyDbError(error))
+        setItems(data||[])}
       else if(tab==='escrow'){
         // ✅ SCHEMA FIX (Aug 2026 hardening pass): was selecting amount/
         // platform_fee, which don't exist on escrow_transactions (the real
@@ -48,7 +51,9 @@ export function TransactionsTab() {
   useEffect(()=>{load()},[load])
 
   const filtered=items.filter(i=>!search||i.reference?.toLowerCase().includes(search.toLowerCase())||i.email?.toLowerCase().includes(search.toLowerCase())||i.description?.toLowerCase().includes(search.toLowerCase())||i.user_name?.toLowerCase().includes(search.toLowerCase())||i.properties?.title?.toLowerCase().includes(search.toLowerCase()))
-  const total=items.reduce((s,i)=>s+(i.amount||0),0)
+  // Money Flutterwave took that was not applied to anything is owed back (see Monetisation > Refunds), so it is not part of the total.
+  const unapplied=items.filter(i=>i.status==='unapplied')
+  const total=items.reduce((s,i)=>s+(i.status==='unapplied'?0:(i.amount||0)),0)
 
   return(
     <div className="space-y-4">
@@ -60,7 +65,7 @@ export function TransactionsTab() {
         </div>
         <SearchBar value={search} onChange={setSearch} placeholder="Search reference, email…"/>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} records · Total: {fmt(total)}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} records · Total: {fmt(total)}{unapplied.length>0&&` · ${unapplied.length} unapplied (to return)`}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={tab==='payments'?['Reference','Amount','Type','Email','Status','Date']:['Property','User','Amount','Fee','Status','Date']}>
           {filtered.map(item=>(
@@ -68,7 +73,7 @@ export function TransactionsTab() {
               {tab==='payments'&&<>
                 <td className="px-4 py-3 font-mono text-xs text-white">{(item.reference||'N/A').slice(0,16)}…</td>
                 <td className="px-4 py-3 font-semibold text-white">{fmt(item.amount||0)}</td>
-                <td className="px-4 py-3 text-xs capitalize" style={{color:'rgba(255,255,255,0.5)'}}>{(item.payment_type||'N/A').replace(/_/g,' ')}</td>
+                <td className="px-4 py-3 text-xs capitalize" style={{color:'rgba(255,255,255,0.5)'}}>{(item.professional_type||item.plan_type||'N/A').replace(/_/g,' ')}</td>
                 <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{maskEmail(item.email)}</td>
                 <td className="px-4 py-3"><Badge label={item.status||'N/A'} color={SC[item.status]||'#888'}/></td>
                 <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(item.created_at)}</td>

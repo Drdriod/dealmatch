@@ -28,7 +28,7 @@ export function fetchCommandCentre(since) {
     rowsOf('profiles', 'created_at', q => q.gte('created_at', since)),
     rowsOf('properties', 'created_at', q => q.gte('created_at', since)),
     rowsOf('payments', 'amount,created_at', q => q.eq('status', 'success').gte('created_at', since)),
-    supabase.from('payments').select('id,amount,payment_type,status,created_at')
+    supabase.from('payments').select('id,amount,professional_type,plan_type,status,created_at')
       .order('created_at', { ascending: false }).limit(6)
       .then(r => r.error ? [] : (r.data || [])).catch(() => []),
   ]).then(v => ({

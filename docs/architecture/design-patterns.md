@@ -23,7 +23,8 @@ is still to do. Update it when a pattern is applied or a new one is added.
 Tests for these live next to the code (`src/lib/*.test.mjs`) and share the
 in-memory Supabase fake in `src/lib/testing/fakeSupabase.mjs`.
 
-Run them with: `node --test src/lib/*.test.mjs`
+Run them with: `npm test` (it passes `--experimental-test-module-mocks`, which the webhook
+handler test needs). `npm run check` runs the fitness checks and then the tests.
 
 ## Still to do
 
@@ -42,11 +43,20 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    and 1 in `src/context`. These are feature services and helpers rather than pages.
    Whether they should move behind repositories too is a decision for the owner, not a gap in the pattern.
 3. **Webhook `charge.success` case. Done.** The six purpose handlers moved to
-   `src/lib/chargePurposes.js` (registry, own-property lookup), with 19 tests in
-   `src/lib/chargePurposes.test.mjs`. Known behaviour kept on purpose: a transaction
-   escrow that does not match (no row, not PENDING, amount mismatch) still writes the
-   payments row, as before. Review whether that row should say `success` for a job that
-   was not funded.
+   `src/lib/chargePurposes.js` (registry, own-property lookup), with tests in
+   `src/lib/chargePurposes.test.mjs` and a handler-level test in
+   `src/lib/flutterwaveWebhook.test.mjs`. Decided 2026-10-20: a transaction escrow charge
+   that cannot fund a job is no longer logged as a success. If there is no job with that
+   reference, the job is OPEN or CANCELLED, or the amount is wrong, the payments row says
+   `unapplied` (admin revenue counts `success` only; the payments column has no CHECK, so no
+   migration), the money goes on the refund list under `unapplied:<reference>` (reason
+   `overpaid`, with a note saying why), and the payer is told when our own job row names them.
+   A job that is already FUNDED, COMPLETED or DISPUTED is a repeat delivery and changes
+   nothing. A failed read of the job, or a failed write of the refund row, throws so the
+   webhook answers 500. Admin screens: the Flutterwave list now reads columns that exist
+   (it selected `payment_type`, which the table does not have, so a failed read looked like
+   an empty list), shows `unapplied` rows in their own colour outside the total, and the
+   refund list says "Not applied" with the note.
 4. **API database calls. Done.** Every table and RPC call in `api/` goes through a
    repository in `src/data/`. The ratchet has no `api/` entries, and a new direct call in
    `api/` fails the check. The one call outside the repositories is `platform.js`
@@ -73,10 +83,11 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    normal load, main read failing, side read failing, retry, role redirects, request
    count). Plain hooks, no query library: a cache would only matter if two components
    shared the same data, and none do. TanStack Query (MIT licence) is the option if that changes.
-7. **Database enforcement of payout states.** The admin Payouts tab writes status
-   straight from the browser. Migration `20261014000000_payout_state_guard.sql` enforces
-   `PAYOUT_TRANSITIONS` in the database. It is written and dry-run, and awaits owner
-   approval (runbook row 17). Until it is applied, the browser path is open.
+7. **Database enforcement of payout states. Done.** Migration
+   `20261014000000_payout_state_guard.sql` enforces `PAYOUT_TRANSITIONS` in the database.
+   Applied by the owner and confirmed on production on 2026-10-20 (runbook row 17). The
+   admin Payouts tab can now only make the one move an admin may make, failed to pending,
+   and its Retry write is conditional on the row still being failed.
 8. **Wildcard property reads. Done in the client; the database change is open.**
    The "Active properties are public" policy exposes every column of an active listing,
    so `select('*')` returned `contact_phone`, `contact_email`, `payment_ref` and the
@@ -92,6 +103,20 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    before this work (`category_listings` in `api/platform.js` and
    `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not
    introduced by these patterns.
+
+10. **Virtual-account payments are not retry-safe. Open.** `normalizeChargeEvent` in
+    `api/flutterwave-webhook.js` flips the virtual account to `paid` before the purpose
+    handler runs. If the handler then fails and the webhook answers 500, the retry finds the
+    account already `paid` and records the whole transfer as money to return ("Transfer
+    received after the payment was complete") instead of granting the item. Money is not
+    lost (it is on the refund list), but the item is not granted. The webhook now releases
+    its in-memory claim on failure, and the handler test pins that, but the retry cannot
+    reach a handler until the flip is undone. Fix options: undo the flip when the handler
+    fails, or treat "paid and no payments row" as an unfinished delivery and run the handler
+    again (every handler would have to be proven safe to repeat first).
+11. **Nothing runs the tests or fitness checks automatically. Open.** There is no CI
+    workflow; Vercel only builds. `npm run check` now exists. Adding a GitHub Actions
+    workflow that runs it on each pull request is an owner decision.
 
 ## Rules for new code
 

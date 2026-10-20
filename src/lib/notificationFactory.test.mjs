@@ -52,6 +52,13 @@ test('payment return copy depends on whether the payer overpaid or was short', (
     'We received ₦1,200 of the price. Please contact us to complete or refund it.')
 })
 
+test('an unapplied payment tells the payer we will return it, and where to look', () => {
+  const n = buildNotification('payment_return_unapplied', 'u1', { amountKobo: 500000 }, at)
+  assert.equal(n.title, 'We could not apply your payment')
+  assert.equal(n.message, 'We received ₦5,000, but it could not be applied to the job. We will return it to you.')
+  assert.equal(n.link, '/wallet')
+})
+
 test('refund alert for staff points at Monetisation', () => {
   const n = buildNotification('refund_due', 'a1', { reason: 'overpaid', reference: 'REF-1', amountKobo: 250000 }, at)
   assert.equal(n.title, 'Money to return')
