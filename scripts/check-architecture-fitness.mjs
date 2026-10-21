@@ -30,6 +30,7 @@
 
 import { readdirSync, readFileSync, statSync, existsSync, writeFileSync } from 'fs'
 import { join, relative, extname } from 'path'
+import { PROPERTY_BROWSER_READABLE_COLUMNS, PROPERTY_PRIVATE_COLUMNS } from '../src/lib/propertyColumns.js'
 
 const ROOT = process.cwd()
 
@@ -176,21 +177,17 @@ function checkDbRatchet(counts) {
   return { problems, total, baseTotal, files: Object.keys(counts).length }
 }
 
-// 7. Property reads name their columns (BLOCKING). The "Active properties are public" policy
-//    lets anyone read every column of an active listing, so a `select('*')` hands the seller's
-//    contact_phone and contact_email, the payment reference and the verification notes to
-//    anonymous visitors. Public reads use PROPERTY_PUBLIC_COLUMNS from src/lib/propertyColumns.js.
-//    Only code that serves the owner of the rows, an assigned agent or staff may use '*', and
-//    each is listed here with the reason. Head-only count queries return no rows and are fine.
-const PROPERTY_WILDCARD_ALLOWED = {
-  'src/data/landlordRepository.js': 'the signed-in owner reads their own listings',
-  'src/data/manageListingsRepository.js': 'the signed-in owner manages their own listings',
-  'src/data/agentDashboardRepository.js': 'an agent reads the listings assigned to them',
-  'src/data/verificationRepository.js': 'staff verification queue',
-  'src/data/adminRecordsRepository.js': 'staff listing review',
-  'src/data/adminOverviewRepository.js': 'staff overview (counts and a short list)',
-  'src/data/adminApiRepository.js': 'service-role admin counts',
-  'src/data/agentVerificationRepository.js': 'service-role agent verification',
+// 7. Property reads name their columns (BLOCKING). Migration 18 removes table-level SELECT on
+//    properties from the browser roles (anon, authenticated), so `select('*')`, an empty
+//    `select()` (which returns every column), and a head-count `*` all fail there with
+//    "permission denied". They would also have handed the seller's contact_phone and contact_email
+//    to anyone before that. Use the lists in src/lib/propertyColumns.js, and select('id', ...) for
+//    counts.
+//    Files that run only on the service role are not limited by the grants. Each is listed with
+//    the reason, and is also exempt from check 9.
+const PROPERTY_SERVICE_ROLE_FILES = {
+  'src/data/adminApiRepository.js': 'service-role admin counts and lists',
+  'src/data/agentVerificationRepository.js': 'service-role agent verification; reads assigned_agent_id',
 }
 
 // Text inside the parentheses that open at `start` (the index just after "("). Quote-aware,
@@ -261,11 +258,11 @@ function checkPropertyWildcards() {
   for (const scope of ['src', 'api']) {
     for (const file of walk(join(ROOT, scope), ['.js', '.jsx', '.mjs'])) {
       const rel = relative(ROOT, file)
-      if (rel in PROPERTY_WILDCARD_ALLOWED || rel.endsWith('.test.mjs')) continue
+      if (rel in PROPERTY_SERVICE_ROLE_FILES || rel.endsWith('.test.mjs')) continue
       const text = stripComments(readFileSync(file, 'utf8'))
       for (const { args, line } of propertySelects(text)) {
-        if (/head\s*:\s*true/.test(args)) continue
-        if (/^\s*(['"`])\s*(\*|[^'"`]*,\s*\*)/.test(args)) offenders.push({ file: rel, line, what: "select('*') on properties" })
+        if (/^\s*$/.test(args)) offenders.push({ file: rel, line, what: 'select() with no columns returns every column of properties' })
+        else if (/^\s*(['"`])\s*(\*|[^'"`]*,\s*\*)/.test(args)) offenders.push({ file: rel, line, what: "select('*') on properties" })
       }
       // An embedded `properties(*` returns every column of the parent row as well.
       const embed = /\bproperties(?:![\w_]+)?\(\s*\*/g
@@ -293,6 +290,83 @@ function checkPropertyImagesColumn() {
         // Only the top-level column list: drop anything inside nested parentheses.
         const top = args.replace(/\([^()]*\)/g, '')
         if (/(^|[\s,'"`])images\s*(?=,|['"`]|$)/.test(top)) offenders.push({ file: rel, line })
+      }
+    }
+  }
+  return offenders
+}
+
+// 9. A browser query may name only columns the database lets browsers read (BLOCKING). Migration
+//    18 grants SELECT on the columns in PROPERTY_BROWSER_READABLE_COLUMNS and nothing else. A
+//    select, an embed such as `properties(title)`, or a filter that names contact_phone,
+//    payment_ref, assigned_agent_id or another private column is refused by the database, so the
+//    page would show an error where it expected data. The two named lists in propertyColumns.js are
+//    safe by construction (a test keeps them in line with the migration), so ${...} is not parsed.
+function topLevelItems(list) {
+  const items = []
+  let depth = 0, cur = ''
+  for (const c of list) {
+    if (c === '(') depth++
+    else if (c === ')') depth--
+    if (c === ',' && depth === 0) { items.push(cur); cur = '' } else cur += c
+  }
+  items.push(cur)
+  return items.map((s) => s.trim()).filter(Boolean)
+}
+
+// The column an item selects, or null for an embed (`profiles(full_name)`) or a wildcard.
+function selectedColumn(item) {
+  if (item.includes('(') || item === '*') return null
+  const noCast = item.split('::')[0]
+  const afterAlias = noCast.includes(':') ? noCast.slice(noCast.indexOf(':') + 1) : noCast
+  return afterAlias.trim() || null
+}
+
+// The text of every `.from('properties')` chain, with its line number, whether or not it selects.
+function propertyScopes(source) {
+  const text = stripComments(source)
+  const out = []
+  const from = /\.from\(\s*['"]properties['"]\s*\)/g
+  let m
+  while ((m = from.exec(text))) {
+    const after = text.slice(m.index + m[0].length)
+    const end = after.search(/\.from\(|;|\n\s*\n/)
+    out.push({ scope: end === -1 ? after : after.slice(0, end), line: text.slice(0, m.index).split('\n').length })
+  }
+  return out
+}
+
+function checkPropertyBrowserColumns() {
+  const readable = new Set(PROPERTY_BROWSER_READABLE_COLUMNS)
+  const offenders = []
+  const flag = (file, line, name, where) => {
+    if (name && !readable.has(name)) offenders.push({ file, line, what: `${where} ${name}${PROPERTY_PRIVATE_COLUMNS.includes(name) ? ' (private)' : ' (not granted in migration 18)'}` })
+  }
+  for (const scope of ['src', 'api']) {
+    for (const file of walk(join(ROOT, scope), ['.js', '.jsx', '.mjs'])) {
+      const rel = relative(ROOT, file)
+      if (rel in PROPERTY_SERVICE_ROLE_FILES || rel.endsWith('.test.mjs')) continue
+      const source = readFileSync(file, 'utf8')
+      const text = stripComments(source)
+      for (const { args, line } of propertySelects(source)) {
+        const lit = /^\s*(['"`])([\s\S]*?)\1\s*(?:,|$)/.exec(args)
+        if (!lit) continue
+        const list = lit[2].replace(/\$\{[^}]*\}/g, '')
+        for (const item of topLevelItems(list)) flag(rel, line, selectedColumn(item), 'selects')
+      }
+      // Filters and ordering on a property chain need the same privilege as a read.
+      for (const { scope: chain, line } of propertyScopes(source)) {
+        const filter = /\.(?:eq|neq|gt|gte|lt|lte|like|ilike|is|in|contains|order)\(\s*['"]([a-z_]+)['"]/g
+        let f
+        while ((f = filter.exec(chain))) flag(rel, line, f[1], 'filters or orders on')
+      }
+      // Embedded `properties(...)` inside another table's select.
+      const embed = /\bproperties(?:![\w_]+)?\(/g
+      let m
+      while ((m = embed.exec(text))) {
+        const line = text.slice(0, m.index).split('\n').length
+        const inner = balancedArgs(text, m.index + m[0].length).replace(/\$\{[^}]*\}/g, '')
+        for (const item of topLevelItems(inner)) flag(rel, line, selectedColumn(item), 'embeds')
       }
     }
   }
@@ -383,9 +457,9 @@ function main() {
 
   // 7. Property reads name their columns
   const wild = checkPropertyWildcards()
-  console.log('\n[7] Property reads name their columns, no select(\'*\') outside owner and staff code (BLOCKING)')
+  console.log('\n[7] Property reads name their columns: no select(\'*\'), no empty select() (BLOCKING)')
   if (wild.length === 0) {
-    console.log('    PASS: no wildcard property reads outside the owner and staff allow-list.')
+    console.log('    PASS: no wildcard property reads outside service-role files.')
   } else {
     failed = true
     console.log(`    FAIL: ${wild.length} wildcard read(s). Use PROPERTY_PUBLIC_COLUMNS (src/lib/propertyColumns.js):`)
@@ -401,6 +475,17 @@ function main() {
     failed = true
     console.log(`    FAIL: ${badImages.length} read(s) select a column that does not exist. Embed images:property_images(url, is_primary):`)
     for (const v of badImages) console.log(`      ${v.file}:${v.line}`)
+  }
+
+  // 9. Browser queries name only readable property columns
+  const privateReads = checkPropertyBrowserColumns()
+  console.log('\n[9] Browser property queries name only columns browsers can read (BLOCKING)')
+  if (privateReads.length === 0) {
+    console.log('    PASS: no select, embed or filter names a private or ungranted property column.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${privateReads.length} query part(s) the database would refuse (src/lib/propertyColumns.js, migration 18):`)
+    for (const v of privateReads) console.log(`      ${v.file}:${v.line} ${v.what}`)
   }
 
   console.log('\n' + '='.repeat(42))

@@ -179,7 +179,7 @@ buyers, 1 seller, 1 superadmin), 1 approved provider application and 80 categori
 
 **Before kickoff (20 to 25 Oct).** Only work that is product and production work, not new assistant code:
 the Official Rules are due before 26 Oct and may limit prior work, so we read them first.
-- Merge PR #17 and deploy. Production has migrations 1 to 17 and the old code. This is also the "holds up in production" evidence.
+- PR #17 is merged and deployed (21 Oct). Merge PR #18, then apply migrations 18 and 19 (runbook section 7). This is also the "holds up in production" evidence.
 - Close the properties column exposure (migration 18, ordering in the runbook).
 - Owner steps: rotate the Flutterwave sandbox secret and the database passwords, enable leaked-password protection.
 - Founder: get real listings in (section 8). Stage the demo dataset.
@@ -229,7 +229,7 @@ matching RPCs, Pinecone index, WhatsApp gateway, trust tiers, escrow). Say it pl
 | WhatsApp live demo fails (24-hour window, number status, network) | Recorded copy of every scene. Web demo is the live path |
 | Cost overrun from evaluation runs | Cache prompts (cached input is 8x cheaper), cap runs, track spend in the harness |
 | A failed run costs a day | Feature freeze on day 7. Cut order above |
-| Production still on old code | Merge and deploy PR #17 first |
+| Production not yet on the latest code | Merge and deploy PR #18, then apply migrations 18 and 19 |
 
 ## 12. Decisions that are the founder's
 

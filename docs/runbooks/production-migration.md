@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 17 applied and verified (17 on 2026-10-20).** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written and wait for the PR #18 deploy (section 7). PR #17 was merged and deployed on 2026-10-21.** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -18,12 +18,14 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 9 | 20261012000000_taxonomy_blueprint_v2 | Applied 2026-10-12 after a rolled-back dry run (success, no rows). Verified: 11 active groups (4 place, 7 people), 60 active leaves, 0 active categories without a pillar, 0 listings under inactive categories. Adds `categories.pillar` and `properties.category_id`. No listings or properties were moved. |
 | 10 | 20261012000100_universal_search_category_filter | Applied 2026-10-12 after a rolled-back dry run. Verified: 2-argument `universal_search` dropped, 3-argument version live with optional `p_category_slug`, grants on anon, authenticated, service_role, unfiltered and filtered calls both run. Depends on the `public_profiles` view from file 11, which was applied earlier on the same day. |
 | 11 | 20261009010000_page_audit_fixes | Applied 2026-10-12 after a rolled-back dry run. Verified: `public_profiles` view exists, listing status rule includes the admin statuses, `mortgage_applications.updated_at` exists, referral payout guard uses `is_superadmin`. |
+| 12 | 20261012010000_rental_fee_1_5_per_side | Applied 2026-10-12 after a rolled-back dry run. Verified: no 3.75% or 7.5% rate remains in `start_property_escrow_payment` or `fn_calculate_revenue_split`; both now use 1.5% (3% total) for rentals. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
 | 13 | 20261013000000_platform_fees_registry | Applied 2026-10-13 after a rolled-back dry run and owner approval, as one transaction. Verified: 10 channels seeded (escrow 3% each, hotel 8%, job escrow 0%, hostel and professional and unlock flat fees), `platform_fee_history` exists, 4 fee functions exist, no 3.75% or 7.5% rate left in the two escrow functions. Admin write functions were not exercised with a real admin account. The frontend that reads this table is not wired yet. |
 | 14 | 20261013010000_payment_integrity | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor: the tool cancels DROP POLICY statements). Verified: 3 guard triggers, 0 client insert policies on bookings and hostel_payments, bookings.platform_fee_ngn exists, escrow start checks the listed price. |
 | 15 | 20261013020000_money_integrity_marketplace | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor as a wrapped transaction: the tool cancelled it). Verified: `job_guard` 1 (trigger enabled), `refunds_table` 1 with RLS on, `mark_fn` 1 and SECURITY DEFINER, admin-only policies `payment_refunds_admin_read` and `payment_refunds_admin_update`. Not yet exercised with a real admin account. |
 | 16 | 20261013030000_retire_job_escrow_registry_row | Applied 2026-10-13 after a rolled-back dry run and owner approval. Verified: `job_escrow` is_active=false, 9 other channels still active. Job commission is set in Commission Schedules. |
 | 17 | 20261014000000_payout_state_guard | Applied by the owner in the SQL editor, confirmed 2026-10-20 with read-only queries on production: `trg_guard_payout_transition` exists and is enabled (BEFORE UPDATE OF status on `payout_queue`); the live `fn_guard_payout_transition` allows exactly pending→processing/failed, processing→paid/failed, paid→failed, failed→pending, the same table as `src/lib/payoutStates.js`; no SQL function updates `payout_queue`; `payout_queue` holds 0 rows, so nothing is stranded. Code check: the cron, webhook, reconciliation and settlement write status only through `movePayout`; the admin Payouts tab writes only failed→pending (Retry, shown on failed rows only, and now conditional on `status = 'failed'`). Not re-run on production: an illegal move raising `check_violation` (no row to test with); the rolled-back dry run passed 13/13 on this same SQL. |
-| 12 | 20261012010000_rental_fee_1_5_per_side | Applied 2026-10-12 after a rolled-back dry run. Verified: no 3.75% or 7.5% rate remains in `start_property_escrow_payment` or `fn_calculate_revenue_split`; both now use 1.5% (3% total) for rentals. Changes rental escrow fee from 3.75% per side (7.5% total) to 1.5% per side (3% total) in `start_property_escrow_payment` and `fn_calculate_revenue_split`. Ship with the frontend fee change, not before. |
+| 18 | 20261020000000_properties_column_exposure | **Written, not applied. Apply only after PR #18 is deployed** (see section 7). Rolled-back dry run on production 2026-10-21: 35 of 35 behaviour checks passed plus the migration's own assertions, and a read-only check afterwards showed nothing had changed (anon could still read `contact_phone`, no `my_assigned_property_ids`, no test rows). Removes table-level SELECT on `properties` from `anon` and `authenticated`, grants SELECT on the 36 public columns, withholds 9 private ones, adds `my_assigned_property_ids()`. |
+| 19 | 20261020010000_properties_status_under_verification | **Written, not applied, not yet dry-run** (the database connection was down when it was written). Adds `under_verification` to `properties_status_check`; the verification flow writes that status and the database refuses it today. Contains a DROP CONSTRAINT, so run it in the SQL editor. Dry-run it first. |
 
 **Advisor state after apply:**
 - Security: `provider_stats` SECURITY DEFINER view is intentional. PostGIS and pg_net in `public` and `spatial_ref_sys` RLS need an extension move (deferred). ~16 anon-callable and ~42 authenticated-callable SECURITY DEFINER functions are an RPC grant audit (deferred). Leaked-password protection is disabled in Auth settings (action needed). `identity_doc_purge_queue` RLS with no policies is intended.
@@ -110,3 +112,54 @@ rather than restoring the database.
 ## 6. Approval
 
 Production is changed only when the owner approves **after** checks 1 and 3 pass.
+
+## 7. Files 18 and 19: apply after PR #18 is deployed
+
+**Why the order matters.** File 18 makes `select('*')` on `properties` fail for visitors and signed-in users.
+The code on `main` today (PR #17, deployed 2026-10-21) still does that in the owner and staff screens (landlord
+dashboard, verification queue, agent dashboard) and when a listing is published. PR #18 changes them. Apply 18 first and the live site breaks. Apply it after the PR #18 deploy and the code
+already asks for named columns.
+
+1. Merge PR #18. Wait for the Vercel production deploy to finish. Open the site and confirm it loads.
+2. Dry-run file 18 again if more than a day has passed (it is quick), then run it in the SQL editor.
+   It checks its own result and rolls back if a private column is still readable.
+3. Dry-run file 19, then run it in the SQL editor (it contains a DROP CONSTRAINT, which the tool cancels).
+4. Run the read-only checks below.
+5. Smoke test in a browser: home page counts, Browse, one property page, the landlord dashboard,
+   the Verification page as staff, the agent dashboard as an agent, and publishing a listing with photos.
+
+Read-only checks after file 18 (expect exactly the nine private columns to show `false` and `false`):
+
+```sql
+SELECT column_name,
+       has_column_privilege('anon', 'public.properties', column_name, 'SELECT')          AS anon_can_read,
+       has_column_privilege('authenticated', 'public.properties', column_name, 'SELECT') AS authenticated_can_read
+  FROM information_schema.columns
+ WHERE table_schema = 'public' AND table_name = 'properties'
+ ORDER BY anon_can_read, column_name;
+
+SELECT has_table_privilege('service_role', 'public.properties', 'SELECT')                 AS service_role_reads_all,  -- true
+       has_function_privilege('anon', 'public.my_assigned_property_ids()', 'EXECUTE')       AS anon_runs_rpc,           -- false
+       has_function_privilege('authenticated', 'public.my_assigned_property_ids()', 'EXECUTE') AS auth_runs_rpc;       -- true
+```
+
+And from outside, as anyone could: this must now fail with `permission denied for table properties`
+(use the project URL and the anon key):
+
+```bash
+curl -s "$SUPABASE_URL/rest/v1/properties?select=contact_phone&limit=1" -H "apikey: $SUPABASE_ANON_KEY"
+```
+
+**When a column is added to `properties` later.** It is not readable by browsers until a migration grants it.
+Add `GRANT SELECT (col) ON public.properties TO anon, authenticated;` to that migration, and add the name to
+`src/lib/propertyColumns.js`. `npm test` fails if the code and file 18 disagree.
+
+**Rollback for file 18.** It only removes read access, so rolling back reopens the exposure. Use it only if
+the site breaks for a reason the code cannot fix quickly:
+
+```sql
+GRANT SELECT ON public.properties TO anon, authenticated;
+```
+
+Then fix the code and apply file 18 again. Do not leave production on the rollback.
+

@@ -2,13 +2,23 @@
 // The page calls these and never builds a query. Photo uploads and sign-out stay in the page.
 // The server's agentVerificationRepository is a different file: it takes a client as an argument.
 import { supabase } from '@/lib/supabase'
+import { PROPERTY_OWNER_COLUMNS } from '@/lib/propertyColumns'
 
-// Properties assigned to this agent, newest first, with the seller and any verification records.
-export function fetchAssignedProperties(agentId) {
+// Properties assigned to this agent, newest first, with the seller, the photos and any
+// verification records. Resolves to { data, error } like a single query.
+//
+// assigned_agent_id is not readable by browser roles (migration 18), and a filter needs the same
+// privilege as a read. So the agent's listing ids come from my_assigned_property_ids(), which
+// answers for the signed-in agent only, and the rows are then read by id. `agentId` is kept for
+// the callers; the database uses the session, never this argument.
+export async function fetchAssignedProperties() {
+  const { data: ids, error: idsError } = await supabase.rpc('my_assigned_property_ids')
+  if (idsError) return { data: null, error: idsError }
+  if (!ids || ids.length === 0) return { data: [], error: null }
   return supabase
     .from('properties')
-    .select('*, profiles(full_name, phone, email), agent_verifications(id,verdict,submitted_at)')
-    .eq('assigned_agent_id', agentId)
+    .select(`${PROPERTY_OWNER_COLUMNS}, images:property_images(id, url, is_primary, caption), profiles(full_name, phone, email), agent_verifications(id,verdict,submitted_at)`)
+    .in('id', ids)
     .order('created_at', { ascending: false })
 }
 

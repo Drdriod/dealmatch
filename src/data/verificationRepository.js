@@ -2,12 +2,15 @@
 // property verification queue (VerificationPage) and a provider's skill
 // verification (SkillVerificationPage). The pages call these and never build a query.
 import { supabase } from '@/lib/supabase'
+import { PROPERTY_OWNER_COLUMNS } from '@/lib/propertyColumns'
 
 // ── Agent property verification queue ──
 
+// Named columns, not '*' (migration 18). The page draws the listing's photos from `images`, which
+// is a set of property_images rows, not a column, so it is embedded.
 export function fetchPropertiesByStatus(status) {
   return supabase.from('properties')
-    .select('*, profiles(full_name, phone, email, avatar_url)')
+    .select(`${PROPERTY_OWNER_COLUMNS}, images:property_images(id, url, is_primary, caption), profiles(full_name, phone, email, avatar_url)`)
     .eq('status', status)
     .order('created_at', { ascending: true })
     .limit(50)

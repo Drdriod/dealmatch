@@ -391,9 +391,12 @@ export default function AgentDashboardPage() {
             return (
               <div key={property.id} className="rounded-3xl overflow-hidden" style={{ backgroundColor:'white', border:'1px solid #DEDDD6', boxShadow:'0 2px 12px rgba(23,33,27,0.06)' }}>
                 {/* Property image */}
-                {property.images?.[0] && (
-                  <img src={property.images[0]} alt={property.title} className="w-full h-36 object-cover" />
-                )}
+                {/* images are property_images rows ({ url, is_primary }); the primary photo first */}
+                {(() => {
+                  const photos = property.images || []
+                  const cover = (photos.find(i => i.is_primary) || photos[0])?.url
+                  return cover ? <img src={cover} alt={property.title} className="w-full h-36 object-cover" /> : null
+                })()}
 
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">

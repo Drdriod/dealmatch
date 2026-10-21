@@ -88,17 +88,26 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    Applied by the owner and confirmed on production on 2026-10-20 (runbook row 17). The
    admin Payouts tab can now only make the one move an admin may make, failed to pending,
    and its Retry write is conditional on the row still being failed.
-8. **Wildcard property reads. Done in the client; the database change is open.**
-   The "Active properties are public" policy exposes every column of an active listing,
-   so `select('*')` returned `contact_phone`, `contact_email`, `payment_ref` and the
-   verification notes to anonymous visitors. Public reads now name their columns
-   (`propertyColumns.js`), the interest modal and Matches page use only the DealMatch
-   WhatsApp number (`src/lib/contact.js`), and fitness checks 7 and 8 stop it coming
-   back. Still open, owner decision: the policy itself still allows a direct API call
-   with `select=*` to read those columns. Closing that needs a column-level grant or a
-   public view, and only after confirming nothing else reads the table with `*`. Audit
-   what is stored first:
-   `select count(*) filter (where contact_phone is not null), count(*) filter (where contact_email is not null) from properties where status = 'active';`
+8. **Browsers read named `properties` columns only. Code done; the database change
+   (migration 18) is written and waits for the PR #18 deploy.** The "Active properties
+   are public" policy chooses rows, not columns, so a direct API call could read
+   `contact_phone`, `contact_email`, `payment_ref`, the verification record and the agent
+   assignment of every active listing. Migration `20261020000000_properties_column_exposure.sql`
+   removes table-level SELECT from `anon` and `authenticated` and grants the 36 public
+   columns only. It was dry-run on production on 2026-10-21 (35 of 35 behaviour checks,
+   rolled back); apply it as runbook section 7 says. What this means in code:
+   - Name the columns (`src/lib/propertyColumns.js`). `select('*')`, an empty `select()`
+     and a head-count `*` are refused. Counts use `select('id', { count: 'exact', head: true })`.
+   - A filter needs the same privilege as a read, so nothing in the browser filters on a
+     private column. The agent dashboard asks `my_assigned_property_ids()` instead.
+   - A new column is not readable until a migration grants it. `propertyColumns.test.mjs`
+     fails if the code and the migration disagree. Fitness check 7 refuses `*`, and check 9
+     refuses any select, embed or filter that names a private column.
+   - Writes are unchanged. The guard trigger still decides who may write a private column.
+   - Contact still goes through `get_property_contact` (owner, staff, funded escrow or a
+     credit unlock), and the interest modal and Matches page use only the DealMatch
+     WhatsApp number (`src/lib/contact.js`).
+   Audit of stored data before the change: 0 listings, so nothing had leaked yet.
 9. **Known architecture violations.** Three module-boundary violations remain from
    before this work (`category_listings` in `api/platform.js` and
    `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not
