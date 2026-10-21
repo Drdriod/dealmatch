@@ -42,8 +42,8 @@ export function fetchCommandCentre(since) {
 export async function fetchOverviewFallback() {
   const [{count:u},{count:a},{count:p},{data:pay},{data:rp}] = await Promise.all([
     supabase.from('profiles').select('*',{count:'exact',head:true}),
-    supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','active'),
-    supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
+    supabase.from('properties').select('id',{count:'exact',head:true}).eq('status','active'),
+    supabase.from('properties').select('id',{count:'exact',head:true}).eq('status','pending_review'),
     supabase.from('payments').select('amount').eq('status','success'),
     supabase.from('properties').select('id,title,status,created_at,profiles(full_name)').order('created_at',{ascending:false}).limit(6),
   ])
@@ -58,9 +58,9 @@ export async function fetchOverviewFallback() {
 export async function fetchAnalyticsFallback() {
   const [{count:tu},{count:tp},{count:ap},{count:pp},{count:tpr},{count:apr},{count:ma},{count:et},{data:pd},{count:re},{count:pi}] = await Promise.all([
     supabase.from('profiles').select('*',{count:'exact',head:true}),
-    supabase.from('properties').select('*',{count:'exact',head:true}),
-    supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','active'),
-    supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
+    supabase.from('properties').select('id',{count:'exact',head:true}),
+    supabase.from('properties').select('id',{count:'exact',head:true}).eq('status','active'),
+    supabase.from('properties').select('id',{count:'exact',head:true}).eq('status','pending_review'),
     supabase.from('professional_applications').select('*',{count:'exact',head:true}),
     supabase.from('professional_applications').select('*',{count:'exact',head:true}).eq('status','approved'),
     supabase.from('mortgage_applications').select('*',{count:'exact',head:true}),
@@ -81,7 +81,7 @@ export async function fetchAnalyticsFallback() {
 export async function fetchSidebarBadgeCounts() {
   const [{count:identity},{count:properties},{count:students}] = await Promise.all([
     supabase.from('profiles').select('*',{count:'exact',head:true}).eq('identity_verification_status','submitted'),
-    supabase.from('properties').select('*',{count:'exact',head:true}).eq('status','pending_review'),
+    supabase.from('properties').select('id',{count:'exact',head:true}).eq('status','pending_review'),
     supabase.from('student_verifications').select('*',{count:'exact',head:true}).eq('status','pending'),
   ])
   return { identity, properties, 'student-verifications': students }

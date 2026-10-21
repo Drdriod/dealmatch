@@ -1,9 +1,12 @@
 // Repository (structural pattern) for the landlord dashboard. Each function
 // returns the Supabase { data, error } result the page already handles.
 import { supabase } from '@/lib/supabase'
+import { PROPERTY_OWNER_COLUMNS } from '@/lib/propertyColumns'
 
+// Named columns, not '*': a browser role cannot read the private columns of properties
+// (migration 18), so a wildcard read fails. See lib/propertyColumns.js.
 export function fetchMyListings(userId) {
-  return supabase.from('properties').select('*')
+  return supabase.from('properties').select(PROPERTY_OWNER_COLUMNS)
     .eq('seller_id', userId).order('created_at', { ascending: false })
 }
 

@@ -20,8 +20,8 @@ export function findProfileRoleAndName(svc, userId) {
 export function fetchStatsQueries(svc) {
   return Promise.all([
     svc.from('profiles').select('*', { count: 'exact', head: true }),
-    svc.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    svc.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'pending_review'),
+    svc.from('properties').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    svc.from('properties').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
     svc.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     svc.from('profiles').select('*', { count: 'exact', head: true }).eq('identity_verification_status', 'submitted'),
     svc.from('mortgage_applications').select('*', { count: 'exact', head: true }),

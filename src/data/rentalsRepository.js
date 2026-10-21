@@ -2,6 +2,7 @@
 // posting a rental (ListRentalPage). The pages call these and never build a query.
 import { supabase } from '@/lib/supabase'
 import { PROPERTY_PUBLIC_COLUMNS } from '@/lib/propertyColumns'
+import { insertListingWithPhotos } from '@/lib/listingWrite'
 
 // Active rentals and short-lets, newest first, at most 40. Units marked occupied are hidden so
 // nobody double-books; a null occupancy is an older listing and counts as vacant.
@@ -33,6 +34,8 @@ export function insertRentalEnquiry(row) {
 
 // Posts a new rental, hotel or short-let. The caller supplies the whole row, already cleaned of
 // control characters (the database rejects a NUL byte), and sets its status. Resolves with the new id.
+// `row.images` ({ url, is_primary } entries) is saved to property_images; properties has no such
+// column. If the photos cannot be saved the listing is removed again and `error` is set.
 export function insertListedProperty(row) {
-  return supabase.from('properties').insert(row).select('id').single()
+  return insertListingWithPhotos(supabase, row, 'id')
 }

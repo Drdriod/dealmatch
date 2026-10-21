@@ -1,6 +1,6 @@
 # Open items
 
-As of 2026-10-21. Built from a read of the session transcript (which starts at the 18 Oct compaction, so
+As of 2026-10-21 (evening). Built from a read of the session transcript (which starts at the 18 Oct compaction, so
 older requests come from the summaries and the excerpt files you uploaded) and checked against the repo.
 Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
 
@@ -14,11 +14,12 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 | A1 | **Merge PR #17** (still open on 21 Oct, mergeable, no conflicts). On GitHub: Pull requests, #17, then "Merge pull request". Vercel then deploys `main` to production. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Production has migrations 1 to 17, but `main` does not have the code that goes with them. The live site is running old code against the new database |
 | A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
 | A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
-| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after item B1 is applied |
+| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after migration 18 is applied (A9) |
 | A5 | Read the Official Rules when published (before 26 Oct) and paste them | They may restrict work started before the event |
 | A6 | Smoke test production after the PR #17 deploy: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
 | A7 | Decide: Vercel plan (the function cap), WhatsApp number for the demo, solo or team | Needed before day 4 of the hackathon |
 | A8 | Counsel questions in ADR-009 (retention, NDPA, impact assessment). Terms page: which fee wording is right | Open since the legal review |
+| A9 | **Apply migrations 18 and 19, in that order, after the PR #17 deploy.** Steps, checks and rollback are in `docs/runbooks/production-migration.md` section 7. File 19 contains a DROP, so use the SQL editor, and dry-run it first | 18 closes the contact-column exposure (dry-run on production passed 35 of 35, rolled back). 19 lets the verification flow set `under_verification`, which the database refuses today. Applying 18 before the deploy would break the live site |
 
 ## B. I can do these
 
@@ -26,7 +27,6 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 
 | # | Item | Evidence |
 |---|---|---|
-| B1 | **Close the `properties` column exposure in the database.** The "Active properties are public" policy still lets a direct API call read `contact_phone`, `contact_email`, `payment_ref`, verification notes and `assigned_agent_id`. Needs a new migration (18), a rolled-back dry run, a runbook row, and ordering after PR #17 is deployed. Also tighten fitness check 7 for head counts and fix `homeRepository.js:8,10` | Audit of active listings: 0 rows stored (there are no listings), so nothing has leaked yet. This has to be closed **before** real listings go in |
 | B2 | **Apply the unapplied-money rule to the other purposes.** Only transaction escrow got it. Property escrow (`escrowPayment`, no amount check), hostel fee, unlock credits and hotel booking can still log `success` for money that was not applied | `chargePurposes.js` |
 | B3 | **Virtual-account payments are not retry-safe.** The account is marked paid before the handler runs, so a failed handler followed by a retry sends the whole transfer to the refund list instead of granting the item | design-patterns item 10 |
 | B4 | End-to-end sandbox payment test. No local Supabase config, the Docker install failed earlier | Needs sandbox credentials from you |
@@ -35,7 +35,7 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 
 | # | Item | Evidence |
 |---|---|---|
-| B5 | Stale docs: ARCHITECTURE.md says migration 17 is pending and the baseline is 256 (it is `{}`); design-patterns item 9 says 3 violations (cleared); runbook rows 12 and 13 are out of order or stale; CHANGELOG and README have nothing since 9 Oct; ISSUES.md lists fixed items as open; ADR-009 still says "Proposed" | Files named |
+| B5 | Stale docs: ARCHITECTURE.md says migration 17 is pending and the baseline is 256 (it is `{}`); design-patterns item 9 says 3 violations (cleared); the runbook's migration table was out of order (fixed), and its advisor and action lines are stale; CHANGELOG and README have nothing since 9 Oct; ISSUES.md lists fixed items as open; ADR-009 still says "Proposed" | Files named |
 | B6 | The parked taxonomy migration `20261011010000_place_people_taxonomy.sql` is still in `supabase/migrations/`, and the README says to run every file in order. It re-parents live listings and is superseded by file 9 | Move it out of the folder |
 | B7 | Category pages are empty: nothing writes `properties.category_id` (the list form sets only the old `category`) | `ListPropertyPage.jsx`, `categoryFeed.js` |
 | B8 | About 30 `select('*')` reads remain outside `properties` | `supabase.js:87`, `messagesRepository`, `jobPostingRepository`, `referralRepository`, `notificationsRepository`, catalog and forum services |
@@ -54,6 +54,9 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 
 ## C. Built, but not exercised, so not proven
 
+- Publishing a listing with photos (`src/lib/listingWrite.js`). The code split is unit-tested; the live insert has not been run. Both forms were sending `images` inside the `properties` insert, which the database refuses, so this may never have worked.
+- The screens that changed to named property columns (landlord dashboard, Verification page, agent dashboard, home counts, admin overview). Build and tests pass; none was opened in a browser, and migration 18 is not applied yet.
+- Migration 19 has not had a dry run.
 - Staging replay of files 9 to 17 and the `is_superadmin` policy check. Not recorded as done.
 - `transactions.listing_id` is UUID on production. No result in the applied log.
 - RATE-3 ("verify in staging before closing"): no record.

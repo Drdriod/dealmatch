@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { PROPERTY_PUBLIC_COLUMNS } from './propertyColumns'
+import { insertListingWithPhotos } from './listingWrite'
 
 const SUPABASE_URL      = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -122,14 +123,11 @@ export const stripControlChars = (value) => {
 }
 
 // ─── Property helpers ─────────────────────────────────────
-export const createProperty = async (payload) => {
-  const { data, error } = await supabase
-    .from('properties')
-    .insert(stripControlChars(payload))
-    .select()
-    .single()
-  return { data, error }
-}
+// Saves a new sale listing and its photos. `payload.images` is a list of { url, is_primary }; it is
+// saved to property_images, not sent as a column (properties has none). Reads back the public
+// columns only: a browser role cannot read every column of properties. See lib/listingWrite.js.
+export const createProperty = async (payload) =>
+  insertListingWithPhotos(supabase, stripControlChars(payload), PROPERTY_PUBLIC_COLUMNS)
 
 export const getProperties = async ({ limit = 20, filters = {} } = {}) => {
   // ✅ FIX: this previously selected('*') with no join at all, so every
