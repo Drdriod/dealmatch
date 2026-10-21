@@ -7,6 +7,10 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import {
+  findPropertyForStart, insertVerificationSession, findSession, setSessionStatus, claimSessionAttempt,
+  consumeActiveSession, findPropertyForSubmit, upsertAgentVerification, markPropertyUnderVerification,
+} from '../../src/data/agentVerificationRepository.js'
 
 const ALLOWED_ORIGIN     = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 const SESSION_LIFETIME_MS = 4 * 60 * 60 * 1000
@@ -50,8 +54,7 @@ async function handleStart(req, res, user) {
   }
 
   const svc = getServiceClient()
-  const { data: property } = await svc.from('properties')
-    .select('id, assigned_agent_id, latitude, longitude, status').eq('id', property_id).single()
+  const { data: property } = await findPropertyForStart(svc, property_id)
 
   if (!property) return res.status(404).json({ error: 'Property not found' })
   if (property.assigned_agent_id !== user.id) return res.status(403).json({ error: 'You are not the assigned agent for this property' })
@@ -62,10 +65,10 @@ async function handleStart(req, res, user) {
   const serverT0  = new Date()
   const expiresAt = new Date(serverT0.getTime() + SESSION_LIFETIME_MS)
 
-  const { data: session, error: insErr } = await svc.from('verification_sessions').insert({
+  const { data: session, error: insErr } = await insertVerificationSession(svc, {
     agent_id: user.id, property_id, platform,
     server_t0: serverT0.toISOString(), expires_at: expiresAt.toISOString(), status: 'active',
-  }).select('id').single()
+  })
   if (insErr) return res.status(500).json({ error: insErr.message })
 
   const sessionKey = crypto.createHmac('sha256', process.env.VERIFICATION_MASTER_SECRET).update(session.id).digest('hex')
@@ -96,20 +99,21 @@ async function handleSubmit(req, res, user) {
 
   const svc = getServiceClient()
 
-  const { data: session } = await svc.from('verification_sessions')
-    .select('id, agent_id, property_id, server_t0, expires_at, status, attempts').eq('id', session_id).single()
+  const { data: session } = await findSession(svc, session_id)
 
   if (!session || session.agent_id !== user.id) return res.status(404).json({ error: 'Session not found' })
   if (session.status !== 'active') return res.status(410).json({ error: `Session already ${session.status} - request a new one` })
   if (new Date() > new Date(session.expires_at)) {
-    await svc.from('verification_sessions').update({ status: 'expired' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'expired')
     return res.status(410).json({ error: 'Session expired - request a new one' })
   }
   if (session.attempts >= MAX_ATTEMPTS) {
-    await svc.from('verification_sessions').update({ status: 'rejected' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'rejected')
     return res.status(429).json({ error: 'Too many attempts on this session' })
   }
-  await svc.from('verification_sessions').update({ attempts: session.attempts + 1 }).eq('id', session_id)
+  const { data: claimed, error: claimErr } = await claimSessionAttempt(svc, session_id, session.attempts)
+  if (claimErr) return res.status(500).json({ error: 'Could not start verification. Please try again.' })
+  if (!claimed?.length) return res.status(409).json({ error: 'This session is busy. Try again in a moment, or request a new session.' })
 
   const sessionKey = crypto.createHmac('sha256', process.env.VERIFICATION_MASTER_SECRET).update(session_id).digest('hex')
   const expectedHmac = crypto.createHmac('sha256', sessionKey)
@@ -119,12 +123,12 @@ async function handleSubmit(req, res, user) {
   let signatureValid = false
   try { signatureValid = crypto.timingSafeEqual(Buffer.from(expectedHmac), Buffer.from(hmac)) } catch {}
   if (!signatureValid) {
-    await svc.from('verification_sessions').update({ status: 'rejected' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'rejected')
     return res.status(400).json({ error: 'Telemetry integrity check failed - signature mismatch' })
   }
 
   if (is_mock_location) {
-    await svc.from('verification_sessions').update({ status: 'rejected' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'rejected')
     return res.status(403).json({ error: 'Mock/simulated location detected on this device' })
   }
 
@@ -134,24 +138,27 @@ async function handleSubmit(req, res, user) {
 
   const sessionLifetimeMs = new Date(session.expires_at) - new Date(session.server_t0)
   if (monotonic_elapsed_ms < 0 || monotonic_elapsed_ms > sessionLifetimeMs) {
-    await svc.from('verification_sessions').update({ status: 'rejected' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'rejected')
     return res.status(400).json({ error: 'Implausible capture timing' })
   }
   const capturedAt = new Date(new Date(session.server_t0).getTime() + monotonic_elapsed_ms)
 
-  const { data: property } = await svc.from('properties')
-    .select('id, latitude, longitude, assigned_agent_id').eq('id', session.property_id).single()
+  const { data: property } = await findPropertyForSubmit(svc, session.property_id)
   if (!property || property.assigned_agent_id !== user.id) return res.status(403).json({ error: 'Not authorized for this property' })
 
   const varianceM = distanceMeters(latitude, longitude, property.latitude, property.longitude)
   if (varianceM > MAX_VARIANCE_M) {
-    await svc.from('verification_sessions').update({ status: 'rejected' }).eq('id', session_id)
+    await setSessionStatus(svc, session_id, 'rejected')
     return res.status(422).json({ error: `You appear to be ${Math.round(varianceM)}m from the property address (max ${MAX_VARIANCE_M}m allowed)`, variance_m: Math.round(varianceM) })
   }
 
-  await svc.from('verification_sessions').update({ status: 'consumed' }).eq('id', session_id)
+  // Consume only if still active. Two submits racing on one session: the second one
+  // finds nothing to update and is refused here, instead of both writing a verification.
+  const { data: consumed, error: consumeErr } = await consumeActiveSession(svc, session_id)
+  if (consumeErr) return res.status(500).json({ error: 'Could not record this verification. Please try again.' })
+  if (!consumed?.length) return res.status(410).json({ error: 'Session already used - request a new one' })
 
-  const { error: upsertErr } = await svc.from('agent_verifications').upsert({
+  const { error: upsertErr } = await upsertAgentVerification(svc, {
     property_id: session.property_id, agent_id: user.id, photos,
     gps_lat: latitude, gps_lng: longitude, gps_accuracy_m: Math.round(gps_accuracy_m),
     checklist: checklist || undefined,
@@ -160,10 +167,10 @@ async function handleSubmit(req, res, user) {
     visited_at: capturedAt.toISOString(), session_id, monotonic_elapsed_ms,
     captured_at: capturedAt.toISOString(), is_mock_location: false, platform,
     hmac_verified: true, gps_variance_m: Math.round(varianceM),
-  }, { onConflict: 'property_id,agent_id' })
+  })
 
   if (upsertErr) return res.status(500).json({ error: upsertErr.message })
-  await svc.from('properties').update({ status: 'under_verification' }).eq('id', session.property_id)
+  await markPropertyUnderVerification(svc, session.property_id)
 
   return res.status(200).json({
     ok: true, captured_at: capturedAt.toISOString(), variance_m: Math.round(varianceM),

@@ -16,8 +16,9 @@ export default function DeleteAccountPage() {
 
         <h2 className="font-bold text-lg mb-2" style={{ color: '#17211B' }}>What is deleted</h2>
         <p className="text-sm mb-4" style={{ color: '#5C4F49' }}>
-          Your name, email address, phone number, profile photo, bio, location, identity documents and
-          selfie, and saved bank details. Your login is disabled immediately.
+          Your name, email address, phone number, profile photo, bio, location, and saved bank details.
+          Your login is disabled immediately. Your ID document and selfie are removed from our storage
+          within 90 days of deletion.
         </p>
 
         <h2 className="font-bold text-lg mb-2" style={{ color: '#17211B' }}>What is kept</h2>

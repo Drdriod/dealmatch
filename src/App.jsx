@@ -4,7 +4,8 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { lazyWithRetry } from '@/lib/lazyLoad'
-import { motion, AnimatePresence } from 'framer-motion'
+import { captureRenderError } from '@/lib/sentry'
+import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { Home } from 'lucide-react'
 
 import Navbar    from '@/components/layout/Navbar'
@@ -47,6 +48,7 @@ const StudentHostelsPage    = lazyWithRetry(() => import('@/pages/StudentHostels
 const ListHostelPage        = lazyWithRetry(() => import('@/pages/StudentHostels/ListHostelPage'))
 const StudentVerifyPage     = lazyWithRetry(() => import('@/pages/StudentHostels/StudentVerifyPage'))
 const RentalsPage           = lazyWithRetry(() => import('@/pages/Rentals/RentalsPage'))
+const CategoryPage          = lazyWithRetry(() => import('@/pages/Category/CategoryPage'))
 const HotelsPage            = lazyWithRetry(() => import('@/pages/Hotels/HotelsPage'))
 const ListRentalPage        = lazyWithRetry(() => import('@/pages/Rentals/ListRentalPage'))
 const EscrowPage            = lazyWithRetry(() => import('@/pages/Escrow/EscrowPage'))
@@ -83,13 +85,7 @@ class ErrorBoundary extends Component {
     return { hasError: true, error }
   }
   componentDidCatch(error, info) {
-    try {
-      window.__sentry_capture?.('render_error', {
-        message:        error?.message,
-        stack:          error?.stack?.substring(0, 500),
-        componentStack: info?.componentStack?.substring(0, 500),
-      })
-    } catch { /* Sentry not initialised */ }
+    captureRenderError(error, info?.componentStack)
     console.error('[DealMatch ErrorBoundary]', error, info)
   }
   render() {
@@ -141,7 +137,6 @@ const LoadingScreen = () => (
     position:'relative', overflow:'hidden',
   }}>
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
       @keyframes dm-spin{to{transform:rotate(360deg)}}
       @keyframes dm-pulse-ring{0%{transform:scale(0.8);opacity:0.8}100%{transform:scale(1.6);opacity:0}}
       @keyframes dm-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -374,6 +369,13 @@ function AnimatedRoutes() {
             Canonical route is /places. /rentals kept alive for existing
             links/bookmarks; /properties is the dead route the audit found
             on the live homepage, now redirected instead of 404ing. */}
+        <Route path="/category/:slug" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><CategoryPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
         <Route path="/places" element={
           <AppShell>
             <Suspense fallback={<PageSkeleton />}>
@@ -592,7 +594,7 @@ function AnimatedRoutes() {
 
         <Route path="/auth/callback" element={
           <Suspense fallback={<PageSkeleton />}>
-            <AuthCallback />
+            <PageTransition><AuthCallback /></PageTransition>
           </Suspense>
         } />
 
@@ -686,21 +688,21 @@ function AnimatedRoutes() {
             /admin-login redirects home instead of revealing anything. */}
         <Route path="/staff-gate-7f3k" element={
           <Suspense fallback={<LoadingScreen />}>
-            <AdminLoginPage />
+            <PageTransition><AdminLoginPage /></PageTransition>
           </Suspense>
         } />
         <Route path="/admin-login" element={<Navigate to="/" replace />} />
 
         <Route path="/staff/accept-invite" element={
           <Suspense fallback={<LoadingScreen />}>
-            <AcceptStaffInvitePage />
+            <PageTransition><AcceptStaffInvitePage /></PageTransition>
           </Suspense>
         } />
 
         <Route path="/admin/payment-test" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <PaymentTestPage />
+              <PageTransition><PaymentTestPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />
@@ -708,7 +710,7 @@ function AnimatedRoutes() {
         <Route path="/admin/*" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <AdminPage />
+              <PageTransition><AdminPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />
@@ -716,7 +718,7 @@ function AnimatedRoutes() {
         <Route path="/agent" element={
           <AdminRoute>
             <Suspense fallback={<LoadingScreen />}>
-              <AgentDashboardPage />
+              <PageTransition><AgentDashboardPage /></PageTransition>
             </Suspense>
           </AdminRoute>
         } />
@@ -768,6 +770,9 @@ const basename = import.meta.env.BASE_URL
 export default function App() {
   return (
     <ErrorBoundary>
+      {/* One app-wide motion setting: honours the OS "reduce motion" preference
+          by switching transform animations off, so every page respects it. */}
+      <MotionConfig reducedMotion="user">
       <BrowserRouter basename={basename}>
         <ThemeProvider>
           <AuthProvider>
@@ -776,8 +781,9 @@ export default function App() {
               toastOptions={{
                 style:{
                   background:'#17211B', color:'#F7F4ED',
-                  borderRadius:'100px', padding:'14px 24px',
-                  fontSize:'14px', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
+                  borderRadius:'16px', padding:'14px 18px', maxWidth:'440px',
+                  boxShadow:'0 18px 40px -12px rgba(23,33,27,0.45)',
+                  fontSize:'14px', lineHeight:'1.45', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
                 },
                 success: { iconTheme:{ primary:'#7A9E7E', secondary:'#F7F4ED' } },
                 error:   { iconTheme:{ primary:'#C85F2D', secondary:'#F7F4ED' } },
@@ -788,6 +794,7 @@ export default function App() {
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
+      </MotionConfig>
     </ErrorBoundary>
   )
 }

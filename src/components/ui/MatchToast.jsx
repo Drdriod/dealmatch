@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Heart, Home, X } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 

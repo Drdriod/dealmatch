@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, Award, BookOpen, Building2, Check, ConciergeBell, GraduationCap,
   HardHat, Home, Key, ShieldCheck, Sparkles, Users, Wrench,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { saveOnboardingProfile } from '@/data/profileRepository'
 import { useAuth } from '@/context/AuthContext'
 import { analytics } from '@/lib/posthog'
 import { clearIntent, resolveIntent } from '@/lib/intent'
@@ -204,7 +204,7 @@ export default function OnboardingPage() {
     }
 
     try {
-      const { error } = await supabase.from('profiles').update(payload).eq('id', user.id)
+      const { error } = await saveOnboardingProfile(user.id, payload)
       if (error) throw error
       analytics.onboardingDone?.({ role: payload.role, roles: payload.roles, goal: payload.property_goal, intent: skip ? 'skipped' : intent })
       await go()

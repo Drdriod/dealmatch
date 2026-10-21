@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Phone, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { saveGuestName } from '@/data/profileRepository'
 import toast from 'react-hot-toast'
 
 /**
@@ -85,10 +86,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
     // auto-created profile doesn't already have one. Never blocks success.
     if (name.trim()) {
       try {
-        await supabase.from('profiles')
-          .update({ full_name: name.trim(), phone })
-          .eq('id', data.user.id)
-          .is('full_name', null)
+        await saveGuestName(data.user.id, { fullName: name.trim(), phone })
       } catch { /* non-fatal */ }
     }
 

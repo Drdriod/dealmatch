@@ -2,9 +2,8 @@
  * ListHostelPage - /list-hostel
  * ══════════════════════════════
  * Hostel owners list their rooms here.
- * Payment required before listing goes live:
- *   • Semester plan: ₦5,000
- *   • Annual plan:  ₦8,500
+ * Payment required before listing goes live. Plan prices come from the
+ * platform fee registry (hostel_listing_semester, hostel_listing_annual).
  *
  * Security: listing_paid = false until Flutterwave confirms payment.
  * The listing is created in DB immediately but stays in 'pending_review'
@@ -13,19 +12,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, Fence, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
+import { updateHostel, insertHostel } from '@/data/hostelListingRepository'
 import { useAuth } from '@/context/AuthContext'
-import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
+import { initializeFlutterwavePayment, generateReference, getFeeAmounts } from '@/lib/flutterwave'
+import { usePlatformFees } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const LISTING_PLANS = {
-  semester: { label: 'Semester Plan',  price: 5000,  duration: '~6 months', badge: 'Popular' },
-  annual:   { label: 'Annual Plan',    price: 8500,  duration: '12 months', badge: 'Best Value', saving: 'Save ₦1,500' },
-}
 
 const ROOM_TYPES = [
   { id: 'single',       label: 'Single Room',          desc: '1 person per room' },
@@ -42,7 +37,7 @@ const AMENITIES = [
   { id: 'gen',      label: 'Generator',     icon: <Zap size={18} className="text-terracotta" /> },
   { id: 'water',    label: 'Running Water', icon: <Droplets size={18} className="text-terracotta" /> },
   { id: 'security', label: 'Security',      icon: <Shield size={18} className="text-terracotta" /> },
-  { id: 'fence',    label: 'Fenced',        icon: 'hard-hat' },
+  { id: 'fence',    label: 'Fenced',        icon: <Fence size={18} className="text-terracotta" /> },
   { id: 'cctv',     label: 'CCTV',          icon: <Camera size={18} className="text-terracotta" /> },
   { id: 'parking',  label: 'Parking',       icon: <Car size={18} className="text-terracotta" /> },
   { id: 'kitchen',  label: 'Kitchen',       icon: <Utensils size={18} className="text-terracotta" /> },
@@ -137,6 +132,10 @@ export default function ListHostelPage() {
   const [hostelId,   setHostelId] = useState(null)
   const [paymentDone, setPaymentDone] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
+  // Plan prices from the platform fee registry. A price is null while loading.
+  const { fees } = usePlatformFees()
+  const LISTING_PLANS = getFeeAmounts(fees).HOSTEL_LISTING_PLANS
+  const plansReady = !!LISTING_PLANS[plan]?.price
 
   // institutions table removed - school name is now a free-text input
   // so listing owners can type their school name directly without
@@ -202,15 +201,17 @@ export default function ListHostelPage() {
         amenities:        form.amenities,
         images:           form.images,
         status:           'pending_review',
-        listing_paid:     false,
         updated_at:       new Date().toISOString(),
       }
 
       let id = hostelId
       if (id) {
-        await supabase.from('student_hostels').update(payload).eq('id', id)
+        // listing_paid and payment_ref are not in this payload: only a confirmed
+        // payment sets them, so saving a paid listing never un-pays it.
+        const { error } = await updateHostel(id, payload)
+        if (error) throw error
       } else {
-        const { data, error } = await supabase.from('student_hostels').insert(payload).select('id').single()
+        const { data, error } = await insertHostel(payload)
         if (error) throw error
         id = data.id
         setHostelId(id)
@@ -227,45 +228,26 @@ export default function ListHostelPage() {
 
   // ── Payment ────────────────────────────────────────────────────────────
   const handlePayment = async () => {
+    const planMeta  = LISTING_PLANS[plan]
+    if (!planMeta?.price) { toast.error('Prices are still loading. Please try again in a moment.'); return }
+
     const id = hostelId || await saveHostel()
     if (!id) return
 
-    const planMeta  = LISTING_PLANS[plan]
     const reference = generateReference()
 
-    // Save pending payment record first
-    await supabase.from('hostel_payments').insert({
-      hostel_id:  id,
-      owner_id:   user.id,
-      reference,
-      amount:     planMeta.price,
-      plan,
-      status:     'pending',
-    })
-
+    // The server creates the payment record and prices the plan from the
+    // registry. The browser sends only the hostel and the plan.
     await initializeFlutterwavePayment({
-      email:     user.email,
-      amount:    planMeta.price,
+      purpose:   'hostel_listing_fee',
+      subject:   { hostel_id: id, plan },
       reference,
-      metadata: {
-        type: 'hostel_listing_fee',
-        user_id: user?.id,
-        hostel_id: id,
-        plan,
-        listing_type: 'student_hostel',
-        owner_name: profile?.full_name || '',
-      },
-      onSuccess: async (response) => {
-        // Mark payment success
-        await supabase.from('hostel_payments').update({ status: 'success', paid_at: new Date().toISOString() }).eq('reference', response.reference)
-        // Unlock hostel listing
-        await supabase.from('student_hostels').update({
-          listing_paid:    true,
-          listing_paid_at: new Date().toISOString(),
-          payment_ref:     response.reference,
-        }).eq('id', id)
+      onSuccess: () => {
+        // The server unlocks the listing when Flutterwave confirms the charge
+        // (api/flutterwave-webhook.js). The browser must not write payment
+        // status: anything written here could be forged from the console.
         setPaymentDone(true)
-        toast.success('Payment confirmed! Your listing is under review.')
+        toast.success('Payment received. Your listing will be activated once it is confirmed.')
       },
       onClose: () => {
         toast('Payment cancelled. Your listing has been saved as a draft.', { icon: 'ℹ️' })
@@ -559,7 +541,7 @@ export default function ListHostelPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm" style={{ color: '#17211B' }}>{p.label}</span>
+                            <span className="font-bold text-sm" style={{ color: '#17211B' }}>{p.name}</span>
                             {p.badge && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-bold"
                                 style={{ backgroundColor: plan === key ? '#C85F2D' : '#DEDDD6', color: plan === key ? '#fff' : '#647068' }}>
@@ -572,7 +554,7 @@ export default function ListHostelPage() {
                         </div>
                         <div className="text-right">
                           <div className="font-black text-lg" style={{ color: plan === key ? '#C85F2D' : '#17211B' }}>
-                            ₦{p.price.toLocaleString()}
+                            {p.price ? `₦${p.price.toLocaleString()}` : '...'}
                           </div>
                           {plan === key && <Check size={14} style={{ color: '#C85F2D', marginLeft: 'auto' }} />}
                         </div>
@@ -605,12 +587,14 @@ export default function ListHostelPage() {
                   </p>
                 </div>
 
-                <button onClick={handlePayment} disabled={saving}
+                <button onClick={handlePayment} disabled={saving || !plansReady}
                   className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
                   style={{ backgroundColor: '#C85F2D', color: '#fff' }}>
                   {saving
                     ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
+                    : !plansReady
+                      ? 'Loading prices...'
+                      : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
                 </button>
 
                 <p className="text-xs text-center mt-3" style={{ color: '#647068' }}>

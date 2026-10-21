@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ChevronDown, Building2, ShieldCheck, Lock, Wallet, ShieldAlert, Bot, Award, MapPin } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 
 // Content matches the actual live product (Places + People) -

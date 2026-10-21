@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BadgeCheck, Camera, CheckCircle2, Clock, Frown, Lock, ShieldCheck, Star, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import {
+  fetchPublicProfile, fetchVerifiedProvider, fetchProviderStats, fetchRecentReviews,
+  fetchBusinessPage, fetchPayoutStatus, fetchReviewerNames,
+} from '@/data/providerProfileRepository'
 import { useAuth } from '@/context/AuthContext'
 import ReportModal from '@/components/ui/ReportModal'
 import UnlockContactButton from '@/components/ui/UnlockContactButton'
+import { listActiveListingsForUser } from '@/modules/listings/listingsService'
 
 const memberSince = (ts) => {
   if (!ts) return null
@@ -42,31 +47,21 @@ export default function ProviderProfilePage() {
 
     const load = async () => {
       const [{ data: profileData }, { data: vp }, { data: statsData }, { data: reviewRows }, { data: bp }, { data: listingRows }, { data: payoutAcct }] = await Promise.all([
-        supabase.from('public_profiles').select('*').eq('id', id).single(),
-        supabase.from('verified_providers').select('level, level_data').eq('user_id', id).single(),
-        supabase.from('provider_stats').select('*').eq('provider_id', id).single(),
-        supabase
-          .from('reviews')
-          .select('id, rating, comment, created_at, reviewer_id')
-          .eq('provider_id', id)
-          .order('created_at', { ascending: false })
-          .limit(10),
+        fetchPublicProfile(id),
+        fetchVerifiedProvider(id),
+        fetchProviderStats(id),
+        fetchRecentReviews(id),
         // business_pages is metadata only (banner, bio, categories); the
         // listings it "contains" are queried live below rather than
         // duplicated onto the page row, so a page with zero listings
         // still renders, it just shows an empty state.
-        supabase.from('business_pages').select('*').eq('profile_id', id).maybeSingle(),
-        supabase
-          .from('category_listings')
-          .select('id, title, price_cents, type, status, created_at')
-          .eq('user_id', id)
-          .eq('status', 'ACTIVE')
-          .order('created_at', { ascending: false })
-          .limit(6),
+        fetchBusinessPage(id),
+        // Same { data } shape as the other reads here. A failed read shows an empty list.
+        listActiveListingsForUser(supabase, id, { limit: 6 }).then((data) => ({ data }), () => ({ data: null })),
         // Only meaningful when the viewer owns this profile, harmless
         // no-op read otherwise since RLS restricts it to the owner anyway.
         user?.id === id
-          ? supabase.from('payout_accounts').select('status').eq('profile_id', id).maybeSingle()
+          ? fetchPayoutStatus(id)
           : Promise.resolve({ data: null }),
       ])
 
@@ -77,8 +72,7 @@ export default function ProviderProfilePage() {
       let reviewsWithNames = reviewRows || []
       const reviewerIds = [...new Set(reviewsWithNames.map(r => r.reviewer_id))]
       if (reviewerIds.length) {
-        const { data: reviewerProfiles } = await supabase
-          .from('public_profiles').select('id, full_name').in('id', reviewerIds)
+        const { data: reviewerProfiles } = await fetchReviewerNames(reviewerIds)
         const byId = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p]))
         reviewsWithNames = reviewsWithNames.map(r => ({ ...r, reviewerName: byId[r.reviewer_id]?.full_name }))
       }

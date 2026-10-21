@@ -1,47 +1,51 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Home, Users, Plus, Inbox, User, X, Building2, Award, ClipboardList } from 'lucide-react'
+import { Inbox, Plus, User, X, Building2, Award, ClipboardList } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { AnimatePresence, motion } from 'framer-motion'
-
-const SIDE_TABS = [
-  { to: '/places',    label: 'Places', icon: Home },
-  { to: '/providers',  label: 'People', icon: Users },
-]
-
-const GUEST_TABS = [
-  { to: '/places',    label: 'Places', icon: Home },
-  { to: '/providers',  label: 'People', icon: Users },
-]
+import { AnimatePresence, motion } from 'motion/react'
+import { PILLARS, isPillarActive } from '@/lib/taxonomy'
 
 const POST_CHOICES = [
-  { to: '/list-rental',    label: 'List a place',   desc: 'Shortlet or house rent, Places',       icon: Building2 },
+  { to: '/list-rental',    label: 'List a place',   desc: 'Shortlet or house rent, Place',         icon: Building2 },
   { to: '/verify-skill',   label: 'Offer a skill',  desc: 'Artisan, tutor, home service, People',  icon: Award },
   { to: '/request',        label: 'I need someone', desc: 'Post a request, phone stays hidden',    icon: ClipboardList },
 ]
 
+const ease = [0.22, 1, 0.36, 1]
+
 /**
- * Bottom tab bar for mobile - Places / People / Post / Inbox / Profile, per
- * the mobile UI spec. Post sits centre + raised as the primary action and
- * opens a chooser (List a place / Offer a skill / I need someone) instead
- * of linking anywhere directly, since it maps to three different flows.
- * Same terracotta styling as the previous Home/Explore/Post/Messages/
- * Profile bar this replaces. Desktop nav is untouched - this is md:hidden.
+ * Bottom tab bar for mobile: Place / People / Post / Inbox / Profile.
+ * Labels and routes come from the shared taxonomy (src/lib/taxonomy.js), so
+ * the bar and the desktop navigation always name the same two pillars.
+ * Post sits centre and raised, and opens a chooser because it maps to three
+ * different flows. The active tab carries a sliding pill (motion layoutId).
+ * This bar is md:hidden; the desktop navigation lives in Navbar.jsx.
  *
- * Inbox intentionally carries no unread-count badge here: chats stay
- * locked/empty-looking until escrow unlocks them (see MessagesPage), so a
- * loud badge on a tab that's usually empty would be misleading rather than
- * useful.
+ * Inbox intentionally carries no unread badge: chats stay locked until escrow
+ * unlocks them, so a badge would mislead.
  */
+function TabPill() {
+  return (
+    <motion.span
+      layoutId="tab-pill"
+      className="absolute top-0 left-3 right-3 h-0.5 rounded-full"
+      style={{ backgroundColor: '#C85F2D' }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+    />
+  )
+}
+
 export default function MobileTabBar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [showChooser, setShowChooser] = useState(false)
 
-  const isActive = (to) => location.pathname === to || location.pathname.startsWith(to + '/')
+  const isActivePath = (to) => location.pathname === to || location.pathname.startsWith(to + '/')
 
   const goTo = (to) => { setShowChooser(false); navigate(to) }
+
+  const linkClass = 'relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2'
 
   return (
     <>
@@ -53,20 +57,20 @@ export default function MobileTabBar() {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
-        {(isAuthenticated ? SIDE_TABS : GUEST_TABS).slice(0, 2).map(tab => {
-          const active = isActive(tab.to)
-          const Icon = tab.icon
+        {PILLARS.map(pillar => {
+          const active = isPillarActive(pillar, location.pathname)
+          const Icon = pillar.slug === 'place' ? Building2 : User
           return (
-            <Link key={tab.label} to={tab.to}
-              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
+            <Link key={pillar.slug} to={pillar.route} className={linkClass}
               style={{ color: active ? '#C85F2D' : '#647068' }}>
+              {active && <TabPill />}
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-              <span className="text-[10px] font-semibold">{tab.label}</span>
+              <span className="text-[10px] font-semibold">{pillar.name}</span>
             </Link>
           )
         })}
 
-        {/* Post - centre + raised primary action */}
+        {/* Post: centre and raised, the primary action */}
         <div className="flex-1 flex items-center justify-center relative" style={{ minWidth: 0 }}>
           <button
             onClick={() => isAuthenticated ? setShowChooser(true) : navigate('/auth')}
@@ -84,30 +88,30 @@ export default function MobileTabBar() {
 
         {isAuthenticated ? (
           <>
-            <Link to="/messages"
-              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              style={{ color: isActive('/messages') ? '#C85F2D' : '#647068' }}>
-              <Inbox size={20} strokeWidth={isActive('/messages') ? 2.5 : 2} />
+            <Link to="/messages" className={linkClass}
+              style={{ color: isActivePath('/messages') ? '#C85F2D' : '#647068' }}>
+              {isActivePath('/messages') && <TabPill />}
+              <Inbox size={20} strokeWidth={isActivePath('/messages') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Inbox</span>
             </Link>
-            <Link to="/profile"
-              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              style={{ color: isActive('/profile') ? '#C85F2D' : '#647068' }}>
-              <User size={20} strokeWidth={isActive('/profile') ? 2.5 : 2} />
+            <Link to="/profile" className={linkClass}
+              style={{ color: isActivePath('/profile') ? '#C85F2D' : '#647068' }}>
+              {isActivePath('/profile') && <TabPill />}
+              <User size={20} strokeWidth={isActivePath('/profile') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Profile</span>
             </Link>
           </>
         ) : (
-          <Link to="/auth"
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-            style={{ color: isActive('/auth') ? '#C85F2D' : '#647068' }}>
-            <User size={20} strokeWidth={isActive('/auth') ? 2.5 : 2} />
+          <Link to="/auth" className={linkClass}
+            style={{ color: isActivePath('/auth') ? '#C85F2D' : '#647068' }}>
+            {isActivePath('/auth') && <TabPill />}
+            <User size={20} strokeWidth={isActivePath('/auth') ? 2.5 : 2} />
             <span className="text-[10px] font-semibold">Sign In</span>
           </Link>
         )}
       </nav>
 
-      {/* Post chooser - bottom sheet */}
+      {/* Post chooser: bottom sheet */}
       <AnimatePresence>
         {showChooser && (
           <>
@@ -117,7 +121,7 @@ export default function MobileTabBar() {
               className="md:hidden fixed inset-0 z-[60]" style={{ backgroundColor: 'rgba(23,33,27,0.45)' }} />
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
+              transition={{ duration: 0.24, ease }}
               className="md:hidden fixed left-0 right-0 bottom-0 z-[61] rounded-t-3xl px-5 pt-4"
               style={{
                 backgroundColor: '#FFFFFF',

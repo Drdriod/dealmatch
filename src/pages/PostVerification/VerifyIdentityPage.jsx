@@ -32,8 +32,9 @@ import React, { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Camera, Car, Check, Clock, CreditCard, Eye, Info, Lock, Shield, SkipForward, Store, Upload, Users, Vote, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { markVerificationSkipped, fetchLiveVerified, saveIdentitySubmission } from '@/data/identityVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 const ID_TYPES = [
@@ -72,6 +73,7 @@ export default function VerifyIdentityPage() {
   const [faceFile,    setFaceFile]    = useState(null) // compressed Blob to upload
   const [saving,      setSaving]      = useState(false)
   const [skipping,    setSkipping]    = useState(false)
+  const [nin,         setNin]         = useState('')
 
   // Post-verification routing: previously branched on profile.role to
   // /landlord or /lender, neither of which are registered routes in
@@ -87,9 +89,7 @@ export default function VerifyIdentityPage() {
   const handleSkip = async () => {
     setSkipping(true)
     try {
-      await supabase.from('profiles')
-        .update({ verification_skipped: true })
-        .eq('id', user.id)
+      await markVerificationSkipped(user.id)
       await refreshProfile()
       toast('Verification skipped. You can verify anytime from your profile.', {
         icon: 'ℹ️', duration: 4000,
@@ -173,27 +173,41 @@ export default function VerifyIdentityPage() {
     if (!idFile && !idPreview) { toast.error('Please upload your ID document'); return }
     if (!faceCapture || !faceFile) { toast.error('Please add a selfie'); return }
     if (!idType) { toast.error('Please select your ID type'); return }
+    if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); setStep(1); return }
     setSaving(true)
 
     try {
-      const { data: freshProfile } = await supabase
-        .from('profiles').select('is_live_verified').eq('id', user.id).single()
+      // The NIN/BVN is hashed on the server before anything is stored (SEC-1).
+      // The browser never keeps or writes the hash itself.
+      const { data: sess } = await supabase.auth.getSession()
+      const ninRes = await fetch('/api/platform?resource=identity-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sess?.session?.access_token || ''}` },
+        body: JSON.stringify({ nin }),
+      })
+      if (!ninRes.ok) {
+        const j = await ninRes.json().catch(() => ({}))
+        toast.error(j.error || 'Could not save your NIN/BVN. Please try again.')
+        setSaving(false)
+        return
+      }
+
+      const { data: freshProfile } = await fetchLiveVerified(user.id)
       if (freshProfile?.is_live_verified) {
         toast.success('You are already verified!')
         navigate(returnTo || '/browse', { replace: true })
         return
       }
 
-      // ✅ FIX: paths must NOT repeat the bucket name - RLS policies check
-      // that the FIRST folder segment of the path equals auth.uid(). The
-      // old path ("identity-docs/{uid}/...") made "identity-docs" itself
-      // the first segment, so the check always failed and every single
-      // submission was silently rejected by the database.
-      const idPath   = `${user.id}/id_${Date.now()}.jpg`
-      const facePath = `${user.id}/face_${Date.now()}.jpg`
+      // One fixed path per document per user. A re-upload replaces the
+      // existing object in place, so there are no superseded copies to track
+      // or purge. Paths must NOT repeat the bucket name: RLS checks that the
+      // first folder segment equals auth.uid().
+      const idPath   = `${user.id}/id-document`
+      const facePath = `${user.id}/selfie`
 
       if (idFile) {
-        const { error: idErr } = await supabase.storage.from('identity-docs').upload(idPath, idFile, { upsert:true })
+        const { error: idErr } = await supabase.storage.from('identity-docs').upload(idPath, idFile, { upsert:true, contentType: idFile.type || 'image/jpeg' })
         // ✅ SECURITY FIX: no longer falls back to the PUBLIC 'avatars'
         // bucket on failure - identity documents must stay in the private
         // bucket. A real failure here should surface as an error, not
@@ -210,14 +224,14 @@ export default function VerifyIdentityPage() {
       // Store the storage paths (not public URLs) - bucket is PRIVATE
       // Admin will generate short-lived signed URLs when viewing submissions
 
-      await supabase.from('profiles').update({
+      await saveIdentitySubmission(user.id, {
         identity_photo_url:           idPath,   // storage path - private bucket, signed URL generated on read
         identity_selfie_url:          facePath, // storage path - private bucket, signed URL generated on read
         identity_doc_type:            idType,
         identity_verification_status: 'submitted',
         verification_skipped:         false,
         // SECURITY: is_photo_verified / is_live_verified set ONLY by admin
-      }).eq('id', user.id).then(({ error, count }) => {
+      }).then(({ error, count }) => {
         // This call's result was previously discarded entirely - if the
         // update failed for any reason (an RLS policy, a trigger, a
         // constraint), the code would still show "Submitted!" with no way
@@ -512,10 +526,24 @@ export default function VerifyIdentityPage() {
             <input ref={idFileRef} type="file" accept="image/*" className="hidden" onChange={handleIdUpload} />
           </label>
 
+          <div>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color:'#647068' }} htmlFor="nin-input">
+              Your NIN or BVN (11 digits)
+            </label>
+            <input id="nin-input" inputMode="numeric" autoComplete="off" maxLength={11}
+              value={nin}
+              onChange={e => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
+              placeholder="e.g. 12345678901" className="input" />
+            <p className="text-[11px] mt-1.5" style={{ color:'#647068' }}>
+              Used only to stop duplicate accounts. Stored as a secure hash, never in plain text.
+            </p>
+          </div>
+
           <button
             onClick={() => {
               if (!idType) { toast.error('Select your ID type'); return }
               if (!idFile && !idPreview) { toast.error('Upload your ID photo'); return }
+              if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); return }
               setStep(2)
             }}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"

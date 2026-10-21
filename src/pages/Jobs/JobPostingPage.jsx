@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import {
+  fetchReviewForTransaction, insertReview, fetchTransaction, insertTransaction, fetchInvitedProvider,
+  fetchBidsWithProviders, hasVerifiedPayoutAccount, acceptBidForJob, sendCounterOffer, startEscrowPayment,
+  cancelTransaction, confirmTransaction,
+} from '@/data/jobPostingRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { emitEvent } from '@/lib/events'
 import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/flutterwave'
 import GuestAuthModal from '@/components/ui/GuestAuthModal'
 import toast from 'react-hot-toast'
+import { friendlyDbError } from '@/lib/dbErrors'
 
 const MODEL_BY_TOGGLE = {
   book: 'NEAREST_AVAILABLE',       // "I need someone now" -- ADR-009, build now, first
@@ -21,6 +27,69 @@ const STATUS_LABEL = {
   COMPLETED: 'Completed',
   DISPUTED:  'Disputed',
   CANCELLED: 'Cancelled',
+}
+
+// RATE-3: a review is only accepted for a COMPLETED transaction, written by the
+// requester, about that transaction's provider. The database enforces all of
+// this (enforce_review_transaction). The UI just gives the chance to review once.
+function LeaveReview({ transactionId, providerId, reviewerId }) {
+  const [existing, setExisting] = useState(undefined) // undefined = loading
+  const [rating, setRating]     = useState(0)
+  const [comment, setComment]   = useState('')
+  const [saving, setSaving]     = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchReviewForTransaction(transactionId)
+      .then(({ data }) => { if (!cancelled) setExisting(data || null) })
+    return () => { cancelled = true }
+  }, [transactionId])
+
+  const submit = async () => {
+    if (rating < 1) { toast.error('Choose a rating from 1 to 5'); return }
+    setSaving(true)
+    const { data, error } = await insertReview({
+      transactionId,
+      providerId,
+      reviewerId,
+      rating,
+      comment: comment.trim() || null,
+    })
+    setSaving(false)
+    if (error) {
+      toast.error(/REVIEW_/.test(error.message || '')
+        ? 'This job cannot be reviewed.'
+        : 'Could not save your review. Please try again.')
+      return
+    }
+    setExisting(data)
+    toast.success('Thanks for your review')
+  }
+
+  if (existing === undefined) return null
+  if (existing) {
+    return <p className="text-xs text-center py-4" style={{ color: '#647068' }}>You rated this job {existing.rating}/5. Thank you.</p>
+  }
+
+  return (
+    <div className="mt-6 rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+      <p className="text-sm font-semibold mb-3" style={{ color: '#17211B' }}>How did it go?</p>
+      <div className="flex gap-1 mb-3" role="radiogroup" aria-label="Rating">
+        {[1, 2, 3, 4, 5].map(n => (
+          <button key={n} type="button" role="radio" aria-checked={rating === n} onClick={() => setRating(n)}
+            className="text-2xl leading-none" style={{ color: n <= rating ? '#D4A853' : '#D8C9B8' }}
+            aria-label={`${n} star${n === 1 ? '' : 's'}`}>★</button>
+        ))}
+      </div>
+      <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} maxLength={1000}
+        placeholder="Optional: tell others about the work" className="input mb-3" />
+      <button onClick={submit} disabled={saving || rating < 1}
+        className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50"
+        style={{ backgroundColor: '#C85F2D' }}>
+        {saving ? 'Saving…' : 'Submit review'}
+      </button>
+    </div>
+  )
 }
 
 export default function JobPostingPage() {
@@ -53,7 +122,7 @@ export default function JobPostingPage() {
   useEffect(() => {
     if (!routeId) return
     let cancelled = false
-    supabase.from('transactions').select('*').eq('id', routeId).single().then(({ data }) => {
+    fetchTransaction(routeId).then(({ data }) => {
       if (cancelled) return
       setTransaction(data || null)
       setLoadingExisting(false)
@@ -67,10 +136,9 @@ export default function JobPostingPage() {
   useEffect(() => {
     if (!invitedProviderId) return
     let cancelled = false
-    supabase.from('profiles').select('id, full_name, avatar_url, city, state')
-      .eq('id', invitedProviderId).single().then(({ data }) => {
-        if (!cancelled) setInvitedProvider(data || null)
-      })
+    fetchInvitedProvider(invitedProviderId).then(({ data }) => {
+      if (!cancelled) setInvitedProvider(data || null)
+    })
     return () => { cancelled = true }
   }, [invitedProviderId])
 
@@ -98,19 +166,7 @@ export default function JobPostingPage() {
     let channel = null
 
     const load = async () => {
-      const { data } = await supabase
-        .from('bids')
-        .select('id, amount_cents, attributes, status, created_at, provider_id')
-        .eq('transaction_id', transaction.id)
-        .order('created_at', { ascending: false })
-      const rows = data || []
-      const providerIds = [...new Set(rows.map(b => b.provider_id))]
-      let byId = {}
-      if (providerIds.length) {
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', providerIds)
-        byId = Object.fromEntries((profs || []).map(p => [p.id, p]))
-      }
-      setBids(rows.map(b => ({ ...b, providerProfile: byId[b.provider_id] })))
+      setBids(await fetchBidsWithProviders(transaction.id))
     }
     load()
 
@@ -133,25 +189,21 @@ export default function JobPostingPage() {
     if (!user) { setShowGuestAuth(true); return }
 
     setPosting(true)
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert({
-        model: MODEL_BY_TOGGLE[toggle],
-        status: 'OPEN',
-        requester_id: user.id,
-        provider_id: toggle === 'book' ? invitedProviderId : null,
-        amount_cents: budget ? Math.round(parseFloat(budget) * 100) : null,
-        attributes: {
-          description: description.trim(),
-          location: location.trim(),
-          invited_provider_id: invitedProviderId,
-        },
-      })
-      .select()
-      .single()
+    const { data, error } = await insertTransaction({
+      model: MODEL_BY_TOGGLE[toggle],
+      status: 'OPEN',
+      requester_id: user.id,
+      provider_id: toggle === 'book' ? invitedProviderId : null,
+      amount_cents: budget ? Math.round(parseFloat(budget) * 100) : null,
+      attributes: {
+        description: description.trim(),
+        location: location.trim(),
+        invited_provider_id: invitedProviderId,
+      },
+    })
 
     setPosting(false)
-    if (error) { toast.error('Could not post job. Try again.'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not post job. Try again.')); return }
     setTransaction(data)
     navigate(`/jobs/${data.id}`, { replace: true })
     toast.success(toggle === 'book' ? 'Request sent!' : 'Job posted - bids coming in')
@@ -171,17 +223,14 @@ export default function JobPostingPage() {
     // Gate: a provider with nowhere for money to land shouldn't have a bid
     // accepted in the first place, this fails fast before touching the
     // transaction rather than letting payment get stuck later.
-    const { data: payoutReady } = await supabase.rpc('has_verified_payout_account', { p_profile_id: bid.provider_id })
+    const { data: payoutReady } = await hasVerifiedPayoutAccount(bid.provider_id)
     if (!payoutReady) {
       toast.error('This provider hasn\'t finished setting up payouts yet, ask them to complete it before accepting.')
       return
     }
 
-    const { data: updatedTx, error } = await supabase.rpc('accept_bid', {
-      p_transaction_id: transaction.id,
-      p_bid_id: bid.id,
-    })
-    if (error) { toast.error(error.message || 'Could not accept bid'); return }
+    const { data: updatedTx, error } = await acceptBidForJob(transaction.id, bid.id)
+    if (error) { toast.error(friendlyDbError(error, 'Could not accept bid')); return }
 
     setTransaction(updatedTx)
     toast.success('Bid accepted - pay for protection to unlock contact details')
@@ -199,11 +248,8 @@ export default function JobPostingPage() {
     const counterCents = Math.round(parseFloat(raw) * 100)
     if (!counterCents || Number.isNaN(counterCents)) { toast.error('Enter a valid amount'); return }
 
-    const { error } = await supabase.rpc('counter_bid', {
-      p_bid_id: bid.id,
-      p_counter_cents: counterCents,
-    })
-    if (error) { toast.error(error.message || 'Could not send counter'); return }
+    const { error } = await sendCounterOffer(bid.id, counterCents)
+    if (error) { toast.error(friendlyDbError(error, 'Could not send counter')); return }
     toast.success('Counter sent - awaiting provider response')
   }
 
@@ -219,12 +265,9 @@ export default function JobPostingPage() {
     setFundingEscrow(true)
     const reference = generateReference()
 
-    const { error: refErr } = await supabase.rpc('start_escrow_payment', {
-      p_transaction_id: transaction.id,
-      p_reference: reference,
-    })
+    const { error: refErr } = await startEscrowPayment(transaction.id, reference)
     if (refErr) {
-      toast.error(refErr.message || 'Could not start payment')
+      toast.error(friendlyDbError(refErr, 'Could not start payment'))
       setFundingEscrow(false)
       return
     }
@@ -250,12 +293,9 @@ export default function JobPostingPage() {
   const cancelJob = async () => {
     if (!window.confirm('Cancel this request? This cannot be undone.')) return
     setCancelling(true)
-    const { data: updatedTx, error } = await supabase.rpc('cancel_transaction', {
-      p_transaction_id: transaction.id,
-      p_reason: 'Cancelled by requester',
-    })
+    const { data: updatedTx, error } = await cancelTransaction(transaction.id, 'Cancelled by requester')
     setCancelling(false)
-    if (error) { toast.error(error.message || 'Could not cancel this request'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not cancel this request')); return }
 
     setTransaction(updatedTx)
     toast.success('Request cancelled')
@@ -263,12 +303,9 @@ export default function JobPostingPage() {
 
   const markComplete = async () => {
     setCompleting(true)
-    const { data: updatedTx, error } = await supabase.rpc(
-      isRequester ? 'confirm_transaction_buyer' : 'confirm_transaction_provider',
-      { p_transaction_id: transaction.id }
-    )
+    const { data: updatedTx, error } = await confirmTransaction(transaction.id, isRequester)
     setCompleting(false)
-    if (error) { toast.error(error.message || 'Could not confirm'); return }
+    if (error) { toast.error(friendlyDbError(error, 'Could not confirm')); return }
 
     setTransaction(updatedTx)
     toast.success(updatedTx.status === 'COMPLETED' ? 'Job marked complete - both sides confirmed' : 'Confirmed. Waiting on the other side.')
@@ -554,9 +591,14 @@ export default function JobPostingPage() {
             )}
 
             {transaction.status === 'COMPLETED' && (
-              <p className="text-xs text-center py-8" style={{ color: '#7A9E7E' }}>
-                Job complete. Payout processed per the protection terms.
-              </p>
+              <>
+                <p className="text-xs text-center py-8" style={{ color: '#7A9E7E' }}>
+                  Job complete. Payout processed per the protection terms.
+                </p>
+                {isRequester && transaction.provider_id && (
+                  <LeaveReview transactionId={transaction.id} providerId={transaction.provider_id} reviewerId={user.id} />
+                )}
+              </>
             )}
             {transaction.status === 'CANCELLED' && (
               <p className="text-xs text-center py-8" style={{ color: '#B5A99C' }}>This request was cancelled.</p>

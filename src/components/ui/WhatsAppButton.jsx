@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { MessageCircle, X } from 'lucide-react'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 
-const DEALMATCH_WA = '2347057392060' // Central DealMatch business gateway - NEVER expose personal numbers
+const DEALMATCH_WA = DEALMATCH_WHATSAPP // Central DealMatch business gateway - NEVER expose personal numbers
 
 export default function WhatsAppButton() {
   const [visible, setVisible] = useState(false)

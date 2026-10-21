@@ -39,6 +39,7 @@ import { redisRateLimit } from '../src/lib/redis.js'
 import { createCloud, verifySignature } from '../src/modules/whatsapp/cloud.js'
 import { createStore } from '../src/modules/whatsapp/store.js'
 import { createEngine } from '../src/modules/whatsapp/engine.js'
+import { findRecipientPhone, logOutboundMessage } from '../src/data/outboundMessageRepository.js'
 
 export const config = { api: { bodyParser: false } }
 
@@ -217,7 +218,7 @@ async function handleOutbound(req, res, raw) {
   }
 
   const svc = getServiceClient()
-  const { data: recipient } = await svc.from('profiles').select('phone').eq('id', userId).single()
+  const { data: recipient } = await findRecipientPhone(svc, userId)
   if (!recipient?.phone) {
     return res.status(200).json({ sent: false, reason: 'recipient_has_no_phone' })
   }
@@ -232,7 +233,7 @@ async function handleOutbound(req, res, raw) {
   const to = String(recipient.phone).replace(/\D/g, '')
   const result = await createCloud({ token: apiToken, phoneNumberId }).sendText(to, String(message).slice(0, 1000))
 
-  await svc.from('outbound_message_log').insert({
+  await logOutboundMessage(svc, {
     channel: 'whatsapp', sender_id: user.id, recipient: to,
     status: result.ok ? 'sent' : 'provider_error',
   })

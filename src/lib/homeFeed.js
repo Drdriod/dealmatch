@@ -13,7 +13,9 @@ import { supabase } from './supabase'
 export async function fetchPlacesNearYou(limit = 8) {
   const { data, error } = await supabase
     .from('properties')
-    .select('id, title, price, city, state, category, images, seller_id, created_at')
+    // `images` is not a column of properties (it belongs to student_hostels). Photos live in
+    // property_images, so they are embedded; the mapping below reads is_primary and url from them.
+    .select('id, title, price, city, state, category, seller_id, created_at, images:property_images(url, is_primary)')
     .in('category', ['rental', 'shortlet'])
     .eq('status', 'active')
     .or('occupancy_status.is.null,occupancy_status.eq.vacant')

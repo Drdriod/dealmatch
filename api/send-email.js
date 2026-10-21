@@ -19,6 +19,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { redisRateLimit } from '../src/lib/redis.js'
+import { findRecipientEmail, logOutboundMessage } from '../src/data/outboundMessageRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
   // still allows the legitimate "notify a different user about my action"
   // case (e.g. referral payout, escrow funded) while removing the ability
   // to email addresses that aren't DealMatch account holders.
-  const { data: recipient } = await svc.from('profiles').select('email, full_name').eq('id', userId).single()
+  const { data: recipient } = await findRecipientEmail(svc, userId)
   if (!recipient?.email) {
     return res.status(200).json({ sent: false, reason: 'recipient_has_no_email' })
   }
@@ -116,7 +117,7 @@ export default async function handler(req, res) {
       }),
     })
 
-    await svc.from('outbound_message_log').insert({
+    await logOutboundMessage(svc, {
       channel: 'email', sender_id: user.id, recipient: recipient.email,
       subject: String(subject).slice(0, 200), status: response.ok ? 'sent' : 'provider_error',
     })

@@ -20,7 +20,15 @@ export const config = { api: { bodyParser: false } }
 
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
-import { flw } from '../src/lib/flutterwaveServer.js'
+import { paymentGateway } from '../src/lib/paymentGateway.js'
+import { insertNotification } from '../src/lib/notificationFactory.js'
+import { settlePayout } from '../src/lib/payoutSettlement.js'
+import { recordMoneyToReturn, runChargePurpose } from '../src/lib/chargePurposes.js'
+import {
+  findInviterOf, insertReferralTransaction, addLoyaltyPoints, upsertPaymentRecord,
+  findVirtualAccountByNumber, markVirtualAccountUnderpaid, markVirtualAccountPaid,
+  resolveUnderpaidRefunds, findPayoutByGatewayRef,
+} from '../src/data/webhookRepository.js'
 
 // ── Referral configuration (kept in sync with src/lib/referral.js) ──
 const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
@@ -82,11 +90,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
   const seen = new Set([buyerUserId]) // prevents self-referral / circular invite loops from paying out
 
   while (currentId && level <= 10) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, invited_by')
-      .eq('id', currentId)
-      .single()
+    const { data } = await findInviterOf(supabase, currentId)
 
     if (!data?.invited_by) break
     if (seen.has(data.invited_by)) break // would be a self-referral or a loop - stop walking
@@ -105,7 +109,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
       const amount = calcCashReferral(dmCommission, lvl)
       if (amount <= 0) continue
 
-      const { error } = await supabase.from('referral_transactions').insert({
+      const { error } = await insertReferralTransaction(supabase, {
         referrer_id:      userId,
         buyer_id:         buyerUserId,
         transaction_id:   transactionId,
@@ -119,42 +123,14 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
       })
 
       if (!error) {
-        await supabase.from('notifications').insert({
-          user_id:    userId,
-          type:       'referral_cash',
-          title:      '💰 You earned N' + amount.toLocaleString() + ' on DealMatch!',
-          message:    'Someone in your referral network (Level ' + lvl + ') just closed a deal. N' + amount.toLocaleString() + ' has been added to your pending earnings.',
-          amount,
-          link:       '/referrals',
-          created_at: new Date().toISOString(),
-        })
+        await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
       }
     } else {
       const points = calcPoints(lvl)
 
-      const { data: existing } = await supabase
-        .from('loyalty_points')
-        .select('id, points_balance, points_lifetime')
-        .eq('user_id', userId)
-        .single()
+      await addLoyaltyPoints(supabase, userId, points)
 
-      if (existing) {
-        await supabase.from('loyalty_points').update({
-          points_balance:  existing.points_balance + points,
-          points_lifetime: existing.points_lifetime + points,
-          updated_at:      new Date().toISOString(),
-        }).eq('user_id', userId)
-      } else {
-        await supabase.from('loyalty_points').insert({
-          user_id:         userId,
-          points_balance:  points,
-          points_lifetime: points,
-          created_at:      new Date().toISOString(),
-          updated_at:      new Date().toISOString(),
-        })
-      }
-
-      await supabase.from('referral_transactions').insert({
+      await insertReferralTransaction(supabase, {
         referrer_id:      userId,
         buyer_id:         buyerUserId,
         transaction_id:   transactionId,
@@ -168,15 +144,7 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
         created_at:       new Date().toISOString(),
       })
 
-      await supabase.from('notifications').insert({
-        user_id:    userId,
-        type:       'referral_points',
-        title:      '⭐ You earned ' + points + ' loyalty points!',
-        message:    'A deal closed in your network (Level ' + lvl + '). ' + points + ' points have been added to your balance. Redeem 100 points for N10,000 cash anytime.',
-        amount:     points,
-        link:       '/referrals',
-        created_at: new Date().toISOString(),
-      })
+      await insertNotification(supabase, 'referral_points', userId, { points, level: lvl })
     }
   }
 }
@@ -205,51 +173,61 @@ function getServiceClient() {
 }
 
 // A customer paid by bank transfer into one of our virtual accounts.
-// Re-fetch the charge, match it to our row by account number, check the amount,
-// and mark the row paid exactly once.
+// Re-fetch the charge, match it to our row by account number, add it to what
+// was already received, and grant only once the full price is in. The amount
+// returned is always the PRICE (never what was received), so the checks below
+// compare like with like.
 async function normalizeChargeEvent(eventData) {
-  const charge = await flw('GET', `/charges/${encodeURIComponent(eventData.id)}`)
+  const charge = await paymentGateway.getCharge(eventData.id)
   if (charge?.status !== 'succeeded' || charge?.currency !== 'NGN') return null
 
   const accountNumber = charge.payment_method_details?.bank_transfer?.virtual_account_number
   if (!accountNumber) return null // card or other method: not a DealMatch virtual account
 
   const svc = getServiceClient()
-  const { data: row } = await svc
-    .from('payment_virtual_accounts')
-    .select('*')
-    .eq('account_number', accountNumber)
-    .maybeSingle()
+  const { data: row } = await findVirtualAccountByNumber(svc, accountNumber)
   if (!row) {
     console.warn('Credit to unknown virtual account:', accountNumber)
     return null
   }
 
   const paidKobo = Math.round(Number(charge.amount) * 100)
-  if (paidKobo < Number(row.expected_kobo)) {
-    // Part-payment: record it, grant nothing. Staff follow up.
-    await svc.from('payment_virtual_accounts')
-      .update({ status: 'underpaid', paid_kobo: paidKobo })
-      .eq('reference', row.reference)
-      .eq('status', 'pending')
-    console.warn('Underpaid virtual account payment:', row.reference, paidKobo, row.expected_kobo)
+  const expectedKobo = Number(row.expected_kobo)
+
+  // A transfer into an account that is already paid: never granted twice. The
+  // money is returned to the payer.
+  if (row.status === 'paid') {
+    await recordMoneyToReturn(svc, row, paidKobo, 'overpaid', 'Transfer received after the payment was complete', 'charge:' + charge.id)
     return null
   }
 
-  // Conditional update: only the first delivery of this credit flips the row
-  const { data: flipped } = await svc
-    .from('payment_virtual_accounts')
-    .update({ status: 'paid', paid_kobo: paidKobo, paid_at: new Date().toISOString() })
-    .eq('reference', row.reference)
-    .eq('status', 'pending')
-    .select('reference')
+  // Running total for this account. A second transfer tops up a short payment.
+  const totalKobo = Number(row.paid_kobo || 0) + paidKobo
+  if (totalKobo < expectedKobo) {
+    await markVirtualAccountUnderpaid(svc, row.reference, totalKobo)
+    await recordMoneyToReturn(svc, row, totalKobo, 'underpaid', 'Part payment held until topped up or returned', 'short:' + row.reference)
+    console.warn('Underpaid virtual account payment:', row.reference, totalKobo, expectedKobo)
+    return null
+  }
+
+  // Conditional update: only the first delivery of the completing credit flips the row
+  const { data: flipped } = await markVirtualAccountPaid(svc, row.reference, totalKobo)
   if (!flipped || flipped.length === 0) return null // already processed
+
+  // The short payment is now complete, so it is no longer owed back.
+  if (Number(row.paid_kobo || 0) > 0) {
+    await resolveUnderpaidRefunds(svc, row.reference)
+  }
+  const excessKobo = totalKobo - expectedKobo
+  if (excessKobo > 0) {
+    await recordMoneyToReturn(svc, row, excessKobo, 'overpaid', 'Paid more than the price', 'charge:' + charge.id)
+  }
 
   return {
     event: 'charge.success',
     data: {
       reference: row.reference,
-      amount: paidKobo,
+      amount: expectedKobo, // the price the item costs, which is what was granted
       customer: { email: row.email },
       metadata: row.metadata || {},
     },
@@ -258,7 +236,7 @@ async function normalizeChargeEvent(eventData) {
 
 // A payout transfer finished. Re-fetch it and map to our payout reference.
 async function normalizeTransferEvent(eventData) {
-  const transfer = await flw('GET', `/transfers/${encodeURIComponent(eventData.id)}`)
+  const transfer = await paymentGateway.getTransfer(eventData.id)
   const reference = transfer?.reference
   if (!reference) return null
   // transfer_code carries our own payout reference: that is what
@@ -284,6 +262,45 @@ async function normalizeFlutterwaveEvent(body) {
 // ✅ SECURITY: idempotency guard: track processed references in memory
 // In production replace with Redis or a DB table
 const processedRefs = new Set()
+
+async function transferSucceeded(event) {
+  // The payout_queue row this transfer belongs to is matched by the transfer
+  // reference stored as gateway_ref when cron-process-payouts started it. The
+  // settlement itself is shared with reconciliation (see payoutSettlement.js).
+  const transferCode = event.data.transfer_code || event.data.reference
+  if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const svc = getServiceClient()
+    const { data: queueRow } = await findPayoutByGatewayRef(svc, transferCode, { processingOnly: true })
+    if (queueRow) {
+      await settlePayout(svc, queueRow, 'paid')
+    } else {
+      console.warn('transfer.success for unknown/already-finalized payout_queue row:', transferCode)
+    }
+  }
+}
+
+// A failed or reversed transfer must NOT silently disappear: the provider is
+// still owed the money. The queue row is marked failed (visible and retryable
+// from the admin Payouts tab), not left at processing forever.
+async function transferFailed(event) {
+  const transferCode = event.data.transfer_code || event.data.reference
+  console.error(`Transfer ${event.event}:`, transferCode)
+  if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const svc = getServiceClient()
+    const { data: queueRow } = await findPayoutByGatewayRef(svc, transferCode)
+    if (queueRow) {
+      await settlePayout(svc, queueRow, 'failed', event.event)
+    }
+  }
+}
+
+// Strategy (behavioural pattern): one handler per transfer outcome. This table
+// is the only place that decides which handler runs for a transfer event.
+const TRANSFER_STRATEGIES = {
+  'transfer.success': transferSucceeded,
+  'transfer.failed': transferFailed,
+  'transfer.reversed': transferFailed,
+}
 
 export default async function handler(req, res) {
   // ✅ SECURITY: method guard
@@ -335,6 +352,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true, ignored: true })
   }
 
+  // The charge reference this request claimed in processedRefs, so a failure can release it.
+  let claimedRef = null
+
   try {
     switch (event.event) {
 
@@ -348,10 +368,13 @@ export default async function handler(req, res) {
           break
         }
         processedRefs.add(reference)
+        claimedRef = reference
         // Evict after 24h to prevent unbounded growth
-        setTimeout(() => processedRefs.delete(reference), 86400000)
+        // unref: this timer must never keep the process alive (it would stall a test run for a day).
+        setTimeout(() => processedRefs.delete(reference), 86400000).unref?.()
 
         const amountNgn = amount / 100
+        let escrowRow = null // set by the escrow_payment handler, used for the referral step
 
         // Activate in Supabase using service role
         if (process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -361,213 +384,29 @@ export default async function handler(req, res) {
             { auth: { autoRefreshToken: false, persistSession: false } }
           )
 
-          if (metadata?.type === 'professional_subscription') {
-            const expiresAt = metadata.plan_type === 'annual'
-              ? new Date(Date.now() + 365 * 86400000).toISOString()
-              : new Date(Date.now() +  30 * 86400000).toISOString()
-
-            // Providers should not go live until verification is approved -
-            // payment alone is not enough for a Skilled Person to appear in
-            // the public directory. Check identity verification before
-            // flipping status to 'approved'; if it isn't done yet, record
-            // the payment/subscription but leave status 'pending' so it
-            // shows in the directory only once identity is confirmed too.
-            // (trg_auto_approve_paid_professional on public.profiles closes
-            // the loop: the moment identity gets approved afterwards, it
-            // flips this row to 'approved' automatically - no re-payment,
-            // no manual admin step required.)
-            let identityApproved = false
-            if (metadata.user_id) {
-              const { data: applicantProfile } = await supabase
-                .from('profiles')
-                .select('identity_verification_status')
-                .eq('id', metadata.user_id)
-                .single()
-              identityApproved = applicantProfile?.identity_verification_status === 'approved'
-            }
-
-            const proUpdate = supabase.from('professional_applications')
-              .update({
-                status: identityApproved ? 'approved' : 'pending', // live CHECK: pending/approved/rejected/paused
-                subscription_plan: metadata.plan_type || 'monthly',
-                subscription_start: new Date().toISOString(),
-                subscription_expiry: expiresAt,
-                activated_at: identityApproved ? new Date().toISOString() : null,
-              })
-            // Match by application_id when available (most precise),
-            // fall back to email match for legacy payments.
-            await (metadata.application_id
-              ? proUpdate.eq('id', metadata.application_id)
-              : proUpdate.eq('email', customer.email))
-            console.log(identityApproved
-              ? 'Professional activated:' : 'Professional paid, awaiting identity verification:', customer.email)
-          }
-
-          if (metadata?.type === 'rental_listing_fee') {
-            await supabase.from('properties')
-              .update({ status: 'active' })
-              .eq('payment_ref', reference)
-            console.log('Rental listing activated:', reference)
-          }
-
-          // NEW (item 2): credit-pack purchase for optional contact
-          // unlock. Credits are only ever granted here, after Flutterwave
-          // confirms the charge - never on the client's say-so - same
-          // enforcement principle as every other payment type in this
-          // file (item 3/6 of the fix request).
-          if (metadata?.type === 'contact_unlock_credits') {
-            // Credits are derived from the amount Flutterwave actually charged,
-            // never from client metadata. Keep this map in step with
-            // UNLOCK_CREDIT_PACKS in src/lib/flutterwave.js (prices in kobo).
-            const PACK_CREDITS_BY_KOBO = { 50000: 1, 200000: 5 }
-            const credits = PACK_CREDITS_BY_KOBO[amount] || 0
-
-            // The buyer must be the account whose verified login email matches
-            // the payer. metadata.user_id alone is client-supplied, so it is
-            // not trusted on its own.
-            let buyerId = null
-            if (credits > 0 && metadata.user_id && customer?.email) {
-              const { data: authUser } = await supabase.auth.admin.getUserById(metadata.user_id)
-              if (authUser?.user && authUser.user.email?.toLowerCase() === String(customer.email).toLowerCase()) {
-                buyerId = authUser.user.id
-              }
-            }
-
-            if (credits > 0 && buyerId) {
-              // Flutterwave retries webhooks. Grant once per payment reference.
-              const { data: already } = await supabase
-                .from('unlock_credit_ledger')
-                .select('id')
-                .eq('payment_ref', reference)
-                .maybeSingle()
-              if (!already) {
-                await supabase.from('unlock_credit_ledger').insert({
-                  profile_id: buyerId,
-                  entry_type: 'purchased',
-                  credits,
-                  price_cents: amount,
-                  payment_ref: reference,
-                })
-                console.log(`Granted ${credits} unlock credit(s) to`, buyerId)
-              }
-            } else {
-              console.warn('Unlock purchase not granted (amount or buyer did not match):', reference, amount)
-            }
-          }
-
-          // ✅ SECURITY FIX: escrow metadata (user_id, platform_fee) is
-          // client-supplied at Flutterwave widget init and is NOT trustworthy.
-          // Previously this trusted metadata.user_id to pick which escrow
-          // row to confirm, and metadata.platform_fee as the commission
-          // figure downstream - both spoofable by paying a tiny real amount
-          // while claiming an arbitrary victim user_id / arbitrary large
-          // platform_fee. Now we resolve the row strictly by payment_ref
-          // (written server-side when the escrow was created) and use only
-          // that row's stored tenant_id + platform_amount for everything else.
-          //
-          // ✅ SCHEMA FIX (Aug 2026 hardening pass): this used to select
-          // `platform_fee, amount` and update status to 'confirmed' - none
-          // of that matches the real escrow_transactions schema
-          // (gross_amount/platform_amount are the real column names, and
-          // the RLS policy "Escrow strict update" as well as
-          // get_property_contact() both expect status = 'funded', not
-          // 'confirmed'). The SELECT was failing with a Postgres
-          // column-does-not-exist error on every single invocation,
-          // meaning no property escrow deal could ever be confirmed by
-          // this path. See supabase/migrations/20260812000000_production_hardening.sql.
-          let escrowRow = null
-          if (metadata?.type === 'escrow_payment') {
-            const { data: matchedEscrow, error: escrowErr } = await supabase
-              .from('escrow_transactions')
-              .select('id, tenant_id, platform_amount, gross_amount, status')
-              .eq('payment_ref', reference)
-              .single()
-
-            if (escrowErr || !matchedEscrow) {
-              console.error('Escrow payment with no matching payment_ref, refusing to confirm:', reference)
-            } else {
-              escrowRow = matchedEscrow
-              // NOTE: confirmed_at is a DIFFERENT signal in this schema --
-              // it means "tenant confirmed move-in" and a BEFORE UPDATE OF
-              // confirmed_at trigger (fn_release_on_move_in_confirm) uses
-              // it to auto-RELEASE the escrow. Setting it here (payment
-              // just landed) would have triggered an immediate release,
-              // skipping the entire held-in-escrow protection window --
-              // only `status`/`funded_at` belong at this step.
-              await supabase.from('escrow_transactions')
-                .update({ status: 'funded', funded_at: new Date().toISOString() })
-                .eq('id', matchedEscrow.id)
-              console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
-            }
-          }
-
-          // ── ADR-009 marketplace transaction escrow (Nearest-Available /
-          // Multi-Attribute Reverse jobs) ─────────────────────────────
-          // Same resolve-by-payment_ref pattern as escrow_payment above,
-          // for the same reason: metadata.transaction_id is client-supplied
-          // at Flutterwave widget init and must not be trusted to pick which
-          // row to mark FUNDED. payment_ref was written server-side (via
-          // the authorization-checked start_escrow_payment RPC,
-          // 20260731000020) before this payment ever started, so resolving
-          // by it here means an attacker paying a real but wrong amount
-          // against a fabricated transaction_id cannot mark someone else's
-          // job funded -- there is no row to find unless payment_ref
-          // actually matches, and that value was never attacker-writable.
-          if (metadata?.type === 'transaction_escrow') {
-            const { data: matchedTx, error: txErr } = await supabase
-              .from('transactions')
-              .select('id, requester_id, provider_id, amount_cents, status')
-              .eq('payment_ref', reference)
-              .single()
-
-            if (txErr || !matchedTx) {
-              console.error('Transaction escrow payment with no matching payment_ref, refusing to confirm:', reference)
-            } else if (matchedTx.status !== 'PENDING') {
-              console.error('Transaction', matchedTx.id, 'is not PENDING (status=' + matchedTx.status + '), refusing to mark funded:', reference)
-            } else if (Math.round(matchedTx.amount_cents / 100) !== Math.round(amountNgn)) {
-              // Defense in depth: the amount actually charged (verified via
-              // HMAC signature above) should match what the transaction
-              // expected. A mismatch means something is wrong upstream --
-              // refuse rather than silently accepting a different amount.
-              console.error('Transaction', matchedTx.id, 'amount mismatch: expected', matchedTx.amount_cents / 100, 'got', amountNgn, 'ref:', reference)
-            } else {
-              await supabase.from('transactions')
-                .update({ status: 'FUNDED', updated_at: new Date().toISOString() })
-                .eq('id', matchedTx.id)
-              console.log('Transaction escrow funded:', matchedTx.id, 'amount:', amountNgn)
-
-              // Notify the provider directly -- not via src/lib/events.js,
-              // that module is written for the browser (imports the
-              // anon-key client) and isn't safe to import into this
-              // service-role serverless function. Same raw-insert pattern
-              // the referral payout code above already uses.
-              if (matchedTx.provider_id) {
-                await supabase.from('notifications').insert({
-                  user_id:    matchedTx.provider_id,
-                  type:       'escrow_funded',
-                  title:      '🔒 Escrow funded',
-                  message:    `₦${amountNgn.toLocaleString()} is now held in escrow. Contact details have been unlocked.`,
-                  amount:     amountNgn,
-                  link:       `/jobs/${matchedTx.id}`,
-                  created_at: new Date().toISOString(),
-                })
-              }
-            }
-          }
+          // Purpose handlers live in src/lib/chargePurposes.js (registry).
+          const purpose = await runChargePurpose(supabase, { reference, amount, customer, metadata })
+          escrowRow = purpose.escrowRow || null
+          if (purpose.stop) break
 
           // Log every charge.success to payments table
           // Column names match the live payments schema exactly.
-          await supabase.from('payments').upsert({
+          await upsertPaymentRecord(supabase, {
             reference,
             amount:            amountNgn,
             currency:          'NGN',
             professional_type: metadata?.professional_type || null, // live col exists
             plan_type:         metadata?.plan_type || null,          // live col exists
             email:             customer.email,
-            status:            'success',
+            // 'success' unless the handler says the money was not applied (see chargePurposes.js).
+            // Admin revenue totals count 'success' only.
+            status:            purpose.paymentStatus || 'success',
             user_id:           metadata?.user_id || null,
             // payment_type and verified_at do NOT exist in live schema - omitted
-          }, { onConflict: 'reference', ignoreDuplicates: true })
+          })
+
+          // Money that was not applied to anything is on the refund list and earns no referral.
+          if (purpose.paymentStatus === 'unapplied') break
 
           // ── AUTOMATIC REFERRAL PAYOUT ──────────────────────────────
           // Triggers the moment real money lands - no manual lookup,
@@ -589,6 +428,8 @@ export default async function handler(req, res) {
             if (mapping && referralUserId) {
               const dmCommission = metadata?.type === 'escrow_payment'
                 ? Number(escrowRow?.platform_amount) || 0   // trusted DB value only
+                : metadata?.type === 'hotel_booking'
+                  ? Number(metadata.platform_fee_ngn) || 0  // the fee the server priced, not a rate here
                 : mapping.feeRate === 1.0
                   ? amountNgn                       // flat-fee products: the whole amount IS the commission
                   : amountNgn * mapping.feeRate      // percentage products: commission is a cut of the deal
@@ -615,62 +456,11 @@ export default async function handler(req, res) {
         break
       }
 
-      case 'transfer.success': {
-        // FIX (item 8): this used to just console.log the reference and
-        // stop - nothing here ever marked a payout as actually done, so
-        // commission_wallet_ledger never got a 'released' row and
-        // transactions.payout_status never left 'queued'. Now it finds
-        // the payout_queue row this transfer belongs to (matched by the
-        // transfer_code stored as gateway_ref when cron-process-payouts
-        // initiated it) and finalizes everything in one place.
-        const transferCode = event.data.transfer_code || event.data.reference
-        if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-          const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).eq('status', 'processing').maybeSingle()
-          if (queueRow) {
-            await svc.from('payout_queue').update({ status: 'paid', processed_at: new Date().toISOString() }).eq('id', queueRow.id)
-            await svc.from('transactions').update({ payout_status: 'paid', paid_out_at: new Date().toISOString() }).eq('id', queueRow.transaction_id)
-            await svc.from('commission_wallet_ledger').insert({
-              profile_id: queueRow.profile_id,
-              transaction_id: queueRow.transaction_id,
-              entry_type: 'released',
-              amount_cents: queueRow.amount_cents,
-              gateway: 'flutterwave',
-              gateway_ref: transferCode,
-            })
-            await svc.from('commission_wallet_ledger').insert({
-              profile_id: queueRow.profile_id,
-              transaction_id: queueRow.transaction_id,
-              entry_type: 'withdrawn', // this is a real bank settlement, not just an internal "released" marker
-              amount_cents: queueRow.amount_cents,
-              gateway: 'flutterwave',
-              gateway_ref: transferCode,
-            })
-          } else {
-            console.warn('transfer.success for unknown/already-finalized payout_queue row:', transferCode)
-          }
-        }
-        break
-      }
-
+      case 'transfer.success':
       case 'transfer.failed':
-      case 'transfer.reversed': {
-        // A failed/reversed transfer must NOT silently disappear - the
-        // provider is still owed this money. Mark the queue row 'failed'
-        // (visible + retryable from the admin Payouts tab) rather than
-        // leaving it stuck at 'processing' forever with no signal to anyone.
-        const transferCode = event.data.transfer_code || event.data.reference
-        console.error(`Transfer ${event.event}:`, transferCode)
-        if (transferCode && process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
-          const { data: queueRow } = await svc.from('payout_queue').select('*').eq('gateway_ref', transferCode).maybeSingle()
-          if (queueRow) {
-            await svc.from('payout_queue').update({ status: 'failed', failure_reason: `Flutterwave ${event.event}` }).eq('id', queueRow.id)
-            await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', queueRow.transaction_id)
-          }
-        }
+      case 'transfer.reversed':
+        await TRANSFER_STRATEGIES[event.event](event)
         break
-      }
 
             default:
         // Don't log unknown events in detail: potential info leak
@@ -681,6 +471,10 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('Webhook processing error:', err.message)
+    // Answering 500 asks Flutterwave to send this again. Release the claim first, or a retry that
+    // reaches this same warm instance would be skipped as a duplicate and answered 200, and the
+    // charge would never be processed.
+    if (claimedRef) processedRefs.delete(claimedRef)
     return res.status(500).json({ error: 'Processing failed' })
   }
 }

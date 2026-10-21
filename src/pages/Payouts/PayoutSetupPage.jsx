@@ -16,6 +16,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Landmark, CheckCircle2, Clock, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { fetchLatestPayoutAccount, submitPayoutAccount } from '@/data/payoutSetupRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -59,13 +60,7 @@ export default function PayoutSetupPage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase
-      .from('payout_accounts')
-      .select('id, gateway, bank_name, bank_code, account_number, account_name, status, rejected_reason, created_at')
-      .eq('profile_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const { data } = await fetchLatestPayoutAccount(user.id)
     setCurrent(data || null)
     setLoading(false)
   }
@@ -107,11 +102,11 @@ export default function PayoutSetupPage() {
       return
     }
     setSubmitting(true)
-    const { data, error } = await supabase.rpc('submit_payout_account', {
-      p_bank_name: bank.name,
-      p_account_number: accountNumber.trim(),
-      p_account_name: accountName.trim(),
-      p_bank_code: bankCode,
+    const { data, error } = await submitPayoutAccount({
+      bankName: bank.name,
+      accountNumber: accountNumber.trim(),
+      accountName: accountName.trim(),
+      bankCode,
     })
     setSubmitting(false)
     if (error) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { acceptStaffInvite } from '@/data/acceptStaffInviteRepository'
 import toast from 'react-hot-toast'
 import { Shield } from 'lucide-react'
 
@@ -36,7 +37,7 @@ export default function AcceptStaffInvitePage() {
     const { error: pwErr } = await supabase.auth.updateUser({ password })
     if (pwErr) { setSubmitting(false); toast.error(pwErr.message || 'Could not set password'); return }
 
-    const { error: acceptErr } = await supabase.rpc('accept_staff_invite')
+    const { error: acceptErr } = await acceptStaffInvite()
     setSubmitting(false)
     if (acceptErr) {
       toast.error(acceptErr.message || 'Could not activate this invite')

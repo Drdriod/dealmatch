@@ -10,11 +10,13 @@ import { rememberIntent } from '@/lib/intent'
 const MODES = {
   place: {
     label: 'A place',
+    cta: 'Find a place',
     icon: MapPin,
     placeholder: 'Shortlet, flat or house to rent',
   },
   person: {
     label: 'A professional',
+    cta: 'Find a professional',
     icon: Users,
     placeholder: 'Electrician, plumber, cleaner or tutor',
   },
@@ -75,7 +77,7 @@ export default function HeroSearch({ className = '' }) {
           </label>
           <button type="submit"
             className="mt-2 sm:mt-0 sm:ml-2 self-center min-h-[52px] px-6 rounded-full text-sm font-bold inline-flex items-center justify-center gap-1.5 bg-terracotta text-white transition hover:bg-[#A8441D] hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]">
-            Find a Match <ArrowRight size={14} />
+            {MODES[mode].cta} <ArrowRight size={14} />
           </button>
         </div>
       </div>

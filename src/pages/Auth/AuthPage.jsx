@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, Check, CheckCircle, Eye, EyeOff, Loader, Store, X, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { checkPhoneExists, checkUsernameExists, checkDeviceExists, checkSignupConflicts } from '@/data/signupRepository'
+import { upsertProfile } from '@/data/profileRepository'
 import { getDeviceFingerprint } from '@/lib/deviceFingerprint'
 import { analytics } from '@/lib/posthog'
 import toast from 'react-hot-toast'
@@ -227,7 +229,7 @@ export default function AuthPage() {
           setFieldErrors(e => ({ ...e, phone: 'Enter a valid phone number (min 10 digits)' }))
           return
         }
-        const { data } = await supabase.rpc('check_phone_exists', { p_phone: clean })
+        const { data } = await checkPhoneExists(clean)
         taken = data === true
         errorMsg = taken ? 'This phone number is already linked to an account.' : ''
       }
@@ -239,7 +241,7 @@ export default function AuthPage() {
           setFieldErrors(e => ({ ...e, username: 'Username: 3–20 characters, letters, numbers and _ only' }))
           return
         }
-        const { data } = await supabase.rpc('check_username_exists', { p_username: clean })
+        const { data } = await checkUsernameExists(clean)
         taken = data === true
         errorMsg = taken ? 'This username is already taken. Please choose another.' : ''
       }
@@ -325,9 +327,7 @@ export default function AuthPage() {
       // One-account-per-person check: same device already registered?
       const fingerprint = await getDeviceFingerprint()
       if (fingerprint) {
-        const { data: deviceCheck } = await supabase.rpc('check_device_exists', {
-          p_fingerprint: fingerprint,
-        })
+        const { data: deviceCheck } = await checkDeviceExists(fingerprint)
         if (deviceCheck?.[0]?.exists_count > 0) {
           toast.error('An account already exists on this device. Please sign in instead, or contact support if this is an error.')
           setLoading(false)
@@ -335,10 +335,10 @@ export default function AuthPage() {
         }
       }
 
-      const { data: conflicts, error: rpcErr } = await supabase.rpc('check_signup_conflicts', {
-        p_email:    form.email.trim().toLowerCase(),
-        p_phone:    cleanPhone    || null,
-        p_username: cleanUsername || null,
+      const { data: conflicts, error: rpcErr } = await checkSignupConflicts({
+        email:    form.email.trim().toLowerCase(),
+        phone:    cleanPhone    || null,
+        username: cleanUsername || null,
       })
 
       if (!rpcErr && conflicts) {
@@ -378,14 +378,14 @@ export default function AuthPage() {
       }
 
       if (data?.user) {
-        await supabase.from('profiles').upsert({
+        await upsertProfile({
           id:                  data.user.id,
           full_name:           form.fullName.trim(),
           email:               form.email.trim().toLowerCase(),
           phone:               cleanPhone || null,
           username:            cleanUsername || null,
           device_fingerprint:  fingerprint || null,
-        }, { onConflict: 'id' })
+        })
       }
 
       analytics?.signedUp?.('email')

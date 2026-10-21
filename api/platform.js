@@ -24,10 +24,26 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
-import { flw, alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
+import { identityHmac, IdentityHashError } from '../src/lib/identityHash.js'
+import { alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
+import { paymentGateway } from '../src/lib/paymentGateway.js'
+import { PaymentError, resolvePayment, clean, VA_TTL_SECONDS } from '../src/lib/paymentPurposes.js'
+import { movePayout } from '../src/lib/payoutStates.js'
+import { insertNotification } from '../src/lib/notificationFactory.js'
+import { settlePayout } from '../src/lib/payoutSettlement.js'
+import { findDeletionBlockers, eraseAccountData, findIdentityStatus, saveIdentityHash } from '../src/data/accountRepository.js'
+import { sweepOrphanIdentityDocs, findDuePurges, recordPurgeFailure, markPurged } from '../src/data/identityDocsRepository.js'
+import { findVirtualAccountByReference, findCustomerIdForEmail, insertVirtualAccount, findPaymentStatus } from '../src/data/paymentVirtualAccountRepository.js'
+import {
+  findPendingPayouts, incrementPayoutAttempts, findPayoutTransaction, findVerifiedPayoutAccount,
+  saveRecipientCode, saveTransactionPayoutRef, saveFailureReason, markTransactionPayoutFailed,
+  findStuckProcessingPayouts, findTransactionPayoutRef, findStuckPayoutAlert, findSuperadmins,
+} from '../src/data/payoutQueueRepository.js'
+import { demoteExpiredVerifications, cancelUnpaidBookings } from '../src/data/maintenanceRepository.js'
+import { findListingLatLng } from '../src/data/listingRepository.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
-import { createListing, listMyListings, getListing } from '../src/modules/listings/listingsService.js'
+import { createListing, listMyListings, getListing, getListingForIndexing } from '../src/modules/listings/listingsService.js'
 import { findMatches, findCounterpartMatches, universalMatch } from '../src/modules/matching/matchingService.js'
 import { clearValidatorCache } from '../src/lib/schemaValidation.js'
 import { universalSearch } from '../src/modules/search/searchService.js'
@@ -91,6 +107,47 @@ async function handleRenderPublic(req, res) {
 }
 
 // ─── JSON API resources ─────────────────────────────────────────────────────
+// Removes identity documents whose 90-day retention window has ended.
+// Queue rows are written by a trigger when a profile's document pointer is
+// cleared on account deletion. Storage paths may carry a legacy
+// 'identity-docs/' prefix, so it is stripped before removal.
+async function purgeIdentityDocs(svc) {
+  // Queue unreferenced files (superseded or legacy uploads) before purging.
+  // Failure here is logged and does not block purging what is already queued.
+  const { error: sweepErr } = await sweepOrphanIdentityDocs(svc)
+  if (sweepErr) console.error('purge: orphan sweep failed:', sweepErr.message)
+
+  const { data: due, error } = await findDuePurges(svc, new Date().toISOString())
+  if (error) {
+    console.error('purge: failed to load queue', error.message)
+    return { purged: 0, failed: 0, error: 'load_failed' }
+  }
+  if (!due || due.length === 0) return { purged: 0, failed: 0 }
+
+  const withPath = due.filter((r) => r.storage_path)
+  const paths = [...new Set(withPath.map((r) => r.storage_path.replace(/^identity-docs\//, '')))]
+  let removeErr = null
+  if (paths.length > 0) {
+    const { error: rmErr } = await svc.storage.from('identity-docs').remove(paths)
+    removeErr = rmErr
+  }
+
+  const now = new Date().toISOString()
+  if (removeErr) {
+    console.error('purge: storage remove failed:', removeErr.message)
+    for (const r of due) {
+      await recordPurgeFailure(svc, r, removeErr.message)
+    }
+    return { purged: 0, failed: due.length }
+  }
+
+  // Rows with no path have nothing to delete; they are closed out as well.
+  const ids = due.map((r) => r.id)
+  const { error: updErr } = await markPurged(svc, ids, now)
+  if (updErr) console.error('purge: marking rows purged failed:', updErr.message)
+  return { purged: ids.length, failed: 0 }
+}
+
 const jsonResources = {
   // ── Account deletion (Google Play / App Store requirement) ───────────
   // POST { confirm: 'DELETE' } with the user's bearer token. GET returns
@@ -110,7 +167,7 @@ const jsonResources = {
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
     if (req.method === 'GET') {
-      const { data, error } = await svc.rpc('account_deletion_blockers', { p_user: user.id })
+      const { data, error } = await findDeletionBlockers(svc, user.id)
       if (error) return res.status(500).json({ error: 'Could not check your account' })
       return res.status(200).json({ blockers: data || [] })
     }
@@ -119,7 +176,7 @@ const jsonResources = {
       return res.status(400).json({ error: 'Type DELETE to confirm' })
     }
 
-    const { data, error } = await svc.rpc('erase_account_data', { p_user: user.id })
+    const { data, error } = await eraseAccountData(svc, user.id)
     if (error) {
       console.error('[platform:delete-account] erase failed', error.message)
       return res.status(500).json({ error: 'Could not delete your account. Please try again or contact support.' })
@@ -158,57 +215,65 @@ const jsonResources = {
     const { user, error: authError } = await getAuthedUser(req, supabase)
     if (authError) return res.status(401).json({ error: authError })
 
-    const rl = await redisRateLimit(req, 'pay_va', 10, 60)
+    const rl = await redisRateLimit(req, 'pay_va', 10, 60, true, { failClosed: true })
     if (!rl.allowed) return res.status(429).json({ error: 'Too many requests' })
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
       return res.status(503).json({ error: 'Payment service not configured' })
     }
 
-    const { reference, amountNaira, email } = req.body || {}
+    // The browser names what it is paying for and the record it belongs to.
+    // It does NOT name the amount or the metadata: the server works both out
+    // from the database (resolvePayment below), so a payer cannot pick a price
+    // or claim a different purpose.
+    const { reference, purpose, subject } = req.body || {}
     if (!reference || typeof reference !== 'string' || !/^[a-zA-Z0-9-]{6,42}$/.test(reference)) {
       return res.status(400).json({ error: 'Invalid reference' })
     }
-    const amountKobo = Math.round(Number(amountNaira) * 100)
-    if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
-      return res.status(400).json({ error: 'Invalid amount' })
+    // The payer is always the signed-in account. The webhook matches the
+    // transfer back to this email, so it must be the account's own email.
+    const email = user.email
+    if (!email || typeof email !== 'string' || email.length > 254) {
+      return res.status(400).json({ error: 'Your account needs an email address to pay' })
     }
-    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Invalid email' })
-    }
-    const metadata = cleanMetadata(req.body?.metadata)
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
     // Retries of the same reference return the same account, but only to its owner.
-    const { data: existing } = await svc
-      .from('payment_virtual_accounts')
-      .select('*')
-      .eq('reference', reference)
-      .maybeSingle()
+    const { data: existing } = await findVirtualAccountByReference(svc, reference)
     if (existing) {
       if (existing.profile_id !== user.id) return res.status(409).json({ error: 'Reference already in use' })
       return res.status(200).json(publicVirtualAccount(existing))
     }
 
+    // Price and validate the payment from the database. Throws PaymentError
+    // for anything the payer may not pay for (not their record, switched off,
+    // already paid, unavailable room).
+    let plan
+    try {
+      plan = await resolvePayment(svc, { purpose, subject: subject && typeof subject === 'object' ? subject : {}, reference, user })
+    } catch (err) {
+      if (err instanceof PaymentError) return res.status(err.status).json({ error: err.message })
+      console.error('payment-virtual-account: could not price payment:', err.message)
+      return res.status(500).json({ error: 'Could not start payment. Please try again.' })
+    }
+    const metadata = plan.metadata
+    const amountKobo = Math.round(plan.amountNaira * 100)
+    if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
+      return res.status(409).json({ error: 'This payment has no valid amount' })
+    }
+
     try {
       // Flutterwave rejects a second customer with the same email, so reuse the
       // one we already created for this email. Only our own rows are used.
-      const { data: prior } = await svc
-        .from('payment_virtual_accounts')
-        .select('customer_id')
-        .eq('email', email)
-        .not('customer_id', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      const { data: prior } = await findCustomerIdForEmail(svc, email)
       const customer = prior?.customer_id
         ? { id: prior.customer_id }
-        : await flw('POST', '/customers', {
-            body: { email },
+        : await paymentGateway.createCustomer({
+            email,
             idempotencyKey: idemKey('dmcus', reference),
           })
-      const va = await flw('POST', '/virtual-accounts', {
+      const va = await paymentGateway.createVirtualAccount({
         body: {
           customer_id: customer.id,
           reference,
@@ -238,7 +303,7 @@ const jsonResources = {
         metadata,
         expires_at: va.account_expiration_datetime ?? new Date(Date.now() + VA_TTL_SECONDS * 1000).toISOString(),
       }
-      const { error: insErr } = await svc.from('payment_virtual_accounts').insert(row)
+      const { error: insErr } = await insertVirtualAccount(svc, row)
       if (insErr) {
         console.error('payment-virtual-account: insert failed', insErr.message)
         return res.status(500).json({ error: 'Could not start payment. Please try again.' })
@@ -260,11 +325,7 @@ const jsonResources = {
       return res.status(400).json({ error: 'Invalid reference' })
     }
     // The elevated client runs under the payer's own RLS, so only their row is visible.
-    const { data: row, error } = await supabase
-      .from('payment_virtual_accounts')
-      .select('reference, status, expected_kobo, paid_kobo, paid_at, profile_id')
-      .eq('reference', reference)
-      .maybeSingle()
+    const { data: row, error } = await findPaymentStatus(supabase, reference)
     if (error) return res.status(500).json({ error: 'Could not load payment' })
     if (!row || row.profile_id !== user.id) return res.status(404).json({ error: 'Payment not found' })
 
@@ -277,6 +338,51 @@ const jsonResources = {
     })
   },
 
+  // Identity (ADR-009): the NIN/BVN is hashed here with a server-side key and only
+  // the hash is stored. The raw number is never written to the database.
+  // Approval by staff then sets Level 1 (see sync_identity_to_provider in the DB).
+  async ['identity-submit'](req, res, supabase) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    // Fail closed: this route creates identity links, so Redis trouble must deny, not allow.
+    const rl = await redisRateLimit(req, `identity-submit:${user.id}`, 5, 60 * 60, false, { failClosed: true })
+    if (!rl.allowed) return res.status(429).json({ error: rl.message || 'Too many attempts. Try again later.' })
+
+    if (!process.env.IDENTITY_HMAC_KEY) {
+      console.error('identity-submit: IDENTITY_HMAC_KEY is not set')
+      return res.status(503).json({ error: 'Identity service is not configured.' })
+    }
+    let hash
+    try {
+      hash = identityHmac(req.body?.nin)
+    } catch (err) {
+      if (err instanceof IdentityHashError) return res.status(400).json({ error: 'Enter your 11-digit NIN or BVN.' })
+      throw err
+    }
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(503).json({ error: 'Identity service is not configured.' })
+    }
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+
+    const { data: current } = await findIdentityStatus(svc, user.id)
+    if (current?.identity_verification_status === 'approved') {
+      return res.status(409).json({ error: 'Your identity is already verified.' })
+    }
+
+    const { error } = await saveIdentityHash(svc, user.id, hash, new Date().toISOString())
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(409).json({ error: 'This NIN/BVN is already linked to another account. Contact support if this is a mistake.' })
+      }
+      console.error('identity-submit failed:', error.message)
+      return res.status(500).json({ error: 'Could not save your NIN/BVN. Please try again.' })
+    }
+    return res.status(200).json({ ok: true })
+  },
+
   async ['cron-process-payouts'](req, res) {
     // Not a signed-in-user resource - Vercel Cron calls this with no user
     // session, so it is gated by a shared secret, the same pattern the
@@ -286,19 +392,35 @@ const jsonResources = {
     if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
+
+    // Verification expiry runs on this daily cron (ADR-009), even when payouts are not configured.
+    let demoted = null
+    let purged = null
+    let released_bookings = null
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const maint = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+      const { data: n, error: demoteErr } = await demoteExpiredVerifications(maint)
+      if (demoteErr) console.error('cron: demote_expired_verifications failed:', demoteErr.message)
+      else demoted = n
+      // Identity documents are removed 90 days after account deletion (ADR-009).
+      purged = await purgeIdentityDocs(maint)
+      // Hotel bookings never paid within the payment window release their rooms.
+      // The virtual account expires after 24 hours; 48 hours leaves room for a
+      // late bank transfer to be seen before the booking is closed.
+      const { data: released, error: releaseErr } = await cancelUnpaidBookings(
+        maint, new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      )
+      if (releaseErr) console.error('cron: releasing unpaid hotel bookings failed:', releaseErr.message)
+      else released_bookings = released?.length ?? 0
+    }
+
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
-      return res.status(200).json({ processed: 0, skipped: 'payouts not configured' })
+      return res.status(200).json({ processed: 0, skipped: 'payouts not configured', demoted, purged, released_bookings })
     }
 
     const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 
-    const { data: rows, error } = await svc
-      .from('payout_queue')
-      .select('id, transaction_id, profile_id, payout_account_id, amount_cents, attempts')
-      .eq('status', 'pending')
-      .lt('attempts', 5) // never retry forever - a row stuck at 5 failures needs an admin
-      .order('created_at', { ascending: true })
-      .limit(20)
+    const { data: rows, error } = await findPendingPayouts(svc)
 
     if (error) {
       console.error('cron-process-payouts: failed to load queue', error.message)
@@ -308,14 +430,26 @@ const jsonResources = {
     let processed = 0, failed = 0
     for (const row of rows || []) {
       try {
-        await svc.from('payout_queue').update({ attempts: row.attempts + 1 }).eq('id', row.id)
+        await incrementPayoutAttempts(svc, row)
 
-        const { data: account } = await svc
-          .from('payout_accounts')
-          .select('*')
-          .eq('id', row.payout_account_id)
-          .eq('status', 'verified')
-          .maybeSingle()
+        // Defence in depth: pay only what the transaction says is owed, to the
+        // account it was accepted with, once the deal is completed. Anything
+        // else is held for a person to look at, not retried.
+        const { data: tx } = await findPayoutTransaction(svc, row.transaction_id)
+        const owedKobo = tx ? Number(tx.amount_cents || 0) - Number(tx.commission_amount_cents || 0) : null
+        const matches = tx
+          && tx.status === 'COMPLETED'
+          && tx.payout_status === 'queued'
+          && String(tx.provider_payout_account_id) === String(row.payout_account_id)
+          && Number(row.amount_cents) === owedKobo
+          && Number(row.amount_cents) > 0
+        if (!matches) {
+          const held = new Error('Payout does not match its completed transaction; held for review')
+          held.holdForReview = true
+          throw held
+        }
+
+        const { data: account } = await findVerifiedPayoutAccount(svc, row.payout_account_id)
 
         if (!account) {
           throw new Error('No verified payout account for this transaction')
@@ -328,7 +462,7 @@ const jsonResources = {
         // account and store its id, so later payouts and retries reuse it.
         let recipientId = account.gateway_recipient_code
         if (!recipientId) {
-          const recipient = await flw('POST', '/transfers/recipients', {
+          const recipient = await paymentGateway.createRecipient({
             body: {
               type: 'bank_ngn',
               bank: { account_number: account.account_number, code: account.bank_code },
@@ -336,14 +470,14 @@ const jsonResources = {
             idempotencyKey: idemKey('dmrcp', account.id),
           })
           recipientId = recipient.id
-          await svc.from('payout_accounts').update({ gateway_recipient_code: recipientId }).eq('id', account.id)
+          await saveRecipientCode(svc, account.id, recipientId)
         }
 
         // The reference is stable per queue row: Flutterwave rejects a
         // duplicate reference, so a crash between sending and recording
         // cannot pay out twice.
         const transferReference = `payout-${row.id}`
-        const transfer = await flw('POST', '/transfers', {
+        const transfer = await paymentGateway.createTransfer({
           body: {
             action: 'instant',
             reference: transferReference,
@@ -360,34 +494,78 @@ const jsonResources = {
 
         // Still in flight until the transfer.success / transfer.failed
         // webhook confirms it. gateway_ref is our reference, which the webhook matches.
-        await svc.from('payout_queue').update({
-          status: 'processing',
-          gateway_ref: transferReference,
-        }).eq('id', row.id)
-        await svc.from('transactions').update({ payout_ref: String(transfer.id ?? transferReference) }).eq('id', row.transaction_id)
+        await movePayout(svc, row.id, 'processing', { gateway_ref: transferReference }, { from: ['pending'] })
+        await saveTransactionPayoutRef(svc, row.transaction_id, String(transfer.id ?? transferReference))
 
         processed++
       } catch (err) {
         failed++
         console.error(`cron-process-payouts: row ${row.id} failed:`, err.message)
-        await svc.from('payout_queue').update({
-          status: row.attempts + 1 >= 5 ? 'failed' : 'pending',
-          failure_reason: String(err.message).slice(0, 500),
-        }).eq('id', row.id)
-        if (row.attempts + 1 >= 5) {
-          await svc.from('transactions').update({ payout_status: 'failed' }).eq('id', row.transaction_id)
+        // A mismatch is never retried: it goes straight to 'failed' for review.
+        const giveUp = err.holdForReview || row.attempts + 1 >= 5
+        const failure_reason = String(err.message).slice(0, 500)
+        if (giveUp) {
+          await movePayout(svc, row.id, 'failed', { failure_reason }, { from: ['pending'] })
+        } else {
+          // Stays pending for the next run; only the reason is recorded.
+          await saveFailureReason(svc, row.id, failure_reason)
+        }
+        if (giveUp) {
+          await markTransactionPayoutFailed(svc, row.transaction_id)
         }
       }
     }
 
-    return res.status(200).json({ processed, failed, total: (rows || []).length })
+    // Reconcile payouts left in 'processing'. Flutterwave confirms each transfer
+    // by webhook, but a webhook can be missed, delayed or retried into a dead end.
+    // Ask Flutterwave directly for anything that has been in flight for 2 hours,
+    // and settle it the same way the webhook would. NEW or PENDING transfers are
+    // left alone and checked again on the next run.
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    const { data: stuck, error: stuckErr } = await findStuckProcessingPayouts(svc, cutoff)
+    if (stuckErr) console.error('cron-process-payouts: failed to load processing rows', stuckErr.message)
+
+    let reconciled = 0
+    for (const row of stuckErr ? [] : stuck || []) {
+      try {
+        const { data: tx } = await findTransactionPayoutRef(svc, row.transaction_id)
+        if (!tx?.payout_ref) {
+          console.error(`cron-process-payouts: processing row ${row.id} has no transfer id to check`)
+          continue
+        }
+        const transfer = await paymentGateway.getTransfer(tx.payout_ref)
+        if (transfer?.status === 'SUCCESSFUL') {
+          if (await settlePayout(svc, row, 'paid')) reconciled++
+        } else if (transfer?.status === 'FAILED' || transfer?.status === 'REVERSED') {
+          if (await settlePayout(svc, row, 'failed', `transfer ${transfer.status.toLowerCase()} on reconciliation`)) reconciled++
+        } else if (Date.now() - new Date(row.created_at).getTime() > 3 * 24 * 60 * 60 * 1000) {
+          // Still NEW or PENDING after three days: a person needs to look at it.
+          // Alert superadmins once per payout, not on every run.
+          const { data: already } = await findStuckPayoutAlert(svc, row.id)
+          if (!already?.length) {
+            const { data: admins } = await findSuperadmins(svc)
+            for (const a of admins || []) {
+              await insertNotification(svc, 'payout_stuck', a.id, {
+                payoutId: row.id,
+                transferRef: tx.payout_ref,
+                status: transfer?.status || 'unknown',
+              })
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`cron-process-payouts: reconciling row ${row.id} failed:`, err.message)
+      }
+    }
+
+    return res.status(200).json({ processed, failed, reconciled, total: (rows || []).length, released_bookings })
   },
 
   async ['payout-banks'](req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
     if (!flutterwaveConfigured()) return res.status(200).json({ banks: [] })
     try {
-      const data = await flw('GET', '/banks?country=NG')
+      const data = await paymentGateway.listBanks()
       const banks = (Array.isArray(data) ? data : [])
         .map(b => ({ name: b.name, code: b.code }))
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -410,7 +588,7 @@ const jsonResources = {
     if (!/^\d{10}$/.test(String(accountNumber))) return res.status(400).json({ error: 'Account number must be 10 digits' })
 
     try {
-      const data = await flw('POST', '/banks/account-resolve', {
+      const data = await paymentGateway.resolveAccount({
         body: { currency: 'NGN', account: { code: String(bankCode), number: String(accountNumber) } },
       })
       if (!data?.account_name) {
@@ -440,13 +618,9 @@ const jsonResources = {
     const { listingId } = req.body || {}
     if (!listingId) return res.status(400).json({ error: 'listingId required' })
 
-    const { data: listing, error: fetchErr } = await supabase
-      .from('category_listings')
-      .select('id, user_id, category_id, type, title, description, price_cents, location_name, status, attributes, categories(slug, name)')
-      .eq('id', listingId)
-      .single()
+    const listing = await getListingForIndexing(supabase, listingId)
 
-    if (fetchErr || !listing) return res.status(404).json({ error: 'Listing not found' })
+    if (!listing) return res.status(404).json({ error: 'Listing not found' })
     if (listing.user_id !== user.id) return res.status(403).json({ error: 'Forbidden' })
 
     if (!process.env.PINECONE_API_KEY) return res.status(200).json({ success: true, skipped: 'no Pinecone key' })
@@ -856,7 +1030,7 @@ async function getListingLatLng(supabase, id) {
   // location is a PostGIS geography column, not directly readable as
   // lat/lng over PostgREST - reuses the existing RPC (see
   // matchingService.js:findCounterpartMatches for the same pattern).
-  const { data } = await supabase.rpc('get_listing_with_latlng', { p_id: id }).single()
+  const { data } = await findListingLatLng(supabase, id)
   return { lat: typeof data?.lat === 'number' ? data.lat : null, lng: typeof data?.lng === 'number' ? data.lng : null }
 }
 
@@ -900,7 +1074,6 @@ async function resolveThreadJson(supabase, res, category, threadSlug, breadcrumb
 }
 
 // ─── Flutterwave V4 helpers ─────────────────────────────────────────────────
-const VA_TTL_SECONDS = 86400 // a dynamic account can be paid for 24 hours
 
 // Flutterwave idempotency keys are 12-255 alphanumeric characters.
 function idemKey(prefix, value) {
@@ -908,17 +1081,6 @@ function idemKey(prefix, value) {
 }
 
 // Only short, simple string or number values go to Flutterwave and the DB.
-function cleanMetadata(input) {
-  const out = {}
-  if (!input || typeof input !== 'object' || Array.isArray(input)) return out
-  for (const [k, v] of Object.entries(input).slice(0, 20)) {
-    if (!/^[a-zA-Z0-9_]{1,40}$/.test(k)) continue
-    if (typeof v === 'string') out[k] = v.slice(0, 200)
-    else if (typeof v === 'number' && Number.isFinite(v)) out[k] = String(v)
-  }
-  return out
-}
-
 function publicVirtualAccount(row) {
   return {
     reference: row.reference,
@@ -927,9 +1089,17 @@ function publicVirtualAccount(row) {
     amountNaira: Number(row.expected_kobo) / 100,
     expiresAt: row.expires_at,
     status: row.status,
+    // Lets the page open the record this payment created (a hotel booking).
+    bookingId: row.metadata?.booking_id || null,
   }
 }
 
+// ─── Payment resolution ─────────────────────────────────────────────────────
+// Every paid purpose is priced here from the database. The browser supplies
+// only the id of the record being paid for (and, for unlock packs, the pack
+// key). The server checks that the signed-in user owns that record, reads the
+// amount from the record or from the platform fee registry, creates any pending
+// record needed, and returns the amount plus the metadata the webhook trusts.
 // ─── Entry point ────────────────────────────────────────────────────────────
 // The render path (bot HTML / sitemap XML) is checked FIRST and handled
 // completely outside withSecurity - see handleRenderPublic's comment above

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Bath, Bed, Heart, HeartCrack, Home, MapPin, Maximize, MessageCircle, Trash2 } from 'lucide-react'
-import { getMatches, supabase } from '@/lib/supabase'
+import { getMatches } from '@/lib/supabase'
+import { removeSwipe } from '@/data/matchesRepository'
 import { useAuth } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 const formatPrice = (n) => {
@@ -32,7 +34,7 @@ export default function MatchesPage() {
   }
 
   const removeMatch = async (swipeId) => {
-    const { error } = await supabase.from('swipes').delete().eq('id', swipeId)
+    const { error } = await removeSwipe(swipeId)
     if (error) { toast.error('Could not remove'); return }
     setMatches(m => m.filter(s => s.id !== swipeId))
     toast.success('Removed from matches')
@@ -44,8 +46,7 @@ export default function MatchesPage() {
       `Price: ₦${Number(property.price).toLocaleString()}\n` +
       `Location: ${property.city}, ${property.state}\n\nCould we discuss further?`
     )
-    const phone = property.profiles?.phone?.replace(/\D/g, '') || '2347057392060'
-    window.open('https://wa.me/' + phone + '?text=' + msg, '_blank')
+    window.open('https://wa.me/' + DEALMATCH_WHATSAPP + '?text=' + msg, '_blank')
   }
 
   const filtered = filter === 'super'

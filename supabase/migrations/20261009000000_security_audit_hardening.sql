@@ -650,12 +650,12 @@ DECLARE
     'redeem_loyalty_points','reject_payout_account','reject_withdrawal_request','request_withdrawal',
     'review_verification_submission','revoke_staff_invite','spend_unlock_credit','start_escrow_payment',
     'start_property_escrow_payment','submit_payout_account','submit_verification','universal_match',
-    'universal_search','verify_payout_account','start_escrow_payment'
+    'universal_search','verify_payout_account','start_escrow_payment','search_providers_rpc'
   ];
   keep_anon text[] := ARRAY[
     'check_booking_availability','check_device_exists','check_phone_exists','check_signup_conflicts',
     'check_username_exists','get_listing_with_latlng','increment_thread_view_count','is_admin_login_locked',
-    'match_category_listings','record_admin_login_attempt','universal_match','universal_search'
+    'match_category_listings','record_admin_login_attempt','universal_match','universal_search','search_providers_rpc'
   ];
   is_policy_helper boolean;
 BEGIN
@@ -708,6 +708,12 @@ BEGIN
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
      WHERE n.nspname = 'public' AND p.prosecdef AND p.proconfig IS NULL
+       -- Skip functions owned by an extension (e.g. PostGIS installed in public).
+       -- They belong to the extension owner, so ALTER fails with "must be owner".
+       AND NOT EXISTS (
+         SELECT 1 FROM pg_depend d
+          WHERE d.objid = p.oid AND d.classid = 'pg_proc'::regclass AND d.deptype = 'e'
+       )
   LOOP
     EXECUTE format('ALTER FUNCTION %s SET search_path = public, extensions, pg_temp', r.sig);
   END LOOP;

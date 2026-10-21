@@ -4,6 +4,7 @@
 
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { markEscrowFunded, markEscrowReleased, markEscrowRefunded } from '../src/data/escrowRepository.js'
 
 function getSupabase() {
   return createClient(
@@ -54,15 +55,16 @@ export default async function handler(req, res) {
 
   try {
     const supabase = getSupabase()
+    const now = new Date().toISOString()
 
+    // A failed write throws, so the sender gets a 500 and retries. Before, the
+    // error was ignored and a lost update was acknowledged with 200.
     switch (event) {
       case 'escrow.funded': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'funded', funded_at: new Date().toISOString() })
-          .eq('payment_ref', reference)
+        const { error } = await markEscrowFunded(supabase, reference, now)
+        if (error) throw error
         console.log('Escrow funded:', reference)
         break
       }
@@ -70,37 +72,27 @@ export default async function handler(req, res) {
       case 'escrow.released': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'released', released_at: new Date().toISOString() })
-          .eq('payment_ref', reference)
-        console.log('Escrow released:', reference)
+        const { data: changed, error } = await markEscrowReleased(supabase, reference, now)
+        if (error) throw error
+        // Only a funded escrow is released. Anything else is logged, not applied.
+        if (changed?.length) console.log('Escrow released:', reference)
+        else console.warn('Escrow release ignored (not funded, or unknown reference):', reference)
         break
       }
 
       case 'escrow.refunded': {
         const { reference } = data
         if (!reference) break
-        await supabase
-          .from('escrow_transactions')
-          .update({ status: 'refunded' })
-          .eq('payment_ref', reference)
-        console.log('Escrow refunded:', reference)
+        const { data: changed, error } = await markEscrowRefunded(supabase, reference)
+        if (error) throw error
+        if (changed?.length) console.log('Escrow refunded:', reference)
+        else console.warn('Escrow refund ignored (not funded, or unknown reference):', reference)
         break
       }
 
-      case 'charge.success': {
-        // Payment confirmed (forwarded by the payment webhook) - fund the escrow
-        const { reference, metadata } = data
-        if (metadata?.type === 'escrow_payment' && reference) {
-          await supabase
-            .from('escrow_transactions')
-            .update({ status: 'funded', funded_at: new Date().toISOString() })
-            .eq('payment_ref', reference)
-          console.log('Escrow funded:', reference)
-        }
-        break
-      }
+      // NOTE: there is deliberately no charge.success case here. Payments are
+      // confirmed only by api/flutterwave-webhook.js, which checks the amount
+      // paid. Funding an escrow from a second, unchecked path would bypass it.
 
       default:
         break

@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Bath, Bed, ChevronLeft, ChevronRight, Heart, Home, MapPin, Maximize } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import DmIcon from '@/components/ui/DmIcon'
 import { recordSwipe } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
@@ -16,6 +17,9 @@ const formatPrice = (n) => {
  * Horizontal carousel of property cards.
  * Used on HomePage featured listings, Matches, etc.
  */
+// Icon key for the placeholder shown when a listing has no photo.
+const TYPE_ICON = { land: 'map', apartment: 'building-2', duplex: 'home', detached: 'home', terrace: 'building', commercial: 'store', hotel: 'hotel', rental: 'key' }
+
 export default function PropertyCarousel({ properties = [], title, subtitle, emptyText = 'No properties yet' }) {
   const { user } = useAuth()
   const [liked,  setLiked]  = useState(new Set())
@@ -77,7 +81,7 @@ export default function PropertyCarousel({ properties = [], title, subtitle, emp
           {properties.map(p => {
             const img    = p.images?.find(i => i?.is_primary)?.url || p.images?.[0]?.url
             const isLiked = liked.has(p.id)
-            const EMOJI  = { land: 'land', apartment: 'apartment', duplex: 'duplex', detached: 'detached', terrace: 'terrace', commercial: 'commercial', hotel:'hotel', rental:'key' }
+            const typeIcon = TYPE_ICON[p.property_type] || 'home'
 
             return (
               <Link
@@ -89,7 +93,7 @@ export default function PropertyCarousel({ properties = [], title, subtitle, emp
                 <div className="relative h-44 overflow-hidden">
                   {img
                     ? <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    : <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor:'rgba(200,95,45,0.08)' }}>{EMOJI[p.property_type] || 'home'}</div>
+                    : <div className="w-full h-full flex items-center justify-center " style={{ backgroundColor:'rgba(200,95,45,0.08)' }}><DmIcon name={typeIcon} size={48} className="text-terracotta/50" /></div>
                   }
                   {/* Like button */}
                   <button onClick={e => handleLike(e, p)}

@@ -15,7 +15,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Check, CheckCircle, Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { motion, AnimatePresence } from 'framer-motion'
+import { isAdminLoginLocked, recordAdminLoginAttempt, fetchStaffProfile } from '@/data/adminLoginRepository'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 const ADMIN_EMAILS  = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
@@ -147,7 +148,7 @@ export default function AdminLoginPage() {
       // The sessionStorage counter below is still useful UX (shows
       // "Forgot password?" earlier) but is not itself a real lock - a new
       // tab or private window resets it. This check is the real one.
-      const { data: locked } = await supabase.rpc('is_admin_login_locked', { p_email: cleanEmail })
+      const { data: locked } = await isAdminLoginLocked(cleanEmail)
       if (locked) {
         setLockedMsg('Too many failed attempts. Wait 15 minutes or reset your password.')
         setLoading(false)
@@ -157,7 +158,7 @@ export default function AdminLoginPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
 
       if (error) {
-        await supabase.rpc('record_admin_login_attempt', { p_email: cleanEmail, p_success: false })
+        await recordAdminLoginAttempt(cleanEmail, false)
         setAttempts(a => a + 1)
         toast.error(error.message?.includes('Invalid login credentials')
           ? 'Incorrect email or password.'
@@ -166,13 +167,9 @@ export default function AdminLoginPage() {
         return
       }
 
-      await supabase.rpc('record_admin_login_attempt', { p_email: cleanEmail, p_success: true })
+      await recordAdminLoginAttempt(cleanEmail, true)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', data.user.id)
-        .single()
+      const { data: profile } = await fetchStaffProfile(data.user.id)
 
       const isAdminEmail = ADMIN_EMAILS.includes(data.user.email)
       const isAdminRole  = ALLOWED_ROLES.includes(profile?.role)

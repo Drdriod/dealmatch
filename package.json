@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check:fitness": "node scripts/check-architecture-fitness.mjs"
+    "check:fitness": "node scripts/check-architecture-fitness.mjs",
+    "test": "node --experimental-test-module-mocks --test src/lib/*.test.mjs",
+    "check": "npm run check:fitness && npm test"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",
@@ -18,8 +20,8 @@
     "@supabase/supabase-js": "^2.42.0",
     "ajv": "^8.17.1",
     "clsx": "^2.1.0",
-    "framer-motion": "^11.0.28",
     "lucide-react": "^0.378.0",
+    "motion": "13.4.4",
     "posthog-js": "^1.121.5",
     "react": "^18.2.0",
     "react-countup": "^6.5.3",

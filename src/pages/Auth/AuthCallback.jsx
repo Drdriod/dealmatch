@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { fetchOnboardingState, upsertProfile } from '@/data/profileRepository'
 import { Check, Home } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -53,11 +54,7 @@ export default function AuthCallback() {
         const user = session.user
 
         // ── Check / create profile ────────────────────────────────────────
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('onboarding_completed, role, full_name')
-          .eq('id', user.id)
-          .maybeSingle()   // maybeSingle returns null row without throwing on 0 rows
+        const { data: profile, error: profileError } = await fetchOnboardingState(user.id)   // null row, no throw, on 0 rows
 
         if (profileError) {
           console.error('[AuthCallback] Profile fetch error:', profileError.message)
@@ -68,14 +65,14 @@ export default function AuthCallback() {
 
         if (!profile) {
           // Brand-new OAuth / magic-link user - bootstrap a profile
-          const { error: upsertError } = await supabase.from('profiles').upsert({
+          const { error: upsertError } = await upsertProfile({
             id:          user.id,
             email:       user.email,
             full_name:   user.user_metadata?.full_name || user.user_metadata?.name || '',
             avatar_url:  user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
             onboarding_completed: false,
             updated_at:  new Date().toISOString(),
-          }, { onConflict: 'id' })
+          })
 
           if (upsertError) {
             console.error('[AuthCallback] Profile upsert error:', upsertError.message)

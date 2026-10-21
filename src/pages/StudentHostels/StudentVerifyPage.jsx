@@ -12,8 +12,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Clock, GraduationCap, Info, Shield, Upload, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
+import { loadStudentVerifyData, updateStudentVerification, insertStudentVerification, saveStudentInstitution } from '@/data/studentVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -48,10 +49,7 @@ export default function StudentVerifyPage() {
 
   const loadData = async () => {
     setLoading(true)
-    const [{ data: instData }, { data: verif }] = await Promise.all([
-      supabase.from('institutions').select('id,name,short_name,state').order('name'),
-      supabase.from('student_verifications').select('*').eq('user_id', user.id).maybeSingle(),
-    ])
+    const [{ data: instData }, { data: verif }] = await loadStudentVerifyData(user.id)
     setInstitutions(instData || [])
     setExisting(verif)
     if (verif) {
@@ -81,7 +79,6 @@ export default function StudentVerifyPage() {
     setPreviewUrl(URL.createObjectURL(file))
 
     setUploading(true)
-    const ext  = file.name.split('.').pop()
     // ✅ SECURITY FIX: student ID cards were being stored in the fully
     // PUBLIC 'property-images' bucket (same one used for listing photos)
     // with a permanent public URL - anyone with the link could view a
@@ -89,8 +86,9 @@ export default function StudentVerifyPage() {
     // 'identity-docs' bucket instead, same as other identity documents.
     // Path must NOT repeat the bucket name - RLS checks that the first
     // folder segment equals auth.uid().
-    const path = `${user.id}/student_id_${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('identity-docs').upload(path, file, { upsert: true })
+    // One fixed path per user, replaced in place on re-upload (no superseded copies).
+    const path = `${user.id}/student-id`
+    const { error } = await supabase.storage.from('identity-docs').upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
     if (error) { toast.error('Upload failed - please try again'); setUploading(false); return }
     // Store the storage PATH, not a public URL - bucket is private.
     // Admin generates a short-lived signed URL when reviewing submissions.
@@ -127,13 +125,13 @@ export default function StudentVerifyPage() {
       }
 
       if (existing) {
-        await supabase.from('student_verifications').update(payload).eq('id', existing.id)
+        await updateStudentVerification(existing.id, payload)
       } else {
-        await supabase.from('student_verifications').insert(payload)
+        await insertStudentVerification(payload)
       }
 
       // Update profile with student institution
-      await supabase.from('profiles').update({ student_institution: selectedInstitution?.name || '' }).eq('id', user.id)
+      await saveStudentInstitution(user.id, selectedInstitution?.name || '')
       await refreshProfile()
 
       toast.success('Verification submitted! We\'ll review within 24 hours.')

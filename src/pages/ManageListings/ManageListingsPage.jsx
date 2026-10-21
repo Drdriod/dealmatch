@@ -15,6 +15,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, Heart, MoreVertical, Pause, Play, Plus, Trash2, Home, Package } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { fetchMyProperties, setPropertyStatus } from '@/data/manageListingsRepository'
 import { listMyListings, updateListingStatus } from '@/modules/listings/listingsService'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
@@ -46,9 +47,7 @@ export default function ManageListingsPage() {
   const load = async () => {
     setLoading(true)
     const [propRes, listData] = await Promise.all([
-      supabase.from('properties')
-        .select('id, title, price, city, state, status, view_count, like_count, listing_type, created_at')
-        .eq('seller_id', user.id).order('created_at', { ascending: false }),
+      fetchMyProperties(user.id),
       listMyListings(supabase, user.id, { withCategory: true }),
     ])
     setProperties(propRes.data || [])
@@ -85,7 +84,7 @@ export default function ManageListingsPage() {
     setBusyId(item.id)
     let error = null
     if (item.kind === 'property') {
-      ({ error } = await supabase.from('properties').update({ status: item.togglePausedTo }).eq('id', item.id))
+      ({ error } = await setPropertyStatus(item.id, item.togglePausedTo))
     } else {
       try { await updateListingStatus(supabase, item.id, user.id, item.togglePausedTo) } catch (e) { error = e }
     }
@@ -103,7 +102,7 @@ export default function ManageListingsPage() {
     // history, so a hard DELETE would orphan financial records).
     let error = null
     if (item.kind === 'property') {
-      ({ error } = await supabase.from('properties').update({ status: 'removed' }).eq('id', item.id))
+      ({ error } = await setPropertyStatus(item.id, 'removed'))
     } else {
       try { await updateListingStatus(supabase, item.id, user.id, 'CLOSED') } catch (e) { error = e }
     }

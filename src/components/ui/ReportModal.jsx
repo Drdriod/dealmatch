@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Flag } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { insertReport } from '@/data/reportRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -64,7 +64,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
     if (!form.description.trim()) { toast.error('Describe the problem'); return }
 
     setFiling(true)
-    const { error } = await supabase.from('reports').insert({
+    const { error } = await insertReport({
       reporter_id:    user.id,
       entity_type:    entityType,
       entity_id:      String(entityId),

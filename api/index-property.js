@@ -3,6 +3,7 @@
 
 import { redisRateLimit } from '../src/lib/redis.js'
 import { getEmbedding, getPineconeIndex, EmbeddingUnavailableError } from '../src/lib/ai.js'
+import { findPropertySellerId } from '../src/data/propertyRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 
@@ -43,11 +44,7 @@ export default async function handler(req, res) {
   if (authError || !user) return res.status(401).json({ error: 'Invalid session' })
 
   // ✅ Ownership check: only owner can index their property
-  const { data: existing, error: fetchErr } = await supabase
-    .from('properties')
-    .select('seller_id')
-    .eq('id', property.id)
-    .single()
+  const { data: existing, error: fetchErr } = await findPropertySellerId(supabase, property.id)
 
   if (fetchErr || !existing) return res.status(404).json({ error: 'Property not found' })
   if (existing.seller_id !== user.id) return res.status(403).json({ error: 'Forbidden' })

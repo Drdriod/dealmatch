@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { AlertTriangle, Bell, CheckCircle, Gavel, Lock, Mail, ShieldCheck, ShieldX, Star, TrendingUp, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase' // realtime channel only: reads and writes go through notificationsRepository
+import { fetchNotifications, markNotificationsRead } from '@/data/notificationsRepository'
 
 const ICONS = {
   referral_cash:    TrendingUp,
@@ -99,12 +100,7 @@ export default function NotificationBell() {
 
   const loadNotifications = async () => {
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(30)
+      const { data, error } = await fetchNotifications(user.id)
       if (error) throw error
       setNotifications(data || [])
     } catch (err) {
@@ -120,14 +116,14 @@ export default function NotificationBell() {
     if (!unreadIds.length) return
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     try {
-      await supabase.from('notifications').update({ read: true }).in('id', unreadIds)
+      await markNotificationsRead(unreadIds)
     } catch { /* non-fatal */ }
   }
 
   const markOneRead = async (id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
     try {
-      await supabase.from('notifications').update({ read: true }).eq('id', id)
+      await markNotificationsRead([id])
     } catch { /* non-fatal */ }
   }
 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { MapPin, Search as SearchIcon, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { universalSearch } from '@/modules/search/searchService'
 import { aiMatchListings } from '@/modules/matching/matchingService'
 import { useUserLocation } from '@/hooks/useUserLocation'
+import useCategoryTree from '@/hooks/useCategoryTree'
+import { PILLARS } from '@/lib/taxonomy'
 
 const formatPrice = (cents) => {
   if (cents == null) return null
@@ -20,6 +22,23 @@ const SOURCE_LABEL = {
   properties: 'Place',
   student_hostels: 'Student Hostel',
   professionals: 'Professional',
+  verified_providers: 'Person',
+}
+
+function CategoryChip({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#C85F2D] hover:text-[#C85F2D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D]"
+      style={active
+        ? { backgroundColor: '#17211B', color: '#FFFFFF', border: '1px solid #17211B' }
+        : { backgroundColor: '#FFFDF8', color: '#17211B', border: '1px solid #DEDDD6' }}
+    >
+      {children}
+    </button>
+  )
 }
 
 /**
@@ -36,23 +55,27 @@ const SOURCE_LABEL = {
 export default function SearchPage() {
   const [params, setParams] = useSearchParams()
   const q = params.get('q') || ''
+  // The category filter lives in the URL (?cat=<slug>) so a filtered search can be shared.
+  const cat = params.get('cat') || ''
   const [inputValue, setInputValue] = useState(q)
   const [results, setResults] = useState(null) // null = not searched yet
   const [aiResults, setAiResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [radiusKm, setRadiusKm] = useState(15)
   const { coords, requestLocation, status: locStatus } = useUserLocation()
+  const { tree: categoryTree } = useCategoryTree()
 
-  const runSearch = useCallback(async (text) => {
+  const runSearch = useCallback(async (text, catSlug) => {
     if (!text.trim()) { setResults([]); setAiResults([]); return }
     setLoading(true)
     try {
       const [keywordResults, semanticResults] = await Promise.all([
-        universalSearch(supabase, text, { limit: 40 }),
+        universalSearch(supabase, text, { limit: 40, category: catSlug || null }),
         // AI/location matching is best-effort - if Pinecone isn't
         // configured (no PINECONE_API_KEY set), this
-        // resolves to [] rather than blocking keyword search.
-        aiMatchListings({
+        // resolves to [] rather than blocking keyword search. It is not
+        // category-filtered yet, so it is skipped while a category is chosen.
+        catSlug ? Promise.resolve([]) : aiMatchListings({
           queryText: text,
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
@@ -70,12 +93,25 @@ export default function SearchPage() {
     }
   }, [coords, radiusKm])
 
-  useEffect(() => { if (q) runSearch(q) }, [q]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (q) runSearch(q, cat) }, [q, cat]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const buildParams = (text, catSlug) => {
+    const next = new URLSearchParams()
+    if (text) next.set('q', text)
+    if (catSlug) next.set('cat', catSlug)
+    return next
+  }
 
   const submit = (e) => {
     e.preventDefault()
-    setParams(inputValue ? { q: inputValue } : {})
-    runSearch(inputValue)
+    setParams(buildParams(inputValue, cat))
+    runSearch(inputValue, cat)
+  }
+
+  // Choosing a category keeps the current query and updates ?cat=, which
+  // re-runs the search through the effect above.
+  const chooseCategory = (catSlug) => {
+    setParams(buildParams(q, catSlug))
   }
 
   // Merge: AI/semantic matches for category_listings are shown first when
@@ -126,6 +162,32 @@ export default function SearchPage() {
             </label>
           )}
         </div>
+
+        {categoryTree && (
+          <div className="mb-6 space-y-3" role="group" aria-label="Filter by category">
+            <div className="flex flex-wrap gap-2">
+              <CategoryChip active={!cat} onClick={() => chooseCategory('')}>All categories</CategoryChip>
+            </div>
+            {PILLARS.map(pillar => {
+              const groups = categoryTree.filter(root => root.pillar === pillar.slug)
+              if (groups.length === 0) return null
+              return (
+                <div key={pillar.slug}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color: '#647068' }}>
+                    {pillar.name}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {groups.map(group => (
+                      <CategoryChip key={group.id} active={cat === group.slug} onClick={() => chooseCategory(group.slug)}>
+                        {group.name}
+                      </CategoryChip>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {loading && <p className="text-sm" style={{ color: '#647068' }}>Searching...</p>}
 

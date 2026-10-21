@@ -6,6 +6,7 @@ import { indexProperty } from '@/lib/pinecone'
 import { analytics } from '@/lib/posthog'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
+import { usePlatformFees, escrowRates, formatPlatformFee } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
@@ -78,6 +79,9 @@ export default function ListPropertyPage() {
   const [saved,  setSaved]  = useState(false)
   const [form,   setForm]   = useState(INITIAL)
   const [agreed, setAgreed] = useState(false)
+  // Sale escrow rate from the platform fee registry (one total, half per side).
+  const { fees } = usePlatformFees()
+  const saleEscrow = escrowRates(fees, 'sale_escrow')
 
   const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const setE   = (k)    => (e) => set(k, e.target.value)
@@ -186,8 +190,15 @@ export default function ListPropertyPage() {
             <input className="input" type="number" min="0" placeholder="e.g. 38500000"
               value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             {form.price && (() => {
+              if (!saleEscrow) {
+                return (
+                  <div className="mt-3 rounded-2xl p-3" style={{backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)'}}>
+                    <p className="text-xs" style={{color:'#647068'}}>Loading the current fee...</p>
+                  </div>
+                )
+              }
               const gross       = Number(form.price)
-              const feeEach     = Math.round(gross * 0.0375)
+              const feeEach     = Math.round(gross * saleEscrow.perSide / 100)
               const takeHome    = gross - feeEach
               const agentBonus  = Math.round(gross * 0.075 * 0.25)
               return (
@@ -199,7 +210,7 @@ export default function ListPropertyPage() {
                       <span style={{color:'#17211B', fontWeight:600}}>₦{gross.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span style={{color:'#647068'}}>DealMatch fee (3.75%)</span>
+                      <span style={{color:'#647068'}}>DealMatch fee ({formatPlatformFee({ kind: 'percent', value: saleEscrow.perSide })} per side)</span>
                       <span style={{color:'#C85F2D'}}>-₦{feeEach.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs border-t pt-1 mt-1" style={{borderColor:'rgba(122,158,126,0.2)'}}>

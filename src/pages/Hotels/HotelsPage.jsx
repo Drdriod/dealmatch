@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Check, Hotel, MapPin, PartyPopper, Search, Star, Users, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { motion, AnimatePresence } from 'framer-motion'
+import { fetchActiveHotels, checkBookingAvailability, fetchClashingBookings } from '@/data/hotelsRepository'
+import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '@/context/AuthContext'
+import { usePlatformFees, feeValue, feeText } from '@/lib/platformFees'
+import { initializeFlutterwavePayment, generateReference } from '@/lib/flutterwave'
 import toast from 'react-hot-toast'
+import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 
-const WHATSAPP = '2347057392060'
+const WHATSAPP = DEALMATCH_WHATSAPP
 const formatPrice = (n) => n ? `₦${Number(n).toLocaleString()}` : 'Contact'
 const HOTEL_TYPES = ['All', 'Luxury', 'Budget', 'Resort', 'Short-let', 'Boutique']
 const STATES = ['All States','Lagos','Abuja','Rivers','Akwa Ibom','Delta','Oyo','Kano','Cross River','Edo']
@@ -27,46 +30,49 @@ function BookingModal({ hotel, onClose }) {
   })
   const [submitting, setSubmitting] = useState(false)
   const [booked,     setBooked]     = useState(false)
+  const { fees } = usePlatformFees()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   const setN = k => e => setForm(f => ({ ...f, [k]: Number(e.target.value) }))
 
-  // Price calculator
+  // Price calculator. The fee rate is the hotel_booking channel in the platform
+  // fee registry (a percentage). Null while loading: the total is not shown.
   const pricePerNight = hotel.room_categories?.find(c => c.name === form.room_type)?.price_per_night
     || hotel.room_categories?.[0]?.price_per_night
     || null
+  const hotelRate     = feeValue(fees, 'hotel_booking')
+  const hotelFeeLabel = feeText(fees, 'hotel_booking')
 
   const nights = form.checkin && form.checkout
     ? Math.max(0, Math.round((new Date(form.checkout) - new Date(form.checkin)) / 86400000))
     : 0
   const subtotal   = pricePerNight ? pricePerNight * form.rooms * nights : null
-  const platform_fee = subtotal ? Math.round(subtotal * 0.12) : null
-  const totalDue   = subtotal ? subtotal + platform_fee : null
+  const platform_fee = subtotal && hotelRate !== null ? Math.round(subtotal * hotelRate / 100) : null
+  const totalDue   = subtotal && platform_fee !== null ? subtotal + platform_fee : null
 
   const handleBook = async () => {
     if (!form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) {
       toast.error('Please fill all required fields'); return
     }
     if (nights <= 0) { toast.error('Check-out must be after check-in'); return }
+    if (hotelRate === null) { toast.error('Fees are still loading. Please try again in a moment.'); return }
 
     // ── Clash-prevention: check room availability for date range ──
     const selectedCategory = hotel.room_categories?.find(c => c.name === form.room_type)
-    const { data: availCheck, error: availErr } = await supabase.rpc('check_booking_availability', {
-      p_property_id: hotel.id,
-      p_checkin:     form.checkin,
-      p_checkout:    form.checkout,
-      p_rooms:       form.rooms,
-      p_category_id: selectedCategory?.id || null,
+    const { data: availCheck, error: availErr } = await checkBookingAvailability({
+      propertyId: hotel.id,
+      checkin:    form.checkin,
+      checkout:   form.checkout,
+      rooms:      form.rooms,
+      categoryId: selectedCategory?.id || null,
     })
     if (availErr) {
       // Function may not exist yet - fallback: count existing confirmed bookings manually
-      const { data: clashData } = await supabase
-        .from('bookings')
-        .select('rooms_booked')
-        .eq('property_id', hotel.id)
-        .not('status', 'in', '(cancelled,no_show)')
-        .lt('checkin_date', form.checkout)
-        .gt('checkout_date', form.checkin)
+      const { data: clashData } = await fetchClashingBookings({
+        propertyId: hotel.id,
+        checkin:    form.checkin,
+        checkout:   form.checkout,
+      })
       const bookedRooms = (clashData || []).reduce((sum, b) => sum + (b.rooms_booked || 1), 0)
       const totalAvail  = hotel.room_categories?.reduce((s, c) => s + (c.available_rooms || 0), 0) || 0
       if (bookedRooms + form.rooms > totalAvail) {
@@ -80,39 +86,45 @@ function BookingModal({ hotel, onClose }) {
 
     setSubmitting(true)
 
-    try {
-      await supabase.from('bookings').insert({
-        property_id:   hotel.id,
-        guest_name:    form.guest_name,
-        guest_phone:   form.guest_phone,
-        guest_email:   form.guest_email,
-        checkin_date:  form.checkin,
-        checkout_date: form.checkout,
-        rooms_booked:  form.rooms,
-        total_amount:  totalDue,
-        source:        'dealmatch',
-        status:        'confirmed',
-        notes:         form.special,
-      })
-
-      // Notify hotel owner via WhatsApp
-      const msg = encodeURIComponent(
-        `*New Booking: DealMatch*\n\n` +
-        `Hotel: ${hotel.title}\n` +
-        `Guest: ${form.guest_name} | ${form.guest_phone}\n` +
-        `Check-in: ${form.checkin}\nCheck-out: ${form.checkout}\n` +
-        `Rooms: ${form.rooms} × ${form.room_type || 'Standard'}\nGuests: ${form.guests}\n` +
-        (totalDue ? `Total: ₦${totalDue.toLocaleString()}\n` : '') +
-        (form.special ? `Special requests: ${form.special}\n` : '') +
-        `\nBooked via DealMatch`
-      )
-      window.open('https://wa.me/' + WHATSAPP + '?text=' + msg, '_blank')
-      setBooked(true)
-    } catch (err) {
-      toast.error('Booking failed. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
+    // Nothing is booked from the browser. The server re-checks availability,
+    // prices the room and the hotel_booking fee, and holds the room as pending.
+    // The booking is confirmed only when the bank transfer arrives (webhook).
+    await initializeFlutterwavePayment({
+      purpose:   'hotel_booking',
+      reference: generateReference(),
+      subject: {
+        property_id:  hotel.id,
+        checkin:      form.checkin,
+        checkout:     form.checkout,
+        rooms:        form.rooms,
+        guests:       form.guests,
+        room_type:    form.room_type,
+        guest_name:   form.guest_name,
+        guest_phone:  form.guest_phone,
+        guest_email:  form.guest_email,
+        notes:        form.special,
+      },
+      onSuccess: () => {
+        // Notify hotel owner via WhatsApp, now that the payment is confirmed
+        const msg = encodeURIComponent(
+          `*New Booking: DealMatch*\n\n` +
+          `Hotel: ${hotel.title}\n` +
+          `Guest: ${form.guest_name} | ${form.guest_phone}\n` +
+          `Check-in: ${form.checkin}\nCheck-out: ${form.checkout}\n` +
+          `Rooms: ${form.rooms} × ${form.room_type || 'Standard'}\nGuests: ${form.guests}\n` +
+          (totalDue ? `Total: ₦${totalDue.toLocaleString()}\n` : '') +
+          (form.special ? `Special requests: ${form.special}\n` : '') +
+          `\nBooked via DealMatch`
+        )
+        window.open('https://wa.me/' + WHATSAPP + '?text=' + msg, '_blank')
+        setBooked(true)
+        setSubmitting(false)
+      },
+      onClose: () => {
+        setSubmitting(false)
+        toast('Payment not completed. Your rooms were not booked.')
+      },
+    })
   }
 
   return (
@@ -237,7 +249,7 @@ function BookingModal({ hotel, onClose }) {
                     <strong style={{ color:'#17211B' }}>₦{subtotal?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color:'#647068' }}>Platform fee (8%)</span>
+                    <span style={{ color:'#647068' }}>{hotelFeeLabel ? `Platform fee (${hotelFeeLabel})` : 'Platform fee (loading)'}</span>
                     <strong style={{ color:'#C85F2D' }}>₦{platform_fee?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between border-t pt-1.5 font-black" style={{ borderColor:'rgba(200,95,45,0.2)', fontSize:'1rem' }}>
@@ -248,10 +260,10 @@ function BookingModal({ hotel, onClose }) {
               </div>
             )}
 
-            <button onClick={handleBook} disabled={submitting || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone}
+            <button onClick={handleBook} disabled={submitting || hotelRate === null || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone}
               className="btn-primary w-full py-4"
-              style={{ opacity: (!form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) ? 0.5 : 1 }}>
-              {submitting ? 'Confirming...' : `Confirm Booking${totalDue ? ` : ₦${totalDue.toLocaleString()}` : ''} →`}
+              style={{ opacity: (hotelRate === null || !form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) ? 0.5 : 1 }}>
+              {submitting ? 'Confirming...' : hotelRate === null ? 'Loading fees...' : `Confirm Booking${totalDue ? ` : ₦${totalDue.toLocaleString()}` : ''} →`}
             </button>
           </div>
         )}
@@ -342,15 +354,7 @@ export default function HotelsPage() {
 
   const loadHotels = async () => {
     setLoading(true)
-    let q = supabase
-      .from('properties')
-      .select('*, room_categories(id, name, price_per_night, available_rooms)')
-      .in('category', ['hotel', 'shortlet'])
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(30)
-    if (state !== 'All States') q = q.eq('state', state)
-    const { data } = await q
+    const { data } = await fetchActiveHotels(state)
     setHotels(data || [])
     setLoading(false)
   }

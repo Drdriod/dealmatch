@@ -3,11 +3,29 @@ import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle, XCircle, MapPin, RefreshCw, LogOut, Camera,
   ClipboardList, AlertTriangle, Star, Shield, Upload,
-  ChevronDown, ChevronUp, Clock, FileText, Award, Ban
+  ChevronDown, ChevronUp, Clock, FileText, Award, Ban, Trophy
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import {
+  saveAgentVerification, recordPropertyVerdict, respondToComplaint,
+} from '@/data/agentDashboardRepository'
+import { useAgentDashboard } from '@/hooks/useAgentDashboard'
+import LoadNotice from '@/components/ui/LoadNotice'
 import { useAuth } from '@/context/AuthContext'
+import { AreaChart, HBars, Radial, Panel, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
+
+// Status colours tuned for the dark leaderboard surface (same hues as STATUS_CFG)
+const DARK_STATUS = {
+  pending_review:     '#D4A853',
+  under_verification: '#5B8DEF',
+  active:             '#7A9E7E',
+  rejected:           '#C85F2D',
+}
+
+function EmptyNote({ text }) {
+  return <p className="text-xs py-6 text-center" style={{ color:'rgba(255,255,255,0.4)' }}>{text}</p>
+}
 
 const STATUS_CFG = {
   pending_review:     { bg:'rgba(212,168,83,0.12)',  color:'#8A6A20', label:'Pending Review' },
@@ -37,10 +55,6 @@ export default function AgentDashboardPage() {
   const fileRef = useRef()
 
   const [tab, setTab]           = useState('assigned')
-  const [listings, setListings] = useState([])
-  const [score, setScore]       = useState(null)
-  const [complaints, setComplaints] = useState([])
-  const [loading, setLoading]   = useState(true)
   const [expanded, setExpanded] = useState(null)
 
   // Evidence submission state
@@ -48,44 +62,14 @@ export default function AgentDashboardPage() {
   const [evidenceForm, setEvidenceForm] = useState({})
   // { [propertyId]: { photos:[], checklist:{...}, gps:{lat,lng,acc}, notes:'', acknowledged:false } }
 
+  const allowed = ['admin', 'superadmin', 'agent'].includes(profile?.role)
+  // Assigned properties, score and complaints, with loading and error state.
+  const { listings, score, complaints, loading, error, issues, reload } = useAgentDashboard({ user, enabled: allowed })
+
   useEffect(() => {
     if (!user) return
-    if (!['admin','superadmin','agent'].includes(profile?.role)) { navigate('/'); return }
-    loadAll()
-  }, [user, profile])
-
-  const loadAll = async () => {
-    setLoading(true)
-    await Promise.all([loadAssigned(), loadScore(), loadComplaints()])
-    setLoading(false)
-  }
-
-  const loadAssigned = async () => {
-    const { data } = await supabase
-      .from('properties')
-      .select('*, profiles(full_name, phone, email), agent_verifications(id,verdict,submitted_at)')
-      .eq('assigned_agent_id', user.id)
-      .order('created_at', { ascending: false })
-    setListings(data || [])
-  }
-
-  const loadScore = async () => {
-    const { data } = await supabase
-      .from('agent_scores')
-      .select('*')
-      .eq('agent_id', user.id)
-      .maybeSingle()
-    setScore(data)
-  }
-
-  const loadComplaints = async () => {
-    const { data } = await supabase
-      .from('complaints')
-      .select('*, properties(title)')
-      .eq('agent_id', user.id)
-      .order('created_at', { ascending: false })
-    setComplaints(data || [])
-  }
+    if (!allowed) navigate('/')
+  }, [user, allowed, navigate])
 
   // ── GPS capture ───────────────────────────────────────────────
   const captureGPS = (propertyId) => {
@@ -148,40 +132,35 @@ export default function AgentDashboardPage() {
     setSubmitting(true)
     try {
       // Insert evidence record
-      const { error: evErr } = await supabase
-        .from('agent_verifications')
-        .upsert({
-          property_id:           property.id,
-          agent_id:              user.id,
-          photos:                ev.photos,
-          gps_lat:               ev.gps.lat,
-          gps_lng:               ev.gps.lng,
-          gps_accuracy_m:        ev.gps.acc,
-          checklist:             checks,
-          verdict,
-          rejection_reason:      verdict === 'rejected' ? (ev.notes || 'See checklist') : null,
-          liability_acknowledged: true,
-          visited_at:            new Date().toISOString(),
-        }, { onConflict: 'property_id,agent_id' })
+      const { error: evErr } = await saveAgentVerification({
+        property_id:           property.id,
+        agent_id:              user.id,
+        photos:                ev.photos,
+        gps_lat:               ev.gps.lat,
+        gps_lng:               ev.gps.lng,
+        gps_accuracy_m:        ev.gps.acc,
+        checklist:             checks,
+        verdict,
+        rejection_reason:      verdict === 'rejected' ? (ev.notes || 'See checklist') : null,
+        liability_acknowledged: true,
+        visited_at:            new Date().toISOString(),
+      })
       if (evErr) throw evErr
 
       // Update property status
       const newStatus = verdict === 'verified' ? 'active' : 'rejected'
-      const { error: propErr } = await supabase
-        .from('properties')
-        .update({
-          status:            newStatus,
-          verified_by:       user.id,
-          verification_date: new Date().toISOString(),
-          verification_notes: ev.notes || null,
-        })
-        .eq('id', property.id)
+      const { error: propErr } = await recordPropertyVerdict(property.id, {
+        status:            newStatus,
+        verified_by:       user.id,
+        verification_date: new Date().toISOString(),
+        verification_notes: ev.notes || null,
+      })
       if (propErr) throw propErr
 
       toast.success(verdict === 'verified' ? 'Property verified and now live!' : 'Property rejected')
       setEvidenceForm(f => { const n = {...f}; delete n[property.id]; return n })
       setExpanded(null)
-      loadAll()
+      reload()
     } catch (e) {
       toast.error(e.message || 'Submission failed')
     }
@@ -208,6 +187,33 @@ export default function AgentDashboardPage() {
     tab === 'completed' ? l.status === 'active' : false
   )
 
+  // ── Leaderboard derivations (only from listings and verifications already loaded) ──
+  const liveListings  = listings.filter(l => l.status === 'active')
+  const verifiedValue = liveListings.reduce((s, l) => s + (Number(l.price) || 0), 0)
+  const verifiedShare = listings.length ? Math.round((liveListings.length / listings.length) * 100) : 0
+
+  const monthBuckets = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setDate(1); d.setHours(0, 0, 0, 0)
+    d.setMonth(d.getMonth() - (5 - i))
+    return { y: d.getFullYear(), m: d.getMonth(), label: d.toLocaleString('en-GB', { month: 'short' }), verified: 0, rejected: 0 }
+  })
+  listings.forEach(l => (l.agent_verifications || []).forEach(v => {
+    if (!v.submitted_at || !['verified', 'rejected'].includes(v.verdict)) return
+    const d = new Date(v.submitted_at)
+    const b = monthBuckets.find(b => b.y === d.getFullYear() && b.m === d.getMonth())
+    if (b) b[v.verdict]++
+  }))
+  const hasVerifications = monthBuckets.some(b => b.verified + b.rejected > 0)
+
+  const ranking = [...listings]
+    .filter(l => Number(l.price) > 0)
+    .sort((a, b) => Number(b.price) - Number(a.price))
+    .slice(0, 6)
+    .map((l, i) => ({ label: `#${i + 1}  ${l.title}`, value: Number(l.price) }))
+
+  const recent = listings.slice(0, 6)
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor:'#FFFAF5' }}>
       <RefreshCw size={28} className="animate-spin text-terracotta" />
@@ -233,6 +239,25 @@ export default function AgentDashboardPage() {
             <button onClick={handleSignOut} className="p-2 rounded-full" style={{ backgroundColor:'rgba(255,255,255,0.06)' }}>
               <LogOut size={16} style={{ color:'rgba(255,255,255,0.5)' }} />
             </button>
+          </div>
+        </div>
+
+        <LoadNotice error={error} issues={issues} onRetry={reload} what="your assignments" className="mb-4" />
+
+        {/* Leaderboard hero */}
+        <div className="rounded-3xl p-5 mb-4" style={{ background:'linear-gradient(135deg, rgba(212,168,83,0.16), rgba(122,158,126,0.06) 60%, rgba(255,255,255,0.02))', border:'1px solid rgba(212,168,83,0.2)' }}>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] uppercase tracking-wider flex items-center gap-1.5" style={{ color:'rgba(255,255,255,0.5)' }}>
+                <Trophy size={13} style={{ color:'#D4A853' }} /> Verified listing value
+              </p>
+              <p className="font-display text-3xl mt-2 leading-none break-words" style={{ color:'#D4A853' }}>{fmtNaira(verifiedValue)}</p>
+              <p className="text-xs mt-2" style={{ color:'rgba(255,255,255,0.5)' }}>
+                {liveListings.length} live {liveListings.length === 1 ? 'listing' : 'listings'} verified by you
+              </p>
+            </div>
+            <Radial value={liveListings.length} max={listings.length || 1} size={104} color="#7A9E7E"
+              label={listings.length ? `${verifiedShare}%` : '—'} sub="verified" />
           </div>
         </div>
 
@@ -266,6 +291,59 @@ export default function AgentDashboardPage() {
             <p className="text-xs font-bold" style={{ color:'#D4A853' }}>Warning: {3 - score.strike_count} strike remaining before suspension</p>
           </div>
         )}
+      </div>
+
+      {/* ── Leaderboard analytics (dark) ─────────────────────────── */}
+      <div className="px-4 pb-6 space-y-4 rounded-b-[32px]" style={{ backgroundColor:'#17211B' }}>
+        <Panel title="Verifications over time" sub="Last 6 months, by verdict">
+          {hasVerifications ? (
+            <>
+              <div className="flex gap-4 mb-2 text-[11px]" style={{ color:'rgba(255,255,255,0.55)' }}>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background:'#7A9E7E' }} />Verified</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background:'#C85F2D' }} />Rejected</span>
+              </div>
+              <AreaChart
+                data={monthBuckets}
+                series={[
+                  { key:'verified', label:'Verified', color:'#7A9E7E' },
+                  { key:'rejected', label:'Rejected', color:'#C85F2D' },
+                ]}
+                height={200}
+              />
+            </>
+          ) : <EmptyNote text="No verifications submitted in the last 6 months" />}
+        </Panel>
+
+        <Panel title="Ranking by listing value" sub="Top 6 assigned listings by price">
+          {ranking.length ? (
+            <HBars items={ranking} format={fmtNaira} />
+          ) : <EmptyNote text="No priced listings assigned yet" />}
+        </Panel>
+
+        <Panel title="Recent deals" sub="Latest assigned listings and their status">
+          {recent.length === 0 ? <EmptyNote text="No deals assigned yet" /> : (
+            <ul>
+              {recent.map(l => {
+                const color = DARK_STATUS[l.status] || '#D4A853'
+                const created = l.created_at ? new Date(l.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : ''
+                return (
+                  <li key={l.id} className="py-3 flex items-center gap-3" style={{ borderTop:'1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-white truncate">{l.title}</p>
+                      <p className="text-[11px] mt-0.5 truncate" style={{ color:'rgba(255,255,255,0.4)' }}>
+                        {[l.city, created].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <p className="text-xs font-bold text-white whitespace-nowrap">{fmtNaira(l.price)}</p>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap" style={{ background:`${color}22`, color }}>
+                      {STATUS_CFG[l.status]?.label || l.status}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </Panel>
       </div>
 
       {/* Liability declaration notice */}
@@ -558,8 +636,9 @@ export default function AgentDashboardPage() {
                       onClick={async () => {
                         const txt = document.getElementById(`response-${c.id}`)?.value?.trim()
                         if (!txt) { toast.error('Enter a response'); return }
-                        await supabase.from('complaints').update({ agent_response: txt, agent_responded_at: new Date().toISOString(), status:'under_review' }).eq('id', c.id)
-                        toast.success('Response submitted'); loadComplaints()
+                        const { error: respErr } = await respondToComplaint(c.id, txt)
+                        if (respErr) { toast.error('Could not submit your response. Please try again.'); return }
+                        toast.success('Response submitted'); reload({ silent: true })
                       }}
                       className="mt-2 w-full py-2 rounded-xl text-xs font-bold"
                       style={{ backgroundColor:'#D4A853', color:'#17211B' }}>

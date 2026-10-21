@@ -138,7 +138,7 @@ WITH (security_invoker = true) AS
     t.id::text                AS request_id,
     t.requester_id            AS user_id,
     COALESCE(cl.title, 'Job request') AS title,
-    t.status                   AS status,
+    t.status::text             AS status,
     t.created_at                AS created_at
   FROM public.transactions t
   LEFT JOIN public.category_listings cl ON cl.id = t.listing_id

@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { Shield, ShieldCheck, X, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchEscrowStatus, startPropertyEscrowPayment } from '@/data/propertyReserveRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { initializeFlutterwavePayment, generateReference, formatNaira } from '@/lib/flutterwave'
+import { usePlatformFees, escrowRates, formatPlatformFee } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
 
 /**
@@ -27,19 +28,25 @@ import toast from 'react-hot-toast'
 export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const { user, profile } = useAuth()
   const { requireVerification } = useVerificationGuard()
-  const [amount, setAmount]     = useState(property?.price ? String(property.price) : '')
+  // Fixed to the listed price: the server only accepts the listed amount.
+  const amount = property?.price ? String(property.price) : ''
   const [moveInDate, setMoveInDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState(false)
 
+  // Escrow rate from the platform fee registry (rental_escrow or sale_escrow,
+  // one total split half per side). Null while loading: the pay action stays off.
+  const { fees } = usePlatformFees()
+  const escrow = escrowRates(fees, property?.listing_type === 'sale' ? 'sale_escrow' : 'rental_escrow')
+
   const gross = Number(amount) || 0
-  const feePerParty = gross ? Math.round(gross * 0.0375) : 0
-  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, matching EscrowPage's existing 3.75%+3.75% model
+  const feePerParty = gross && escrow ? Math.round(gross * escrow.perSide / 100) : 0
+  const youPay = gross // tenant pays the listed amount; DealMatch's cut comes from both sides at settlement, as set in the platform fee registry
 
   const pollForFunded = async (escrowId, attempts = 0) => {
     if (attempts > 10) { setConfirming(false); toast('Payment received - confirming with our team, this can take a few minutes.'); setDone(true); return }
-    const { data } = await supabase.from('escrow_transactions').select('status').eq('id', escrowId).single()
+    const { data } = await fetchEscrowStatus(escrowId)
     if (data?.status === 'confirmed' || data?.status === 'funded') {
       setConfirming(false)
       setDone(true)
@@ -53,6 +60,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   const handleReserve = async () => {
     if (!user) { toast.error('Please sign in to continue'); return }
     if (!gross || gross <= 0) { toast.error('Enter a valid amount'); return }
+    if (!escrow) { toast.error('Fees are still loading. Please try again in a moment.'); return }
     // Money is about to move: identity must be verified first.
     if (!(await requireVerification('escrow'))) return
     const email = user.email || `${user.id}@guest.dealmatch.com.ng`
@@ -63,14 +71,14 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     // Write the escrow row FIRST, server-side, authoritatively - this is
     // what the Flutterwave webhook resolves by payment_ref. Without this
     // step the payment would succeed but never be reflected as escrow.
-    const { data: escrowRow, error: rpcError } = await supabase.rpc('start_property_escrow_payment', {
-      p_property_id:      property.id,
-      p_reference:         reference,
-      p_transaction_type:  property.listing_type === 'sale' ? 'sale' : 'rental',
-      p_gross_amount:      gross,
-      p_tenant_name:       profile?.full_name || user.user_metadata?.full_name || 'DealMatch user',
-      p_tenant_phone:      profile?.phone || '',
-      p_move_in_date:      moveInDate || null,
+    const { data: escrowRow, error: rpcError } = await startPropertyEscrowPayment({
+      propertyId:      property.id,
+      reference,
+      transactionType: property.listing_type === 'sale' ? 'sale' : 'rental',
+      grossAmount:     gross,
+      tenantName:      profile?.full_name || user.user_metadata?.full_name || 'DealMatch user',
+      tenantPhone:     profile?.phone || '',
+      moveInDate:      moveInDate || null,
     })
 
     if (rpcError || !escrowRow) {
@@ -79,16 +87,11 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
       return
     }
 
+    // The server charges the escrow row's amount (the listed price) for this reference.
     await initializeFlutterwavePayment({
-      email,
-      amount: gross,
+      purpose: 'escrow_payment',
+      subject: { escrow_id: escrowRow.id },
       reference,
-      metadata: {
-        type: 'escrow_payment',
-        escrow_id: escrowRow.id,
-        property_id: property.id,
-        property_title: property.title,
-      },
       onSuccess: () => {
         setSubmitting(false)
         setConfirming(true)
@@ -139,8 +142,10 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Amount (₦)</label>
-              <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
+              {/* The amount is the listed price. The database refuses any other amount. */}
+              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6', color: '#17211B' }}>
+                {property?.price ? formatNaira(Number(property.price)) : '—'}
+              </div>
             </div>
 
             {property?.listing_type !== 'sale' && (
@@ -153,15 +158,17 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <div className="rounded-2xl p-3 text-xs leading-relaxed" style={{ backgroundColor: 'rgba(122,158,126,0.1)', color: '#3E5A42' }}>
               Owner contact unlocks automatically once your payment is confirmed. DealMatch holds funds until move-in is confirmed by both sides.
-              {feePerParty > 0 && <> A 3.75% facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
+              {feePerParty > 0 && escrow && <> A {formatPlatformFee({ kind: 'percent', value: escrow.perSide })} facilitation fee (₦{feePerParty.toLocaleString()}) applies to each side.</>}
             </div>
 
-            <button onClick={handleReserve} disabled={submitting || confirming}
+            <button onClick={handleReserve} disabled={submitting || confirming || !escrow}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
               style={{ backgroundColor: '#C85F2D' }}>
               {submitting || confirming
                 ? <><Loader2 size={16} className="animate-spin" /> {confirming ? 'Confirming payment…' : 'Starting…'}</>
-                : `Pay ${formatNaira(youPay)} for protection`}
+                : !escrow
+                  ? 'Loading fees...'
+                  : `Pay ${formatNaira(youPay)} for protection`}
             </button>
           </div>
         )}

@@ -26,6 +26,8 @@ import * as Sentry from '@sentry/react'
 import App from './App.jsx'
 import './index.css'
 import { Check } from 'lucide-react'
+import { createCspReporter } from './lib/cspReport'
+import { createDevtoolsWatcher } from './lib/devtoolsSignal'
 
 
 // ─── Pillar 1: Sentry - Zero-Breach Error Monitoring ────────────────────────
@@ -34,7 +36,9 @@ import { Check } from 'lucide-react'
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
-    environment: import.meta.env.MODE,
+    // Vercel preview deployments are built in production mode too. Tag them so they can be filtered
+    // out of the production error feed.
+    environment: window.location.hostname.endsWith('.vercel.app') ? 'preview' : import.meta.env.MODE,
     release: 'dealmatch@1.4.0',
 
     // Only send a sample of performance traces - reduces cost
@@ -126,21 +130,11 @@ window.addEventListener('unhandledrejection', (e) => {
 
 // ─── CSP Violation Reporter ───────────────────────────────────────────────────
 // Logs Content-Security-Policy violations to Sentry so you know
-// if any injected scripts are being blocked.
+// if any injected scripts are being blocked. Each directive + URL pair is sent once per
+// page load, and browser extensions and the Cloudflare beacon are skipped (lib/cspReport.js).
+const reportCspViolation = createCspReporter((payload) => Sentry.captureEvent(payload))
 document.addEventListener('securitypolicyviolation', (e) => {
-  if (import.meta.env.PROD) {
-    Sentry.captureEvent({
-      level:   'warning',
-      message: `CSP Violation: ${e.blockedURI}`,
-      extra: {
-        blockedURI:         e.blockedURI,
-        violatedDirective:  e.violatedDirective,
-        originalPolicy:     e.originalPolicy?.substring(0, 200),
-        documentURI:        e.documentURI,
-      },
-      tags: { security_event: 'csp_violation' },
-    })
-  }
+  if (import.meta.env.PROD) reportCspViolation(e)
 })
 
 // ─── Pillar 3: Anti-Scraping - DevTools & Right-Click Protection ─────────────
@@ -178,20 +172,14 @@ if (import.meta.env.PROD) {
   // ── DevTools detection ────────────────────────────────────────
   // Detects when DevTools is opened and logs it as a security event.
   // Does NOT block DevTools (that's impossible) - only logs.
-  let devToolsOpen = false
-  const devToolsCheck = () => {
-    const threshold = 160
-    const widthDiff  = window.outerWidth  - window.innerWidth  > threshold
-    const heightDiff = window.outerHeight - window.innerHeight > threshold
-    if ((widthDiff || heightDiff) && !devToolsOpen) {
-      devToolsOpen = true
-      window.__sentry_capture?.('devtools_opened', {
-        url: window.location.pathname,
-      })
-    } else if (!widthDiff && !heightDiff) {
-      devToolsOpen = false
-    }
-  }
+  // Reported once per browser session and never from touch-first devices: the window-size check
+  // also fires for docked side panels, page zoom and mobile address bars (lib/devtoolsSignal.js).
+  const devToolsCheck = createDevtoolsWatcher({
+    win: window,
+    coarsePointer: !!window.matchMedia?.('(pointer: coarse)').matches,
+    storage: window.sessionStorage,
+    report: (meta) => window.__sentry_capture?.('devtools_opened', meta),
+  })
   // Check every 3 seconds - infrequent enough to not impact performance
   setInterval(devToolsCheck, 3000)
 

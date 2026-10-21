@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { AlertCircle, ArrowLeft, Home, MessageCircle, Send, Star, User } from 'lucide-react'
+// Realtime subscriptions still use the client directly; all queries go through the repository.
 import { supabase } from '@/lib/supabase'
+import {
+  createPropertyReview, createDispute, fetchThreadMessages, markThreadRead,
+  sendThreadMessage, fetchUserMessages, fetchPropertyTitles,
+} from '@/data/messagesRepository'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
 // ─── Review Modal ─────────────────────────────────────────────
@@ -17,13 +22,9 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
   const handleSubmit = async () => {
     if (!rating) { toast.error('Please give a rating'); return }
     setSaving(true)
-    await supabase.from('property_reviews').insert({
-      property_id:   propertyId,
-      reviewer_id:   user.id,
-      reviewer_name: profile?.full_name || 'Anonymous',
-      landlord_id:   landlordId,
-      rating,
-      review_text:   text || null,
+    await createPropertyReview({
+      propertyId, reviewerId: user.id, reviewerName: profile?.full_name || 'Anonymous',
+      landlordId, rating, text,
     })
     setSaving(false)
     onSubmit()
@@ -92,14 +93,8 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
   const handleSubmit = async () => {
     if (!reason || !desc) { toast.error('Please fill all fields'); return }
     setSaving(true)
-    await supabase.from('disputes').insert({
-      property_id:  propertyId,
-      reporter_id:  user.id,
-      against_id:   againstId,
-      booking_id:   bookingId || null,
-      reason,
-      description:  desc,
-      status:       'open',
+    await createDispute({
+      propertyId, reporterId: user.id, againstId, bookingId, reason, description: desc,
     })
     setSaving(false)
     toast.success('Dispute filed. DealMatch team will review within 48 hours.')
@@ -179,26 +174,22 @@ function MessageThread({ thread, currentUserId, onBack }) {
   }, [messages])
 
   const loadMessages = async () => {
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('thread_id', thread.id)
-      .order('created_at', { ascending: true })
+    const { data } = await fetchThreadMessages(thread.id)
     setMessages(data || [])
     // Mark as read
-    await supabase.from('messages').update({ read:true }).eq('thread_id', thread.id).eq('recipient_id', currentUserId)
+    await markThreadRead(thread.id, currentUserId)
   }
 
   const sendMessage = async () => {
     if (!newMsg.trim()) return
     setSending(true)
-    const { error } = await supabase.from('messages').insert({
-      thread_id:     thread.id,
-      sender_id:     currentUserId,
-      sender_name:   thread.my_name,
-      recipient_id:  thread.other_user_id,
-      property_id:   thread.property_id,
-      content:       newMsg.trim(),
+    const { error } = await sendThreadMessage({
+      threadId: thread.id,
+      senderId: currentUserId,
+      senderName: thread.my_name,
+      recipientId: thread.other_user_id,
+      propertyId: thread.property_id,
+      content: newMsg.trim(),
     })
     if (!error) setNewMsg('')
     setSending(false)
@@ -322,11 +313,7 @@ export default function MessagesPage() {
     try {
       setLoading(true)
       // Get latest message per thread
-      const { data, error } = await supabase
-        .from('messages')
-        .select('thread_id, content, created_at, sender_id, sender_name, recipient_id, property_id, read')
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
+      const { data, error } = await fetchUserMessages(user.id)
 
       if (error) throw error
       if (!data) { setThreads([]); return }
@@ -339,7 +326,7 @@ export default function MessagesPage() {
       const propertyIds = [...new Set(unique.map(m => m.property_id).filter(Boolean))]
       let propMap = {}
       if (propertyIds.length) {
-        const { data: props } = await supabase.from('properties').select('id, title, seller_id').in('id', propertyIds)
+        const { data: props } = await fetchPropertyTitles(propertyIds)
         propMap = Object.fromEntries((props || []).map(p => [p.id, p]))
       }
 

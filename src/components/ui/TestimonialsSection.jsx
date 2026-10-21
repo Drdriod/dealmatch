@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Star, Quote, Send, X, CheckCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import {
+  fetchApprovedTestimonials, fetchOwnTestimonialStatus, insertTestimonial, findOwnLiveTestimonial,
+} from '@/data/testimonialsRepository'
 import toast from 'react-hot-toast'
 
 // ─── Star rating input/display ─────────────────────────────
@@ -43,7 +45,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
       return
     }
     setSaving(true)
-    const { error } = await supabase.from('testimonials').insert({
+    const { error } = await insertTestimonial({
       user_id: user.id,
       name: profile?.full_name || user.email?.split('@')[0] || 'DealMatch User',
       role_label: roleLabel.trim() || null,
@@ -67,13 +69,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
         // of assuming the friendly reason - a wrong guess here is worse
         // than the generic message, since it tells the person something
         // false about their own account.
-        const { data: existing } = await supabase
-          .from('testimonials')
-          .select('status')
-          .eq('user_id', user.id)
-          .neq('status', 'rejected')
-          .order('created_at', { ascending: false })
-          .maybeSingle()
+        const { data: existing } = await findOwnLiveTestimonial(user.id)
         toast.error(existing
           ? 'You already have a pending or approved testimonial'
           : 'Could not submit. Please try again.')
@@ -159,12 +155,7 @@ export default function TestimonialsSection() {
   const [ownStatus, setOwnStatus]       = useState(null) // null | 'pending' | 'approved' | 'rejected'
 
   const load = async () => {
-    const { data } = await supabase
-      .from('testimonials')
-      .select('id, name, role_label, content, rating, created_at')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-      .limit(9)
+    const { data } = await fetchApprovedTestimonials()
     setTestimonials(data || [])
     setLoading(false)
   }
@@ -172,7 +163,7 @@ export default function TestimonialsSection() {
   useEffect(() => {
     load()
     if (isAuthenticated && user) {
-      supabase.from('testimonials').select('status').eq('user_id', user.id).maybeSingle()
+      fetchOwnTestimonialStatus(user.id)
         .then(({ data }) => setOwnStatus(data?.status || null))
     }
   }, [isAuthenticated, user])

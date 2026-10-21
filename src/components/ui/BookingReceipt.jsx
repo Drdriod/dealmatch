@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { Check, Download, Share2, X } from 'lucide-react'
 
 export default function BookingReceipt({ booking, onClose }) {

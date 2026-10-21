@@ -8,18 +8,18 @@
 // place that grants anything: the client callback below is for UX only.
 
 import { supabase } from '@/lib/supabase'
+import { feeValue, formatPlatformFee } from '@/lib/platformFees'
+
+// Every amount in this module comes from the platform_fees registry (the
+// super admin Monetisation tab). The constants below hold names, features and
+// badges only. Amounts are read with getFeeAmounts(fees), where `fees` is the
+// map from usePlatformFees(). Nothing here hardcodes a price.
 
 // ─── Professional Plans ────────────────────────────────────
-// Flat N25,000/month for every professional type - finalized rate.
-// (See README.md Revenue Model and OWNER_PRIVATE.md for the source of truth.)
-const PROFESSIONAL_MONTHLY_FEE = 25000
-const PROFESSIONAL_ANNUAL_FEE  = 270000 // ~10% discount vs paying monthly x12
-
+// Keys: professional_monthly, professional_annual.
 export const PROFESSIONAL_PLANS = {
   surveyor: {
     name: 'Land Surveyor',
-    monthlyFee: PROFESSIONAL_MONTHLY_FEE,
-    annualFee:  PROFESSIONAL_ANNUAL_FEE,
     currency: 'NGN',
     features: [
       'Appear on matched land deals',
@@ -31,8 +31,6 @@ export const PROFESSIONAL_PLANS = {
   },
   inspector: {
     name: 'Property Inspector',
-    monthlyFee: PROFESSIONAL_MONTHLY_FEE,
-    annualFee:  PROFESSIONAL_ANNUAL_FEE,
     currency: 'NGN',
     features: [
       'Priority placement on all property types',
@@ -44,8 +42,6 @@ export const PROFESSIONAL_PLANS = {
   },
   lawyer: {
     name: 'Real Estate Lawyer',
-    monthlyFee: PROFESSIONAL_MONTHLY_FEE,
-    annualFee:  PROFESSIONAL_ANNUAL_FEE,
     currency: 'NGN',
     features: [
       'Appear on deals needing legal review',
@@ -56,8 +52,6 @@ export const PROFESSIONAL_PLANS = {
   },
   lender: {
     name: 'Mortgage Lender',
-    monthlyFee: PROFESSIONAL_MONTHLY_FEE,
-    annualFee:  PROFESSIONAL_ANNUAL_FEE,
     currency: 'NGN',
     features: [
       'Filter leads by loan amount range',
@@ -70,13 +64,12 @@ export const PROFESSIONAL_PLANS = {
 }
 
 // ─── Hostel Listing Plans (paid by hostel owners, free for students) ────────
+// Keys: hostel_listing_semester, hostel_listing_annual.
 export const HOSTEL_LISTING_PLANS = {
   semester: {
     name:     'Semester Plan',
-    price:    5000,
     duration: '~6 months',
     badge:    'Popular',
-    saving:   null,
     features: [
       'Listed on student hostels page',
       'Visible to all verified students near your school',
@@ -87,10 +80,8 @@ export const HOSTEL_LISTING_PLANS = {
   },
   annual: {
     name:     'Annual Plan',
-    price:    8500,
     duration: '12 months',
     badge:    'Best Value',
-    saving:   'Save ₦1,500 vs two semesters',
     features: [
       'Everything in Semester Plan',
       'Priority placement in search results',
@@ -98,6 +89,57 @@ export const HOSTEL_LISTING_PLANS = {
       'Renewal reminder before expiry',
     ],
   },
+}
+
+// ─── Amounts from the platform fee registry ─────────────────
+// Returns the same shapes as the constants above, with the amounts filled in
+// from the registry. A value is null while `fees` is still loading, or when
+// its channel is missing, switched off or zero. Callers must not charge or
+// display a null amount: wait for fees, or disable the pay action.
+export function getFeeAmounts(fees) {
+  const naira = (key) => {
+    const v = feeValue(fees, key)
+    return v !== null && v > 0 ? v : null
+  }
+  const monthly      = naira('professional_monthly')
+  const annual       = naira('professional_annual')
+  const semester     = naira('hostel_listing_semester')
+  const hostelAnnual = naira('hostel_listing_annual')
+
+  // Annual saving against twelve monthly payments, e.g. 10.
+  const annualSavingPercent = monthly && annual
+    ? Math.round((1 - annual / (monthly * 12)) * 100)
+    : null
+  // Annual saving against two semesters, e.g. N1,500.
+  const hostelSavingNaira = semester && hostelAnnual ? 2 * semester - hostelAnnual : null
+
+  const professionalPlans = Object.fromEntries(
+    Object.entries(PROFESSIONAL_PLANS).map(([key, plan]) => [key, {
+      ...plan,
+      monthlyFee: monthly,
+      annualFee:  annual,
+      annualSavingPercent,
+    }])
+  )
+
+  const hostelPlans = {
+    semester: { ...HOSTEL_LISTING_PLANS.semester, price: semester, saving: null },
+    annual:   {
+      ...HOSTEL_LISTING_PLANS.annual,
+      price:  hostelAnnual,
+      saving: hostelSavingNaira > 0
+        ? `Save ${formatPlatformFee({ kind: 'naira', value: hostelSavingNaira })}`
+        : null,
+    },
+  }
+
+  const unlockPacks = UNLOCK_CREDIT_PACKS.map(pack => ({ ...pack, price: naira(pack.key) }))
+
+  return {
+    PROFESSIONAL_PLANS: professionalPlans,
+    HOSTEL_LISTING_PLANS: hostelPlans,
+    UNLOCK_CREDIT_PACKS: unlockPacks,
+  }
 }
 
 // ─── Pay by bank transfer (Flutterwave V4 dynamic virtual account) ──────
@@ -235,7 +277,7 @@ function openTransferModal({ account, error, onPaid, onClose }) {
         const json = await r.json().catch(() => null)
         if (r.ok && json?.paid) {
           finish()
-          onPaid?.({ reference: account.reference, status: 'paid' })
+          onPaid?.({ reference: account.reference, status: 'paid', bookingId: account.bookingId || null })
         }
       } catch {
         // Network blip: the next tick tries again.
@@ -254,17 +296,18 @@ function openTransferModal({ account, error, onPaid, onClose }) {
 // ─── Start a payment ───────────────────────────────────────
 // `amount` is in naira. `reference` is the payment reference (hyphenated, see
 // generateReference); the webhook resolves the payment by it.
+// The browser says WHAT it is paying for (purpose) and WHICH record (subject).
+// It never sends an amount or metadata: the server prices the payment from the
+// database and the platform fee registry (api/platform.js, resolvePayment).
 export const initializeFlutterwavePayment = async ({
-  email,
-  amount,
-  metadata = {},
+  purpose,
+  subject = {},
   onSuccess,
   onClose,
   reference,
 }) => {
   const ref = reference || generateReference()
-  const amountNaira = Number(amount)
-  if (!email || !(amountNaira > 0)) {
+  if (!purpose) {
     openTransferModal({ error: 'Missing payment details. Please try again.', onClose })
     return
   }
@@ -274,7 +317,7 @@ export const initializeFlutterwavePayment = async ({
     const r = await fetch('/api/payments/virtual-account', {
       method: 'POST',
       headers: await authHeaders(),
-      body: JSON.stringify({ reference: ref, amountNaira, email, metadata }),
+      body: JSON.stringify({ reference: ref, purpose, subject }),
     })
     const json = await r.json().catch(() => null)
     if (!r.ok) throw new Error(json?.error || 'Could not start payment')
@@ -293,20 +336,17 @@ export const initializeFlutterwavePayment = async ({
 // supabase/migrations/20260915000003_contact_unlock_credits.sql for the
 // server-side wallet + idempotent unlock logic. A credit is only ever
 // granted by the webhook once Flutterwave confirms the charge, never here.
+// Keys: unlock_credit_single, unlock_credit_pack_5. Prices come from getFeeAmounts(fees).
 export const UNLOCK_CREDIT_PACKS = [
-  { credits: 1, price: 500,  label: '1 unlock' },
-  { credits: 5, price: 2000, label: '5 unlocks', badge: 'Best value' }, // 2000/5 = 400/unlock, a real discount over buying singly
+  { key: 'unlock_credit_single', credits: 1, label: '1 unlock' },
+  { key: 'unlock_credit_pack_5', credits: 5, label: '5 unlocks', badge: 'Best value' },
 ]
 
-export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose }) => {
+export const buyUnlockCredits = async ({ pack, onSuccess, onClose }) => {
+  if (!(pack?.price > 0)) throw new Error('Prices are still loading. Please try again in a moment.')
   await initializeFlutterwavePayment({
-    email,
-    amount: pack.price,
-    metadata: {
-      type:    'contact_unlock_credits', // matches the webhook case that actually grants credits
-      user_id: userId,
-      credits: pack.credits,
-    },
+    purpose: 'contact_unlock_credits',
+    subject: { pack: pack.key }, // the server prices this pack and sets the credits
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
@@ -319,6 +359,7 @@ export const buyUnlockCredits = async ({ pack, userId, email, onSuccess, onClose
 // already been created with status='pending'. On successful
 // payment, the Flutterwave webhook flips status to 'active'.
 export const subscribeProfessional = async ({
+  fees,
   applicationId,
   userId,
   professionalType,
@@ -327,21 +368,15 @@ export const subscribeProfessional = async ({
   onSuccess,
   onClose,
 }) => {
-  const plan = PROFESSIONAL_PLANS[professionalType]
+  const plan = getFeeAmounts(fees).PROFESSIONAL_PLANS[professionalType]
   if (!plan) return
   const amount = planType === 'annual' ? plan.annualFee : plan.monthlyFee
+  if (!(amount > 0)) throw new Error('Prices are still loading. Please try again in a moment.')
 
   await initializeFlutterwavePayment({
-    email,
-    amount,
-    metadata: {
-      type:               'professional_subscription', // matches webhook TYPE_MAP key
-      user_id:            userId,                       // required for automatic referral payout
-      application_id:     applicationId,
-      professional_type:  professionalType,
-      plan_type:          planType,
-      plan_name:          plan.name,
-    },
+    // The server prices the plan and reads the professional type from the application.
+    purpose: 'professional_subscription',
+    subject: { application_id: applicationId, plan_type: planType },
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)
@@ -352,8 +387,11 @@ export const subscribeProfessional = async ({
 
 // ─── Pay hostel listing fee ────────────────────────────────
 // Called from ListHostelPage after saving the hostel draft.
-// On success, marks listing_paid = true in student_hostels table.
+// The browser never marks the listing paid. The Flutterwave webhook
+// (api/flutterwave-webhook.js, hostel_listing_fee branch) sets listing_paid
+// after verifying the charge server-side.
 export const payHostelListingFee = async ({
+  fees,
   email,
   hostelId,
   plan = 'semester',   // 'semester' | 'annual'
@@ -361,21 +399,16 @@ export const payHostelListingFee = async ({
   onSuccess,
   onClose,
 }) => {
-  const planMeta = HOSTEL_LISTING_PLANS[plan]
+  const planMeta = getFeeAmounts(fees).HOSTEL_LISTING_PLANS[plan]
   if (!planMeta) return
+  if (!(planMeta.price > 0)) throw new Error('Prices are still loading. Please try again in a moment.')
 
   const reference = generateReference()
 
   await initializeFlutterwavePayment({
-    email,
-    amount:    planMeta.price,
+    purpose: 'hostel_listing_fee',
+    subject: { hostel_id: hostelId, plan },
     reference,
-    metadata: {
-      hostel_id:    hostelId,
-      plan,
-      listing_type: 'student_hostel',
-      owner_name:   ownerName,
-    },
     onSuccess,
     onClose,
   })
@@ -402,18 +435,14 @@ export const fundTransactionEscrow = async ({
   onSuccess,
   onClose,
 }) => {
-  if (!amountCents) return
-  const ref = reference || generateReference()
+  if (!amountCents || !reference) return
 
   await initializeFlutterwavePayment({
-    email,
-    amount:    amountCents / 100, // this function takes naira, not cents
-    reference: ref,
-    metadata: {
-      type:           'transaction_escrow', // matches webhook TYPE_MAP key -- add this case server-side
-      transaction_id: transactionId,
-      user_id:        requesterId,
-    },
+    // The job's amount is read from the transaction on the server. The
+    // reference must already be bound to this job (start_escrow_payment).
+    purpose: 'transaction_escrow',
+    subject: { transaction_id: transactionId },
+    reference,
     onSuccess: async (response) => {
       await verifyPayment(response.reference, response.transactionId)
       onSuccess?.(response)

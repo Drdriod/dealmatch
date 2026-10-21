@@ -40,7 +40,7 @@ import {
   ArrowLeft, Wallet as WalletIcon, ShieldCheck, Clock, CheckCircle2, Gift, Star,
   ChevronRight, ArrowUpRight, ArrowDownLeft, Banknote, RotateCcw, Loader2, Landmark,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { loadWalletData, requestWithdrawal } from '@/data/walletRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -92,40 +92,7 @@ export default function WalletPage() {
 
   const load = async () => {
     setLoading(true)
-    const [escrowRes, txRes, refRes, ptsRes, ledgerRes, withdrawalRes, payoutRes] = await Promise.all([
-      supabase.from('escrow_transactions')
-        .select('id, property_id, status, gross_amount, transaction_type, buyer_id, seller_id, tenant_id, confirmed_at')
-        .or(`tenant_id.eq.${user.id},buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('confirmed_at', { ascending: false, nullsFirst: false })
-        .limit(50),
-      supabase.from('transactions')
-        .select('id, status, amount_cents, model, requester_id, provider_id, created_at')
-        .or(`requester_id.eq.${user.id},provider_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(50),
-      supabase.from('referral_transactions')
-        .select('amount, status')
-        .eq('referrer_id', user.id)
-        .in('status', ['confirmed', 'paid_out']),
-      supabase.from('loyalty_points').select('balance').eq('user_id', user.id).single(),
-      supabase.from('commission_wallet_ledger')
-        .select('id, transaction_id, entry_type, amount_cents, occurred_at, transactions(description)')
-        .eq('profile_id', user.id)
-        .order('occurred_at', { ascending: false })
-        .limit(50),
-      supabase.from('withdrawal_requests')
-        .select('id, amount_cents, status, requested_at')
-        .eq('profile_id', user.id)
-        .eq('status', 'pending')
-        .order('requested_at', { ascending: false })
-        .limit(1),
-      supabase.from('payout_accounts')
-        .select('id, status, bank_name')
-        .eq('profile_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ])
+    const [escrowRes, txRes, refRes, ptsRes, ledgerRes, withdrawalRes, payoutRes] = await loadWalletData(user.id)
     setEscrows(escrowRes.data || [])
     setJobTxns(txRes.data || [])
     setReferralTotal((refRes.data || []).reduce((s, r) => s + Number(r.amount || 0), 0))
@@ -166,9 +133,7 @@ export default function WalletPage() {
     if (!window.confirm(`Request withdrawal of ${fmt(walletTotals.availableBalance)} to your saved bank account?`)) return
 
     setRequesting(true)
-    const { data, error } = await supabase.rpc('request_withdrawal', {
-      p_amount_cents: Math.round(walletTotals.availableBalance * 100),
-    })
+    const { data, error } = await requestWithdrawal(Math.round(walletTotals.availableBalance * 100))
     setRequesting(false)
 
     if (error) {
