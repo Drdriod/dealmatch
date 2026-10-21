@@ -1,0 +1,65 @@
+# Open items
+
+As of 2026-10-21. Built from a read of the session transcript (which starts at the 18 Oct compaction, so
+older requests come from the summaries and the excerpt files you uploaded) and checked against the repo.
+Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
+
+Kickoff of the Meta hackathon is **26 Oct**. The plan is `docs/hackathon/muse-spark-agent-plan.md`.
+
+## A. Only the owner can do these
+
+| # | Item | Why it matters |
+|---|---|---|
+| A1 | **Merge PR #17** (73 commits, mergeable, no conflicts) and let Vercel deploy | Production has migrations 1 to 17, but `main` does not have the code that goes with them |
+| A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
+| A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
+| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after item B1 is applied |
+| A5 | Read the Official Rules when published (before 26 Oct) and paste them | They may restrict work started before the event |
+| A6 | Smoke test production after the PR #17 deploy: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
+| A7 | Decide: Vercel plan (the function cap), WhatsApp number for the demo, solo or team | Needed before day 4 of the hackathon |
+| A8 | Counsel questions in ADR-009 (retention, NDPA, impact assessment). Terms page: which fee wording is right | Open since the legal review |
+
+## B. I can do these
+
+### High
+
+| # | Item | Evidence |
+|---|---|---|
+| B1 | **Close the `properties` column exposure in the database.** The "Active properties are public" policy still lets a direct API call read `contact_phone`, `contact_email`, `payment_ref`, verification notes and `assigned_agent_id`. Needs a new migration (18), a rolled-back dry run, a runbook row, and ordering after PR #17 is deployed. Also tighten fitness check 7 for head counts and fix `homeRepository.js:8,10` | Audit of active listings: 0 rows stored (there are no listings), so nothing has leaked yet. This has to be closed **before** real listings go in |
+| B2 | **Apply the unapplied-money rule to the other purposes.** Only transaction escrow got it. Property escrow (`escrowPayment`, no amount check), hostel fee, unlock credits and hotel booking can still log `success` for money that was not applied | `chargePurposes.js` |
+| B3 | **Virtual-account payments are not retry-safe.** The account is marked paid before the handler runs, so a failed handler followed by a retry sends the whole transfer to the refund list instead of granting the item | design-patterns item 10 |
+| B4 | End-to-end sandbox payment test. No local Supabase config, the Docker install failed earlier | Needs sandbox credentials from you |
+
+### Medium
+
+| # | Item | Evidence |
+|---|---|---|
+| B5 | Stale docs: ARCHITECTURE.md says migration 17 is pending and the baseline is 256 (it is `{}`); design-patterns item 9 says 3 violations (cleared); runbook rows 12 and 13 are out of order or stale; CHANGELOG and README have nothing since 9 Oct; ISSUES.md lists fixed items as open; ADR-009 still says "Proposed" | Files named |
+| B6 | The parked taxonomy migration `20261011010000_place_people_taxonomy.sql` is still in `supabase/migrations/`, and the README says to run every file in order. It re-parents live listings and is superseded by file 9 | Move it out of the folder |
+| B7 | Category pages are empty: nothing writes `properties.category_id` (the list form sets only the old `category`) | `ListPropertyPage.jsx`, `categoryFeed.js` |
+| B8 | About 30 `select('*')` reads remain outside `properties` | `supabase.js:87`, `messagesRepository`, `jobPostingRepository`, `referralRepository`, `notificationsRepository`, catalog and forum services |
+| B9 | No CI. Nothing runs `npm run check` on a pull request | No `.github/` |
+| B10 | Sentry `setUser` sends the user's email, which contradicts the scrubbing comment | `sentry.js:35` |
+| B11 | Terms page section 3 reads as a second fee next to section 4's 1.5% per side. "Last updated" prints the current year | `TermsPage.jsx` |
+| B12 | Deferred Supabase advisor items: 313 overlapping permissive policies (about 10 on `properties` alone), 10 `auth_rls_initplan`, about 58 callable SECURITY DEFINER functions, extensions in `public` | Runbook lines 29 and 30 |
+
+### Low
+
+| # | Item |
+|---|---|
+| B13 | Nothing writes `location_precision = 'precise'` for providers. Only the state-level trigger exists |
+| B14 | Design brief for the "to create" pages. `ComingSoonPage` is still routed |
+| B15 | Dead code: `ProfessionalsPage`, `PropertyCarousel` (unrouted), `formatPrice` in `HotelsPage` |
+
+## C. Built, but not exercised, so not proven
+
+- Staging replay of files 9 to 17 and the `is_superadmin` policy check. Not recorded as done.
+- `transactions.listing_id` is UUID on production. No result in the applied log.
+- RATE-3 ("verify in staging before closing"): no record.
+- Find a Provider, Level 1 cap, demotion cron, student-ID purge, admin NIN status, the escrow section: code is in, runtime not exercised.
+- Admin write paths (fee registry, refunds) have not been run with a real admin account.
+- Migration 17's illegal-move error was not re-run on production (no row to test with). The dry run passed 13 of 13.
+
+## D. Hackathon (from 26 Oct)
+
+Everything in the plan's schedule. Nothing in `src/modules/assistant/` exists yet, on purpose. See the plan, section 9.
