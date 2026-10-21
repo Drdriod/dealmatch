@@ -5,12 +5,13 @@ older requests come from the summaries and the excerpt files you uploaded) and c
 Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
 
 Kickoff of the Meta hackathon is **26 Oct**. The plan is `docs/hackathon/muse-spark-agent-plan.md`.
+The UI, UX and database gaps against your wireframe specification are in `docs/FULL_STACK_BACKLOG.md`, with how to solve each and who to source it from.
 
 ## A. Only the owner can do these
 
 | # | Item | Why it matters |
 |---|---|---|
-| A1 | **Merge PR #17** (73 commits, mergeable, no conflicts) and let Vercel deploy | Production has migrations 1 to 17, but `main` does not have the code that goes with them |
+| A1 | **Merge PR #17** (still open on 21 Oct, mergeable, no conflicts). On GitHub: Pull requests, #17, then "Merge pull request". Vercel then deploys `main` to production. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Production has migrations 1 to 17, but `main` does not have the code that goes with them. The live site is running old code against the new database |
 | A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
 | A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
 | A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after item B1 is applied |
