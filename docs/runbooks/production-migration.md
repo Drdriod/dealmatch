@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written and wait for the PR #17 deploy (section 7).** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written and wait for the PR #18 deploy (section 7). PR #17 was merged and deployed on 2026-10-21.** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -24,7 +24,7 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 15 | 20261013020000_money_integrity_marketplace | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor as a wrapped transaction: the tool cancelled it). Verified: `job_guard` 1 (trigger enabled), `refunds_table` 1 with RLS on, `mark_fn` 1 and SECURITY DEFINER, admin-only policies `payment_refunds_admin_read` and `payment_refunds_admin_update`. Not yet exercised with a real admin account. |
 | 16 | 20261013030000_retire_job_escrow_registry_row | Applied 2026-10-13 after a rolled-back dry run and owner approval. Verified: `job_escrow` is_active=false, 9 other channels still active. Job commission is set in Commission Schedules. |
 | 17 | 20261014000000_payout_state_guard | Applied by the owner in the SQL editor, confirmed 2026-10-20 with read-only queries on production: `trg_guard_payout_transition` exists and is enabled (BEFORE UPDATE OF status on `payout_queue`); the live `fn_guard_payout_transition` allows exactly pending→processing/failed, processing→paid/failed, paid→failed, failed→pending, the same table as `src/lib/payoutStates.js`; no SQL function updates `payout_queue`; `payout_queue` holds 0 rows, so nothing is stranded. Code check: the cron, webhook, reconciliation and settlement write status only through `movePayout`; the admin Payouts tab writes only failed→pending (Retry, shown on failed rows only, and now conditional on `status = 'failed'`). Not re-run on production: an illegal move raising `check_violation` (no row to test with); the rolled-back dry run passed 13/13 on this same SQL. |
-| 18 | 20261020000000_properties_column_exposure | **Written, not applied. Apply only after PR #17 is deployed** (see section 7). Rolled-back dry run on production 2026-10-21: 35 of 35 behaviour checks passed plus the migration's own assertions, and a read-only check afterwards showed nothing had changed (anon could still read `contact_phone`, no `my_assigned_property_ids`, no test rows). Removes table-level SELECT on `properties` from `anon` and `authenticated`, grants SELECT on the 36 public columns, withholds 9 private ones, adds `my_assigned_property_ids()`. |
+| 18 | 20261020000000_properties_column_exposure | **Written, not applied. Apply only after PR #18 is deployed** (see section 7). Rolled-back dry run on production 2026-10-21: 35 of 35 behaviour checks passed plus the migration's own assertions, and a read-only check afterwards showed nothing had changed (anon could still read `contact_phone`, no `my_assigned_property_ids`, no test rows). Removes table-level SELECT on `properties` from `anon` and `authenticated`, grants SELECT on the 36 public columns, withholds 9 private ones, adds `my_assigned_property_ids()`. |
 | 19 | 20261020010000_properties_status_under_verification | **Written, not applied, not yet dry-run** (the database connection was down when it was written). Adds `under_verification` to `properties_status_check`; the verification flow writes that status and the database refuses it today. Contains a DROP CONSTRAINT, so run it in the SQL editor. Dry-run it first. |
 
 **Advisor state after apply:**
@@ -113,14 +113,14 @@ rather than restoring the database.
 
 Production is changed only when the owner approves **after** checks 1 and 3 pass.
 
-## 7. Files 18 and 19: apply after PR #17 is deployed
+## 7. Files 18 and 19: apply after PR #18 is deployed
 
 **Why the order matters.** File 18 makes `select('*')` on `properties` fail for visitors and signed-in users.
-The code on `main` before PR #17 still does that (home counts, browse, owner dashboard, verification queue,
-agent dashboard). Apply 18 first and the live site breaks. Apply it after the PR #17 deploy and the code
+The code on `main` today (PR #17, deployed 2026-10-21) still does that in the owner and staff screens (landlord
+dashboard, verification queue, agent dashboard) and when a listing is published. PR #18 changes them. Apply 18 first and the live site breaks. Apply it after the PR #18 deploy and the code
 already asks for named columns.
 
-1. Merge PR #17. Wait for the Vercel production deploy to finish. Open the site and confirm it loads.
+1. Merge PR #18. Wait for the Vercel production deploy to finish. Open the site and confirm it loads.
 2. Dry-run file 18 again if more than a day has passed (it is quick), then run it in the SQL editor.
    It checks its own result and rolls back if a private column is still readable.
 3. Dry-run file 19, then run it in the SQL editor (it contains a DROP CONSTRAINT, which the tool cancels).

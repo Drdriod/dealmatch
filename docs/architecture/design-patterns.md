@@ -89,7 +89,7 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    admin Payouts tab can now only make the one move an admin may make, failed to pending,
    and its Retry write is conditional on the row still being failed.
 8. **Browsers read named `properties` columns only. Code done; the database change
-   (migration 18) is written and waits for the PR #17 deploy.** The "Active properties
+   (migration 18) is written and waits for the PR #18 deploy.** The "Active properties
    are public" policy chooses rows, not columns, so a direct API call could read
    `contact_phone`, `contact_email`, `payment_ref`, the verification record and the agent
    assignment of every active listing. Migration `20261020000000_properties_column_exposure.sql`

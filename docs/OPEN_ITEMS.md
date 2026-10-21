@@ -11,15 +11,15 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 
 | # | Item | Why it matters |
 |---|---|---|
-| A1 | **Merge PR #17** (still open on 21 Oct, mergeable, no conflicts). On GitHub: Pull requests, #17, then "Merge pull request". Vercel then deploys `main` to production. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Production has migrations 1 to 17, but `main` does not have the code that goes with them. The live site is running old code against the new database |
+| A1 | **Merge PR #18** (open, mergeable). PR #17 was merged by you on 21 Oct at 05:49 UTC and deployed to production (Vercel reported success on the merge commit `5d8191f`). #18 carries everything done since: the properties column fix, the listing-publish fix, the verification status fix, the open-items list and the full-stack backlog. On GitHub: Pull requests, #18, then "Merge pull request". Vercel then deploys `main`. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Migration 18 must not be applied until #18 is deployed, because the code now on `main` still reads `select('*')` on `properties` in the owner and staff screens and when a listing is published |
 | A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
 | A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
 | A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after migration 18 is applied (A9) |
 | A5 | Read the Official Rules when published (before 26 Oct) and paste them | They may restrict work started before the event |
-| A6 | Smoke test production after the PR #17 deploy: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
+| A6 | Smoke test production after the PR #18 deploy and migrations 18 and 19: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
 | A7 | Decide: Vercel plan (the function cap), WhatsApp number for the demo, solo or team | Needed before day 4 of the hackathon |
 | A8 | Counsel questions in ADR-009 (retention, NDPA, impact assessment). Terms page: which fee wording is right | Open since the legal review |
-| A9 | **Apply migrations 18 and 19, in that order, after the PR #17 deploy.** Steps, checks and rollback are in `docs/runbooks/production-migration.md` section 7. File 19 contains a DROP, so use the SQL editor, and dry-run it first | 18 closes the contact-column exposure (dry-run on production passed 35 of 35, rolled back). 19 lets the verification flow set `under_verification`, which the database refuses today. Applying 18 before the deploy would break the live site |
+| A9 | **Apply migrations 18 and 19, in that order, after the PR #18 deploy.** Steps, checks and rollback are in `docs/runbooks/production-migration.md` section 7. File 19 contains a DROP, so use the SQL editor, and dry-run it first | 18 closes the contact-column exposure (dry-run on production passed 35 of 35, rolled back). 19 lets the verification flow set `under_verification`, which the database refuses today. Applying 18 before #18 is deployed would break the owner and staff screens and publishing a listing |
 
 ## B. I can do these
 

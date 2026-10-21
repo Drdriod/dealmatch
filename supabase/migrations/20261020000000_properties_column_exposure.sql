@@ -35,7 +35,7 @@
 --   * SECURITY INVOKER functions and views that read properties (universal_search, universal_match,
 --     admin_deal_pipeline, my_requests) use only granted columns. Keep it that way.
 --
--- Apply AFTER the code that goes with it is deployed (PR #17). The code on `main` before that still
+-- Apply AFTER the code that goes with it is deployed (PR #18). The code on `main` before that still
 -- uses select('*') on properties, which this migration would break for visitors and owners.
 --
 -- No DROP statements, so the SQL editor and the migration tool both run it as written.
