@@ -8,6 +8,8 @@ export default {
         cream:      '#F7F4ED',
         deep:       '#17211B',
         terracotta: '#C85F2D',
+        // Pressed and hover state of terracotta. Same value Notice uses for error text.
+        'terracotta-dark': '#A8441D',
         blush:      '#F0D4BE',
         sage:       '#7A9E7E',
         gold:       '#D4A853',
