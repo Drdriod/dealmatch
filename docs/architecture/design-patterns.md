@@ -123,9 +123,11 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
     reach a handler until the flip is undone. Fix options: undo the flip when the handler
     fails, or treat "paid and no payments row" as an unfinished delivery and run the handler
     again (every handler would have to be proven safe to repeat first).
-11. **Nothing runs the tests or fitness checks automatically. Open.** There is no CI
-    workflow; Vercel only builds. `npm run check` now exists. Adding a GitHub Actions
-    workflow that runs it on each pull request is an owner decision.
+11. **Tests and fitness checks run on every pull request.** `.github/workflows/check.yml`
+    runs `npm run check` (fitness checks 1 to 9, then the unit tests) and `npm run build`
+    on each pull request and each push to `main`, with no secrets. It only blocks a
+    merge once the owner turns on branch protection for `main` and marks the `check`
+    job as required (GitHub: Settings, Branches). Until then it reports but does not stop.
 
 ## Rules for new code
 

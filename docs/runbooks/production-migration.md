@@ -1,6 +1,6 @@
 # Production migration runbook
 
-Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written and wait for the PR #18 deploy (section 7). PR #17 was merged and deployed on 2026-10-21.** Production is Supabase project `dijggrafwdznescbuypi`.
+Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written, dry-run on production by the owner on 2026-10-22 (both succeeded, both rolled back) and are NOT applied yet. The code they need (PR #17 and PR #18) is merged and deployed, so applying them is now safe (section 7).** Production is Supabase project `dijggrafwdznescbuypi`.
 Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
@@ -24,8 +24,12 @@ Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded 
 | 15 | 20261013020000_money_integrity_marketplace | Applied 2026-10-13 after a rolled-back dry run and owner approval (run in the SQL editor as a wrapped transaction: the tool cancelled it). Verified: `job_guard` 1 (trigger enabled), `refunds_table` 1 with RLS on, `mark_fn` 1 and SECURITY DEFINER, admin-only policies `payment_refunds_admin_read` and `payment_refunds_admin_update`. Not yet exercised with a real admin account. |
 | 16 | 20261013030000_retire_job_escrow_registry_row | Applied 2026-10-13 after a rolled-back dry run and owner approval. Verified: `job_escrow` is_active=false, 9 other channels still active. Job commission is set in Commission Schedules. |
 | 17 | 20261014000000_payout_state_guard | Applied by the owner in the SQL editor, confirmed 2026-10-20 with read-only queries on production: `trg_guard_payout_transition` exists and is enabled (BEFORE UPDATE OF status on `payout_queue`); the live `fn_guard_payout_transition` allows exactly pending→processing/failed, processing→paid/failed, paid→failed, failed→pending, the same table as `src/lib/payoutStates.js`; no SQL function updates `payout_queue`; `payout_queue` holds 0 rows, so nothing is stranded. Code check: the cron, webhook, reconciliation and settlement write status only through `movePayout`; the admin Payouts tab writes only failed→pending (Retry, shown on failed rows only, and now conditional on `status = 'failed'`). Not re-run on production: an illegal move raising `check_violation` (no row to test with); the rolled-back dry run passed 13/13 on this same SQL. |
-| 18 | 20261020000000_properties_column_exposure | **Written, not applied. Apply only after PR #18 is deployed** (see section 7). Rolled-back dry run on production 2026-10-21: 35 of 35 behaviour checks passed plus the migration's own assertions, and a read-only check afterwards showed nothing had changed (anon could still read `contact_phone`, no `my_assigned_property_ids`, no test rows). Removes table-level SELECT on `properties` from `anon` and `authenticated`, grants SELECT on the 36 public columns, withholds 9 private ones, adds `my_assigned_property_ids()`. |
-| 19 | 20261020010000_properties_status_under_verification | **Written, not applied, not yet dry-run** (the database connection was down when it was written). Adds `under_verification` to `properties_status_check`; the verification flow writes that status and the database refuses it today. Contains a DROP CONSTRAINT, so run it in the SQL editor. Dry-run it first. |
+| 18 | 20261020000000_properties_column_exposure | **Written, not applied. PR #18 (the code it needs) was merged 2026-10-21 and the Vercel deploy succeeded, so it can be applied now** (section 7). Owner ran it inside a transaction on 2026-10-22 and it rolled back; a read-only check confirmed nothing changed. Rolled-back dry run on production 2026-10-21: 35 of 35 behaviour checks passed plus the migration's own assertions, and a read-only check afterwards showed nothing had changed (anon could still read `contact_phone`, no `my_assigned_property_ids`, no test rows). Removes table-level SELECT on `properties` from `anon` and `authenticated`, grants SELECT on the 36 public columns, withholds 9 private ones, adds `my_assigned_property_ids()`. |
+| 19 | 20261020010000_properties_status_under_verification | **Written, not applied.** Owner ran it inside a transaction on 2026-10-22 and it succeeded and rolled back. Adds `under_verification` to `properties_status_check`; the verification flow writes that status and the database refuses it today. Contains a DROP CONSTRAINT, so run it in the SQL editor. |
+
+**Re-run of files 1 to 8 on 2026-10-22 changed nothing.** An earlier version of section 2 below still listed files 1 to 8 as "missing", which was wrong (the log above shows they were applied in October). The owner ran them again inside transactions that ended in a rollback ("Success. No rows returned"). Checked read-only afterwards: no policy or index on production has an object id newer than the 2026-10-20 payout guard trigger (a re-created object would have a higher id), and the data invariants hold. Production is unchanged. Section 2 now points here so this cannot happen again.
+
+**Other facts checked read-only on 2026-10-22:** `transactions.listing_id` is `uuid` (pre-flight A is clear). Pre-flight C returns 2 unindexed foreign keys, both on `payment_refunds` (`profile_id`, `refunded_by`), a table created after the FK-index pass (file 15). Harmless at 0 rows; add the two indexes when that table grows. 7 trigger-only functions are still executable by `anon` and `authenticated`; they cannot be called usefully (they return `trigger`) and are tracked in OPEN_ITEMS.
 
 **Advisor state after apply:**
 - Security: `provider_stats` SECURITY DEFINER view is intentional. PostGIS and pg_net in `public` and `spatial_ref_sys` RLS need an extension move (deferred). ~16 anon-callable and ~42 authenticated-callable SECURITY DEFINER functions are an RPC grant audit (deferred). Leaked-password protection is disabled in Auth settings (action needed). `identity_doc_purge_queue` RLS with no policies is intended.
@@ -63,26 +67,20 @@ Stop and report if A returns `bigint`, or if B shows migrations that are not in 
 
 ## 2. Migrations to apply, in this order
 
-Production is not tracked by the migration tool, so apply **one file at a time**,
-starting from the earliest missing object. Each file gets its own rolled-back dry
-run first, and stops on the first error.
+**Nothing from files 1 to 17 is waiting.** Section 0 is the record of what is applied. Do not re-run those files.
 
-Missing on production (checked read-only):
+What is left to apply, one file at a time and in this order:
 
-1. `20260731000019_complete_transaction_rpc.sql` (complete_transaction)
-2. `20260909000001_subscriptions.sql` (subscriptions, get_active_plan)
-3. `20260909000005_commission_notifications.sql` (notify_commission_activated)
-4. `20261009000000_security_audit_hardening.sql` (is_superadmin, fn_guard_* only partly present)
-5. `20261011000000_provider_matching_caps_and_listing_guards.sql`
-6. `20261011020000_security_perf_hardening.sql`
-7. `20261011030000_fix_fk_index_duplicates.sql`
-8. `20261011040000_nigeria_points_invoker.sql`
+1. `20261020000000_properties_column_exposure.sql` (file 18), see section 7.
+2. `20261020010000_properties_status_under_verification.sql` (file 19), see section 7.
+3. Later files appear in section 0 as soon as they are written, marked "Written, not applied".
 
-**Deferred, not part of this apply:** `20261011010000_place_people_taxonomy.sql`.
-It re-parents live listings and deactivates five categories. It needs a separate
-product decision and its own dry run. Nothing above depends on it.
+Production is not tracked by the migration tool (`supabase_migrations.schema_migrations` is not the source of truth here), so section 0 is. Each file gets its own rolled-back dry run first, and stops on the first error.
 
-Staging ran the full history in this order, so staging is the reference.
+**Deferred, not part of any apply:** `20261011010000_place_people_taxonomy.sql`.
+It re-parents live listings and deactivates five categories, and file 9 supersedes it. It is parked and its move out of `supabase/migrations/` is tracked in OPEN_ITEMS.
+
+Staging ran the full history in order, so staging is the reference.
 
 ## 3. Dry run
 
@@ -113,17 +111,14 @@ rather than restoring the database.
 
 Production is changed only when the owner approves **after** checks 1 and 3 pass.
 
-## 7. Files 18 and 19: apply after PR #18 is deployed
+## 7. Files 18 and 19: apply now (their code is deployed)
 
 **Why the order matters.** File 18 makes `select('*')` on `properties` fail for visitors and signed-in users.
-The code on `main` today (PR #17, deployed 2026-10-21) still does that in the owner and staff screens (landlord
-dashboard, verification queue, agent dashboard) and when a listing is published. PR #18 changes them. Apply 18 first and the live site breaks. Apply it after the PR #18 deploy and the code
-already asks for named columns.
+Before PR #18 the owner and staff screens (landlord dashboard, verification queue, agent dashboard) and listing publish did that. PR #18 changed them to ask for named columns, and it is deployed, so file 18 no longer breaks the site.
 
-1. Merge PR #18. Wait for the Vercel production deploy to finish. Open the site and confirm it loads.
-2. Dry-run file 18 again if more than a day has passed (it is quick), then run it in the SQL editor.
-   It checks its own result and rolls back if a private column is still readable.
-3. Dry-run file 19, then run it in the SQL editor (it contains a DROP CONSTRAINT, which the tool cancels).
+1. Done: PR #18 was merged on 2026-10-21 and its Vercel production deploy succeeded. Open the site once and confirm it loads.
+2. Both files have already been dry-run (file 18 by me on 2026-10-21, both by the owner on 2026-10-22). To apply for real, open a new SQL-editor tab and paste the file exactly as it is in the repo. Do **not** add `BEGIN;` before it or `ROLLBACK;` after it: that wrapper is the dry run, and it is why the runs on 2026-10-22 changed nothing. Run file 18. It checks its own result and aborts (leaving nothing changed) if a private column is still readable.
+3. Then run file 19 the same way (it contains a DROP CONSTRAINT, which the assistant's SQL tool cancels, so it must go through the SQL editor).
 4. Run the read-only checks below.
 5. Smoke test in a browser: home page counts, Browse, one property page, the landlord dashboard,
    the Verification page as staff, the agent dashboard as an agent, and publishing a listing with photos.

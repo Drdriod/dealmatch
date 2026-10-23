@@ -1,6 +1,6 @@
 # Open items
 
-As of 2026-10-21 (evening). Built from a read of the session transcript (which starts at the 18 Oct compaction, so
+As of 2026-10-22. Built from a read of the session transcript (which starts at the 18 Oct compaction, so
 older requests come from the summaries and the excerpt files you uploaded) and checked against the repo.
 Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
 
@@ -11,15 +11,15 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 
 | # | Item | Why it matters |
 |---|---|---|
-| A1 | **Merge PR #18** (open, mergeable). PR #17 was merged by you on 21 Oct at 05:49 UTC and deployed to production (Vercel reported success on the merge commit `5d8191f`). #18 carries everything done since: the properties column fix, the listing-publish fix, the verification status fix, the open-items list and the full-stack backlog. On GitHub: Pull requests, #18, then "Merge pull request". Vercel then deploys `main`. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Migration 18 must not be applied until #18 is deployed, because the code now on `main` still reads `select('*')` on `properties` in the owner and staff screens and when a listing is published |
+| A1 | **Apply migrations 18 and 19 for real.** You ran both on 22 Oct inside a transaction and they rolled back (production is unchanged, checked). PR #18 was merged on 21 Oct (merge commit `4e5c151`) and its Vercel deploy succeeded, so applying them is now safe. Open a new SQL-editor tab, paste the file exactly as it is in the repo (no `BEGIN;` before it and no `ROLLBACK;` after it, which are what made your runs roll back), and run it. 18 first, then 19. Then the checks in section 7 of the runbook | Until 18 is committed, anyone can read `contact_phone` and `contact_email` on `properties` through the API. Until 19 is committed, the verification flow cannot set `under_verification` |
 | A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
 | A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
-| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after migration 18 is applied (A9) |
+| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after migration 18 is applied (A1) |
 | A5 | Read the Official Rules when published (before 26 Oct) and paste them | They may restrict work started before the event |
-| A6 | Smoke test production after the PR #18 deploy and migrations 18 and 19: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
+| A6 | Smoke test production after migrations 18 and 19 are committed: home page counts, Browse, one property page, sign up, a sandbox payment. Steps in runbook section 7 | The runbook lists it. No result is recorded anywhere |
 | A7 | Decide: Vercel plan (the function cap), WhatsApp number for the demo, solo or team | Needed before day 4 of the hackathon |
 | A8 | Counsel questions in ADR-009 (retention, NDPA, impact assessment). Terms page: which fee wording is right | Open since the legal review |
-| A9 | **Apply migrations 18 and 19, in that order, after the PR #18 deploy.** Steps, checks and rollback are in `docs/runbooks/production-migration.md` section 7. File 19 contains a DROP, so use the SQL editor, and dry-run it first | 18 closes the contact-column exposure (dry-run on production passed 35 of 35, rolled back). 19 lets the verification flow set `under_verification`, which the database refuses today. Applying 18 before #18 is deployed would break the owner and staff screens and publishing a listing |
+| A9 | Turn on branch protection for `main` and mark the `check` job as required (GitHub: Settings, Branches, Add rule). The workflow in `.github/workflows/check.yml` runs on every pull request but cannot block a merge until you do | Without this, a red check is only a warning |
 
 ## B. I can do these
 
@@ -39,7 +39,6 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 | B6 | The parked taxonomy migration `20261011010000_place_people_taxonomy.sql` is still in `supabase/migrations/`, and the README says to run every file in order. It re-parents live listings and is superseded by file 9 | Move it out of the folder |
 | B7 | Category pages are empty: nothing writes `properties.category_id` (the list form sets only the old `category`) | `ListPropertyPage.jsx`, `categoryFeed.js` |
 | B8 | About 30 `select('*')` reads remain outside `properties` | `supabase.js:87`, `messagesRepository`, `jobPostingRepository`, `referralRepository`, `notificationsRepository`, catalog and forum services |
-| B9 | No CI. Nothing runs `npm run check` on a pull request | No `.github/` |
 | B10 | Sentry `setUser` sends the user's email, which contradicts the scrubbing comment | `sentry.js:35` |
 | B11 | Terms page section 3 reads as a second fee next to section 4's 1.5% per side. "Last updated" prints the current year | `TermsPage.jsx` |
 | B12 | Deferred Supabase advisor items: 313 overlapping permissive policies (about 10 on `properties` alone), 10 `auth_rls_initplan`, about 58 callable SECURITY DEFINER functions, extensions in `public` | Runbook lines 29 and 30 |
