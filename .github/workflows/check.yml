@@ -1,0 +1,44 @@
+# Runs the architecture fitness checks and the tests on every pull request, and on
+# every push to main. `npm run check` is the same command to run on your own machine.
+# It needs no secrets: the tests use test doubles for Supabase and Flutterwave.
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Fitness checks 1 to 9 (module boundaries, function budget, money and column
+      # rules) followed by the unit tests.
+      - name: Fitness checks and tests
+        run: npm run check
+
+      # The app must still build. The values are placeholders: the build only needs
+      # them to exist, and nothing here talks to a real project.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
