@@ -15,6 +15,8 @@ import PeopleRail from '@/components/home/PeopleRail'
 import HowItWorksFlip from '@/components/home/HowItWorksFlip'
 import { useAuth } from '@/context/AuthContext'
 import { fetchHomeCounts } from '@/data/homeRepository'
+import { buildHomeStats } from '@/lib/homeStats'
+import { prefetchRoutes } from '@/lib/prefetchRoutes'
 
 // Stats are now fetched live from the database (see loadStats below) -
 // no hardcoded numbers. A new platform should show its real, honest
@@ -52,31 +54,27 @@ export default function HomePage() {
     loadRealStats()
   }, [])
 
+  // Once the home page is up and the browser is idle, fetch the pages people open next so the
+  // first click does not wait on a download.
+  useEffect(() => {
+    const next = [
+      () => import('@/pages/Browse/BrowsePage'),
+      () => import('@/pages/Property/PropertyPage'),
+    ]
+    if (!isAuthenticated) next.push(() => import('@/pages/Auth/AuthPage'))
+    prefetchRoutes(next)
+  }, [isAuthenticated])
+
   // Real, honest platform numbers - pulled live, never invented.
   // A new platform should show what it actually has, not fabricated traction.
   const loadRealStats = async () => {
     try {
       const [{ count: propertyCount }, { count: verifiedCount }, { count: soldCount }] = await fetchHomeCounts()
 
-      // A raw "0" (or a near-zero count) as social proof is worse than no
-      // number at all -- it reads as "nobody uses this" to a first-time,
-      // problem-aware visitor exactly when we're trying to earn trust.
-      // Below a real-traction threshold, show what's actually true and
-      // doesn't depend on volume instead: the platform's own protective
-      // mechanisms (escrow, dual verification, physical inspection).
-      // Swap this threshold out for plain counts once real usage clears it.
-      const hasRealTraction = (propertyCount ?? 0) >= 5 || (soldCount ?? 0) >= 3
-
-      if (hasRealTraction) {
-        setStats([
-          { value: String(propertyCount ?? 0),  suffix: '+', label: 'Properties Listed' },
-          { value: String(verifiedCount ?? 0),  suffix: '+', label: 'Verified Users' },
-          { value: 'AI',                        suffix: '',  label: 'Powered Matching' },
-          { value: String(soldCount ?? 0),      suffix: '',  label: 'Deals Closed' },
-        ])
-      } else {
-        setStats('mechanisms')
-      }
+      // Numbers stay hidden until the milestone in src/lib/homeStats.js is reached: a small
+      // count reads as "nobody uses this". Below it the page shows what the platform does.
+      const tiles = buildHomeStats({ properties: propertyCount, verified: verifiedCount, sold: soldCount })
+      setStats(tiles || 'mechanisms')
     } catch (err) {
       console.error('loadRealStats error:', err.message)
       // Fail gracefully -- mechanism badges, never fake or zero numbers

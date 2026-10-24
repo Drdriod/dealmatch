@@ -20,3 +20,10 @@ export function loadReferralSummary(userId) {
     supabase.from('loyalty_points').select('*').eq('user_id', userId).single(),
   ])
 }
+
+// Links the signed-in new account to the owner of a referral code (migration 20261024000000).
+// Returns { data, error } where data is one of: applied, already_set, too_late, invalid, self,
+// no_profile. Callers must not block sign-up on the result.
+export function applyReferralCode(code) {
+  return supabase.rpc('apply_referral_code', { p_code: code })
+}
