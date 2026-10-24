@@ -38,6 +38,7 @@ import { StaffTab } from './tabs/StaffTab'
 import { AnalyticsTab } from './tabs/AnalyticsTab'
 import { AgentScoresTab } from './tabs/AgentScoresTab'
 import { ComplaintsTab } from './tabs/ComplaintsTab'
+import { DisputesTab } from './tabs/DisputesTab'
 import { SettingsTab } from './tabs/SettingsTab'
 
 export default function AdminPage() {
@@ -135,6 +136,7 @@ export default function AdminPage() {
             <Route path="testimonials"            element={<TestimonialsTab/>}/>
             <Route path="staff"                   element={<StaffTab isSuperAdmin={isSuperAdmin}/>}/>
             <Route path="settings"                element={<SettingsTab isSuperAdmin={isSuperAdmin}/>}/>
+            <Route path="disputes"                element={<DisputesTab isAdmin userId={user?.id}/>}/>
             <Route path="analytics"               element={<AnalyticsTab/>}/>
           </Routes>
         </div>
