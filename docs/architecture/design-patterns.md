@@ -113,16 +113,19 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
    `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not
    introduced by these patterns.
 
-10. **Virtual-account payments are not retry-safe. Open.** `normalizeChargeEvent` in
-    `api/flutterwave-webhook.js` flips the virtual account to `paid` before the purpose
-    handler runs. If the handler then fails and the webhook answers 500, the retry finds the
-    account already `paid` and records the whole transfer as money to return ("Transfer
-    received after the payment was complete") instead of granting the item. Money is not
-    lost (it is on the refund list), but the item is not granted. The webhook now releases
-    its in-memory claim on failure, and the handler test pins that, but the retry cannot
-    reach a handler until the flip is undone. Fix options: undo the flip when the handler
-    fails, or treat "paid and no payments row" as an unfinished delivery and run the handler
-    again (every handler would have to be proven safe to repeat first).
+10. **Virtual-account payments are retry-safe. Done in code; needs the migration and a sandbox
+    test.** "Paid" and "fulfilled" are separate facts on `payment_virtual_accounts`
+    (`fulfilled_at`). A paid account that is not fulfilled is an unfinished delivery: the webhook
+    retry, the payer's "I have paid" check (`verify-payment`) and the background job
+    (`cron-reconcile-virtual-accounts`) all finish it through one path,
+    `src/lib/chargePipeline.js`, one runner at a time (a 5 minute lease). Each gateway charge is
+    counted once (`counted_charge_ids`), and money that arrives after an account expired is granted
+    or put on the refund list instead of being dropped. Handlers are safe to repeat because every
+    money write is conditional on the current status. Referral payout has no unique key, so it
+    runs only for the first run that records the payment; a database constraint is still open.
+    Needs `20261024020000_virtual_account_fulfilment.sql` applied (rolled-back dry run first) and,
+    for the 10 minute rhythm, the `CRON_SECRET` and `SITE_URL` GitHub secrets (see
+    `.github/workflows/reconcile-payments.yml`).
 11. **Nothing runs the tests or fitness checks automatically. Open.** There is no CI
     workflow; Vercel only builds. `npm run check` now exists. Adding a GitHub Actions
     workflow that runs it on each pull request is an owner decision.

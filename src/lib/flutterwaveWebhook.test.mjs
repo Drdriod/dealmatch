@@ -125,15 +125,18 @@ test('webhook: a failure answers 500 and releases the reference, so the retry is
     assert.equal(first.code, 500)
     assert.equal(tables.payments.length, 0)
 
-    // The virtual account was already flipped to paid by the first delivery. A retry only reaches the
-    // handler again once that flip is undone (see the open item in docs/architecture/design-patterns.md),
-    // so put the row back the way an undo would, and let the writes work.
-    Object.assign(tables.payment_virtual_accounts[0], { status: 'pending', paid_kobo: 0 })
+    // The first delivery flipped the account to paid, then the handler failed. The account is paid
+    // but not fulfilled, and its lease was given back, so the retry finishes it.
+    assert.equal(tables.payment_virtual_accounts[0].status, 'paid')
+    assert.equal(tables.payment_virtual_accounts[0].fulfilled_at ?? null, null)
     failRefundWrites = false
     const retry = await deliver(chargeId)
     assert.equal(retry.code, 200)
     // Without the release, the retry is answered "Duplicate webhook, skipping" and nothing is recorded.
     assert.equal(tables.payments.find((p) => p.reference === ref)?.status, 'unapplied')
     assert.equal(tables.payment_refunds.filter((r) => r.dedupe_key === 'unapplied:' + ref).length, 1)
+    // The retry was not mistaken for a second transfer: nothing was put on the refund list as overpaid.
+    assert.equal(tables.payment_refunds.filter((r) => r.reason === 'overpaid' && r.dedupe_key === 'charge:' + chargeId).length, 0)
+    assert.ok(tables.payment_virtual_accounts[0].fulfilled_at, 'the account is recorded as fulfilled')
   } finally { restore() }
 })

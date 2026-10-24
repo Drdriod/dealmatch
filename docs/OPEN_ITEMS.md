@@ -28,7 +28,7 @@ The UI, UX and database gaps against your wireframe specification are in `docs/F
 | # | Item | Evidence |
 |---|---|---|
 | B2 | **Apply the unapplied-money rule to the other purposes.** Only transaction escrow got it. Property escrow (`escrowPayment`, no amount check), hostel fee, unlock credits and hotel booking can still log `success` for money that was not applied | `chargePurposes.js` |
-| B3 | **Virtual-account payments are not retry-safe.** The account is marked paid before the handler runs, so a failed handler followed by a retry sends the whole transfer to the refund list instead of granting the item | design-patterns item 10 |
+| B3 | **Virtual-account payments retry-safety: done in code.** Needs migration `20261024020000` (dry run first), the two GitHub secrets, and a sandbox payment test. The "I have paid" button in the checkout screen is not built yet; its endpoint is | design-patterns item 10 |
 | B4 | End-to-end sandbox payment test. No local Supabase config, the Docker install failed earlier | Needs sandbox credentials from you |
 
 ### Medium

@@ -34,6 +34,8 @@ import { settlePayout } from '../src/lib/payoutSettlement.js'
 import { findDeletionBlockers, eraseAccountData, findIdentityStatus, saveIdentityHash } from '../src/data/accountRepository.js'
 import { sweepOrphanIdentityDocs, findDuePurges, recordPurgeFailure, markPurged } from '../src/data/identityDocsRepository.js'
 import { findVirtualAccountByReference, findCustomerIdForEmail, insertVirtualAccount, findPaymentStatus } from '../src/data/paymentVirtualAccountRepository.js'
+import { takeVerifySlot } from '../src/data/webhookRepository.js'
+import { verifyOwnPayment, reconcileVirtualAccounts } from '../src/lib/chargePipeline.js'
 import {
   findPendingPayouts, incrementPayoutAttempts, findPayoutTransaction, findVerifiedPayoutAccount,
   saveRecipientCode, saveTransactionPayoutRef, saveFailureReason, markTransactionPayoutFailed,
@@ -336,6 +338,58 @@ const jsonResources = {
       amountNaira: Number(row.expected_kobo) / 100,
       paidAt: row.paid_at,
     })
+  },
+
+  // "I have already paid" button. The payer asks us to look for their transfer instead of waiting
+  // for the webhook. The look-up is limited to the payer's own account and to one per 15 seconds,
+  // and it goes through the same pipeline as the webhook, so it can never grant twice.
+  async ['verify-payment'](req, res, supabase) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { user, error: authError } = await getAuthedUser(req, supabase)
+    if (authError) return res.status(401).json({ error: authError })
+
+    const reference = req.body?.reference
+    if (!reference || typeof reference !== 'string' || !/^[a-zA-Z0-9-]{6,42}$/.test(reference)) {
+      return res.status(400).json({ error: 'Invalid reference' })
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(503).json({ error: 'Payments are not configured' })
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+
+    const { data: row, error } = await findVirtualAccountByReference(svc, reference)
+    if (error) return res.status(500).json({ error: 'Could not load payment' })
+    if (!row || row.profile_id !== user.id) return res.status(404).json({ error: 'Payment not found' })
+
+    // Already finished: answer from our own record, no gateway call.
+    if (row.status === 'paid' && row.fulfilled_at) return res.status(200).json({ state: 'paid' })
+
+    const { data: slot } = await takeVerifySlot(svc, reference)
+    if (!slot || slot.length === 0) return res.status(429).json({ error: 'Please wait a few seconds before checking again', state: 'too_soon' })
+
+    try {
+      const result = await verifyOwnPayment(svc, row)
+      return res.status(200).json(result)
+    } catch (err) {
+      console.error('verify-payment failed:', err.message)
+      return res.status(502).json({ error: 'Could not check with the payment provider. Try again shortly.' })
+    }
+  },
+
+  // Finishes unfinished bank-transfer payments and finds credits whose webhook never arrived.
+  // Called by the scheduled GitHub Action every few minutes and by the daily Vercel cron.
+  // Gated by CRON_SECRET, like cron-process-payouts.
+  async ['cron-reconcile-virtual-accounts'](req, res) {
+    const cronSecret = process.env.CRON_SECRET
+    if (!cronSecret || req.headers.authorization !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(503).json({ error: 'Payments are not configured' })
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    try {
+      return res.status(200).json(await reconcileVirtualAccounts(svc))
+    } catch (err) {
+      console.error('cron-reconcile-virtual-accounts failed:', err.message)
+      return res.status(500).json({ error: 'Reconciliation failed' })
+    }
   },
 
   // Identity (ADR-009): the NIN/BVN is hashed here with a server-side key and only
