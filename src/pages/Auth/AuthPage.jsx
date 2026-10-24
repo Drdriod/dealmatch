@@ -4,6 +4,9 @@ import { ArrowLeft, Check, CheckCircle, Eye, EyeOff, Loader, Store, X, XCircle }
 import { supabase } from '@/lib/supabase'
 import { checkPhoneExists, checkUsernameExists, checkDeviceExists, checkSignupConflicts } from '@/data/signupRepository'
 import { upsertProfile } from '@/data/profileRepository'
+import { applyReferralCode } from '@/data/referralRepository'
+import PasswordRules, { isPasswordValid } from '@/components/auth/PasswordRules'
+import AuthBrandPanel from '@/components/auth/AuthBrandPanel'
 import { getDeviceFingerprint } from '@/lib/deviceFingerprint'
 import { analytics } from '@/lib/posthog'
 import toast from 'react-hot-toast'
@@ -124,36 +127,6 @@ function parseAuthError(message) {
 // call site for a rename alone.
 const parseSignInError = parseAuthError
 
-// ─── Password requirements ─────────────────────────────────────────────────────
-// Single source of truth for both the live checklist under the signup
-// field and the pre-submit validation -- so the two can never silently
-// drift out of sync with each other again.
-const PASSWORD_RULES = [
-  { id: 'length', label: 'At least 8 characters',        test: (p) => p.length >= 8 },
-  { id: 'upper',  label: 'One uppercase letter (A-Z)',    test: (p) => /[A-Z]/.test(p) },
-  { id: 'lower',  label: 'One lowercase letter (a-z)',    test: (p) => /[a-z]/.test(p) },
-  { id: 'number', label: 'One number (0-9)',              test: (p) => /[0-9]/.test(p) },
-  { id: 'symbol', label: 'One symbol (e.g. ! @ # $ %)',   test: (p) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?~`]/.test(p) },
-]
-const isPasswordValid = (password) => PASSWORD_RULES.every(r => r.test(password || ''))
-
-function PasswordChecklist({ password }) {
-  return (
-    <div className="mt-2 grid grid-cols-1 gap-1">
-      {PASSWORD_RULES.map(rule => {
-        const met = rule.test(password || '')
-        return (
-          <div key={rule.id} className="flex items-center gap-1.5 text-xs transition-colors"
-            style={{ color: met ? '#5C8060' : 'rgba(23,33,27,0.4)' }}>
-            {met ? <Check size={12} strokeWidth={3} /> : <span style={{ width:12, height:12, borderRadius:'50%', border:'1.5px solid currentColor', display:'inline-block', flexShrink:0 }} />}
-            {rule.label}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 // ─── Main AuthPage ────────────────────────────────────────────────────────────
 export default function AuthPage() {
   const [searchParams] = useSearchParams()
@@ -165,6 +138,7 @@ export default function AuthPage() {
   const navigate  = useNavigate()
   const [tab, setTab] = useState(params.get('tab') === 'signup' ? 'signup' : 'signin')
   const [showPass, setShowPass] = useState(false)
+  const [pwFocus,  setPwFocus]  = useState(false)
   const [loading,  setLoading]  = useState(false)
 
   // Surface auth-callback errors passed via URL query param
@@ -251,7 +225,7 @@ export default function AuthPage() {
         // Format check before hitting the server
         if (!/^[a-z0-9]{6,12}$/.test(clean)) {
           setFieldStatus(s => ({ ...s, inviteCode: 'invalid' }))
-          setFieldErrors(e => ({ ...e, inviteCode: 'Invite codes are 6–12 characters (letters and numbers only)' }))
+          setFieldErrors(e => ({ ...e, inviteCode: 'Referral codes are 6–12 characters (letters and numbers only)' }))
           return
         }
         // Use secure server-side API - rate-limited, never exposes user data
@@ -270,10 +244,10 @@ export default function AuthPage() {
           }
           if (data.valid) {
             setFieldStatus(s => ({ ...s, inviteCode: 'valid' }))
-            setFieldErrors(e => ({ ...e, inviteCode: `Invited by ${data.inviterName}` }))
+            setFieldErrors(e => ({ ...e, inviteCode: `Referred by ${data.inviterName}` }))
           } else {
             setFieldStatus(s => ({ ...s, inviteCode: 'invalid' }))
-            setFieldErrors(e => ({ ...e, inviteCode: data.error || 'This invite code is not valid.' }))
+            setFieldErrors(e => ({ ...e, inviteCode: data.error || 'This referral code is not valid.' }))
           }
         } catch {
           // Network error - don't block signup, just clear the field status
@@ -308,12 +282,12 @@ export default function AuthPage() {
     if (fieldStatus.email      === 'taken')   return toast.error('This email is already registered. Please sign in.')
     if (fieldStatus.phone      === 'taken')   return toast.error('This phone number is already linked to an account.')
     if (fieldStatus.username   === 'taken')   return toast.error('This username is already taken. Choose another.')
-    if (fieldStatus.inviteCode === 'invalid') return toast.error('The invite code you entered is not valid.')
-    if (fieldStatus.inviteCode === 'checking') return toast.error('Please wait - verifying invite code...')
+    if (fieldStatus.inviteCode === 'invalid') return toast.error('The referral code you entered is not valid.')
+    if (fieldStatus.inviteCode === 'checking') return toast.error('Please wait - checking referral code...')
     if (Object.values(fieldStatus).includes('checking')) return toast.error('Please wait - still checking your details...')
     // If user typed a code but it shows as null (never validated), validate it now
     if (form.inviteCode.trim() && fieldStatus.inviteCode === null) {
-      toast.error('Please wait for the invite code to be verified.')
+      toast.error('Please wait for the referral code to be checked.')
       checkField('inviteCode', form.inviteCode.trim())
       setLoading(false)
       return
@@ -402,6 +376,15 @@ export default function AuthPage() {
     }
   }
 
+  // Links this new account to the referral code they entered. Never blocks sign-up:
+  // the server decides (new account, no referrer yet, valid code) and a refusal is silent.
+  const linkReferral = async () => {
+    const code = (sessionStorage.getItem('dm_ref') || '').trim()
+    if (!code) return
+    try { await applyReferralCode(code) } catch { /* ignore */ }
+    sessionStorage.removeItem('dm_ref')
+  }
+
   // ─── OTP ────────────────────────────────────────────────────────
   const handleOtpChange = (i, val) => {
     if (!/^\d*$/.test(val)) return
@@ -424,6 +407,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.verifyOtp({ email: signupEmail, token: code, type: 'email' })
     setVerifying(false)
     if (error) return toast.error('Invalid or expired code. Try resending.')
+    await linkReferral()
     toast.success('Email confirmed! Welcome to DealMatch')
     navigate('/onboarding', { replace: true })
   }
@@ -525,63 +509,16 @@ export default function AuthPage() {
 
   // ─── Main ───────────────────────────────────────────────────────
   return (
-    <div style={{ backgroundColor:'#FAF3EA' }} className="min-h-screen flex">
-      {/* Left panel - desktop only. Real photography instead of a flat
-          gradient-on-navy block, reusing the same brand photos as the
-          homepage hero so this feels like the same product, not a
-          generic auth template bolted on afterward. */}
-      <div className="hidden lg:flex flex-1 flex-col justify-between p-12 relative overflow-hidden">
-        <img src="/home/hero-place-house.webp" alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ backgroundColor:'rgba(15,11,9,0.72)' }} />
-        <div className="absolute inset-0"
-          style={{ background:'radial-gradient(ellipse 80% 60% at 30% 60%, rgba(200,95,45,0.25) 0%, transparent 60%)' }} />
-        <Link to="/" className="flex items-center gap-2.5 font-display text-2xl font-black text-white relative z-10">
-          <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-8 w-auto" />
-          Deal<span style={{ color:'#C96A3A' }}>Match</span>
-        </Link>
-        <div className="relative z-10">
-          <p className="font-display text-5xl font-black text-white leading-tight mb-6">
-            Find a <em style={{ color:'#C85F2D' }}>verified place</em><br />or a <em style={{ color:'#C85F2D' }}>verified person.</em><br />Pay for protection first.
-          </p>
-          {[
-            'Places: ID plus proof of property, checked before anything goes live',
-            'Skilled People: ID plus proof of work - artisans, tutors, daily services',
-            'Your money stays protected until you confirm the deal',
-          ].map(text => (
-            <div key={text} className="flex items-center gap-3 mb-3">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor:'rgba(255,255,255,0.12)' }}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-              <p className="text-sm" style={{ color:'rgba(255,255,255,0.7)' }}>{text}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs relative z-10" style={{ color:'rgba(255,255,255,0.35)' }}>
-          © {new Date().getFullYear()} DealMatch. All rights reserved.
-        </p>
-      </div>
+    <div className="flex min-h-svh flex-col items-center justify-center bg-cream p-4 md:p-10">
+      <div className="w-full max-w-sm md:max-w-4xl">
+        <div className="grid rounded-3xl border border-line bg-white shadow-soft md:grid-cols-2">
+          <div className="p-6 sm:p-8">
+            <Link to="/" className="md:hidden mb-5 flex items-center gap-2 font-display text-xl text-deep">
+              <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />
+              <span>Deal<span className="text-terracotta">Match</span></span>
+            </Link>
 
-      {/* Right panel - top-aligned on mobile (a form this long shouldn't
-          vertically center: on a phone screen that pushes the entire
-          card into empty space above and below it, which is what made
-          this look broken rather than deliberate). Only centers once
-          there's a matching visual on a wide desktop screen. */}
-      <div className="flex-1 flex flex-col items-center px-5 sm:px-6 pt-8 pb-10 lg:justify-center lg:pt-12 lg:pb-12 overflow-y-auto">
-        <div className="w-full max-w-md">
-          <Link to="/" className="lg:hidden flex items-center gap-2 mb-5 font-display text-xl font-black" style={{ color:'#1A1210' }}>
-            <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />
-            Deal<span style={{ color:'#C96A3A' }}>Match</span>
-          </Link>
-
-          {/* Elevated card instead of the form floating directly on the
-              page background - one clear surface, softly lifted. */}
-          <div className="rounded-3xl p-6 sm:p-8"
-            style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(23,33,27,0.07)', border:'1px solid #F0E5D8' }}>
-
-            <Link to="/" className="hidden lg:inline-flex items-center gap-2 text-sm mb-6 transition-colors"
+            <Link to="/" className="inline-flex items-center gap-2 text-sm mb-6 transition-colors"
               style={{ color:'rgba(23,33,27,0.4)' }}>
               <ArrowLeft size={14} /> Back to home
             </Link>
@@ -696,13 +633,13 @@ export default function AuthPage() {
                 error={fieldErrors.username}
               />
 
-              {/* Referral / Invite Code */}
+              {/* Referral code. Saved to the account after the email is confirmed (apply_referral_code). */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
                   style={{ color:'rgba(23,33,27,0.5)' }}>
-                  Invite Code{' '}
+                  Referral code{' '}
                   <span style={{ color:'rgba(23,33,27,0.3)', fontWeight:400, textTransform:'none', fontSize:11 }}>
-                    (optional - from a friend's link)
+                    (optional)
                   </span>
                 </label>
                 <div className="relative">
@@ -710,6 +647,7 @@ export default function AuthPage() {
                     className="input w-full pr-10"
                     type="text"
                     placeholder="e.g. a3f8bc12"
+                    name="referral_code"
                     value={form.inviteCode}
                     onChange={e => {
                       const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
@@ -759,33 +697,40 @@ export default function AuthPage() {
                 )}
                 {!fieldErrors.inviteCode && !form.inviteCode && (
                   <p className="text-xs mt-1" style={{ color:'rgba(23,33,27,0.35)' }}>
-                    Have a friend's invite link? Enter their code here.
+                    Did someone refer you? Enter their referral code.
                   </p>
                 )}
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
+              {/* Password. The rules open as an animated popup while the field has focus. */}
+              <div
+                className="relative"
+                onFocus={() => setPwFocus(true)}
+                onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPwFocus(false) }}
+              >
+                <label htmlFor="signup-password" className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
                   style={{ color:'rgba(23,33,27,0.5)' }}>
                   Password <span style={{ color:'#C85F2D' }}>*</span>
                 </label>
                 <div className="relative">
                   <input
+                    id="signup-password"
                     className="input w-full pr-10"
                     type={showPass ? 'text' : 'password'}
-                    placeholder="Min. 8 characters"
+                    placeholder="Create a password"
                     value={form.password}
                     onChange={setField('password')}
                     autoComplete="new-password"
+                    aria-describedby="password-rules"
                     style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
+                    aria-label={showPass ? 'Hide password' : 'Show password'}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <PasswordChecklist password={form.password} />
+                <PasswordRules id="password-rules" password={form.password} open={pwFocus} />
               </div>
 
               <button type="submit" disabled={
@@ -802,12 +747,6 @@ export default function AuthPage() {
                  'Create Account'}
               </button>
 
-              <p className="text-xs text-center" style={{ color:'rgba(23,33,27,0.4)' }}>
-                By signing up you agree to our{' '}
-                <Link to="/terms" style={{ color:'#C85F2D' }} className="font-semibold hover:underline">Terms</Link>
-                {' '}and{' '}
-                <Link to="/privacy" style={{ color:'#C85F2D' }} className="font-semibold hover:underline">Privacy Policy</Link>
-              </p>
             </form>
 
           ) : (
@@ -853,10 +792,15 @@ export default function AuthPage() {
           )}
           </div>
 
-          <p className="text-center text-xs mt-6" style={{ color:'rgba(23,33,27,0.35)' }}>
-            © {new Date().getFullYear()} DealMatch Technology Limited
-          </p>
+          <AuthBrandPanel />
         </div>
+
+        <p className="mt-5 px-4 text-center text-xs text-deep/50">
+          By continuing you agree to our{' '}
+          <Link to="/terms" className="font-semibold text-terracotta hover:underline">Terms</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="font-semibold text-terracotta hover:underline">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   )

@@ -2,9 +2,19 @@ import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchOnboardingState, upsertProfile } from '@/data/profileRepository'
+import { applyReferralCode } from '@/data/referralRepository'
 import { Check, Home } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+
+// Links a brand-new account to the referral code kept from the signup page. The server decides
+// (new account, no referrer yet, valid code); a refusal is silent and never blocks sign-in.
+async function linkReferral() {
+  const code = (sessionStorage.getItem('dm_ref') || '').trim()
+  if (!code) return
+  try { await applyReferralCode(code) } catch { /* ignore */ }
+  sessionStorage.removeItem('dm_ref')
+}
 
 export default function AuthCallback() {
   const navigate  = useNavigate()
@@ -63,6 +73,8 @@ export default function AuthCallback() {
           return
         }
 
+        if (profile) await linkReferral()
+
         if (!profile) {
           // Brand-new OAuth / magic-link user - bootstrap a profile
           const { error: upsertError } = await upsertProfile({
@@ -79,6 +91,7 @@ export default function AuthCallback() {
             navigate('/auth?error=profile_creation_failed', { replace: true })
             return
           }
+          await linkReferral()
           toast.success('Account created! Welcome to DealMatch.')
           navigate('/onboarding', { replace: true })
           return
