@@ -1,7 +1,7 @@
 // Run with: node --test src/lib/dashboardModels.test.mjs
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { weeklyCounts, buildActivity, SPARK_WEEKS } from './dashboardModels.js'
+import { weeklyCounts, buildActivity, requestLink, SPARK_WEEKS } from './dashboardModels.js'
 
 const NOW = Date.parse('2026-10-19T12:00:00Z')
 const daysAgo = (d) => new Date(NOW - d * 864e5).toISOString()
@@ -43,4 +43,10 @@ test('activity is capped at the limit', () => {
 
 test('missing parts are treated as empty', () => {
   assert.deepEqual(buildActivity({}), [])
+})
+
+test('a job request row opens its protected transaction; other requests have no link yet', () => {
+  assert.equal(requestLink({ request_type: 'job', request_id: '42' }), '/transactions/transaction%3A42')
+  assert.equal(requestLink({ request_type: 'rental', request_id: 'abc' }), null)
+  assert.equal(requestLink({ request_type: 'job', request_id: null }), null)
 })

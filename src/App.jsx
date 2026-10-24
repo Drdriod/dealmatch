@@ -58,6 +58,15 @@ const AvailabilityPage      = lazyWithRetry(() => import('@/pages/Availability/A
 const PrivacyPage           = lazyWithRetry(() => import('@/pages/Legal/PrivacyPage'))
 const TermsPage             = lazyWithRetry(() => import('@/pages/Legal/TermsPage'))
 const DeleteAccountPage     = lazyWithRetry(() => import('@/pages/Account/DeleteAccountPage'))
+const ProtectionPage         = lazyWithRetry(() => import('@/pages/Trust/ProtectionPage'))
+const HelpPage               = lazyWithRetry(() => import('@/pages/Trust/HelpPage'))
+const RulesPage              = lazyWithRetry(() => import('@/pages/Trust/RulesPage'))
+const ContactPage            = lazyWithRetry(() => import('@/pages/Trust/ContactPage'))
+const AboutPage              = lazyWithRetry(() => import('@/pages/Trust/AboutPage'))
+const TransactionDetailPage  = lazyWithRetry(() => import('@/pages/TransactionDetailPage'))
+const DisputeNewPage         = lazyWithRetry(() => import('@/pages/DisputeNewPage'))
+const DisputeCasePage        = lazyWithRetry(() => import('@/pages/DisputeCasePage'))
+const ProviderWorkspacePage  = lazyWithRetry(() => import('@/pages/Provider/ProviderWorkspacePage'))
 const MortgagePage          = lazyWithRetry(() => import('@/pages/Mortgage/MortgagePage'))
 const VerificationPage      = lazyWithRetry(() => import('@/pages/Verification/VerificationPage'))
 const MessagesPage          = lazyWithRetry(() => import('@/pages/Messages/MessagesPage'))
@@ -576,6 +585,88 @@ function AnimatedRoutes() {
             <AppShell showFooter={false}>
               <Suspense fallback={<PageSkeleton />}>
                 <PageTransition><ManageListingsPage /></PageTransition>
+              </Suspense>
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        {/* ── Trust and help (public) ───────────────── */}
+        <Route path="/protection" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><ProtectionPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/help" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><HelpPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/rules" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><RulesPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/contact" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><ContactPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        <Route path="/about" element={
+          <AppShell>
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition><AboutPage /></PageTransition>
+            </Suspense>
+          </AppShell>
+        } />
+
+        {/* ── Protected transactions, disputes, provider workspace (signed in) ── */}
+        <Route path="/transactions/:ref" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <AppShell showFooter={false}>
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition><TransactionDetailPage /></PageTransition>
+              </Suspense>
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/disputes/new" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <AppShell showFooter={false}>
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition><DisputeNewPage /></PageTransition>
+              </Suspense>
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/disputes/:id" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <AppShell showFooter={false}>
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition><DisputeCasePage /></PageTransition>
+              </Suspense>
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/provider" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <AppShell showFooter={false}>
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition><ProviderWorkspacePage /></PageTransition>
               </Suspense>
             </AppShell>
           </ProtectedRoute>

@@ -17,6 +17,12 @@ export function weeklyCounts(rows, now = Date.now(), weeks = SPARK_WEEKS) {
 
 // The "Recent activity" feed: the person's listings (properties and category listings) and
 // requests, newest first, at most `limit`.
+// UX-8: a job request is a protected transaction, so its row opens the transaction page.
+// The ref format matches the protected_transactions view ('transaction:' + id).
+export function requestLink(r) {
+  return r.request_type === 'job' && r.request_id ? `/transactions/${encodeURIComponent(`transaction:${r.request_id}`)}` : null
+}
+
 export function buildActivity({ properties = [], categoryListings = [], requests = [] }, limit = 6) {
   const listingActivity = [
     ...properties.map((p) => ({
@@ -31,7 +37,7 @@ export function buildActivity({ properties = [], categoryListings = [], requests
   ]
   const requestActivity = requests.map((r) => ({
     kind: 'request', id: r.request_id, title: r.title, sub: r.request_type,
-    status: r.status, at: r.created_at, link: null,
+    status: r.status, at: r.created_at, link: requestLink(r),
   }))
   return [...listingActivity, ...requestActivity]
     .sort((a, b) => new Date(b.at) - new Date(a.at))
