@@ -21,133 +21,9 @@ export const config = { api: { bodyParser: false } }
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { paymentGateway } from '../src/lib/paymentGateway.js'
-import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
-import { recordMoneyToReturn, runChargePurpose } from '../src/lib/chargePurposes.js'
-import {
-  findInviterOf, insertReferralTransaction, addLoyaltyPoints, upsertPaymentRecord,
-  findVirtualAccountByNumber, markVirtualAccountUnderpaid, markVirtualAccountPaid,
-  resolveUnderpaidRefunds, findPayoutByGatewayRef,
-} from '../src/data/webhookRepository.js'
-
-// ── Referral configuration (kept in sync with src/lib/referral.js) ──
-const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
-const FULL_CHAIN_THRESHOLD = 50000
-const FLAT_TIER_THRESHOLD  = 5000
-const FLAT_REFERRAL_AMOUNT = 500
-const POINTS_PER_LEVEL = { 1: 15, 2: 10, 3: 5, 4: 60, 5: 40, 6: 25, 7: 15, 8: 10, 9: 5, 10: 2 }
-const POINTS_DEFAULT = 2
-
-const getReferralTier = (dmCommission) => {
-  if (dmCommission >= FULL_CHAIN_THRESHOLD) return 'full'
-  if (dmCommission >= FLAT_TIER_THRESHOLD)  return 'flat'
-  return 'points_only'
-}
-
-const calcCashReferral = (dmCommission, level) => {
-  if (level > 3) return 0
-  const tier = getReferralTier(dmCommission)
-  if (tier === 'full') {
-    const rate = CASH_RATES[level]
-    return rate ? Math.round(dmCommission * rate) : 0
-  }
-  if (tier === 'flat') return FLAT_REFERRAL_AMOUNT
-  return 0
-}
-
-const calcPoints = (level) => POINTS_PER_LEVEL[level] || POINTS_DEFAULT
-
-// Map payment_type metadata to a DealMatch transaction type + fee rate
-//
-// 'transaction_escrow' (ADR-009 marketplace jobs) is deliberately NOT in
-// this map. Architecture v3 Section 4.3 is explicit that the DealMatch
-// commission rate for marketplace transactions is a separate business
-// decision still pending -- adding a feeRate here would mean inventing
-// a number nobody has approved yet. Once a rate is decided, add it here
-// and referral payout + commission capture will work the same way it
-// does for every other type. Until then, escrow funding still works
-// (see the transaction_escrow case below), it just doesn't trigger
-// referral payout or set transactions.commission_rate_applied.
-const TYPE_MAP = {
-  property_purchase:         { txnType: 'property_sale', feeRate: 0.015 },
-  rental:                    { txnType: 'rental',         feeRate: 0.03  },
-  rental_listing_fee:        { txnType: 'rental',         feeRate: 1.0   }, // flat fee = full amount is the commission
-  hotel_booking:             { txnType: 'hotel',          feeRate: 0.05  },
-  escrow_payment:            { txnType: 'escrow',         feeRate: 0.03  },
-  professional_subscription: { txnType: 'subscription',   feeRate: 1.0   }, // flat fee = full amount is the commission
-}
-
-/**
- * Walk the referral chain for a user and pay out cash + points
- * automatically, creating a notification for every earner along the way.
- */
-async function processReferralChain(supabase, buyerUserId, dmCommission, transactionId, txnType) {
-  if (!buyerUserId || !dmCommission || dmCommission <= 0) return
-
-  const chain = []
-  let currentId = buyerUserId
-  let level = 1
-  const seen = new Set([buyerUserId]) // prevents self-referral / circular invite loops from paying out
-
-  while (currentId && level <= 10) {
-    const { data } = await findInviterOf(supabase, currentId)
-
-    if (!data?.invited_by) break
-    if (seen.has(data.invited_by)) break // would be a self-referral or a loop - stop walking
-    seen.add(data.invited_by)
-    chain.push({ userId: data.invited_by, level })
-    currentId = data.invited_by
-    level++
-  }
-
-  if (!chain.length) return
-
-  const tier = getReferralTier(dmCommission)
-
-  for (const { userId, level: lvl } of chain) {
-    if (lvl <= 3 && tier !== 'points_only') {
-      const amount = calcCashReferral(dmCommission, lvl)
-      if (amount <= 0) continue
-
-      const { error } = await insertReferralTransaction(supabase, {
-        referrer_id:      userId,
-        buyer_id:         buyerUserId,
-        transaction_id:   transactionId,
-        transaction_type: txnType,
-        dm_commission:    dmCommission,
-        referral_level:   lvl,
-        payout_type:      'cash',
-        referral_earning: amount,
-        status:           'pending',
-        created_at:       new Date().toISOString(),
-      })
-
-      if (!error) {
-        await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
-      }
-    } else {
-      const points = calcPoints(lvl)
-
-      await addLoyaltyPoints(supabase, userId, points)
-
-      await insertReferralTransaction(supabase, {
-        referrer_id:      userId,
-        buyer_id:         buyerUserId,
-        transaction_id:   transactionId,
-        transaction_type: txnType,
-        dm_commission:    dmCommission,
-        referral_level:   lvl,
-        payout_type:      'points',
-        points_awarded:   points,
-        referral_earning: 0,
-        status:           'confirmed',
-        created_at:       new Date().toISOString(),
-      })
-
-      await insertNotification(supabase, 'referral_points', userId, { points, level: lvl })
-    }
-  }
-}
+import { creditToEvent, fulfilEvent } from '../src/lib/chargePipeline.js'
+import { findPayoutByGatewayRef } from '../src/data/webhookRepository.js'
 
 // ✅ SECURITY: timing-safe check of the flutterwave-signature header
 // (HMAC-SHA256 base64 over the raw body, keyed with the secret hash)
@@ -172,66 +48,12 @@ function getServiceClient() {
   })
 }
 
-// A customer paid by bank transfer into one of our virtual accounts.
-// Re-fetch the charge, match it to our row by account number, add it to what
-// was already received, and grant only once the full price is in. The amount
-// returned is always the PRICE (never what was received), so the checks below
-// compare like with like.
+// A customer paid by bank transfer into one of our virtual accounts. Re-fetch the charge from the
+// gateway (the webhook body is not trusted), then hand it to the shared pipeline, which matches it
+// to our row, counts it once, and says whether the item is now to be granted.
 async function normalizeChargeEvent(eventData) {
   const charge = await paymentGateway.getCharge(eventData.id)
-  if (charge?.status !== 'succeeded' || charge?.currency !== 'NGN') return null
-
-  const accountNumber = charge.payment_method_details?.bank_transfer?.virtual_account_number
-  if (!accountNumber) return null // card or other method: not a DealMatch virtual account
-
-  const svc = getServiceClient()
-  const { data: row } = await findVirtualAccountByNumber(svc, accountNumber)
-  if (!row) {
-    console.warn('Credit to unknown virtual account:', accountNumber)
-    return null
-  }
-
-  const paidKobo = Math.round(Number(charge.amount) * 100)
-  const expectedKobo = Number(row.expected_kobo)
-
-  // A transfer into an account that is already paid: never granted twice. The
-  // money is returned to the payer.
-  if (row.status === 'paid') {
-    await recordMoneyToReturn(svc, row, paidKobo, 'overpaid', 'Transfer received after the payment was complete', 'charge:' + charge.id)
-    return null
-  }
-
-  // Running total for this account. A second transfer tops up a short payment.
-  const totalKobo = Number(row.paid_kobo || 0) + paidKobo
-  if (totalKobo < expectedKobo) {
-    await markVirtualAccountUnderpaid(svc, row.reference, totalKobo)
-    await recordMoneyToReturn(svc, row, totalKobo, 'underpaid', 'Part payment held until topped up or returned', 'short:' + row.reference)
-    console.warn('Underpaid virtual account payment:', row.reference, totalKobo, expectedKobo)
-    return null
-  }
-
-  // Conditional update: only the first delivery of the completing credit flips the row
-  const { data: flipped } = await markVirtualAccountPaid(svc, row.reference, totalKobo)
-  if (!flipped || flipped.length === 0) return null // already processed
-
-  // The short payment is now complete, so it is no longer owed back.
-  if (Number(row.paid_kobo || 0) > 0) {
-    await resolveUnderpaidRefunds(svc, row.reference)
-  }
-  const excessKobo = totalKobo - expectedKobo
-  if (excessKobo > 0) {
-    await recordMoneyToReturn(svc, row, excessKobo, 'overpaid', 'Paid more than the price', 'charge:' + charge.id)
-  }
-
-  return {
-    event: 'charge.success',
-    data: {
-      reference: row.reference,
-      amount: expectedKobo, // the price the item costs, which is what was granted
-      customer: { email: row.email },
-      metadata: row.metadata || {},
-    },
-  }
+  return creditToEvent(getServiceClient(), charge)
 }
 
 // A payout transfer finished. Re-fetch it and map to our payout reference.
@@ -373,86 +195,10 @@ export default async function handler(req, res) {
         // unref: this timer must never keep the process alive (it would stall a test run for a day).
         setTimeout(() => processedRefs.delete(reference), 86400000).unref?.()
 
-        const amountNgn = amount / 100
-        let escrowRow = null // set by the escrow_payment handler, used for the referral step
-
-        // Activate in Supabase using service role
-        if (process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const supabase = createClient(
-            process.env.VITE_SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY,
-            { auth: { autoRefreshToken: false, persistSession: false } }
-          )
-
-          // Purpose handlers live in src/lib/chargePurposes.js (registry).
-          const purpose = await runChargePurpose(supabase, { reference, amount, customer, metadata })
-          escrowRow = purpose.escrowRow || null
-          if (purpose.stop) break
-
-          // Log every charge.success to payments table
-          // Column names match the live payments schema exactly.
-          await upsertPaymentRecord(supabase, {
-            reference,
-            amount:            amountNgn,
-            currency:          'NGN',
-            professional_type: metadata?.professional_type || null, // live col exists
-            plan_type:         metadata?.plan_type || null,          // live col exists
-            email:             customer.email,
-            // 'success' unless the handler says the money was not applied (see chargePurposes.js).
-            // Admin revenue totals count 'success' only.
-            status:            purpose.paymentStatus || 'success',
-            user_id:           metadata?.user_id || null,
-            // payment_type and verified_at do NOT exist in live schema - omitted
-          })
-
-          // Money that was not applied to anything is on the refund list and earns no referral.
-          if (purpose.paymentStatus === 'unapplied') break
-
-          // ── AUTOMATIC REFERRAL PAYOUT ──────────────────────────────
-          // Triggers the moment real money lands - no manual lookup,
-          // no admin click. Every earner in the chain gets paid and
-          // notified automatically.
-          try {
-            const mapping = TYPE_MAP[metadata?.type]
-            // ✅ SECURITY FIX: never trust metadata.user_id or metadata.platform_fee
-            // directly - both are attacker-controlled at Flutterwave widget init.
-            // For escrow, only proceed if we resolved a real DB row above
-            // (escrowRow) and use ITS tenant_id + platform_fee. For every
-            // other type, dmCommission is derived from amountNgn, which is
-            // the actual amount Flutterwave charged (verified via HMAC
-            // signature above) - not attacker-suppliable.
-            const referralUserId = metadata?.type === 'escrow_payment'
-              ? escrowRow?.tenant_id
-              : metadata?.user_id
-
-            if (mapping && referralUserId) {
-              const dmCommission = metadata?.type === 'escrow_payment'
-                ? Number(escrowRow?.platform_amount) || 0   // trusted DB value only
-                : metadata?.type === 'hotel_booking'
-                  ? Number(metadata.platform_fee_ngn) || 0  // the fee the server priced, not a rate here
-                : mapping.feeRate === 1.0
-                  ? amountNgn                       // flat-fee products: the whole amount IS the commission
-                  : amountNgn * mapping.feeRate      // percentage products: commission is a cut of the deal
-
-              if (dmCommission > 0) {
-                await processReferralChain(
-                  supabase,
-                  referralUserId,
-                  dmCommission,
-                  reference,
-                  mapping.txnType
-                )
-              }
-            }
-            // transaction_escrow is intentionally absent from TYPE_MAP
-            // (see comment above it), so it falls through here with no
-            // mapping and no referral payout -- correct for now, revisit
-            // once a marketplace commission rate is decided.
-          } catch (refErr) {
-            // Referral payout failures must never block payment confirmation
-            console.error('Referral automation failed (non-fatal):', refErr.message)
-          }
-        }
+        // Everything a confirmed payment does lives in src/lib/chargePipeline.js, shared with the
+        // "I have paid" button and the background job. A failure throws and answers 500 below; the
+        // pipeline has already given the account's lease back so the retry can finish it.
+        await fulfilEvent(getServiceClient(), event)
         break
       }
 

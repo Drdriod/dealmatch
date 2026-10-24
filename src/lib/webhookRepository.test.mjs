@@ -2,7 +2,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  addLoyaltyPoints, markVirtualAccountPaid, findPayoutByGatewayRef, findInviterOf,
+  addLoyaltyPoints, markVirtualAccountPaid, markVirtualAccountUnderpaid, claimVirtualAccountFulfilment,
+  markVirtualAccountFulfilled, takeVerifySlot, findPayoutByGatewayRef, findInviterOf,
 } from '../data/webhookRepository.js'
 import { fakeSupabase } from './testing/fakeSupabase.mjs'
 
@@ -44,13 +45,51 @@ test('a balance changed between read and write is re-read, not overwritten', asy
 })
 
 test('a virtual account flips to paid once; a repeat delivery changes nothing', async () => {
-  const tables = { payment_virtual_accounts: [{ reference: 'va-1', status: 'pending', paid_kobo: 0 }] }
+  const tables = { payment_virtual_accounts: [{ reference: 'va-1', status: 'pending', paid_kobo: null }] }
   const svc = fakeSupabase(tables)
-  const first = await markVirtualAccountPaid(svc, 'va-1', 500000)
+  const row = { reference: 'va-1', status: 'pending', paid_kobo: null } // what the first delivery read
+  const first = await markVirtualAccountPaid(svc, row, 500000, ['c1'], 'c1')
   assert.equal(first.data.length, 1)
   assert.equal(tables.payment_virtual_accounts[0].status, 'paid')
-  const second = await markVirtualAccountPaid(svc, 'va-1', 500000)
+  assert.equal(tables.payment_virtual_accounts[0].completing_charge_id, 'c1')
+  const second = await markVirtualAccountPaid(svc, row, 500000, ['c1'], 'c1')
   assert.equal(second.data.length, 0)
+})
+
+test('a write that read a stale total changes nothing, so two deliveries cannot both add to it', async () => {
+  const tables = { payment_virtual_accounts: [{ reference: 'va-2', status: 'underpaid', paid_kobo: 200000 }] }
+  const svc = fakeSupabase(tables)
+  const stale = { reference: 'va-2', status: 'underpaid', paid_kobo: 0 }
+  assert.equal((await markVirtualAccountUnderpaid(svc, stale, 100000, ['x'])).data.length, 0)
+  assert.equal(tables.payment_virtual_accounts[0].paid_kobo, 200000)
+})
+
+test('an expired account keeps its status when a short payment is recorded', async () => {
+  const tables = { payment_virtual_accounts: [{ reference: 'va-3', status: 'expired', paid_kobo: null }] }
+  const svc = fakeSupabase(tables)
+  await markVirtualAccountUnderpaid(svc, { reference: 'va-3', status: 'expired', paid_kobo: null }, 100000, ['x'])
+  assert.equal(tables.payment_virtual_accounts[0].status, 'expired')
+  assert.equal(tables.payment_virtual_accounts[0].paid_kobo, 100000)
+})
+
+test('a fulfilment lease is taken by one runner, and taken over only after it expires', async () => {
+  const tables = { payment_virtual_accounts: [{ reference: 'va-4', status: 'paid', fulfilled_at: null, fulfilment_claimed_at: null }] }
+  const svc = fakeSupabase(tables)
+  const t0 = Date.parse('2026-10-22T10:00:00Z')
+  assert.equal((await claimVirtualAccountFulfilment(svc, 'va-4', { now: t0 })).data.length, 1)
+  assert.equal((await claimVirtualAccountFulfilment(svc, 'va-4', { now: t0 + 60e3 })).data.length, 0)
+  assert.equal((await claimVirtualAccountFulfilment(svc, 'va-4', { now: t0 + 301e3 })).data.length, 1)
+  await markVirtualAccountFulfilled(svc, 'va-4')
+  assert.equal((await claimVirtualAccountFulfilment(svc, 'va-4', { now: t0 + 900e3 })).data.length, 0)
+})
+
+test('the "I have paid" lookup is limited to one per account every 15 seconds', async () => {
+  const tables = { payment_virtual_accounts: [{ reference: 'va-5', status: 'pending', last_verify_at: null }] }
+  const svc = fakeSupabase(tables)
+  const t0 = Date.parse('2026-10-22T10:00:00Z')
+  assert.equal((await takeVerifySlot(svc, 'va-5', { now: t0 })).data.length, 1)
+  assert.equal((await takeVerifySlot(svc, 'va-5', { now: t0 + 5e3 })).data.length, 0)
+  assert.equal((await takeVerifySlot(svc, 'va-5', { now: t0 + 16e3 })).data.length, 1)
 })
 
 test('a transfer success only matches a row still processing; a failure matches any status', async () => {

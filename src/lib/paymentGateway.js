@@ -17,6 +17,10 @@ export function createPaymentGateway(client = defaultClient) {
     getCharge: (id) =>
       client('GET', `/charges/${encodeURIComponent(id)}`),
 
+    // Newest charges first. Only page and limit are documented; the caller filters the rest itself.
+    listCharges: ({ page = 1, limit = 100 } = {}) =>
+      client('GET', `/charges?page=${Number(page)}&limit=${Number(limit)}`),
+
     getTransfer: (id) =>
       client('GET', `/transfers/${encodeURIComponent(id)}`),
 

@@ -1,0 +1,46 @@
+# Every 10 minutes, asks the live site to finish any bank-transfer payment that did not complete
+# (a webhook that failed, or never arrived) and to look for transfers it has not seen.
+#
+# Why this exists: the Vercel Hobby plan runs a scheduled job once a day at most. This file gives
+# the same job a 10 minute rhythm without changing plan. GitHub may start a scheduled run a few
+# minutes late, which is fine here: the job is safe to run at any time and as often as you like.
+#
+# One-time setup (Repository, Settings, Secrets and variables, Actions):
+#   CRON_SECRET  the same value as the CRON_SECRET environment variable in Vercel
+#   SITE_URL     https://dealmatch.com.ng   (no trailing slash)
+# Until both exist, the job skips itself and reports that it did.
+name: Reconcile payments
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: reconcile-payments
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask the site to reconcile
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$SITE_URL" ]; then
+            echo "CRON_SECRET or SITE_URL is not set in GitHub secrets. Skipping."
+            exit 0
+          fi
+          status=$(curl --silent --show-error --max-time 120 \
+            --output response.json --write-out '%{http_code}' \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "${SITE_URL}/api/platform?resource=cron-reconcile-virtual-accounts")
+          echo "HTTP ${status}"
+          cat response.json
+          echo
+          [ "$status" = "200" ]
