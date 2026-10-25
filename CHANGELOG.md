@@ -1,5 +1,16 @@
 # DealMatch - Database Security Audit and Hardening (October 2026)
 
+## Unreleased - 25 October 2026
+
+- Disputes and protected transactions: terms snapshot at funding, the `protected_transactions` view, append-only transaction and dispute logs, `open_dispute`, `add_dispute_note`, `decide_dispute` (a decision is recorded; money after a decision is still moved by staff), private `dispute-evidence` bucket (migration `20261022000000`). Screens: transaction detail, report a problem, case page, admin Disputes tab, trust pages (About, Contact, Help, Protection, Rules).
+- Referral codes entered at sign-up are now saved (`apply_referral_code`, migration `20261024000000`). New sign-in page with the animated password rules and referral box.
+- Virtual-account payments are retry-safe: paid and fulfilled are separate, one shared charge pipeline, a reconcile job every 10 minutes (GitHub Action) and an "I have already paid" button (migration `20261024020000`).
+- Money that is taken but not applied goes on the refund list for every payment purpose, not only job escrow; it is logged as `unapplied` and earns no referral.
+- First load: the Sentry SDK loads after the first paint (main download 220 KB to 104 KB). Sentry receives only the account id.
+- CI: `npm run check` and the build run on every pull request (job `check`).
+- Security: logged-out visitors can no longer read ownerless professional applications (migration `20261025020000`); staff-only functions are no longer callable by logged-out visitors (migration `20261025030000`).
+- Category pages: `properties.category_id` is filled from the old `category` word by a trigger (migration `20261025010000`). Three missing foreign-key indexes added (migration `20261025000000`).
+
 ## Unreleased - Flutterwave V4
 
 - Collections: each payment gets a Flutterwave V4 dynamic virtual account (bank transfer). The webhook marks it paid by account number and checks the amount against the expected amount. The V3 inline popup and `/api/payments/verify` are removed.

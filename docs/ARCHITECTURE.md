@@ -195,11 +195,11 @@ Full record: `docs/adr/ADR-010-patterns-and-payment-boundaries.md` and `docs/arc
 **Structural and behavioural rules now in force:**
 
 - Adapter for Flutterwave (`src/lib/paymentGateway.js`); check 4 blocks raw paths elsewhere.
-- One state table for payouts (`src/lib/payoutStates.js`), mirrored in SQL (migration 17, pending owner approval) and tested against it.
+- One state table for payouts (`src/lib/payoutStates.js`), mirrored in SQL (migration 17, applied) and tested against it.
 - Registry for payment purposes (`src/lib/paymentPurposes.js`); unknown purposes are refused.
 - Strategy table for transfer outcomes in the webhook.
 - Factory for notifications (`src/lib/notificationFactory.js`); check 5 blocks inline inserts.
-- Repositories in `src/data/` for Wallet, Referral, Notifications and Monetisation; check 6 is a ratchet on direct database calls (baseline 256 in 43 files).
+- Repositories in `src/data/` for Wallet, Referral, Notifications and Monetisation; check 6 is a ratchet on direct database calls (baseline 0: every call is in a repository).
 
 **Efficiency findings (measured, not yet acted on unless noted):**
 
@@ -210,4 +210,4 @@ Full record: `docs/adr/ADR-010-patterns-and-payment-boundaries.md` and `docs/arc
 - 38 `select('*')` queries. Narrow the most-used ones first (feeds, dashboards).
 - Serverless functions: 10 of 11 budget (the Hobby limit is 12).
 
-**Still open:** payout state guard (migration 17) needs owner approval; the three pre-existing fitness violations; the remaining repository work listed in `design-patterns.md`.
+**Still open:** see `docs/OPEN_ITEMS.md`. The payout state guard (migration 17) and the three older fitness violations are done.
