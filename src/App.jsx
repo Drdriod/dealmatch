@@ -28,8 +28,8 @@ const DashboardPage         = lazyWithRetry(() => import('@/pages/Dashboard/Dash
 const BrowsePage            = lazyWithRetry(() => import('@/pages/Browse/BrowsePage'))
 const MatchesPage           = lazyWithRetry(() => import('@/pages/Matches/MatchesPage'))
 const PropertyPage          = lazyWithRetry(() => import('@/pages/Property/PropertyPage'))
-// NOTE: ProfessionalsPage (legacy Agents/Surveyors/Inspectors/Valuers browse,
-// with the retired N25,000/month banner) is intentionally no longer routed -
+// NOTE: the legacy ProfessionalsPage (Agents/Surveyors/Inspectors/Valuers browse,
+// with the retired N25,000/month banner) was removed; /professionals redirects -
 // see the /professionals redirect below. Property professionals now only
 // ever appear as an Advanced filter inside /providers, never as their own
 // default-set page. ApplyProfessionalPage stays routed: it's still the
