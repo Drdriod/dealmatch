@@ -183,7 +183,7 @@ test('unlock credits: a credit count outside the price list grants nothing', asy
 test('escrow: an awaiting_payment row is funded and returned for the referral step', async () => {
   const restore = quiet()
   try {
-    const tables = { escrow_transactions: [{ id: 'e1', payment_ref: 'ref-1', tenant_id: 't1', platform_amount: 15000, gross_amount: 500000, status: 'awaiting_payment', confirmed_at: null }] }
+    const tables = { escrow_transactions: [{ id: 'e1', payment_ref: 'ref-1', tenant_id: 't1', platform_amount: 15000, gross_amount: 5000, status: 'awaiting_payment', confirmed_at: null }] }
     const out = await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
     assert.equal(tables.escrow_transactions[0].status, 'funded')
     assert.equal(tables.escrow_transactions[0].confirmed_at, null) // move-in signal must not be set here
@@ -201,11 +201,130 @@ test('escrow: a released row is never moved back to funded', async () => {
   } finally { restore() }
 })
 
-test('escrow: no matching payment_ref means no escrow row for referrals', async () => {
+test('escrow: no matching payment_ref means no escrow row for referrals, and the money is unapplied', async () => {
   const restore = quiet()
   try {
-    const out = await runChargePurpose(svcWith({ escrow_transactions: [] }), charge({ type: 'escrow_payment' }))
+    const tables = { escrow_transactions: [], payment_refunds: [], profiles: [] }
+    const out = await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
     assert.equal(out.escrowRow, null)
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
+    assert.equal(tables.payment_refunds[0].dedupe_key, 'unapplied:ref-1')
+  } finally { restore() }
+})
+
+test('escrow: a wrong amount or a cancelled row is unapplied and never funded; a repeat is not a refund', async () => {
+  const restore = quiet()
+  try {
+    const tables = {
+      escrow_transactions: [{ id: 'e1', payment_ref: 'ref-1', tenant_id: 't1', platform_amount: 1, gross_amount: 9000, status: 'awaiting_payment' }],
+      payment_refunds: [], profiles: [],
+    }
+    let out = await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.escrow_transactions[0].status, 'awaiting_payment')
+    assert.equal(tables.payment_refunds.length, 1)
+    // Same delivery again: still one refund row.
+    await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
+    assert.equal(tables.payment_refunds.length, 1)
+    // A cancelled escrow is not funded either.
+    tables.escrow_transactions[0].status = 'cancelled'
+    tables.escrow_transactions[0].gross_amount = 5000
+    tables.payment_refunds.length = 0
+    out = await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.escrow_transactions[0].status, 'cancelled')
+    // A funded escrow seen again is a repeat: no refund, and the row still goes to the referral step.
+    tables.escrow_transactions[0].status = 'funded'
+    tables.payment_refunds.length = 0
+    out = await runChargePurpose(svcWith(tables), charge({ type: 'escrow_payment' }))
+    assert.equal(out.paymentStatus, undefined)
+    assert.equal(out.escrowRow.id, 'e1')
+    assert.equal(tables.payment_refunds.length, 0)
+  } finally { restore() }
+})
+
+test('escrow: a failed read throws so the webhook retries', async () => {
+  const restore = quiet()
+  try {
+    const svc = { from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: { code: '57014', message: 'timeout' } }) }) }) }) }
+    await assert.rejects(() => runChargePurpose(svc, charge({ type: 'escrow_payment' })), /Could not read the escrow/)
+  } finally { restore() }
+})
+
+test('hostel: no payment row, a mismatch, or an already failed row is unapplied; a failed row never unlocks', async () => {
+  const restore = quiet()
+  try {
+    const tables = {
+      hostel_payments: [{ id: 'hp1', hostel_id: 'h1', owner_id: 'o1', amount: 5000, status: 'failed', reference: 'ref-1' }],
+      student_hostels: [{ id: 'h1', listing_paid: false }], payment_refunds: [], profiles: [],
+    }
+    let out = await runChargePurpose(svcWith(tables), charge({ type: 'hostel_listing_fee' }, { amount: 500000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.student_hostels[0].listing_paid, false)
+    assert.equal(tables.payment_refunds.length, 1)
+    // No row at all.
+    tables.hostel_payments.length = 0; tables.payment_refunds.length = 0
+    out = await runChargePurpose(svcWith(tables), charge({ type: 'hostel_listing_fee' }, { amount: 500000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
+  } finally { restore() }
+})
+
+test('hostel: an amount mismatch is also put on the refund list', async () => {
+  const restore = quiet()
+  try {
+    const tables = {
+      hostel_payments: [{ id: 'hp1', hostel_id: 'h1', owner_id: 'o1', amount: 9000, status: 'pending', reference: 'ref-1' }],
+      student_hostels: [{ id: 'h1', listing_paid: false }], payment_refunds: [], profiles: [],
+    }
+    const out = await runChargePurpose(svcWith(tables), charge({ type: 'hostel_listing_fee' }, { amount: 500000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds[0].amount_kobo, 500000)
+    assert.equal(tables.payment_refunds[0].profile_id, 'o1')
+  } finally { restore() }
+})
+
+test('unlock credits: a purchase that grants nothing is unapplied; a repeat grant is not', async () => {
+  const restore = quiet()
+  try {
+    const tables = { unlock_credit_ledger: [], payment_refunds: [], profiles: [] }
+    const users = { 'buyer-1': { id: 'buyer-1', email: 'someone-else@x.ng' } }
+    const out = await runChargePurpose(svcWith(tables, users), charge({ type: 'contact_unlock_credits', user_id: 'buyer-1', credits: 1 }, { amount: 5000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
+    // A good purchase delivered twice: granted once, no refund row, status normal both times.
+    const tables2 = { unlock_credit_ledger: [], payment_refunds: [], profiles: [] }
+    const users2 = { 'buyer-1': { id: 'buyer-1', email: 'payer@x.ng' } }
+    const meta = { type: 'contact_unlock_credits', user_id: 'buyer-1', credits: 1 }
+    assert.equal((await runChargePurpose(svcWith(tables2, users2), charge(meta, { amount: 5000 }))).paymentStatus, undefined)
+    assert.equal((await runChargePurpose(svcWith(tables2, users2), charge(meta, { amount: 5000 }))).paymentStatus, undefined)
+    assert.equal(tables2.unlock_credit_ledger.length, 1)
+    assert.equal(tables2.payment_refunds.length, 0)
+  } finally { restore() }
+})
+
+test('hotel: a booking that no longer exists is unapplied; a released one is unapplied and on the refund list', async () => {
+  const restore = quiet()
+  try {
+    const tables = { bookings: [], payment_refunds: [], profiles: [] }
+    let out = await runChargePurpose(svcWith(tables), charge({ type: 'hotel_booking', booking_id: 'gone' }, { amount: 750000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
+    const t2 = { bookings: [{ id: 'b1', status: 'cancelled', payment_ref: null }], payment_refunds: [], profiles: [], notifications: [] }
+    out = await runChargePurpose(svcWith(t2), charge({ type: 'hotel_booking', booking_id: 'b1', user_id: 'g1' }, { amount: 750000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(t2.payment_refunds[0].dedupe_key, 'booking-released:ref-1')
+  } finally { restore() }
+})
+
+test('professional: a payment that matches no application is unapplied', async () => {
+  const restore = quiet()
+  try {
+    const tables = { profiles: [], professional_applications: [], payment_refunds: [] }
+    const out = await runChargePurpose(svcWith(tables), charge({ type: 'professional_subscription', plan_type: 'monthly' }, { amount: 500000 }))
+    assert.equal(out.paymentStatus, 'unapplied')
+    assert.equal(tables.payment_refunds.length, 1)
   } finally { restore() }
 })
 

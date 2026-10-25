@@ -67,7 +67,7 @@ export async function recordMoneyToReturn(svc, row, amountKobo, reason, note, de
 // Professional subscription: activate the application, but only as 'approved'
 // when identity is already approved. trg_auto_approve_paid_professional flips a
 // pending one later, once identity is approved.
-async function professionalSubscription(svc, { reference, customer, metadata }) {
+async function professionalSubscription(svc, { reference, amount, customer, metadata }) {
   const expiresAt = metadata.plan_type === 'annual'
     ? new Date(Date.now() + 365 * 86400000).toISOString()
     : new Date(Date.now() +  30 * 86400000).toISOString()
@@ -98,9 +98,14 @@ async function professionalSubscription(svc, { reference, customer, metadata }) 
     })
   // Match by application_id when available (most precise),
   // fall back to email match for legacy payments.
-  await (metadata.application_id
+  const { data: touched } = await (metadata.application_id
     ? proUpdate.eq('id', metadata.application_id)
-    : proUpdate.eq('email', customer.email))
+    : proUpdate.eq('email', customer.email)).select('id')
+  if (!touched?.length) {
+    // The payment did not activate anything: no application carries this id or email.
+    console.error('Professional payment matched no application:', reference)
+    return returnUnapplied(svc, { reference, amount, customer }, null, 'no professional application matched this payment')
+  }
   console.log(identityApproved
     ? 'Professional activated:' : 'Professional paid, awaiting identity verification:', customer.email)
 }
@@ -119,13 +124,19 @@ async function hotelBooking(svc, { reference, amount, customer, metadata }) {
     console.log('Hotel booking confirmed:', metadata.booking_id)
     return
   }
-  // Paid after the booking was released (or a repeat webhook). A repeat
-  // is already handled: the dedupe key stops a second row. A released
-  // booking has taken the money, so it goes on the refund list.
-  const { data: stillCancelled } = await svc.from('bookings')
-    .select('id').eq('id', metadata.booking_id).eq('status', 'cancelled').maybeSingle()
-  if (stillCancelled) {
-    await recordMoneyToReturn(
+  // Not pending any more. A confirmed or completed booking with this payment_ref is a repeat
+  // delivery: nothing to do. Anything else (released, or no such booking) did not take this money.
+  const { data: current } = await svc.from('bookings')
+    .select('id, status, payment_ref').eq('id', metadata.booking_id).maybeSingle()
+  if (current && ['confirmed', 'completed'].includes(current.status) && current.payment_ref === reference) {
+    console.warn('Hotel booking already confirmed by this reference (repeat delivery):', reference)
+    return
+  }
+  // A released booking has taken the money, so it goes on the refund list (key kept from before so
+  // an old row is not duplicated). A missing booking is unapplied. Both leave the payments log
+  // saying 'unapplied', never 'success'.
+  if (current?.status === 'cancelled') {
+    const ok = await recordMoneyToReturn(
       svc,
       { reference, email: customer?.email, profile_id: metadata.user_id || null },
       amount,
@@ -133,8 +144,12 @@ async function hotelBooking(svc, { reference, amount, customer, metadata }) {
       'Paid after the booking was released for non-payment',
       'booking-released:' + reference,
     )
+    if (!ok) throw new Error('Could not record money to return for ' + reference)
+    console.warn('Hotel booking was released, money put on the refund list:', reference)
+    return { paymentStatus: 'unapplied' }
   }
-  console.warn('Hotel booking not confirmed (already handled or not pending):', reference)
+  console.warn('Hotel booking not confirmed, money unapplied:', reference)
+  return returnUnapplied(svc, { reference, amount, customer }, null, 'the booking is not waiting for this payment')
 }
 
 // SEC-3: student hostel listing fee. The unlock happens here, on the
@@ -142,7 +157,7 @@ async function hotelBooking(svc, { reference, amount, customer, metadata }) {
 // writes listing_paid. The hostel and owner come from the
 // hostel_payments row we created for this reference, not from
 // client metadata, and the amount must match the plan price.
-async function hostelListingFee(svc, { reference, amountNgn }) {
+async function hostelListingFee(svc, { reference, amount, amountNgn, customer }) {
   const { data: payRow } = await svc
     .from('hostel_payments')
     .select('id, hostel_id, owner_id, amount, status')
@@ -151,27 +166,37 @@ async function hostelListingFee(svc, { reference, amountNgn }) {
 
   if (!payRow) {
     console.error('[SEC-3] hostel_listing_fee with no hostel_payments row:', reference)
-  } else if (payRow.status === 'success') {
+    return returnUnapplied(svc, { reference, amount, customer }, null, 'no hostel payment is waiting on this reference')
+  }
+  if (payRow.status === 'success') {
     console.log('Hostel listing already unlocked, skipping:', reference)
-  } else if (Number(payRow.amount) !== amountNgn) {
+    return {}
+  }
+  if (Number(payRow.amount) !== amountNgn) {
     // Money was taken but does not match the plan. Do not unlock.
-    // Mark failed so an admin can refund or reconcile.
+    // Mark failed and put the money on the refund list.
     await svc.from('hostel_payments')
       .update({ status: 'failed' })
       .eq('id', payRow.id)
       .eq('status', 'pending')
     console.error('[SEC-3] hostel amount mismatch, not unlocked:', reference, amountNgn, payRow.amount)
-  } else {
-    const paidAt = new Date().toISOString()
-    await svc.from('hostel_payments')
-      .update({ status: 'success', paid_at: paidAt })
-      .eq('id', payRow.id)
-      .eq('status', 'pending')
-    await svc.from('student_hostels')
-      .update({ listing_paid: true, listing_paid_at: paidAt, payment_ref: reference })
-      .eq('id', payRow.hostel_id)
-    console.log('Hostel listing unlocked:', reference)
+    return returnUnapplied(svc, { reference, amount, customer }, { requester_id: payRow.owner_id }, 'paid ' + amountNgn + ' but the listing fee is ' + payRow.amount)
   }
+  if (payRow.status !== 'pending') {
+    // A failed row is never unlocked by a later delivery.
+    console.error('[SEC-3] hostel payment is', payRow.status, 'not pending, not unlocked:', reference)
+    return returnUnapplied(svc, { reference, amount, customer }, { requester_id: payRow.owner_id }, 'the hostel payment was ' + payRow.status)
+  }
+  const paidAt = new Date().toISOString()
+  await svc.from('hostel_payments')
+    .update({ status: 'success', paid_at: paidAt })
+    .eq('id', payRow.id)
+    .eq('status', 'pending')
+  await svc.from('student_hostels')
+    .update({ listing_paid: true, listing_paid_at: paidAt, payment_ref: reference })
+    .eq('id', payRow.hostel_id)
+  console.log('Hostel listing unlocked:', reference)
+  return {}
 }
 
 // Credit-pack purchase for optional contact unlock. Credits are only ever
@@ -212,35 +237,53 @@ async function contactUnlockCredits(svc, { reference, amount, customer, metadata
       })
       console.log(`Granted ${credits} unlock credit(s) to`, buyerId)
     }
-  } else {
-    console.warn('Unlock purchase not granted (amount or buyer did not match):', reference, amount)
+    return {}
   }
+  console.warn('Unlock purchase not granted (amount or buyer did not match):', reference, amount)
+  return returnUnapplied(svc, { reference, amount, customer }, buyerId ? { requester_id: buyerId } : null, 'the credit purchase did not match a buyer or a price')
 }
 
 // Property escrow. Resolved strictly by payment_ref (written server-side when
 // the escrow was created). metadata.user_id and metadata.platform_fee are
 // client-supplied and are never used. Only status and funded_at change here:
 // confirmed_at is the tenant's move-in signal and would trigger an immediate release.
-async function escrowPayment(svc, { reference, amountNgn }) {
+async function escrowPayment(svc, { reference, amount, amountNgn, customer }) {
   const { data: matchedEscrow, error: escrowErr } = await svc
     .from('escrow_transactions')
     .select('id, tenant_id, platform_amount, gross_amount, status')
     .eq('payment_ref', reference)
     .single()
 
-  if (escrowErr || !matchedEscrow) {
-    console.error('Escrow payment with no matching payment_ref, refusing to confirm:', reference)
-    return { escrowRow: null }
+  // PGRST116 is "no row". Any other error is a failed read, not a missing escrow: throw, so the
+  // webhook answers 500 and the charge is retried instead of being treated as unmatched money.
+  if (escrowErr && escrowErr.code !== 'PGRST116') {
+    throw Object.assign(new Error('Could not read the escrow for ' + reference + ': ' + escrowErr.message), { code: escrowErr.code })
   }
-  // Only a row still waiting for payment is funded. A late or
-  // repeated webhook cannot move a released or refunded escrow back.
+  const ctx = { reference, amount, customer }
+  if (!matchedEscrow) {
+    console.error('Escrow payment with no matching payment_ref, refusing to confirm:', reference)
+    return { ...(await returnUnapplied(svc, ctx, null, 'no escrow is waiting on this payment reference')), escrowRow: null }
+  }
+  // A late or repeated webhook never moves a funded, released or completed escrow.
+  if (['funded', 'released', 'completed', 'disputed'].includes(matchedEscrow.status)) {
+    console.warn('Escrow already paid by this reference (repeat delivery):', reference, matchedEscrow.status)
+    return { escrowRow: matchedEscrow }
+  }
+  if (matchedEscrow.status !== 'awaiting_payment') {
+    console.error('Escrow is', matchedEscrow.status, 'not waiting for payment, refusing to fund:', reference)
+    return { ...(await returnUnapplied(svc, ctx, { requester_id: matchedEscrow.tenant_id }, 'the escrow was ' + matchedEscrow.status + ', not waiting for payment')), escrowRow: null }
+  }
+  if (Math.round(Number(matchedEscrow.gross_amount)) !== Math.round(amountNgn)) {
+    console.error('Escrow amount mismatch: expected', matchedEscrow.gross_amount, 'got', amountNgn, 'ref:', reference)
+    return { ...(await returnUnapplied(svc, ctx, { requester_id: matchedEscrow.tenant_id }, 'paid ' + amountNgn + ' but the escrow is ' + matchedEscrow.gross_amount)), escrowRow: null }
+  }
   const { data: funded } = await svc.from('escrow_transactions')
     .update({ status: 'funded', funded_at: new Date().toISOString() })
     .eq('id', matchedEscrow.id)
     .eq('status', 'awaiting_payment')
     .select('id')
   if (funded?.length) console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
-  else console.warn('Escrow not funded (not awaiting payment):', reference)
+  else console.warn('Escrow not funded (no longer awaiting payment):', reference)
   return { escrowRow: matchedEscrow }
 }
 
