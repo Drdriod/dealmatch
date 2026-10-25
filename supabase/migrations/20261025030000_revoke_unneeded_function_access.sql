@@ -7,6 +7,8 @@
 --     can still call the function, so each call is a free attempt and shows up in the API as exposed.
 --     Execute is removed from logged-out visitors. Signed-in users and the server keep it, exactly as
 --     before, so the admin screens work the same.
+--   * universal_search: pins its search path (public, extensions, pg_temp). It is not SECURITY DEFINER, so
+--     the risk was small; the advisor flags it and the change does not alter what it returns.
 --   * log_transaction_change: a trigger function. Triggers do not need the caller to hold execute, so
 --     nobody else should either. Execute is removed from every browser role. The transaction log keeps
 --     working: that is tested in the dry run.
@@ -27,3 +29,5 @@ REVOKE ALL ON FUNCTION public.mark_payment_refunded(bigint, text) FROM PUBLIC, a
 GRANT EXECUTE ON FUNCTION public.mark_payment_refunded(bigint, text) TO authenticated, service_role;
 
 REVOKE ALL ON FUNCTION public.log_transaction_change() FROM PUBLIC, anon, authenticated;
+
+ALTER FUNCTION public.universal_search(text, integer, text) SET search_path = public, extensions, pg_temp;
