@@ -132,6 +132,7 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
 
 ## Rules for new code
 
+- Name the columns in every new read (`select('id, title')`), never `select('*')`. Fitness check 10 is a ratchet: each file's count of wildcard reads may go down, never up (`scripts/select-star-baseline.json`, 35 today in 21 files, mostly repositories for the owner's own rows). Lower the baseline with `node scripts/check-architecture-fitness.mjs --update-baseline`.
 - Talk to a service (Flutterwave, WhatsApp, Pinecone, email) only through an adapter.
 - Put database queries for a feature in its repository, not in the page or the API route.
 - Use a registry or table when a `switch` on a type or status would grow.

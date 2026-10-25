@@ -1,0 +1,23 @@
+{
+  "src/data/adminCommissionsRepository.js": 1,
+  "src/data/adminPeopleRepository.js": 1,
+  "src/data/adminRecordsRepository.js": 2,
+  "src/data/adminSettingsRepository.js": 1,
+  "src/data/agentDashboardRepository.js": 1,
+  "src/data/availabilityRepository.js": 1,
+  "src/data/jobPostingRepository.js": 1,
+  "src/data/lenderRepository.js": 1,
+  "src/data/messagesRepository.js": 1,
+  "src/data/notificationsRepository.js": 1,
+  "src/data/paymentVirtualAccountRepository.js": 1,
+  "src/data/payoutQueueRepository.js": 1,
+  "src/data/professionalsRepository.js": 1,
+  "src/data/providerProfileRepository.js": 3,
+  "src/data/referralRepository.js": 2,
+  "src/data/studentVerificationRepository.js": 1,
+  "src/data/webhookRepository.js": 4,
+  "src/lib/supabase.js": 1,
+  "src/modules/catalog/catalogService.js": 4,
+  "src/modules/forum/forumService.js": 5,
+  "src/modules/whatsapp/store.js": 1
+}
