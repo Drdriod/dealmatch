@@ -1,5 +1,9 @@
 import { usePlatformFees, feeText, escrowFeeSentence } from '@/lib/platformFees'
 
+// Change this date only when the wording below changes. It used to print the current year, which
+// made the terms look newly revised on every 1 January and said nothing about the real revision.
+const LAST_UPDATED = '13 October 2026'
+
 export default function TermsPage() {
   // Fee numbers come from the platform fee registry, so the terms always match
   // what the app charges. Shown as Loading until the registry loads.
@@ -12,7 +16,7 @@ export default function TermsPage() {
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="max-w-2xl mx-auto px-6">
         <h1 className="font-display font-black text-3xl mb-2" style={{ color: '#17211B' }}>Terms of Service</h1>
-        <p className="text-xs mb-8" style={{ color: '#647068' }}>Last updated: {new Date().getFullYear()}</p>
+        <p className="text-xs mb-8" style={{ color: '#647068' }}>Last updated: {LAST_UPDATED}</p>
         {[
           { title: '1. Acceptance', body: 'By using DealMatch you agree to these terms. If you do not agree, please do not use the platform.' },
           { title: '2. Platform Use', body: 'DealMatch matches people to a verified place or a verified person. We connect renters, hosts, and skilled professionals through an escrow-protected process. We do not take title to any property, act as a real estate agent, or employ any professional listed on the platform.' },
