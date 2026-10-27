@@ -1,23 +1,7 @@
-// Repository (structural pattern) for professionals: the public directory
-// (ProfessionalsPage) and the application form (ApplyProfessionalPage). The pages call
-// these and never build a query.
+// Repository (structural pattern) for professional applications: the application form
+// (ApplyProfessionalPage) calls this and never builds a query. The old public directory page was
+// removed, along with its read of every application column.
 import { supabase } from '@/lib/supabase'
-
-// Approved professionals, newest first. Pass 'all' for every type, or one professional_type.
-export function fetchApprovedProfessionals(typeFilter) {
-  let q = supabase
-    .from('professional_applications')
-    .select('*')
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
-  if (typeFilter !== 'all') q = q.eq('professional_type', typeFilter)
-  return q
-}
-
-// A visitor asks a professional to contact them. The caller supplies the whole row.
-export function insertProfessionalRequest(row) {
-  return supabase.from('professional_requests').insert(row)
-}
 
 // A new application to be listed. The caller supplies the whole row; resolves with the new id.
 export function insertProfessionalApplication(row) {

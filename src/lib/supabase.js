@@ -131,7 +131,7 @@ export const createProperty = async (payload) =>
 
 export const getProperties = async ({ limit = 20, filters = {} } = {}) => {
   // ✅ FIX: this previously selected('*') with no join at all, so every
-  // consumer of getProperties() (including PropertyCarousel and the
+  // consumer of getProperties() (including the
   // HomePage discovery rail) has been silently rendering with NO images --
   // `p.images` was always undefined, falling through to each component's
   // no-image placeholder. Joining property_images here is what those
