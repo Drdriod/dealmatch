@@ -4,7 +4,8 @@
  * Security wiring point for all three pillars:
  *
  * Pillar 1 (Zero-Breach):
- *   - Sentry initialised with PII scrubbing BEFORE React mounts
+ *   - Sentry (PII scrubbing in lib/sentryInit.js) is loaded after the first paint; an earlier
+ *     error loads it on demand, so nothing is lost
  *   - Global unhandled error + promise rejection capture
  *   - window.__sentry_capture exposed for security.js event bus
  *   - Content Security Policy violation reporter
@@ -22,7 +23,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import * as Sentry from '@sentry/react'
+import { startMonitoring, captureError, captureEvent, captureSecurityEvent, addBreadcrumb } from './lib/sentry'
 import App from './App.jsx'
 import './index.css'
 import { Check } from 'lucide-react'
@@ -31,100 +32,21 @@ import { createDevtoolsWatcher } from './lib/devtoolsSignal'
 
 
 // ─── Pillar 1: Sentry - Zero-Breach Error Monitoring ────────────────────────
-// Must initialise BEFORE React mounts so all errors are captured,
-// including errors that occur during the initial render.
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    // Vercel preview deployments are built in production mode too. Tag them so they can be filtered
-    // out of the production error feed.
-    environment: window.location.hostname.endsWith('.vercel.app') ? 'preview' : import.meta.env.MODE,
-    release: 'dealmatch@1.4.0',
-
-    // Only send a sample of performance traces - reduces cost
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-
-    // ── PII Scrubbing ──────────────────────────────────────────
-    // NEVER send passwords, tokens, or personal data to Sentry.
-    // These patterns are scrubbed from all events before transmission.
-    beforeSend(event) {
-      // Strip request bodies entirely - they may contain passwords
-      if (event.request?.data) {
-        event.request.data = '[Scrubbed]'
-      }
-
-      // Remove sensitive query params from URLs
-      if (event.request?.url) {
-        event.request.url = event.request.url
-          .replace(/([?&])(password|token|secret|key|auth)[^&]*/gi, '$1[Scrubbed]')
-      }
-
-      // Strip cookies
-      if (event.request?.cookies) {
-        event.request.cookies = '[Scrubbed]'
-      }
-
-      // Strip auth headers
-      if (event.request?.headers) {
-        const h = { ...event.request.headers }
-        delete h['Authorization']
-        delete h['Cookie']
-        delete h['Set-Cookie']
-        event.request.headers = h
-      }
-
-      // Don't send events in development unless explicitly testing
-      if (import.meta.env.DEV && !import.meta.env.VITE_SENTRY_DEBUG) {
-        return null
-      }
-
-      return event
-    },
-
-    // Ignore known harmless errors that would pollute the feed
-    ignoreErrors: [
-      // Browser extension interference
-      'ResizeObserver loop limit exceeded',
-      'ResizeObserver loop completed with undelivered notifications',
-      // Network errors outside our control
-      'Network request failed',
-      'Failed to fetch',
-      'NetworkError',
-      'Load failed',
-      // Safari-specific quirks
-      'Non-Error promise rejection captured',
-      // Flutterwave iframe cross-origin
-      'Permission denied to access property',
-    ],
-
-    integrations: [
-      Sentry.browserTracingIntegration(),
-    ],
-  })
-
-  // Expose a capture helper for the security event bus (security.js)
-  window.__sentry_capture = (event, meta) => {
-    Sentry.captureEvent({
-      level:   'warning',
-      message: `[DealMatch Security] ${event}`,
-      extra:   meta,
-      tags:    { security_event: event },
-    })
-  }
-}
-
+// The SDK is loaded once the page has painted (startMonitoring), not before React mounts, so it
+// is not part of the first download. An error that happens earlier loads it on demand and is
+// still reported (lib/sentry.js). PII scrubbing is in lib/sentryInit.js and applies to every event.
 // ─── Global Error Boundaries ─────────────────────────────────────────────────
 window.addEventListener('error', (e) => {
   // Catch errors that escape React's ErrorBoundary
   // (e.g. errors in event handlers, async code outside React)
   if (import.meta.env.PROD) {
-    Sentry.captureException(e.error || new Error(e.message))
+    captureError(e.error || new Error(e.message))
   }
 })
 
 window.addEventListener('unhandledrejection', (e) => {
   if (import.meta.env.PROD) {
-    Sentry.captureException(e.reason)
+    captureError(e.reason)
   }
 })
 
@@ -132,7 +54,7 @@ window.addEventListener('unhandledrejection', (e) => {
 // Logs Content-Security-Policy violations to Sentry so you know
 // if any injected scripts are being blocked. Each directive + URL pair is sent once per
 // page load, and browser extensions and the Cloudflare beacon are skipped (lib/cspReport.js).
-const reportCspViolation = createCspReporter((payload) => Sentry.captureEvent(payload))
+const reportCspViolation = createCspReporter((payload) => captureEvent(payload))
 document.addEventListener('securitypolicyviolation', (e) => {
   if (import.meta.env.PROD) reportCspViolation(e)
 })
@@ -178,7 +100,7 @@ if (import.meta.env.PROD) {
     win: window,
     coarsePointer: !!window.matchMedia?.('(pointer: coarse)').matches,
     storage: window.sessionStorage,
-    report: (meta) => window.__sentry_capture?.('devtools_opened', meta),
+    report: (meta) => captureSecurityEvent('devtools_opened', meta),
   })
   // Check every 3 seconds - infrequent enough to not impact performance
   setInterval(devToolsCheck, 3000)
@@ -222,11 +144,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       // app function. Logged as a warning breadcrumb rather than
       // captureException so it doesn't get triaged like a real outage.
       console.warn('Service worker registration failed (PWA install/offline unaffected app function):', err)
-      Sentry.addBreadcrumb({
-        category: 'pwa',
-        message: `Service worker registration failed: ${err?.message || err}`,
-        level: 'warning',
-      })
+      addBreadcrumb('pwa: service worker registration failed', { message: String(err?.message || err) })
     })
   })
 }
@@ -237,6 +155,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 )
+
+// The security event bus (lib/security.js) reports through this.
+window.__sentry_capture = captureSecurityEvent
+
+// Error monitoring starts once the page is on screen, so it is not in the first download.
+startMonitoring()
 
 // ─── Native app shell wiring (Android/iOS only, no-op on the website) ───────
 // The exact same built bundle runs three ways: the live website, and both

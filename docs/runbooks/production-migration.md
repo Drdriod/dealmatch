@@ -1,7 +1,7 @@
 # Production migration runbook
 
 Status: **files 1 to 17 applied and verified (17 on 2026-10-20). Files 18 and 19 are written and wait for the PR #18 deploy (section 7). PR #17 was merged and deployed on 2026-10-21.** Production is Supabase project `dijggrafwdznescbuypi`.
-Taxonomy (`20261011010000`) remains parked and is not applied. It is superseded by file 9 (`20261012000000`).
+Taxonomy (`20261011010000`) is parked in `supabase/parked/` and is not applied. It is superseded by file 9 (`20261012000000`).
 
 ## 0. Applied log
 
@@ -82,7 +82,7 @@ Missing on production (checked read-only):
 7. `20261011030000_fix_fk_index_duplicates.sql`
 8. `20261011040000_nigeria_points_invoker.sql`
 
-**Deferred, not part of this apply:** `20261011010000_place_people_taxonomy.sql`.
+**Deferred, not part of this apply:** `supabase/parked/20261011010000_place_people_taxonomy.sql`.
 It re-parents live listings and deactivates five categories. It needs a separate
 product decision and its own dry run. Nothing above depends on it.
 
