@@ -108,13 +108,13 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
      credit unlock), and the interest modal and Matches page use only the DealMatch
      WhatsApp number (`src/lib/contact.js`).
    Audit of stored data before the change: 0 listings, so nothing had leaked yet.
-9. **Known architecture violations.** Three module-boundary violations remain from
-   before this work (`category_listings` in `api/platform.js` and
-   `ProviderProfilePage.jsx`, and `categories` in `AdminPage.jsx`). They are not
-   introduced by these patterns.
+9. **Known architecture violations: none.** The three older module-boundary violations
+   (`category_listings` in `api/platform.js` and `ProviderProfilePage.jsx`, `categories` in
+   `AdminPage.jsx`) are cleared. All nine fitness checks pass and the direct-database-call
+   baseline is empty (`scripts/architecture-baseline.json` is `{}`), so any new direct call fails
+   `npm run check`.
 
-10. **Virtual-account payments are retry-safe. Done in code; needs the migration and a sandbox
-    test.** "Paid" and "fulfilled" are separate facts on `payment_virtual_accounts`
+10. **Virtual-account payments are retry-safe. Done and deployed (PR #22, migration `20261024020000` applied 2026-10-25); still needs the GitHub secrets and a sandbox test.** "Paid" and "fulfilled" are separate facts on `payment_virtual_accounts`
     (`fulfilled_at`). A paid account that is not fulfilled is an unfinished delivery: the webhook
     retry, the payer's "I have paid" check (`verify-payment`) and the background job
     (`cron-reconcile-virtual-accounts`) all finish it through one path,
@@ -123,12 +123,13 @@ Counts are from a scan on 2026-10-14, updated as items are completed. They are a
     or put on the refund list instead of being dropped. Handlers are safe to repeat because every
     money write is conditional on the current status. Referral payout has no unique key, so it
     runs only for the first run that records the payment; a database constraint is still open.
-    Needs `20261024020000_virtual_account_fulfilment.sql` applied (rolled-back dry run first) and,
-    for the 10 minute rhythm, the `CRON_SECRET` and `SITE_URL` GitHub secrets (see
-    `.github/workflows/reconcile-payments.yml`).
-11. **Nothing runs the tests or fitness checks automatically. Open.** There is no CI
-    workflow; Vercel only builds. `npm run check` now exists. Adding a GitHub Actions
-    workflow that runs it on each pull request is an owner decision.
+    The 10 minute rhythm needs the `CRON_SECRET` and `SITE_URL` GitHub secrets (see
+    `.github/workflows/reconcile-payments.yml`). The payer's "I have already paid" button on the
+    bank-transfer screen calls `verify-payment` (`src/lib/transferCheck.js` turns the answer into
+    what the screen shows). Money that was taken but not applied is handled the same way for every
+    purpose (`returnUnapplied` in `src/lib/chargePurposes.js`): refund list, `unapplied` in the
+    payments log, no referral.
+11. **CI runs the tests, the fitness checks and the build on every pull request. Done** (`.github/workflows/check.yml`, job `check`, PR #20). The branch ruleset that requires `check` is an owner step in GitHub settings.
 
 ## Rules for new code
 

@@ -1,69 +1,48 @@
 # Open items
 
-As of 2026-10-21 (evening). Built from a read of the session transcript (which starts at the 18 Oct compaction, so
-older requests come from the summaries and the excerpt files you uploaded) and checked against the repo.
-Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
+As of 2026-10-25. The live checklist with owners and ticks is the Notion page "DealMatch master checklist". This file is the in-repo copy of what is still open. Move a row to `design-patterns.md` or the runbook when it is done, and delete it here.
 
-Kickoff of the Meta hackathon is **26 Oct**. The plan is `docs/hackathon/muse-spark-agent-plan.md`.
-The UI, UX and database gaps against your wireframe specification are in `docs/FULL_STACK_BACKLOG.md`, with how to solve each and who to source it from.
+Kickoff of the Meta hackathon is **26 Oct**. Submissions are due 4 Nov, 9:00 PM ET (5 Nov 03:00 Lagos); internal target 4 Nov 18:00 Lagos. The plan is `docs/hackathon/muse-spark-agent-plan.md`. UI, UX and database gaps against the wireframe specification are in `docs/FULL_STACK_BACKLOG.md`.
 
 ## A. Only the owner can do these
 
 | # | Item | Why it matters |
 |---|---|---|
-| A1 | **Merge PR #18** (open, mergeable). PR #17 was merged by you on 21 Oct at 05:49 UTC and deployed to production (Vercel reported success on the merge commit `5d8191f`). #18 carries everything done since: the properties column fix, the listing-publish fix, the verification status fix, the open-items list and the full-stack backlog. On GitHub: Pull requests, #18, then "Merge pull request". Vercel then deploys `main`. If something looks wrong afterwards, Vercel's Deployments page has "Instant Rollback" to the previous deployment | Migration 18 must not be applied until #18 is deployed, because the code now on `main` still reads `select('*')` on `properties` in the owner and staff screens and when a listing is published |
-| A2 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection | Runbook lines 29 and 32 still say "action needed" |
-| A3 | Vercel settings: put `CRON_SECRET` in Preview, remove the Flutterwave keys from Preview | Preview deploys should not hold live payment keys |
-| A4 | **Get real listings in.** Production has none, 17 profiles | The demo, the Impact score and the "live database" claim all depend on it. Do this after migration 18 is applied (A9) |
-| A5 | Read the Official Rules when published (before 26 Oct) and paste them | They may restrict work started before the event |
-| A6 | Smoke test production after the PR #18 deploy and migrations 18 and 19: sign up, browse, start a sandbox payment | The runbook lists it. No result is recorded anywhere |
-| A7 | Decide: Vercel plan (the function cap), WhatsApp number for the demo, solo or team | Needed before day 4 of the hackathon |
-| A8 | Counsel questions in ADR-009 (retention, NDPA, impact assessment). Terms page: which fee wording is right | Open since the legal review |
-| A9 | **Apply migrations 18 and 19, in that order, after the PR #18 deploy.** Steps, checks and rollback are in `docs/runbooks/production-migration.md` section 7. File 19 contains a DROP, so use the SQL editor, and dry-run it first | 18 closes the contact-column exposure (dry-run on production passed 35 of 35, rolled back). 19 lets the verification flow set `under_verification`, which the database refuses today. Applying 18 before #18 is deployed would break the owner and staff screens and publishing a listing |
+| A1 | Create the branch ruleset `Protect main` (require a pull request, require the `check` status check, block force pushes and deletion) | `check` exists on main now, so this can be switched on |
+| A2 | Add GitHub secrets `CRON_SECRET` and `SITE_URL`, then run the "Reconcile payments" workflow once by hand | Until both exist the 10 minute payment reconcile job skips itself |
+| A3 | Paste the migrations for the open pull requests (23 to 26 in the runbook) after merging each | Each says "paste as is" |
+| A4 | Rotate the Flutterwave sandbox secret and the database passwords. Turn on leaked-password protection (Supabase, Auth, Passwords) | |
+| A5 | Vercel: put `CRON_SECRET` in Preview and remove the Flutterwave keys from Preview | Preview deploys should not hold payment keys |
+| A6 | Find out why the "Supabase Preview" check fails on main, or turn that integration off | It is red on every commit |
+| A7 | Real listings. Production has none, 17 profiles | The demo and the "live database" claim depend on it |
+| A8 | Paste the Official Rules of the hackathon | They may restrict work started before the event |
+| A9 | Smoke test (`docs/runbooks/smoke-test.md`), including the new trust pages and the dispute flow | Never run in a browser against production yet |
+| A10 | Decisions: home-page milestone numbers, Vercel plan, WhatsApp number for the demo, solo or team, money after a dispute decision, counsel questions in ADR-009, Terms fee wording (sections 3 and 4), Apple and Meta sign-in | |
+| A11 | Flutterwave sandbox credentials, so the end-to-end payment test can run | |
 
-## B. I can do these
+## B. Claude or Dev 2 can do these
 
-### High
-
-| # | Item | Evidence |
+| # | Item | Notes |
 |---|---|---|
-| B2 | **Apply the unapplied-money rule to the other purposes.** Only transaction escrow got it. Property escrow (`escrowPayment`, no amount check), hostel fee, unlock credits and hotel booking can still log `success` for money that was not applied | `chargePurposes.js` |
-| B3 | **Virtual-account payments retry-safety: done in code.** Needs migration `20261024020000` (dry run first), the two GitHub secrets, and a sandbox payment test. The "I have paid" button in the checkout screen is not built yet; its endpoint is | design-patterns item 10 |
-| B4 | End-to-end sandbox payment test. No local Supabase config, the Docker install failed earlier | Needs sandbox credentials from you |
-
-### Medium
-
-| # | Item | Evidence |
-|---|---|---|
-| B5 | Stale docs: ARCHITECTURE.md says migration 17 is pending and the baseline is 256 (it is `{}`); design-patterns item 9 says 3 violations (cleared); the runbook's migration table was out of order (fixed), and its advisor and action lines are stale; CHANGELOG and README have nothing since 9 Oct; ISSUES.md lists fixed items as open; ADR-009 still says "Proposed" | Files named |
-| B6 | The parked taxonomy migration `20261011010000_place_people_taxonomy.sql` is still in `supabase/migrations/`, and the README says to run every file in order. It re-parents live listings and is superseded by file 9 | Move it out of the folder |
-| B7 | Category pages are empty: nothing writes `properties.category_id` (the list form sets only the old `category`) | `ListPropertyPage.jsx`, `categoryFeed.js` |
-| B8 | About 30 `select('*')` reads remain outside `properties` | `supabase.js:87`, `messagesRepository`, `jobPostingRepository`, `referralRepository`, `notificationsRepository`, catalog and forum services |
-| B9 | No CI. Nothing runs `npm run check` on a pull request | No `.github/` |
-| B10 | Sentry `setUser` sends the user's email, which contradicts the scrubbing comment | `sentry.js:35` |
-| B11 | Terms page section 3 reads as a second fee next to section 4's 1.5% per side. "Last updated" prints the current year | `TermsPage.jsx` |
-| B12 | Deferred Supabase advisor items: 313 overlapping permissive policies (about 10 on `properties` alone), 10 `auth_rls_initplan`, about 58 callable SECURITY DEFINER functions, extensions in `public` | Runbook lines 29 and 30 |
-
-### Low
-
-| # | Item |
-|---|---|
-| B13 | Nothing writes `location_precision = 'precise'` for providers. Only the state-level trigger exists |
-| B14 | Design brief for the "to create" pages. `ComingSoonPage` is still routed |
-| B15 | Dead code: `ProfessionalsPage`, `PropertyCarousel` (unrouted), `formatPrice` in `HotelsPage` |
+| B4 | End-to-end sandbox payment test, including the reconcile job and the "I have already paid" button | Needs A11 |
+| B8 | About 20 browser-side `select('*')` reads outside `properties` (messages, notifications, referral, lender, availability, professionals, and others) | Replace with named columns, one repository at a time. Server-side reads in the webhook and payout code are fine |
+| B12 | Deferred advisor items | `universal_search` has no fixed search_path; slow-query hints (RLS re-evaluated per row on about 7 older tables, overlapping policies on 3 tables) matter only at scale. Reasons for everything left alone are in the Notion checklist, section 5 |
+| B13 | Nothing writes `location_precision = 'precise'` for providers | Only the state-level trigger exists |
+| B14 | Design brief for the "to create" pages. `ComingSoonPage` is still routed | |
+| B15 | Dead code: `ProfessionalsPage`, `PropertyCarousel` (unrouted), `formatPrice` in `HotelsPage` | |
+| B16 | The anonymous INSERT policy on `professional_applications` ("Self or anonymous applications") lets anyone insert ownerless rows; the app never does | Decide whether to close it |
+| B17 | Referral payout has no unique key, so it runs only for the first run that records a payment; a database constraint is still open | `design-patterns.md` item 10 |
 
 ## C. Built, but not exercised, so not proven
 
-- Publishing a listing with photos (`src/lib/listingWrite.js`). The code split is unit-tested; the live insert has not been run. Both forms were sending `images` inside the `properties` insert, which the database refuses, so this may never have worked.
-- The screens that changed to named property columns (landlord dashboard, Verification page, agent dashboard, home counts, admin overview). Build and tests pass; none was opened in a browser, and migration 18 is not applied yet.
-- Migration 19 has not had a dry run.
-- Staging replay of files 9 to 17 and the `is_superadmin` policy check. Not recorded as done.
-- `transactions.listing_id` is UUID on production. No result in the applied log.
-- RATE-3 ("verify in staging before closing"): no record.
+- The dispute screens, transaction detail page and evidence upload against the real database (migration 20 is applied; the 42 behaviour checks ran as a rolled-back test, the screens were not opened in a browser).
+- The reconcile job and `verify-payment` against the real Flutterwave sandbox.
+- Publishing a listing with photos (`src/lib/listingWrite.js`). The code split is unit-tested; the live insert has not been run.
+- Screens that changed to named property columns (landlord dashboard, Verification page, agent dashboard, home counts, admin overview).
+- Staging replay of files 9 to 17. Staging is not schema-identical to production; use production rolled-back dry runs.
 - Find a Provider, Level 1 cap, demotion cron, student-ID purge, admin NIN status, the escrow section: code is in, runtime not exercised.
-- Admin write paths (fee registry, refunds) have not been run with a real admin account.
-- Migration 17's illegal-move error was not re-run on production (no row to test with). The dry run passed 13 of 13.
+- Admin write paths (fee registry, refunds) with a real admin account.
 
 ## D. Hackathon (from 26 Oct)
 
-Everything in the plan's schedule. Nothing in `src/modules/assistant/` exists yet, on purpose. See the plan, section 9.
+Everything in the plan's schedule. Nothing in `src/modules/assistant/` exists yet, on purpose: it waits for the Official Rules (A8).
