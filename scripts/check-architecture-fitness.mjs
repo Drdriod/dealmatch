@@ -373,12 +373,48 @@ function checkPropertyBrowserColumns() {
   return offenders
 }
 
+// 10. Wildcard read ratchet (BLOCKING, cannot grow): `select('*')` returns every column, including
+//     ones added later. The properties table is already covered by check 7. For every other table
+//     each file's count may go down, never up, so new code names its columns. Head-count reads
+//     (`select('*', { count: 'exact', head: true })`) are not counted: they return no columns.
+//     The baseline is scripts/select-star-baseline.json; lower it with --update-baseline.
+const SELECT_STAR = /\.select\(\s*(['"`])\*\1\s*\)/g
+const SELECT_STAR_BASELINE_PATH = join(ROOT, 'scripts', 'select-star-baseline.json')
+
+function selectStarByFile() {
+  const counts = {}
+  for (const scope of ['src', 'api']) {
+    for (const file of walk(join(ROOT, scope), ['.js', '.jsx'])) {
+      const rel = relative(ROOT, file)
+      if (/\.test\.m?js$/.test(rel) || rel.includes('/testing/')) continue
+      const text = stripComments(readFileSync(file, 'utf8'))
+      const n = (text.match(SELECT_STAR) || []).length
+      if (n > 0) counts[rel] = n
+    }
+  }
+  return counts
+}
+
+function checkSelectStarRatchet(counts) {
+  const baseline = existsSync(SELECT_STAR_BASELINE_PATH) ? JSON.parse(readFileSync(SELECT_STAR_BASELINE_PATH, 'utf8')) : {}
+  const problems = []
+  for (const [file, n] of Object.entries(counts)) {
+    if (!(file in baseline)) problems.push(`${file}: new file with ${n} select('*'); name the columns`)
+    else if (n > baseline[file]) problems.push(`${file}: ${baseline[file]} -> ${n} select('*'); name the columns of the new read`)
+  }
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  const baseTotal = Object.values(baseline).reduce((a, b) => a + b, 0)
+  return { problems, total, baseTotal, files: Object.keys(counts).length }
+}
+
 function main() {
   console.log('DealMatch Architecture Fitness Functions\n' + '='.repeat(42))
 
   if (process.argv.includes('--update-baseline')) {
     writeFileSync(BASELINE_PATH, JSON.stringify(dbCallsByFile(), null, 2) + '\n')
     console.log(`Baseline written to ${relative(ROOT, BASELINE_PATH)}`)
+    writeFileSync(SELECT_STAR_BASELINE_PATH, JSON.stringify(selectStarByFile(), null, 2) + '\n')
+    console.log(`Baseline written to ${relative(ROOT, SELECT_STAR_BASELINE_PATH)}`)
   }
 
   let failed = false
@@ -486,6 +522,18 @@ function main() {
     failed = true
     console.log(`    FAIL: ${privateReads.length} query part(s) the database would refuse (src/lib/propertyColumns.js, migration 18):`)
     for (const v of privateReads) console.log(`      ${v.file}:${v.line} ${v.what}`)
+  }
+
+  // 10. Wildcard read ratchet
+  const stars = checkSelectStarRatchet(selectStarByFile())
+  console.log("\n[10] select('*') reads may not grow (BLOCKING, ratchet)")
+  console.log(`    ${stars.total} wildcard read(s) in ${stars.files} file(s); baseline ${stars.baseTotal}.`)
+  if (stars.problems.length === 0) {
+    console.log('    PASS: no file has grown.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${stars.problems.length} file(s) grew:`)
+    for (const p of stars.problems) console.log(`      ${p}`)
   }
 
   console.log('\n' + '='.repeat(42))
