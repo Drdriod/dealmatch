@@ -7,6 +7,7 @@
 // and the webhook work in kobo (amount x 100). The webhook is the only
 // place that grants anything: the client callback below is for UX only.
 
+import { describeCheck, MESSAGES as TRANSFER_CHECK_MESSAGES } from './transferCheck.js'
 import { supabase } from '@/lib/supabase'
 import { feeValue, formatPlatformFee } from '@/lib/platformFees'
 
@@ -259,6 +260,35 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     const note = document.createElement('p')
     note.textContent = 'Only send from your own bank account. If you close this window after sending, the payment is still confirmed automatically.'
     Object.assign(note.style, { margin: '12px 0 0', fontSize: '12px', color: '#666' })
+
+    // "I have already paid": asks the server to look for the transfer now, so the payer does not
+    // have to wait for the bank's notification. Only the server's answer is believed.
+    const checkBtn = button('I have already paid', true)
+    checkBtn.addEventListener('click', async () => {
+      if (done || checkBtn.disabled) return
+      checkBtn.disabled = true
+      checkBtn.style.opacity = '0.6'
+      status.textContent = 'Checking for your transfer...'
+      try {
+        const r = await fetch('/api/payments/verify', {
+          method: 'POST',
+          headers: await authHeaders(),
+          body: JSON.stringify({ reference: account.reference }),
+        })
+        const json = await r.json().catch(() => null)
+        const result = describeCheck(r.status, json)
+        if (result.paid) {
+          finish()
+          onPaid?.({ reference: account.reference, status: 'paid', bookingId: account.bookingId || null })
+          return
+        }
+        status.textContent = result.message
+      } catch {
+        status.textContent = TRANSFER_CHECK_MESSAGES.error
+      }
+      setTimeout(() => { checkBtn.disabled = false; checkBtn.style.opacity = '1' }, 15000)
+    })
+    actions.insertBefore(checkBtn, closeBtn)
 
     card.append(title, intro, numberLine.wrap, copyBtn, bankLine.wrap, amountLine.wrap, expiryLine.wrap, status, note, actions)
 

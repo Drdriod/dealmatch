@@ -83,6 +83,10 @@
       "destination": "/api/platform?resource=payment-status"
     },
     {
+      "source": "/api/payments/verify",
+      "destination": "/api/platform?resource=verify-payment"
+    },
+    {
       "source": "/api/events/listing-created",
       "destination": "/api/platform?resource=listing-webhook"
     },
