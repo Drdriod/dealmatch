@@ -6,23 +6,37 @@ Goal: prove every area of DealMatch works end to end before launch: both doors (
 
 10 testers, 1 staff helper, and you (superadmin). Fewer seats leaves areas untested; more only adds duplicate reports.
 
-| Seat | Role to create | Door | Main areas covered |
-|---|---|---|---|
-| T1 | Renter (role `renter`/`buyer`) | Places | Search, filters, listing detail, save, request, Protected payment, confirm move-in, review |
-| T2 | Short-let or hotel guest | Places | `/hotels`, dates, availability, booking, cancellation and refund |
-| T3 | Student | Places | `/student-hostels`, `/student-verify`, hostel enquiry, listing fee |
-| T4 | Landlord or seller (role `landlord`) | Places | Sign up, verification, `/list`, `/list-rental`, photos, `/manage-listings`, `/availability`, `/landlord`, payout setup |
-| T5 | Agent (role `agent`, set by you) | Places | `/agent` dashboard, assigned listings, agent flow |
-| T6 | Service customer | People | `/providers`, `/request`, quotes and bids, counter-offer, accept, Protected payment |
-| T7 | Professional (artisan or tutor) | People | `/apply-professional`, `/verify-skill`, `/provider` workspace, quotes, completion, earnings, withdrawal |
-| T8 | Hostile tester (a developer friend) | Both | Security and abuse (section C) |
-| T9 | Low-end Android on mobile data | Both | Speed, layout, forms, photo upload, keyboard, offline behaviour |
-| T10 | Rewards and WhatsApp user | Both | Referral code, loyalty points, unlock credits, `/wa/link`, WhatsApp requests, `/forum`, `/messages`, `/matches` |
-| S1 | Staff helper (role `verifier`, plus a staff invite) | Both | Staff invite, verifier queues, lender role |
-| You | Superadmin | Both | Every admin tab, disputes decisions, refunds, payouts, fees |
+| Seat | Role to create | Side | Door | Main areas covered |
+|---|---|---|---|---|
+| T1 | Renter (role `renter`/`buyer`) | Demand | Places | Search, filters, listing detail, save, request, Protected payment, confirm move-in, review |
+| T2 | Short-let or hotel guest | Demand | Places | `/hotels`, dates, availability, booking, cancellation and refund |
+| T3 | Student | Demand | Places | `/student-hostels`, `/student-verify`, hostel enquiry, listing fee |
+| T4 | Landlord or seller (role `landlord`) | Supply | Places | Sign up, verification, `/list`, `/list-rental`, photos, `/manage-listings`, `/availability`, `/landlord`, payout setup |
+| T5 | Agent (role `agent`, set by you) | Supply | Places | `/agent` dashboard, assigned listings, agent flow |
+| T6 | Service customer | Demand | People | `/providers`, `/request`, quotes and bids, counter-offer, accept, Protected payment |
+| T7 | Professional (artisan or tutor) | Supply | People | `/apply-professional`, `/verify-skill`, `/provider` workspace, quotes, completion, earnings, withdrawal |
+| T8 | Hostile tester (a developer friend) | Both | Both | Security and abuse (section C) |
+| T9 | Low-end Android on mobile data | Both | Both | Speed, layout, forms, photo upload, keyboard, offline behaviour |
+| T10 | Rewards and WhatsApp user | Demand | Both | Referral code, loyalty points, unlock credits, `/wa/link`, WhatsApp requests, `/forum`, `/messages`, `/matches` |
+| S1 | Staff helper (role `verifier`, plus a staff invite) | Staff | Both | Staff invite, verifier queues, lender role |
+| You | Superadmin | Staff | Both | Every admin tab, disputes decisions, refunds, payouts, fees |
+
+## Supply first, then demand
+
+A marketplace test only works if there is something to find. Run in three phases:
+
+1. **Supply (first, about 1 hour):** T4 (landlord, with a hostel or short-let listing too), T7 (professional) and T5 (agent) create their listings, services and verification submissions, then **S1 and you** approve them (identity, skill, payout accounts, listings). Do not start phase 2 until at least 3 listings and 3 provider profiles are live.
+2. **Demand (next, about 2 hours):** T1, T2, T3, T6 and T10 search, book, request and pay against that supply. T6 posts requests that T7 answers.
+3. **Stress and review (last):** T8 and T9 attack and use the same data; then dispute decisions, refunds and payouts from the admin side.
+
+Supply testers stay online during phase 2 to respond to requests and bookings.
 
 Pairs that must run live together: T1 with T4 (rental payment and dispute), T6 with T7 (service quote and payment).
 Recruit real people for T4, T5 and T7: a real landlord, a real agent and a real artisan find problems friends will not.
+
+## Where to run it (decision needed)
+
+Production data cannot be cleaned up by deleting a test user: in the current schema many tables block the delete (transactions, bids, contracts, professionals, reviews, wallet ledger) and others keep orphan rows (escrow, payments, bookings, messages, disputes, student hostels). Test listings would also be visible to real visitors. Preferred: run the whole test on a **separate test database and Preview URL**, then throw it away. Fallback: production with `[TEST]`-prefixed listings and a purpose-built cleanup script, which must be written and dry-run first.
 
 ## A. Setup before inviting anyone
 
