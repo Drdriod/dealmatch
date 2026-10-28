@@ -16,7 +16,7 @@ Kickoff of the Meta hackathon is **26 Oct**. Submissions are due 4 Nov, 9:00 PM 
 | A6 | Find out why the "Supabase Preview" check fails on main, or turn that integration off | It is red on every commit |
 | A7 | Real listings. Production has none, 17 profiles | The demo and the "live database" claim depend on it |
 | A8 | Paste the Official Rules of the hackathon | They may restrict work started before the event |
-| A9 | Smoke test (`docs/runbooks/smoke-test.md`), including the new trust pages and the dispute flow | Never run in a browser against production yet |
+| A9 | Smoke test (`docs/runbooks/smoke-test.md`), then the full-stack test with 12 seats (`docs/runbooks/full-stack-test-plan.md`; sitemap in `docs/SITEMAP.md`) | Never run in a browser against production yet |
 | A10 | Decisions: home-page milestone numbers, Vercel plan, WhatsApp number for the demo, solo or team, money after a dispute decision, counsel questions in ADR-009, Terms fee wording (sections 3 and 4), Apple and Meta sign-in | |
 | A11 | Flutterwave sandbox credentials, so the end-to-end payment test can run | |
 

@@ -1,5 +1,7 @@
 # Smoke test after a deploy or a database change
 
+For a full test of every area with several testers, see `full-stack-test-plan.md`. The site map is in `../SITEMAP.md`.
+
 Run these on the live site. Each takes a minute or less.
 
 ## 1. Seller phone and email are private (migration 18)
