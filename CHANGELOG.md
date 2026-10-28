@@ -1,5 +1,10 @@
 # DealMatch - Database Security Audit and Hardening (October 2026)
 
+## Unreleased - 28 October 2026
+
+- Docs: `docs/SITEMAP.md` (73 routes, 12 roles, admin tabs) and `docs/runbooks/full-stack-test-plan.md` (12 test seats, scripts per role, hostile and mobile tests, exit criteria).
+- Testimonial submission fixed (migration `20261027000000`, applied 27 Oct): the INSERT policy no longer reads its own table.
+
 ## Unreleased - 25 October 2026
 
 - Disputes and protected transactions: terms snapshot at funding, the `protected_transactions` view, append-only transaction and dispute logs, `open_dispute`, `add_dispute_note`, `decide_dispute` (a decision is recorded; money after a decision is still moved by staff), private `dispute-evidence` bucket (migration `20261022000000`). Screens: transaction detail, report a problem, case page, admin Disputes tab, trust pages (About, Contact, Help, Protection, Rules).

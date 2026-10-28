@@ -280,6 +280,8 @@ VITE_POSTHOG_HOST=
 
 Run every file in `supabase/migrations/` **in filename order** (they're timestamped, so alphabetical order is correct order) in the Supabase SQL Editor. For a brand-new project (staging or otherwise), the very first file is a full production schema dump; if you need a single-paste version with Supabase's internal system schema already stripped out (recommended for a fresh project), ask for the generated staging bootstrap bundle rather than pasting the raw dump directly, since the raw dump includes `psql`-only meta-commands (`\restrict`/`\unrestrict`) that fail in the SQL Editor.
 
+The site map and role map are `docs/SITEMAP.md`; the test plan for every area is `docs/runbooks/full-stack-test-plan.md`.
+
 The full list of migrations, in order, with what each did and whether it is applied to production, is `docs/runbooks/production-migration.md`. Files that must not run live in `supabase/parked/`. One thing a SQL migration cannot do: enable the **Phone** auth provider in Supabase Studio (Authentication, Providers) if you want guest checkout to send SMS codes.
 
 After the migrations run, verify with:
