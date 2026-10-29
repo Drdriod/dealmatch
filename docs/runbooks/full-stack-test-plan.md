@@ -24,10 +24,34 @@ Goal: prove every area of DealMatch works end to end before launch: both doors (
 Pairs that must run live together: T1 with T4 (rental payment and dispute), T6 with T7 (service quote and payment).
 Recruit real people for T4, T5 and T7: a real landlord, a real agent and a real artisan find problems friends will not.
 
+## Personal test codes and run order
+
+Every seat has its own code. A tester opens `<preview url>/t/<code>` (or `/t` and types the code) and lands on a page with only their role, when to start, who they work with, and their numbered tasks with what they should see. The page shows a test-environment banner and keeps a tick list on their own device. The pages exist only on the Preview deployment (`VITE_TEST_MODE=true`); production never shows them.
+
+Run **supply first**, so demand testers have something real to find. The owner starts each phase when the previous one is ready.
+
+| Phase | Seat | Code |
+|---|---|---|
+| 1 Supply | T4 Landlord | `T4-LANDLORD-W5Z8` |
+| 1 Supply | T7 Professional | `T7-PRO-D9U9` |
+| 1 Supply | T5 Agent | `T5-AGENT-HKQ9` |
+| 1 Supply | S1 Staff helper | `S1-STAFF-FYJP` |
+| 2 Demand | T1 Renter | `T1-RENT-NWKV` |
+| 2 Demand | T2 Short-let or hotel guest | `T2-STAY-TVV6` |
+| 2 Demand | T3 Student | `T3-STUDENT-9SJ9` |
+| 2 Demand | T6 Service customer | `T6-CUSTOMER-GAQP` |
+| 2 Demand | T10 Rewards and WhatsApp | `T10-REWARDS-VKNU` |
+| 3 Stress | T8 Hostile tester | `T8-HOSTILE-H6FU` |
+| 3 Stress | T9 Low-end phone | `T9-PHONE-CW3C` |
+
+The codes and task text live in `src/data/testSeats.js` (guarded by `src/lib/testSeats.test.mjs`). If you change a seat's tasks, change them there and in section B below. Codes are not secrets: they only separate the seats, and the environment holds no real data.
+
+Order inside phase 1: T4 and T7 sign up and submit first; S1 and you approve their verification and payout accounts; only then announce "supply is live". Environment details: `docs/runbooks/staging-environment.md`.
+
 ## A. Setup before inviting anyone
 
-1. Sandbox payments work on the Preview deployment: Vercel Preview has `FLUTTERWAVE_V4_CLIENT_ID`, `FLUTTERWAVE_V4_CLIENT_SECRET`, `FLUTTERWAVE_BASE_URL` (sandbox), `FLUTTERWAVE_SECRET_HASH`, `CRON_SECRET`; the sandbox webhook points at `<preview url>/api/payments/webhook`. Testers use sandbox test details only, never real cards or real money.
-2. All migrations through 27 are applied (`docs/runbooks/production-migration.md`).
+1. Use the staging environment, not production: `docs/runbooks/staging-environment.md` lists the Preview variables, including `VITE_TEST_MODE=true`. Sandbox payments work on that Preview deployment, and the sandbox webhook points at `<preview url>/api/payments/webhook`. Testers use sandbox test details only, never real cards or real money.
+2. Staging matches production (checked 2026-10-29, same migrations through 27 plus the production-only changes listed in the runbook).
 3. Demo content exists and is labelled as demo: at least 5 Places listings (2 rentals, 1 hotel or short-let, 1 hostel, 1 sale), 4 provider profiles, 2 categories each with a listing.
 4. You set roles in Supabase for T5 (`agent`), S1 (`verifier`), and one lender account (`lender`, see `docs/LENDER_ROLE.md`). Everyone else signs up normally.
 5. Create a shared report sheet (section E) and one 2-hour window when all seats are online.
