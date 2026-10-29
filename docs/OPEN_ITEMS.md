@@ -46,3 +46,7 @@ Kickoff of the Meta hackathon is **26 Oct**. Submissions are due 4 Nov, 9:00 PM 
 ## D. Hackathon (from 26 Oct)
 
 Everything in the plan's schedule. Nothing in `src/modules/assistant/` exists yet, on purpose: it waits for the Official Rules (A8).
+
+## A11. Production changes that exist in no migration file
+
+Found 2026-10-29 while matching staging to production: the `reviews` table shape and rules (`reviews_insert_reviewer`, `reviews_select_all`, `trg_enforce_review_requires_completed_job`, unique `transaction_id`), the functions `accept_direct_request`, `decline_direct_request` and `enforce_review_requires_completed_job`, and the `profiles` columns `avg_reply_minutes`, `category_label`, `last_active_at`. Add one migration that records them so a fresh database matches production. Also decide whether signed-in users should be able to call `accept_direct_request` and `decline_direct_request` (production currently allows neither).
