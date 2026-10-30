@@ -247,6 +247,10 @@ function RentalCard({ rental, onInterest }) {
           <MapPin size={11} style={{ color:'#C85F2D' }} />
           <span>{rental.city}, {rental.state}</span>
         </div>
+        <div className="flex gap-2 mb-3 text-[10px] font-bold uppercase tracking-wide">
+          {rental.verified_at && <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(23,33,27,0.08)', color:'#17211B' }}>Verified</span>}
+          <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#C85F2D' }}>Available</span>
+        </div>
         <div className="flex items-center justify-between mb-4">
           <p className="font-black text-lg" style={{ color:'#C85F2D' }}>
             {formatPrice(rental.price)}
@@ -350,8 +354,8 @@ export default function RentalsPage() {
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Rent Without the Runaround.</motion.h1>
-            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Real tenancy terms upfront - no surprise agent fees at the door.</p>
+            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Find a place that fits.</motion.h1>
+            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Discover available places, explore your options and connect with the right match.</p>
           </div>
           {/* View toggle */}
           <div className="flex rounded-xl overflow-hidden border" style={{ borderColor:'#DEDDD6' }}>
@@ -369,7 +373,7 @@ export default function RentalsPage() {
         <div className="relative mb-3">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'#647068' }} />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, city..."
+            placeholder="What kind of place are you looking for?"
             className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
         </div>
 
@@ -412,7 +416,7 @@ export default function RentalsPage() {
         {loading ? (
           <div className="text-center py-16" style={{ color:'#647068' }}>
             <div className="flex justify-center mb-3"><Key size={40} className="text-terracotta animate-bounce" /></div>
-            <p className="text-sm">Finding rentals...</p>
+            <p className="text-sm">Finding places...</p>
           </div>
         ) : loadError ? (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
@@ -457,11 +461,10 @@ export default function RentalsPage() {
               filtered.length === 0 ? (
                 <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
                   <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                  <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No rentals found</p>
-                  <p className="text-xs mb-4" style={{ color:'#647068' }}>Be the first to list a place here.</p>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <Link to={emptyListPath(type)} className="btn-primary inline-flex px-6 py-2.5 text-sm">{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
-                    {type === 'All' && <Link to="/list" className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>List a home or land for sale</Link>}
+                  <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No matching places found yet. Try adjusting your search.</p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+                    <button onClick={() => { setSearch(''); setType('All'); setStateF('All States') }} className="btn-primary inline-flex px-6 py-2.5 text-sm">Update Search</button>
+                    <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
                   </div>
                 </div>
               ) : (
