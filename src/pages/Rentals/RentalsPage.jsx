@@ -350,8 +350,8 @@ export default function RentalsPage() {
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Find Your Place, Without the Runaround.</motion.h1>
-            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Rent, short-let, buy a home or find land. Real terms upfront, and no one's number until you pay.</p>
+            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Rent Without the Runaround.</motion.h1>
+            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Real tenancy terms upfront - no surprise agent fees at the door.</p>
           </div>
           {/* View toggle */}
           <div className="flex rounded-xl overflow-hidden border" style={{ borderColor:'#DEDDD6' }}>
@@ -412,7 +412,7 @@ export default function RentalsPage() {
         {loading ? (
           <div className="text-center py-16" style={{ color:'#647068' }}>
             <div className="flex justify-center mb-3"><Key size={40} className="text-terracotta animate-bounce" /></div>
-            <p className="text-sm">Finding places...</p>
+            <p className="text-sm">Finding rentals...</p>
           </div>
         ) : loadError ? (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
@@ -457,8 +457,8 @@ export default function RentalsPage() {
               filtered.length === 0 ? (
                 <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
                   <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                  <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No places found</p>
-                  <p className="text-xs mb-4" style={{ color:'#647068' }}>Nothing matches yet. Be the first to list here.</p>
+                  <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No rentals found</p>
+                  <p className="text-xs mb-4" style={{ color:'#647068' }}>Be the first to list a place here.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <Link to={emptyListPath(type)} className="btn-primary inline-flex px-6 py-2.5 text-sm">{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
                     {type === 'All' && <Link to="/list" className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>List a home or land for sale</Link>}
