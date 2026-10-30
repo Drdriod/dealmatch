@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { PHASES, findSeat } from '@/data/testSeats'
 import { testReportUrl } from '@/lib/testMode'
+import { saveProgress } from '@/lib/testReports'
+import TestReportForm from './TestReportForm'
 
 const storageKey = (code) => `dm-test-progress-${code}`
 
@@ -88,6 +90,7 @@ export default function TestSeatPage() {
     const next = done.includes(index) ? done.filter((i) => i !== index) : [...done, index]
     setDone(next)
     saveDone(seat.code, next)
+    saveProgress(seat, next).catch(() => { /* the owner just will not see live progress */ })
   }
 
   return (
@@ -161,6 +164,8 @@ export default function TestSeatPage() {
           </a>
         )}
       </div>
+
+      <TestReportForm seat={seat} />
     </div>
   )
 }

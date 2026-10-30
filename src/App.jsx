@@ -26,6 +26,7 @@ const OnboardingPage        = lazyWithRetry(() => import('@/pages/Onboarding/Onb
 const VerifyIdentityPage    = lazyWithRetry(() => import('@/pages/PostVerification/VerifyIdentityPage'))
 const WhatsAppLinkPage      = lazyWithRetry(() => import('@/pages/WhatsApp/WhatsAppLinkPage'))
 const TestSeatPage          = lazyWithRetry(() => import('@/pages/Test/TestSeatPage'))
+const TestFeedPage          = lazyWithRetry(() => import('@/pages/Test/TestFeedPage'))
 const PayoutSetupPage       = lazyWithRetry(() => import('@/pages/Payouts/PayoutSetupPage'))
 const DashboardPage         = lazyWithRetry(() => import('@/pages/Dashboard/DashboardPage'))
 const BrowsePage            = lazyWithRetry(() => import('@/pages/Browse/BrowsePage'))
@@ -742,6 +743,15 @@ function AnimatedRoutes() {
         } />
 
         {/* ── Tester run (Preview + staging only): personal codes take each tester straight to their tasks ── */}
+        {isTestMode && (
+          <Route path="/t/feed" element={
+            <AppShell showFooter={false} showWhatsApp={false}>
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition><TestFeedPage /></PageTransition>
+              </Suspense>
+            </AppShell>
+          } />
+        )}
         {isTestMode && ['/t', '/t/:code'].map((path) => (
           <Route key={path} path={path} element={
             <AppShell showFooter={false} showWhatsApp={false}>

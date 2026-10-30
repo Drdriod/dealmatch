@@ -45,3 +45,9 @@ Rotate the Flutterwave sandbox secret first (it appeared in screenshots).
 ## After the run
 
 Staging holds only test data. To reset it, delete the test users in Supabase staging (Authentication, Users) and clear the test rows; this is safe because nothing on staging is real. Production is not affected.
+
+## Tester reports and live feed
+
+Each tester page (`/t/<code>`) has a "Send your report" form, and ticking a step saves progress. Both write to the staging database (`test_reports`, `test_progress`). Nobody can read those tables directly. The owner reads them on `/t/feed?key=<feed key>`, which refreshes every 10 seconds and shows who has started, who has finished, and every report newest first.
+
+Setup, once, in the Supabase SQL editor of the **staging** project only: run `docs/runbooks/test-reports.sql`, then create the key with the commented `insert` at the bottom, and read it back with `select value from public.test_settings where name = 'feed_key';`. Rotate the key with the commented `update`. The file is deliberately not in `supabase/migrations`, so it can never reach production.
