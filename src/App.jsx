@@ -16,8 +16,6 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import InstallPrompt  from '@/components/ui/InstallPrompt'
 import MfaGate        from '@/components/Admin/MfaGate'
 import ComingSoonPage from '@/pages/ComingSoonPage'
-import TestBanner from '@/components/ui/TestBanner'
-import { isTestMode } from '@/lib/testMode'
 
 // ─── Route code-splitting ──────────────────────────────────────────────────────
 const HomePage              = lazyWithRetry(() => import('@/pages/Home/HomePage'))
@@ -25,7 +23,6 @@ const AuthPage              = lazyWithRetry(() => import('@/pages/Auth/AuthPage'
 const OnboardingPage        = lazyWithRetry(() => import('@/pages/Onboarding/OnboardingPage'))
 const VerifyIdentityPage    = lazyWithRetry(() => import('@/pages/PostVerification/VerifyIdentityPage'))
 const WhatsAppLinkPage      = lazyWithRetry(() => import('@/pages/WhatsApp/WhatsAppLinkPage'))
-const TestSeatPage          = lazyWithRetry(() => import('@/pages/Test/TestSeatPage'))
 const PayoutSetupPage       = lazyWithRetry(() => import('@/pages/Payouts/PayoutSetupPage'))
 const DashboardPage         = lazyWithRetry(() => import('@/pages/Dashboard/DashboardPage'))
 const BrowsePage            = lazyWithRetry(() => import('@/pages/Browse/BrowsePage'))
@@ -268,7 +265,6 @@ const PublicOnlyRoute = ({ children }) => {
 // ─── App shell ────────────────────────────────────────────────────────────────
 const AppShell = ({ children, showNav=true, showFooter=true, showWhatsApp=true, showTabBar=true }) => (
   <div className="min-h-screen flex flex-col">
-    <TestBanner />
     {showNav && <Navbar />}
     <main className="flex-1 pb-16 md:pb-0">{children}</main>
     {showFooter && <Footer />}
@@ -740,17 +736,6 @@ function AnimatedRoutes() {
             </Suspense>
           </AppShell>
         } />
-
-        {/* ── Tester run (Preview + staging only): personal codes take each tester straight to their tasks ── */}
-        {isTestMode && ['/t', '/t/:code'].map((path) => (
-          <Route key={path} path={path} element={
-            <AppShell showFooter={false} showWhatsApp={false}>
-              <Suspense fallback={<PageSkeleton />}>
-                <PageTransition><TestSeatPage /></PageTransition>
-              </Suspense>
-            </AppShell>
-          } />
-        ))}
 
         <Route path="/payout-setup" element={
           <ProtectedRoute requireOnboarding={false}>
