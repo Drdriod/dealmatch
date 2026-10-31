@@ -72,7 +72,7 @@ export default function StudentVerifyPage() {
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image too large - max 5MB'); return }
+    if (file.size > 5 * 1024 * 1024) { toast.error('That image is too large. Choose one under 5MB.'); return }
 
     // Instant local preview - the actual bucket is private, so the
     // uploaded storage path can't be rendered directly as an <img src>.
@@ -89,12 +89,12 @@ export default function StudentVerifyPage() {
     // One fixed path per user, replaced in place on re-upload (no superseded copies).
     const path = `${user.id}/student-id`
     const { error } = await supabase.storage.from('identity-docs').upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
-    if (error) { toast.error('Upload failed - please try again'); setUploading(false); return }
+    if (error) { toast.error('The upload didn\'t work. Please try again.'); setUploading(false); return }
     // Store the storage PATH, not a public URL - bucket is private.
     // Admin generates a short-lived signed URL when reviewing submissions.
     setForm(f => ({ ...f, id_image_url: path }))
     setUploading(false)
-    toast.success('ID photo uploaded')
+    toast.success('ID photo uploaded.')
   }
 
   const handleSubmit = async () => {
@@ -106,7 +106,7 @@ export default function StudentVerifyPage() {
     if (usingMatric      && !form.matric_number.trim())      { toast.error('Enter your matriculation number'); return }
     if (usingJamb        && !form.jamb_reg_number.trim())    { toast.error('Enter your JAMB registration number'); return }
     if (usingApplication && !form.application_number.trim()) { toast.error('Enter your application number'); return }
-    if (!form.id_image_url) { toast.error('Please upload your student ID photo'); return }
+    if (!form.id_image_url) { toast.error('Upload a photo of your student ID.'); return }
 
     setSaving(true)
     try {
@@ -134,10 +134,10 @@ export default function StudentVerifyPage() {
       await saveStudentInstitution(user.id, selectedInstitution?.name || '')
       await refreshProfile()
 
-      toast.success('Verification submitted! We\'ll review within 24 hours.')
+      toast.success('Verification submitted. We\'ll review it and let you know.')
       loadData()
     } catch (err) {
-      toast.error('Submission failed - please try again')
+      toast.error('We couldn\'t submit that. Please try again.')
       console.error(err)
     }
     setSaving(false)
@@ -167,7 +167,7 @@ export default function StudentVerifyPage() {
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <div>
-            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>Student Verification</h1>
+            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>Student verification</h1>
             <p className="text-xs" style={{ color: '#647068' }}>100% free - required to view owner contacts</p>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function StudentVerifyPage() {
               {existing.status === 'approved' && (
                 <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                   You can now view owner contact details on all hostel listings.{' '}
-                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: '#C85F2D' }}>Browse hostels →</Link>
+                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: '#C85F2D' }}>Explore hostels →</Link>
                 </p>
               )}
               {existing.status === 'rejected' && (
@@ -209,7 +209,7 @@ export default function StudentVerifyPage() {
               style={{ backgroundColor: 'rgba(122,158,126,0.12)', border: '2px solid rgba(122,158,126,0.3)' }}>
               <GraduationCap size={36} style={{ color: '#7A9E7E' }} />
             </div>
-            <h2 className="font-bold text-lg mb-2" style={{ color: '#17211B' }}>You're Verified!</h2>
+            <h2 className="font-bold text-lg mb-2" style={{ color: '#17211B' }}>You're verified.</h2>
             <p className="text-sm mb-6" style={{ color: '#647068' }}>
               You can now see direct contact details of hostel owners.
             </p>
