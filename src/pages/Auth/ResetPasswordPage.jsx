@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)
         if (error) {
           console.error('[ResetPassword] Code exchange failed:', error.message)
-          setErrMsg('This reset link has expired or already been used. Please request a new one.')
+          setErrMsg('This reset link has expired or has already been used. Request a new one.')
           setStage('error')
           return
         }
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
       }
 
       // No code, no session - invalid link
-      setErrMsg('No valid reset token found. Please request a new password reset link.')
+      setErrMsg('We couldn\'t find a valid reset link. Request a new one to continue.')
       setStage('error')
     }
 
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!allPassed) { toast.error('Password does not meet all requirements'); return }
+    if (!allPassed) { toast.error('Your password doesn\'t meet all the requirements yet'); return }
     if (!matches)   { toast.error('Passwords do not match'); return }
 
     setSaving(true)
@@ -134,16 +134,16 @@ export default function ResetPasswordPage() {
             error.message?.toLowerCase().includes('different from')) {
           toast.error('New password must be different from your current password.')
         } else if (error.message?.toLowerCase().includes('session missing')) {
-          toast.error('Session expired. Please request a new reset link.')
+          toast.error('Your session has expired. Request a new reset link.')
         } else {
-          toast.error(error.message || 'Failed to update password. Please try again.')
+          toast.error(error.message || 'We couldn\'t update your password. Please try again.')
         }
         setSaving(false)
         return
       }
 
       setStage('success')
-      toast.success('Password updated successfully!')
+      toast.success('Password updated.')
 
       // Sign out so the user re-authenticates cleanly with their new password
       await supabase.auth.signOut()
@@ -197,7 +197,7 @@ export default function ResetPasswordPage() {
               <AlertTriangle size={28} style={{ color: '#C85F2D' }} />
             </div>
             <h2 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
-              Link Expired
+              This link has expired
             </h2>
             <p className="text-sm mb-6 leading-relaxed" style={{ color: textSub }}>
               {errMsg}
@@ -226,12 +226,12 @@ export default function ResetPasswordPage() {
                 <Lock size={26} style={{ color: accent }} />
               </div>
               <h1 className="font-display font-black text-2xl mb-2" style={{ color: textPri }}>
-                Set New Password
+                Let's get you back in.
               </h1>
               <p className="text-sm" style={{ color: textSub }}>
                 {isAdmin
                   ? 'Choose a strong password for your admin account.'
-                  : 'Choose a strong password for your DealMatch account.'}
+                  : 'Choose a new password to get back into your DealMatch account.'}
               </p>
             </div>
 
@@ -366,7 +366,7 @@ export default function ResetPasswordPage() {
               >
                 {saving
                   ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  : <><Lock size={14} /> Update Password</>
+                  : <><Lock size={14} /> Reset Password</>
                 }
               </button>
             </form>
@@ -398,10 +398,10 @@ export default function ResetPasswordPage() {
               <Check size={36} style={{ color: '#7A9E7E' }} />
             </div>
             <h1 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
-              Password Updated!
+              Password updated.
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: textSub }}>
-              Your password has been changed successfully. Redirecting you to{' '}
+              Your password has been changed. Taking you to{' '}
               {isAdmin ? 'the admin portal' : 'sign in'}…
             </p>
             <div className="mt-4">

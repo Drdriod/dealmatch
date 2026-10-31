@@ -26,13 +26,13 @@ export default function DisputeNewPage() {
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  if (!ref) return <PageShell title="Report a problem"><EmptyBlock icon={Flag} title="No transaction selected" hint="Open a transaction and choose Report a problem."><Link to="/dashboard" className={linkCls}>Go to dashboard</Link></EmptyBlock></PageShell>;
-  if (loading && !data) return <PageShell title="Report a problem"><LoadingBlock /></PageShell>;
-  if (error) return <PageShell title="Report a problem"><LoadNotice error={error} onRetry={reload} /></PageShell>;
+  if (!ref) return <PageShell title="Report a Problem"><EmptyBlock icon={Flag} title="No transaction selected" hint="Open one of your transactions and choose Report a Problem."><Link to="/dashboard" className={linkCls}>Go to dashboard</Link></EmptyBlock></PageShell>;
+  if (loading && !data) return <PageShell title="Report a Problem"><LoadingBlock /></PageShell>;
+  if (error) return <PageShell title="Report a Problem"><LoadNotice error={error} onRetry={reload} /></PageShell>;
   if (!data || !canReportProblem(data.tx.display_state, data.role)) {
     return (
-      <PageShell title="Report a problem" backTo={ref ? `/transactions/${encodeURIComponent(ref)}` : '/dashboard'}>
-        <EmptyBlock icon={Flag} title="A problem cannot be reported here" hint="You can report a problem on funded work that is not finished, if you are the customer or the provider." />
+      <PageShell title="Report a Problem" backTo={ref ? `/transactions/${encodeURIComponent(ref)}` : '/dashboard'}>
+        <EmptyBlock icon={Flag} title="You can't report a problem here" hint="You can report a problem on funded work that is not finished, if you are the customer or the provider." />
       </PageShell>
     );
   }
@@ -53,8 +53,8 @@ export default function DisputeNewPage() {
   const { tx } = data;
   return (
     <PageShell
-      title="Report a problem"
-      subtitle={`${tx.title}, ${formatKobo(tx.amount_kobo, tx.currency)}. Payment release pauses while we review.`}
+      title="Report a Problem"
+      subtitle={`We're here to help resolve your transaction concerns. ${tx.title}, ${formatKobo(tx.amount_kobo, tx.currency)}. Payment release pauses while we review.`}
       backTo={`/transactions/${encodeURIComponent(ref)}`}
     >
       <form onSubmit={submit} className={`${card} space-y-5`}>
@@ -65,7 +65,7 @@ export default function DisputeNewPage() {
           </select>
         </div>
         <div>
-          <label htmlFor="details" className="mb-1 block text-sm font-semibold">Tell us what happened</label>
+          <label htmlFor="details" className="mb-1 block text-sm font-semibold">Tell us what happened and provide relevant information to help us review your case.</label>
           <textarea id="details" rows={5} maxLength={4000} required value={details} onChange={(e) => setDetails(e.target.value)} className={inputCls} placeholder="What was agreed, what happened instead, and when." />
           <p className="mt-1 text-right text-xs text-warm">{details.length} / 4000</p>
         </div>
@@ -73,7 +73,7 @@ export default function DisputeNewPage() {
         <InlineError message={submitError} />
         <button type="submit" className={btnPrimary} disabled={busy || details.trim().length < 10}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Flag className="h-4 w-4" aria-hidden="true" />}
-          Submit report
+          Submit Report
         </button>
       </form>
     </PageShell>

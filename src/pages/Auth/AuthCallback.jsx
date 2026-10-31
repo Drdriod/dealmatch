@@ -92,7 +92,7 @@ export default function AuthCallback() {
             return
           }
           await linkReferral()
-          toast.success('Account created! Welcome to DealMatch.')
+          toast.success('Account created. Welcome to DealMatch.')
           navigate('/onboarding', { replace: true })
           return
         }
@@ -102,7 +102,7 @@ export default function AuthCallback() {
           return
         }
 
-        toast.success(`Welcome back${profile.full_name ? ', ' + profile.full_name.split(' ')[0] : ''}!`)
+        toast.success(`Welcome back${profile.full_name ? ', ' + profile.full_name.split(' ')[0] : ''}.`)
         navigate('/browse', { replace: true })
 
       } catch (err) {
@@ -119,10 +119,10 @@ export default function AuthCallback() {
       <div className="flex flex-col items-center gap-4 text-center px-6">
         <div className="flex justify-center"><Home size={48} className="text-terracotta animate-bounce" /></div>
         <p className="font-display text-xl font-black" style={{color:'#17211B'}}>
-          Setting up your account...
+          Setting up your account…
         </p>
         <p className="text-sm" style={{color:'#647068'}}>
-          Just a moment while we get everything ready for you.
+          One moment while we get everything ready.
         </p>
         <div className="flex gap-1.5 mt-2">
           {[0,1,2].map(i => (

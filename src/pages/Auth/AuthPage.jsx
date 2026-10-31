@@ -106,18 +106,18 @@ function Field({
 // place both sign-in and sign-up route error messages through, so nothing
 // raw ever reaches a toast.
 function parseAuthError(message) {
-  if (!message) return 'Something went wrong. Please try again.'
+  if (!message) return 'Something went wrong on our side. Please try again.'
   const m = message.toLowerCase()
   if (m.includes('invalid login') || m.includes('invalid credentials') || m.includes('wrong password'))
     return 'Incorrect email or password. Please try again.'
   if (m.includes('email not confirmed'))
-    return 'Please confirm your email first. Check your inbox.'
+    return 'Please confirm your email first. Check your inbox for the code.'
   if (m.includes('rate limit') || m.includes('too many'))
-    return 'Too many attempts. Please wait a moment and try again.'
+    return 'Too many attempts. Wait a moment, then try again.'
   if (m.includes('user not found') || m.includes('no user'))
-    return 'No account found with this email. Please sign up.'
+    return 'We couldn\'t find an account with this email. Create an account to get started.'
   if (m.includes('known to be weak') || m.includes('easy to guess') || m.includes('pwned'))
-    return 'That password has appeared in a data breach elsewhere. Please choose a different one.'
+    return 'That password has appeared in a data breach elsewhere. Choose a different one.'
   if (m.includes('password') && (m.includes('character') || m.includes('should contain') || m.includes('at least')))
     return 'Password must be at least 8 characters, with uppercase, lowercase, a number, and a symbol.'
   return message
@@ -144,12 +144,12 @@ export default function AuthPage() {
   // Surface auth-callback errors passed via URL query param
   const urlError = params.get('error')
   const urlErrorMessages = {
-    auth_callback_failed: 'Sign-in via Google failed. Please try again.',
-    profile_creation_failed: 'Account created but profile setup failed. Please sign in.',
-    no_session: 'Your session expired. Please sign in again.',
-    unexpected: 'An unexpected error occurred. Please try again.',
+    auth_callback_failed: 'Google sign-in didn\'t work. Please try again.',
+    profile_creation_failed: 'Your account was created, but we couldn\'t finish setting up your profile. Sign in to continue.',
+    no_session: 'Your session has expired. Sign in again to continue.',
+    unexpected: 'Something went wrong on our side. Please try again.',
   }
-  const callbackErrorMessage = urlError ? (urlErrorMessages[urlError] || 'Authentication failed. Please try again.') : null
+  const callbackErrorMessage = urlError ? (urlErrorMessages[urlError] || 'We couldn\'t sign you in. Please try again.') : null
 
   const [form, setForm] = useState({
     fullName: '', username: '', email: '', phone: '', password: '', inviteCode: refCode
@@ -274,20 +274,20 @@ export default function AuthPage() {
   // ─── Sign Up ────────────────────────────────────────────────────
   const handleSignUp = async (e) => {
     e.preventDefault()
-    if (!form.fullName.trim())    return toast.error('Please enter your full name')
-    if (!form.email.trim())       return toast.error('Please enter your email')
-    if (!form.phone.trim())       return toast.error('Please enter your phone number')
+    if (!form.fullName.trim())    return toast.error('Enter your full name')
+    if (!form.email.trim())       return toast.error('Enter your email address')
+    if (!form.phone.trim())       return toast.error('Enter your phone number')
     if (!isPasswordValid(form.password)) return toast.error('Password must be at least 8 characters, with uppercase, lowercase, a number, and a symbol.')
 
-    if (fieldStatus.email      === 'taken')   return toast.error('This email is already registered. Please sign in.')
+    if (fieldStatus.email      === 'taken')   return toast.error('This email is already registered. Sign in instead.')
     if (fieldStatus.phone      === 'taken')   return toast.error('This phone number is already linked to an account.')
     if (fieldStatus.username   === 'taken')   return toast.error('This username is already taken. Choose another.')
-    if (fieldStatus.inviteCode === 'invalid') return toast.error('The referral code you entered is not valid.')
-    if (fieldStatus.inviteCode === 'checking') return toast.error('Please wait - checking referral code...')
-    if (Object.values(fieldStatus).includes('checking')) return toast.error('Please wait - still checking your details...')
+    if (fieldStatus.inviteCode === 'invalid') return toast.error('That referral code isn\'t valid.')
+    if (fieldStatus.inviteCode === 'checking') return toast.error('Checking your referral code. One moment.')
+    if (Object.values(fieldStatus).includes('checking')) return toast.error('Still checking your details. One moment.')
     // If user typed a code but it shows as null (never validated), validate it now
     if (form.inviteCode.trim() && fieldStatus.inviteCode === null) {
-      toast.error('Please wait for the referral code to be checked.')
+      toast.error('Checking your referral code. One moment.')
       checkField('inviteCode', form.inviteCode.trim())
       setLoading(false)
       return
@@ -303,7 +303,7 @@ export default function AuthPage() {
       if (fingerprint) {
         const { data: deviceCheck } = await checkDeviceExists(fingerprint)
         if (deviceCheck?.[0]?.exists_count > 0) {
-          toast.error('An account already exists on this device. Please sign in instead, or contact support if this is an error.')
+          toast.error('An account already exists on this device. Sign in instead, or contact support if you think this is a mistake.')
           setLoading(false)
           return
         }
@@ -347,7 +347,7 @@ export default function AuthPage() {
       if (error) {
         // Keep registration outcomes generic so existing accounts cannot be
         // distinguished by response text.
-        toast.error('We could not create the account. Please check your details or try signing in.')
+        toast.error('We couldn\'t create your account. Check your details, or try signing in.')
         return
       }
 
@@ -366,11 +366,11 @@ export default function AuthPage() {
       setSignupEmail(form.email.trim().toLowerCase())
       setVerificationSent(true)
       setOtp(['','','','','',''])
-      toast.success('Account created! Check your email for the 6-digit code.')
+      toast.success('Account created. Check your email for the 6-digit code.')
 
     } catch (err) {
       console.error('Signup error:', err)
-      toast.error(parseAuthError(err.message) || 'Sign up failed. Please try again.')
+      toast.error(parseAuthError(err.message) || 'We couldn\'t create your account. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -402,13 +402,13 @@ export default function AuthPage() {
   }
   const handleVerifyOtp = async () => {
     const code = otp.join('')
-    if (code.length < 6) return toast.error('Enter the complete 6-digit code')
+    if (code.length < 6) return toast.error('Enter the full 6-digit code')
     setVerifying(true)
     const { error } = await supabase.auth.verifyOtp({ email: signupEmail, token: code, type: 'email' })
     setVerifying(false)
-    if (error) return toast.error('Invalid or expired code. Try resending.')
+    if (error) return toast.error('That code is incorrect or has expired. Resend a new code and try again.')
     await linkReferral()
-    toast.success('Email confirmed! Welcome to DealMatch')
+    toast.success('Email confirmed. Welcome to DealMatch.')
     navigate('/onboarding', { replace: true })
   }
   const handleResendOtp = async () => {
@@ -421,7 +421,7 @@ export default function AuthPage() {
   // ─── Sign In ────────────────────────────────────────────────────
   const handleSignIn = async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) return toast.error('Please fill in all fields')
+    if (!form.email || !form.password) return toast.error('Enter your email and password')
     setLoading(true)
     const { error } = await supabase.auth.signInWithPassword({
       email:    form.email.trim().toLowerCase(),
@@ -443,13 +443,13 @@ export default function AuthPage() {
   }
 
   const handleForgotPassword = async () => {
-    if (!form.email) return toast.error('Enter your email address first')
+    if (!form.email) return toast.error('Enter your email address first, then try again')
     const { error } = await supabase.auth.resetPasswordForEmail(
       form.email.trim().toLowerCase(),
       { redirectTo: `${window.location.origin}/auth/reset-password` }
     )
     if (error) return toast.error(error.message)
-    toast.success('Password reset link sent to ' + form.email)
+    toast.success('If that email is registered, we\'ve sent reset instructions to ' + form.email)
   }
 
   const resetTabState = () => {
@@ -500,7 +500,7 @@ export default function AuthPage() {
           </p>
           <button onClick={() => { setVerificationSent(false); setOtp(['','','','','','']) }}
             className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'#647068' }}>
-            <ArrowLeft size={14} /> Back to signup
+            <ArrowLeft size={14} /> Back to Create Account
           </button>
         </div>
       </div>
@@ -572,8 +572,8 @@ export default function AuthPage() {
           {tab === 'signup' ? (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Create account</h1>
-                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Find a verified place or a verified person. Pay for protection first.</p>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Your next deal starts here.</h1>
+                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
               </div>
 
               {/* Full Name - no live check */}
@@ -600,7 +600,7 @@ export default function AuthPage() {
                 type="email"
                 placeholder="your@email.com"
                 required
-                hint="We'll send a confirmation code to this email"
+                hint="We'll send a 6-digit confirmation code to this email"
                 value={form.email}
                 onChange={handleFieldChange('email')}
                 status={fieldStatus.email}
@@ -753,8 +753,8 @@ export default function AuthPage() {
             /* ── Sign In ── */
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Welcome back</h1>
-                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Sign in to continue to DealMatch.</p>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Welcome back.</h1>
+                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Sign in to continue where you left off.</p>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
