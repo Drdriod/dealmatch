@@ -3,7 +3,7 @@ import TrustLayout, { Section } from '@/components/trust/TrustLayout';
 // Reports moderation (UX-20) enforces this page. Keep both in step.
 export default function RulesPage() {
   return (
-    <TrustLayout title="Marketplace rules" subtitle="What listings and providers may not do on DealMatch.">
+    <TrustLayout title="Marketplace Rules" subtitle="What listings and providers may not do on DealMatch, so every deal starts on fair ground.">
       <Section title="Listings">
         <ul className="list-disc space-y-1 pl-5">
           <li>No listing for a property or service you do not have the right to offer.</li>

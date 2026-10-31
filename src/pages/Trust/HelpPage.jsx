@@ -9,12 +9,12 @@ const FAQ = [
   ['What can I send as evidence?', 'Photos (JPG, PNG, WebP) and PDF files, up to 10 MB each and up to 10 files per case.'],
   ['Can I pay the provider directly?', 'You can, but then DealMatch Protection does not apply to that payment.'],
   ['Why is a listing contact hidden?', 'Contact details are shown after the contact fee is paid. This keeps listings from being bypassed.'],
-  ['How do I delete my account?', 'Use the delete account page. Open escrow balances must be settled first.'],
+  ['How do I delete my account?', 'Use the delete account page. Payments still held in DealMatch Protection must be settled first.'],
 ];
 
 export default function HelpPage() {
   return (
-    <TrustLayout title="Help centre" subtitle="Answers to the questions we hear most.">
+    <TrustLayout title="Help Centre" subtitle="Need a hand? We're here. Find answers to common questions about accounts, listings, payments, transactions and DealMatch Protection.">
       <div className="divide-y divide-line rounded-xl border border-line bg-white">
         {FAQ.map(([q, a]) => (
           <details key={q} className="group p-4">
@@ -26,7 +26,7 @@ export default function HelpPage() {
           </details>
         ))}
       </div>
-      <p className="text-sm">Still stuck? <Link to="/contact" className={linkCls}>Contact support</Link>.</p>
+      <p className="text-sm">Still stuck? <Link to="/contact" className={linkCls}>Contact Support</Link>.</p>
     </TrustLayout>
   );
 }

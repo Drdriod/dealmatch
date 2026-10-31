@@ -21,7 +21,7 @@ export default function Footer() {
               Deal<span className="text-terracotta">Match</span>
             </div>
             <p className="text-white/55 text-sm leading-relaxed max-w-xs">
-              DealMatch matches real demand with trusted supply: property, talent, equipment, expertise. Every listing matched, not just posted.
+              Discover the right opportunities, connect with relevant people and places, and transact with confidence.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex gap-3 mt-6">
@@ -37,11 +37,11 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/45 mb-5">Platform</h4>
+            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/45 mb-5">Explore</h4>
             <ul className="space-y-3">
               {[
-                { label: 'Find a Place',    to: '/places' },
-                { label: 'Find a Provider', to: '/providers' },
+                { label: 'Places',    to: '/places' },
+                { label: 'People', to: '/providers' },
                 { label: 'Post a Request',  to: '/request' },
                 { label: 'My Matches',      to: '/matches' },
                 { label: 'How It Works',    to: '/how-it-works' },
@@ -66,16 +66,16 @@ export default function Footer() {
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/50">
           <div>
-            <p>© {new Date().getFullYear()} DealMatch. All rights reserved.</p>
-            <p className="mt-1 text-white/40">Every listing matched, not just posted</p>
+            <p>© {new Date().getFullYear()} DealMatch Technology Limited. All rights reserved.</p>
+            <p className="mt-1 text-white/40">Every deal starts with a match.</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
-            <Link to="/protection" className="hover:text-white transition-colors">Protection</Link>
-            <Link to="/help" className="hover:text-white transition-colors">Help</Link>
+            <Link to="/protection" className="hover:text-white transition-colors">DealMatch Protection</Link>
+            <Link to="/help" className="hover:text-white transition-colors">Help Centre</Link>
             <Link to="/rules" className="hover:text-white transition-colors">Marketplace Rules</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-            <Link to="/about" className="hover:text-white transition-colors">About</Link>
+            <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+            <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             <Link to="/delete-account" className="hover:text-white transition-colors">Delete Account</Link>

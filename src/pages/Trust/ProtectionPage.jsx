@@ -11,16 +11,17 @@ import { linkCls } from '@/components/ui/styles';
 // a reported problem pauses release, contact details stay hidden until the fee is paid.
 // Add timing or coverage claims only after counsel and the release code agree.
 const STEPS = [
-  ['You pay', 'Your payment goes to DealMatch, not straight to the provider.'],
-  ['The work is done', 'The money stays held while the provider does the work.'],
-  ['Both sides confirm', 'The customer and the provider each confirm the work is done.'],
+  ['Find your match', 'Choose an eligible offer under People or Places.'],
+  ['Fund the transaction', 'Make payment through DealMatch. Your payment goes to DealMatch, not straight to the provider.'],
+  ['Track the transaction', 'Follow the transaction status on the transaction page. The money stays held while the work is done.'],
+  ['Confirm completion', 'The customer and the provider each confirm the work is done.'],
   ['Payment is released', 'Once both have confirmed, the provider is paid.'],
 ];
 
 export default function ProtectionPage() {
   const fees = useLoader(listContactFees, []);
   return (
-    <TrustLayout title="DealMatch Protection" subtitle="How your money is held, and what you can do if something goes wrong.">
+    <TrustLayout title="DealMatch Protection" subtitle="Every deal deserves protection. DealMatch Protection provides a structured way to manage eligible payments and transaction completion, and a way to report a problem if something goes wrong.">
       <Section title="How a protected payment works">
         <ol className="space-y-3">
           {STEPS.map(([t, d], i) => (
@@ -30,7 +31,7 @@ export default function ProtectionPage() {
             </li>
           ))}
         </ol>
-        <p>Every step is recorded on the transaction page, so both sides see the same timeline.</p>
+        <p>Every step is recorded on the transaction page, so both sides see the same timeline. Keep your deal on DealMatch so it stays protected.</p>
       </Section>
 
       <Section title="If something goes wrong">
