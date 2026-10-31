@@ -35,21 +35,21 @@ export default function DashboardPage() {
     setBecomingProvider(true)
     const { error: saveError } = await markOfferingServices(user.id)
     setBecomingProvider(false)
-    if (saveError) { toast.error('Could not save. Try again.'); return }
+    if (saveError) { toast.error('We couldn\'t save that. Please try again.'); return }
     await refreshProfile()
-    toast.success("You're on your way to becoming a provider!")
+    toast.success("You're on your way to becoming a provider.")
     navigate('/verify-skill')
   }
 
   const QUICK_LINKS = [
-    { to: '/rentals',       icon: <Building2 size={22} className="text-terracotta" />, label: 'Browse Places',     active: true },
-    { to: '/find-provider', icon: <HardHat size={22} className="text-terracotta" />,  label: 'Browse Providers',  active: true },
+    { to: '/rentals',       icon: <Building2 size={22} className="text-terracotta" />, label: 'Explore Places',    active: true },
+    { to: '/find-provider', icon: <HardHat size={22} className="text-terracotta" />,  label: 'Explore People',    active: true },
     { to: '/request',       icon: <ClipboardList size={22} className="text-terracotta" />, label: 'Post a Request', active: true },
     { to: '/matches',       icon: <Heart size={22} className="text-terracotta" />,    label: 'My Matches',        active: true },
     isProvider
       ? { to: '/verify-skill', icon: <Award size={22} className="text-terracotta" />, label: 'My Provider Status', active: true }
       : { to: null, icon: <Briefcase size={22} className="text-terracotta" />, label: 'Become a Provider', active: true, onClick: handleBecomeProvider },
-    { to: '/manage-listings', icon: <Home size={22} className="text-terracotta" />,    label: 'My Listings',       active: true },
+    { to: '/manage-listings', icon: <Home size={22} className="text-terracotta" />,    label: 'My Offers',         active: true },
   ]
 
   // Derived from fields this page already reads: name, photo, and whether
@@ -62,7 +62,7 @@ export default function DashboardPage() {
   const steps = [
     { key: 'photo', done: !!profile?.avatar_url, title: 'Add a profile photo', sub: 'People trust a face they can see', to: '/verify-identity' },
     { key: 'live', done: verificationLevel === 'live', title: 'Finish live verification', sub: 'Needed before any booking, payment or agreement', to: '/verify-identity' },
-    { key: 'post', done: myListingsCount + myRequestsCount > 0, title: 'Post a request or list your offer', sub: 'Get your first match moving', to: '/request' },
+    { key: 'post', done: myListingsCount + myRequestsCount > 0, title: 'Find a match or create an offer', sub: 'Get your first match moving', to: '/request' },
     isProvider
       ? { key: 'provider', done: true, title: 'Provider status', sub: 'Review your provider profile', to: '/verify-skill' }
       : { key: 'provider', done: false, title: 'Become a Provider', sub: 'Starts real verification. It does not grant access by itself', onClick: handleBecomeProvider },
@@ -79,8 +79,8 @@ export default function DashboardPage() {
         <section className="rounded-3xl p-5 mb-4"
           style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.18), rgba(255,255,255,0.03) 62%)', border: '1px solid rgba(212,168,83,0.25)' }}>
           <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: CHART.indicator }}>Your journey</p>
-          <h1 className="font-display text-3xl mt-1" style={{ color: '#FFFAF5' }}>Hey, {firstName}</h1>
-          <p className="text-sm mt-1" style={{ color: MUTED }}>Here's your DealMatch overview</p>
+          <h1 className="font-display text-3xl mt-1" style={{ color: '#FFFAF5' }}>Welcome back, {firstName}.</h1>
+          <p className="text-sm mt-1" style={{ color: MUTED }}>Everything you're looking for, interested in or currently transacting is right here.</p>
 
           <div className="flex items-start justify-around mt-5">
             <div className="flex flex-col items-center gap-2">
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             style={{ background: 'rgba(122,158,126,0.14)', border: '1px solid rgba(122,158,126,0.3)', minHeight: 140 }}>
             <Home size={26} style={{ color: CHART.palette[0] }} />
             <div>
-              <p className="font-display text-lg leading-tight" style={{ color: '#FFFAF5' }}>Find a Place</p>
+              <p className="font-display text-lg leading-tight" style={{ color: '#FFFAF5' }}>Explore Places</p>
               <p className="text-xs mt-1" style={{ color: MUTED }}>Shortlets, rentals & housing</p>
             </div>
           </Link>
@@ -110,7 +110,7 @@ export default function DashboardPage() {
             style={{ backgroundColor: '#C85F2D', minHeight: 140 }}>
             <HardHat size={26} className="text-white" />
             <div>
-              <p className="font-display text-lg leading-tight text-white">Find a Provider</p>
+              <p className="font-display text-lg leading-tight text-white">Explore People</p>
               <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>Skilled people & services</p>
             </div>
           </Link>
@@ -186,12 +186,12 @@ export default function DashboardPage() {
           ) : activity.length === 0 ? (
             <div className="py-6 text-center">
               <div className="flex justify-center mb-3"><ClipboardList size={36} className="text-terracotta" /></div>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#FFFAF5' }}>No activity yet</p>
-              <p className="text-xs mb-4" style={{ color: MUTED }}>Post what you need or list what you offer to get started.</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#FFFAF5' }}>You don't have any activity yet.</p>
+              <p className="text-xs mb-4" style={{ color: MUTED }}>Tell us what you need or create an offer to get started.</p>
               <div className="flex gap-2 justify-center">
-                <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Post a Request</Link>
+                <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Find a Match</Link>
                 <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#FFFAF5' }}>
-                  List What I Offer
+                  Create an Offer
                 </Link>
               </div>
             </div>
