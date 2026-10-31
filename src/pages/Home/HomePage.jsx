@@ -100,11 +100,11 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
             <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
             <h1 className="mt-4 text-[clamp(38px,10.5vw,50px)] sm:text-[clamp(48px,4.6vw,72px)] leading-[1.02] max-w-[720px] text-deep">
-              <span className="block">Find what you need.</span>
-              <span className="block">Find who can <em className="not-italic text-terracotta whitespace-nowrap">provide it.</em></span>
+              <span className="block">Find the right match.</span>
+              <span className="block">Make the right <em className="not-italic text-terracotta whitespace-nowrap">deal.</em></span>
             </h1>
             <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
-              Places to stay, homes to rent, and people ready to help.
+              Discover opportunities, connect with the right people and find places that match what you're looking for. DealMatch makes discovery and transactions simpler, safer and more transparent.
             </p>
           </motion.div>
 
@@ -115,10 +115,10 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.14 }}
             className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/65">
             <span className="inline-flex items-center gap-2"><Check size={16} className="text-terracotta" /> Free to search</span>
-            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Phone numbers stay hidden until a protected deal step</span>
+            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Discover. Connect. Agree. Transact with confidence.</span>
             <button onClick={() => setShowPostChoice(true)} type="button"
               className="inline-flex items-center gap-1.5 text-deep font-bold border-b border-deep pb-0.5 hover:text-terracotta hover:border-terracotta transition-colors">
-              Offer something <ArrowRight size={13} />
+              Offer Something <ArrowRight size={13} />
             </button>
           </motion.div>
         </div>
@@ -158,14 +158,14 @@ export default function HomePage() {
            are true on day one regardless of how many people use it. ── */}
       <section className="bg-forest text-white" aria-label="DealMatch trust features">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-7 py-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/60 max-w-[220px]">Every profile shows exactly which checks it has passed</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/60 max-w-[220px]">Know when an account or listing has completed the applicable verification process</p>
           {stats === 'mechanisms' ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-10 gap-y-4">
               {[
                 { icon: ShieldCheck, label: 'Identity verified' },
                 { icon: Check,       label: 'Skill evidence reviewed' },
                 { icon: Eye,         label: 'Property inspected' },
-                { icon: Lock,        label: 'Escrow where available' },
+                { icon: Lock,        label: 'DealMatch Protection where eligible' },
               ].map((m, i) => (
                 <div key={i} className="flex items-center gap-2.5 text-xs">
                   <m.icon size={19} className="text-sun flex-shrink-0" />
@@ -195,24 +195,24 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <FadeUp>
             <p className="text-center font-display text-3xl sm:text-4xl mb-8" style={{ color: '#17211B' }}>
-              What are you here to do?
+              Whatever brings you here, there's a place to start.
             </p>
           </FadeUp>
           <div className="grid sm:grid-cols-2 gap-4">
             <FindOfferCard
               variant="looking"
               icon={Search}
-              title="I'm looking"
-              description="Find a place or person that fits what you need."
-              ctaLabel="Start searching"
+              title="Find"
+              description="Looking for something? Tell us what you need and discover relevant matches."
+              ctaLabel="Find What You Need"
               to="/search"
             />
             <FindOfferCard
               variant="offering"
               icon={Building2}
-              title="I have something"
-              description="Offer your property, skill or service to people looking for it."
-              ctaLabel="Start offering"
+              title="Offer"
+              description="Have something to offer? Put it in front of people actively looking for it."
+              ctaLabel="Create an Offer"
               onClick={() => setShowPostChoice(true)}
             />
           </div>
@@ -230,14 +230,14 @@ export default function HomePage() {
       <section className="py-16 px-5 sm:px-7">
         <div className="max-w-[1184px] mx-auto rounded-[22px] bg-white border border-line p-8 sm:p-12">
           <FadeUp>
-            <span className="eyebrow">Clear, not confusing</span>
-            <h2 className="mt-3 mb-10 text-3xl sm:text-5xl leading-[1.05] text-deep max-w-2xl">Built for better connections.</h2>
+            <span className="eyebrow">Trust</span>
+            <h2 className="mt-3 mb-10 text-3xl sm:text-5xl leading-[1.05] text-deep max-w-2xl">Confidence should be part of every deal.</h2>
           </FadeUp>
           <StaggerChildren className="grid sm:grid-cols-3 gap-8">
             {[
-              { icon: ShieldCheck, title: 'Verified providers', body: 'Find providers who have passed the required verification level.' },
-              { icon: Lock,        title: 'Protected contact',  body: 'Where escrow is enabled, contact details remain protected until the required transaction step is completed.' },
-              { icon: Handshake,   title: 'Secure payments',    body: 'When a DealMatch transaction uses escrow, payment is handled through the protected transaction flow.' },
+              { icon: ShieldCheck, title: 'Verified',            body: 'Know when an account or listing has completed the applicable verification process.' },
+              { icon: Lock,        title: 'Phone locked',        body: "Your contact details are protected by the platform's access rules." },
+              { icon: Handshake,   title: 'DealMatch Protection', body: 'Eligible transactions have a structured payment and completion process.' },
             ].map((item, i) => (
               <StaggerItem key={i}>
                 <div>
@@ -273,16 +273,16 @@ export default function HomePage() {
       <section className="py-20 sm:py-24 px-5 sm:px-7 bg-orange-pale text-center">
         <FadeUp>
           <span className="eyebrow">Start with one search</span>
-          <h2 className="mt-4 mx-auto max-w-[720px] text-[40px] sm:text-6xl leading-[1.02] text-deep">Your next match is waiting.</h2>
+          <h2 className="mt-4 mx-auto max-w-[720px] text-[40px] sm:text-6xl leading-[1.02] text-deep">Your next deal starts with a match.</h2>
           <p className="mx-auto mt-5 mb-2 max-w-[580px] text-deep/65 leading-relaxed">
-            Be among the first to find your match on DealMatch. Free to search, with clear verification on every profile.
+            Whether you're looking for something or have something to offer, start with DealMatch.
           </p>
-          <p className="text-sm font-bold mb-8 text-terracotta">Every listing matched, not just posted</p>
+          <p className="text-sm font-bold mb-8 text-terracotta">Every deal starts with a match.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
             <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta text-white font-bold px-8 py-4 hover:bg-[#A8441D] transition-colors">
-              Join DealMatch <ArrowRight size={16} />
+              Create an Offer <ArrowRight size={16} />
             </Link>
-            <Link to="/search" className="btn-outline inline-flex items-center justify-center">Start searching</Link>
+            <Link to="/search" className="btn-outline inline-flex items-center justify-center">Find Your Match</Link>
           </div>
         </FadeUp>
       </section>
