@@ -1,4 +1,4 @@
-# DealMatch: Matched, Not Just Posted
+# DealMatch: Find It. Match It. Deal.
 
 > DealMatch matches real demand with trusted supply across property, skilled trades, professional services, logistics, and more. Not a directory, a matching engine.
 
