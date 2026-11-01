@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
 import { usePlatformFees, escrowRates, formatPlatformFee } from '@/lib/platformFees'
 import toast from 'react-hot-toast'
+import PlaceSubtypePicker from '@/components/ui/PlaceSubtypePicker'
 import clsx from 'clsx'
 
 const STATES = [
@@ -45,6 +46,7 @@ const INITIAL = {
   bedrooms:'', bathrooms:'', size_sqm:'',
   description:'', features:[], documents:[],
   images:[], video_url:'',
+  category_id:null,
 }
 
 // ── Upload a single image file to Supabase Storage ────────
@@ -106,7 +108,7 @@ export default function ListPropertyPage() {
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Property type *</label>
             <div className="grid grid-cols-2 gap-3">
               {TYPES.map(t => (
-                <button key={t.id} type="button" onClick={() => set('property_type', t.id)}
+                <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, property_type: t.id, category_id: null }))}
                   className="p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3"
                   style={{
                     borderColor: form.property_type === t.id ? '#C85F2D' : '#DEDDD6',
@@ -119,6 +121,8 @@ export default function ListPropertyPage() {
               ))}
             </div>
           </div>
+          <PlaceSubtypePicker category="sale" propertyType={form.property_type}
+            value={form.category_id} onChange={id => set('category_id', id)} />
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>How are you listing it? *</label>
             <div className="grid grid-cols-2 gap-2 mb-2">
@@ -570,6 +574,8 @@ export default function ListPropertyPage() {
         seller_id:    user.id,
         status:       'pending_review',  // agent must verify on-site before going live
         category:     'sale',
+        // Optional: the Place subcategory picked above. Empty means the database files it by type.
+        category_id:  form.category_id || null,
         // FIX 2b: Pass cleaned uploaded URLs, not blob objects
         images:       uploadedImages,
       }

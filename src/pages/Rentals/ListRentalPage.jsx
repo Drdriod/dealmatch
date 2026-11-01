@@ -6,6 +6,7 @@ import { insertListedProperty } from '@/data/rentalsRepository'
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
+import PlaceSubtypePicker from '@/components/ui/PlaceSubtypePicker'
 
 const STATES = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','Abuja (FCT)']
 const HOTEL_FEATURES  = ['Pool','Restaurant','Bar','Gym','Spa','Wifi','Generator','AC','Room Service','Conference Hall','Parking','Security','CCTV','Laundry','24hr Reception']
@@ -37,6 +38,7 @@ export default function ListRentalPage() {
     price:'', description:'', features:[], images:[], video_url:'',
     bedrooms:'', bathrooms:'', size_sqm:'', max_guests:'',
     category: type,
+    category_id: null,
   })
 
   const set    = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -62,7 +64,7 @@ export default function ListRentalPage() {
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Type *</label>
               <div className="grid grid-cols-2 gap-2">
                 {[['hotel','Hotel'],['shortlet','Short-let']].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, category:v }))}
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, category:v, category_id:null }))}
                     className="py-3 rounded-xl text-sm font-semibold border-2 transition-all"
                     style={{ borderColor: form.category === v ? '#C85F2D' : '#DEDDD6', color: form.category === v ? '#C85F2D' : '#647068', backgroundColor: form.category === v ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     {l}
@@ -71,6 +73,9 @@ export default function ListRentalPage() {
               </div>
             </div>
           )}
+
+          <PlaceSubtypePicker category={form.category} propertyType="apartment"
+            value={form.category_id} onChange={id => setForm(f => ({ ...f, category_id: id }))} />
 
           {[
             { label: isHotel ? 'Property name *' : 'Listing title *', key:'title', type:'text', placeholder: isHotel ? 'e.g. The Grand Lagos Hotel' : 'e.g. 3-Bed Apartment, Lekki' },
@@ -272,6 +277,8 @@ export default function ListRentalPage() {
         seller_id:    user.id,
         status:       'pending_review',  // agent must verify before going live
         category:     form.category,
+        // Optional: the Place subcategory picked on the form. Empty means the database files it by type.
+        category_id:  form.category_id || null,
       }))
 
       if (error || !created?.id) throw error || new Error('Listing was not confirmed by the server')
@@ -305,7 +312,7 @@ export default function ListRentalPage() {
         <VerifyReminder returnTo="/landlord" className="mb-6" />
         <div className="space-y-3">
           <button onClick={() => navigate('/landlord')} className="btn-primary w-full py-4">Go to Dashboard →</button>
-          <button onClick={() => { setSaved(false); setListingId(null); setSubmitError(''); setStep(0); setForm({ title:'', state:'', city:'', address:'', price:'', description:'', features:[], images:[], video_url:'', bedrooms:'', bathrooms:'', size_sqm:'', max_guests:'', category: type }) }}
+          <button onClick={() => { setSaved(false); setListingId(null); setSubmitError(''); setStep(0); setForm({ title:'', state:'', city:'', address:'', price:'', description:'', features:[], images:[], video_url:'', bedrooms:'', bathrooms:'', size_sqm:'', max_guests:'', category: type, category_id: null }) }}
             className="w-full py-3 rounded-2xl text-sm border" style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>
             List Another Property
           </button>

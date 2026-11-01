@@ -10,7 +10,9 @@ import { placeFilter } from '@/lib/placeTypes'
 // a null occupancy is an older listing and counts as vacant. A home for sale is often lived in, so
 // the occupancy rule does not apply to sales.
 // `type` is one of PLACE_TYPES. 'All States' means no state filter.
-export function fetchActivePlaces(type, state) {
+// `categoryIds` (optional) limits the list to these Place subcategories (public.categories ids).
+// null means no limit; an empty list means "nothing matches", so it returns nothing.
+export function fetchActivePlaces(type, state, categoryIds = null) {
   const { categories, land } = placeFilter(type)
   // Named public columns: this list is open to anonymous visitors (see lib/propertyColumns.js).
   let q = supabase.from('properties').select(PROPERTY_PUBLIC_COLUMNS)
@@ -21,6 +23,7 @@ export function fetchActivePlaces(type, state) {
   if (land === 'only')    q = q.eq('property_type', 'land')
   if (land === 'exclude') q = q.neq('property_type', 'land')
   if (state !== 'All States') q = q.eq('state', state)
+  if (Array.isArray(categoryIds)) q = q.in('category_id', categoryIds.length ? categoryIds : [-1])
   return q
 }
 

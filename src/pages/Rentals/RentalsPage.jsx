@@ -5,6 +5,8 @@ import { Bath, Bed, CheckCircle, Heart, Home, Key, Lock, MapPin, MessageCircle, 
 import { recordSwipe } from '@/lib/supabase'
 import { fetchActivePlaces, fetchHostVerification, insertRentalEnquiry } from '@/data/rentalsRepository'
 import { PLACE_TYPES, PLACE_TYPE_LABEL, isSaleListing, placeBadge, priceSuffix, emptyListPath } from '@/lib/placeTypes'
+import useCategoryTree from '@/hooks/useCategoryTree'
+import { placeGroups, categoryIdsFor } from '@/lib/placeCategories'
 import { fetchPropertyContact } from '@/data/propertyDetailRepository'
 import { useAuth } from '@/context/AuthContext'
 import SwipeCard from '@/components/matching/SwipeCard'
@@ -295,8 +297,16 @@ export default function RentalsPage() {
   const [interest,  setInterest]  = useState(null)
   const [swipeQ,    setSwipeQ]    = useState([])
   const [loadError, setLoadError] = useState(false)
+  // What kind of place: a group (Residential, Land...) and, inside it, one subcategory.
+  const { tree } = useCategoryTree()
+  const [kindGroup, setKindGroup] = useState('')
+  const [kindLeaf,  setKindLeaf]  = useState('')
+  const groups   = placeGroups(tree)
+  const openKind = groups.find(g => g.slug === kindGroup)
+  const kindIds  = categoryIdsFor(tree, kindLeaf || kindGroup)
+  const kindKey  = kindIds ? kindIds.join(',') : ''
 
-  useEffect(() => { loadRentals() }, [type, stateF])
+  useEffect(() => { loadRentals() }, [type, stateF, kindKey])
 
   const loadRentals = async () => {
     setLoading(true)
@@ -305,7 +315,7 @@ export default function RentalsPage() {
     try {
       // Do not wait forever on a weak connection: after 12 seconds show the retry message.
       const { data, error } = await Promise.race([
-        fetchActivePlaces(type, stateF),
+        fetchActivePlaces(type, stateF, kindIds),
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000)),
       ])
       if (error) throw error
@@ -400,6 +410,36 @@ export default function RentalsPage() {
           </Link>
         </div>
 
+        {/* Filters row 2 - kind of place (groups from the database, then subcategories) */}
+        {groups.length > 0 && (
+          <div className="mb-2">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth:'none' }} role="group" aria-label="Kind of place">
+              {[{ slug:'', name:'All kinds' }, ...groups].map(g => (
+                <button key={g.slug || 'all'} onClick={() => { setKindGroup(g.slug); setKindLeaf('') }}
+                  className="px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
+                  style={{
+                    backgroundColor: kindGroup === g.slug ? '#17211B' : '#FFFFFF',
+                    color:           kindGroup === g.slug ? '#FFFFFF' : '#5C4A3A',
+                    borderColor:     kindGroup === g.slug ? '#17211B' : '#DEDDD6',
+                  }}>{g.name}</button>
+              ))}
+            </div>
+            {openKind && (
+              <div className="flex gap-2 overflow-x-auto pt-2 pb-1" style={{ scrollbarWidth:'none' }} role="group" aria-label={openKind.name}>
+                {[{ slug:'', name:`All ${openKind.name}` }, ...openKind.children].map(c => (
+                  <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug)}
+                    className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
+                    style={{
+                      backgroundColor: kindLeaf === c.slug ? '#C85F2D' : '#FFFFFF',
+                      color:           kindLeaf === c.slug ? '#FFFFFF' : '#5C4A3A',
+                      borderColor:     kindLeaf === c.slug ? '#C85F2D' : '#DEDDD6',
+                    }}>{c.name}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Filters row 2 - state */}
         <div className="flex gap-2 overflow-x-auto mb-5 pb-1" style={{ scrollbarWidth:'none' }}>
           {STATES.map(s => (
@@ -463,7 +503,7 @@ export default function RentalsPage() {
                   <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
                   <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No matching places found yet. Try adjusting your search.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
-                    <button onClick={() => { setSearch(''); setType('All'); setStateF('All States') }} className="btn-primary inline-flex px-6 py-2.5 text-sm">Update Search</button>
+                    <button onClick={() => { setSearch(''); setType('All'); setStateF('All States'); setKindGroup(''); setKindLeaf('') }} className="btn-primary inline-flex px-6 py-2.5 text-sm">Update Search</button>
                     <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
                   </div>
                 </div>
