@@ -161,8 +161,8 @@ export default function OnboardingPage() {
   }
 
   const finish = async ({ skip = false } = {}) => {
-    if (!skip && !valid) { toast.error('Pick one to continue'); return }
-    if (!user?.id) { toast.error('Not signed in. Please sign in again.'); return }
+    if (!skip && !valid) { toast.error('Choose one to continue'); return }
+    if (!user?.id) { toast.error('You are signed out. Sign in again to continue.'); return }
 
     const chosen = skip || !cfg ? [] : cfg.options.filter(o => picks.includes(o.id))
     const loc = skip ? parseLocation('') : parseLocation(where)
@@ -215,7 +215,7 @@ export default function OnboardingPage() {
         await go()
         return
       }
-      toast.error('Could not save. Please try again.')
+      toast.error('We couldn\'t save that. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -253,7 +253,7 @@ export default function OnboardingPage() {
         {stage === 'intent' && (
           <section>
             <div className="mb-6">
-              <h1 className="font-display text-3xl" style={{ color: '#17211B' }}>Welcome to DealMatch!</h1>
+              <h1 className="font-display text-3xl" style={{ color: '#17211B' }}>Welcome to DealMatch.</h1>
               <p className="text-sm mt-1.5" style={{ color: '#647068' }}>What are you here to do?</p>
             </div>
             <div className="space-y-3">

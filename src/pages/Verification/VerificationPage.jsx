@@ -54,7 +54,7 @@ export default function VerificationPage() {
     })
     setSaving(false)
 
-    if (error) { toast.error('Update failed: ' + error.message); return }
+    if (error) { toast.error('We couldn\'t update that: ' + error.message); return }
 
     const statusLabel = newStatus === 'active' ? 'Verified' : newStatus === 'rejected' ? 'Rejected ' : 'Updated'
     toast.success(`${property.title} : ${statusLabel}`)
@@ -129,7 +129,7 @@ export default function VerificationPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#647068' }}>Loading listings...</div>
+          <div className="text-center py-16" style={{ color:'#647068' }}>Loading listings…</div>
         ) : listings.length === 0 ? (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <div className="flex justify-center mb-3"><CheckCircle size={40} className="text-green-600" /></div>
@@ -220,7 +220,7 @@ export default function VerificationPage() {
                           Verification Note (optional)
                         </label>
                         <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
-                          placeholder="Add any notes from the site visit..."
+                          placeholder="Add any notes from the site visit"
                           className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
                       </div>
 

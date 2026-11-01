@@ -35,7 +35,7 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
 
   const submit = async () => {
     if (!isAuthenticated) { navigate('/auth'); return }
-    if (!title.trim() || !body.trim()) { toast.error('Title and details are required'); return }
+    if (!title.trim() || !body.trim()) { toast.error('Add a title and some details to continue'); return }
 
     setSubmitting(true)
     try {
@@ -46,7 +46,7 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not create thread')
-      toast.success('Posted!')
+      toast.success('Posted.')
       setTitle(''); setBody(''); setOpen(false)
       onCreated?.(data)
     } catch (err) {
@@ -184,7 +184,7 @@ export default function ForumPage() {
   if (state.error) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3 pt-16">
-        <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>Not found</h1>
+        <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>We couldn't find that page</h1>
         <Link to="/forum" className="text-sm text-terracotta">Back to Forum</Link>
       </div>
     )

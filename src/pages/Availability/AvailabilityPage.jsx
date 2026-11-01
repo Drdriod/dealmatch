@@ -28,7 +28,7 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
 
   const handleSave = async () => {
     if (!form.name || !form.total_rooms) {
-      toast.error('Category name and room count are required')
+      toast.error('Add a category name and room count to continue')
       return
     }
     setSaving(true)
@@ -42,8 +42,8 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
       updated_at:      new Date().toISOString(),
     })
     setSaving(false)
-    if (error) { toast.error('Could not save: ' + error.message); return }
-    toast.success('Room category added!')
+    if (error) { toast.error('We couldn\'t save that: ' + error.message); return }
+    toast.success('Room category added.')
     onSaved()
     onClose()
   }
@@ -135,7 +135,7 @@ function CategoryCard({ cat, onUpdate }) {
     setUpdating(true)
     const { error } = await setRoomsAvailable(cat.id, newVal)
     setUpdating(false)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
 
     // Notify DealMatch if fully booked
     if (newVal === 0) {
@@ -155,7 +155,7 @@ function CategoryCard({ cat, onUpdate }) {
     setUpdating(true)
     const { error } = await setRoomsAvailable(cat.id, 0)
     setUpdating(false)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
     toast.success(cat.name + ' marked as fully booked')
     onUpdate()
   }
@@ -164,7 +164,7 @@ function CategoryCard({ cat, onUpdate }) {
     setUpdating(true)
     const { error } = await setRoomsAvailable(cat.id, total)
     setUpdating(false)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
     toast.success('All ' + cat.name + ' rooms marked available')
     onUpdate()
   }
@@ -523,7 +523,7 @@ function RentalManagerPanel({ user }) {
     const { error } = await setOccupancy(rental.id, next)
     setUpdating(null)
     if (error) { toast.error('Could not update: ' + error.message); return }
-    toast.success(next === 'occupied' ? 'Marked occupied - hidden from new enquiries' : 'Marked vacant - visible to renters again')
+    toast.success(next === 'occupied' ? 'Marked occupied. Hidden from new enquiries.' : 'Marked vacant. Visible to renters again.')
     load()
   }
 
@@ -617,7 +617,7 @@ function HostelManagerPanel({ user }) {
     setUpdating(hostel.id)
     const { error } = await setHostelRoomsAvailable(hostel.id, next)
     setUpdating(null)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
     load()
   }
 
@@ -625,7 +625,7 @@ function HostelManagerPanel({ user }) {
     setUpdating(hostel.id)
     const { error } = await setHostelRoomsAvailable(hostel.id, 0)
     setUpdating(null)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
     toast.success('Marked fully booked')
     load()
   }
@@ -634,7 +634,7 @@ function HostelManagerPanel({ user }) {
     setUpdating(hostel.id)
     const { error } = await setHostelRoomsAvailable(hostel.id, hostel.total_rooms)
     setUpdating(null)
-    if (error) { toast.error('Update failed'); return }
+    if (error) { toast.error('We couldn\'t update that. Please try again.'); return }
     toast.success('All rooms marked available')
     load()
   }

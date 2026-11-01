@@ -70,8 +70,8 @@ export default function SkillVerificationPage() {
   const removeFile = (i) => setFiles(f => f.filter((_, idx) => idx !== i))
 
   const handleSubmit = async () => {
-    if (!description.trim()) { toast.error('Describe the work you do'); return }
-    if (!category.trim()) { toast.error('Choose what you do'); return }
+    if (!description.trim()) { toast.error('Tell us about the work you do'); return }
+    if (!category.trim()) { toast.error('Choose what you do to continue'); return }
     if (files.length === 0) { toast.error('Add at least one photo of your work'); return }
 
     setSubmitting(true)
@@ -99,10 +99,10 @@ export default function SkillVerificationPage() {
       })
       if (rpcError) throw rpcError
 
-      toast.success('Submitted for review!')
+      toast.success('Submitted. We will review it soon.')
       load()
     } catch (err) {
-      toast.error(err.message || 'Could not submit. Try again.')
+      toast.error(err.message || 'We couldn\'t submit that. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -178,7 +178,7 @@ export default function SkillVerificationPage() {
           <div className="space-y-4">
           {existing?.status === 'rejected' && (
             <div className="rounded-2xl p-3 text-xs" style={{ backgroundColor: 'rgba(201,74,58,0.08)', color: '#C94A3A' }}>
-              Your last submission wasn't approved. Add clearer photos or more detail and resubmit below.
+              Your last submission wasn't approved. Add clearer photos or more detail, then submit again below.
             </div>
           )}
 

@@ -20,7 +20,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
   const [saving,  setSaving]  = useState(false)
 
   const handleSubmit = async () => {
-    if (!rating) { toast.error('Please give a rating'); return }
+    if (!rating) { toast.error('Choose a rating first'); return }
     setSaving(true)
     await createPropertyReview({
       propertyId, reviewerId: user.id, reviewerName: profile?.full_name || 'Anonymous',
@@ -28,7 +28,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
     })
     setSaving(false)
     onSubmit()
-    toast.success('Review submitted! ⭐')
+    toast.success('Thank you. Your review is in.')
     onClose()
   }
 
@@ -91,13 +91,13 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
     'Unsafe conditions','Payment issue','Harassment','Other']
 
   const handleSubmit = async () => {
-    if (!reason || !desc) { toast.error('Please fill all fields'); return }
+    if (!reason || !desc) { toast.error('Fill in every field to continue'); return }
     setSaving(true)
     await createDispute({
       propertyId, reporterId: user.id, againstId, bookingId, reason, description: desc,
     })
     setSaving(false)
-    toast.success('Dispute filed. DealMatch team will review within 48 hours.')
+    toast.success('Your report was received. The DealMatch team will review it.')
     onClose()
   }
 
@@ -229,7 +229,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
         {messages.length === 0 && (
           <div className="text-center py-12" style={{ color:'#647068' }}>
             <div className="flex justify-center mb-2"><MessageCircle size={40} className="text-terracotta" /></div>
-            <p className="text-sm">No messages yet. Send a message to start the conversation.</p>
+            <p className="text-sm">No messages yet. Send one to start the conversation.</p>
           </div>
         )}
         {messages.map(msg => {
@@ -259,7 +259,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
       <div className="flex items-center gap-2 p-4 border-t" style={{ borderColor:'#DEDDD6', backgroundColor:'#FFFAF5' }}>
         <input type="text" value={newMsg} onChange={e => setNewMsg(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-          placeholder="Type a message..."
+          placeholder="Write a message"
           className="flex-1 px-4 py-3 rounded-2xl border text-sm outline-none"
           style={{ backgroundColor:'#FFFFFF', color:'#17211B', borderColor:'#DEDDD6' }} />
         <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
@@ -350,7 +350,7 @@ export default function MessagesPage() {
       setThreads(threadsFormatted)
     } catch (err) {
       console.error('Error loading threads:', err)
-      toast.error('Failed to load messages')
+      toast.error('We couldn\'t load your messages. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -371,17 +371,17 @@ export default function MessagesPage() {
       <div className="max-w-lg mx-auto px-4">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Messages</h1>
-          <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Your conversations with landlords and tenants</p>
+          <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Your conversations, all in one place.</p>
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#647068' }}>Loading messages...</div>
+          <div className="text-center py-16" style={{ color:'#647068' }}>Loading messages…</div>
         ) : threads.length === 0 ? (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <div className="flex justify-center mb-3"><MessageCircle size={40} className="text-terracotta" /></div>
             <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No messages yet</p>
-            <p className="text-xs mt-1 mb-4" style={{ color:'#647068' }}>Messages with landlords and tenants appear here.</p>
-            <button onClick={() => navigate('/rentals')} className="btn-primary px-6 py-3 text-sm">Browse Rentals</button>
+            <p className="text-xs mt-1 mb-4" style={{ color:'#647068' }}>When you connect with someone, your conversation appears here.</p>
+            <button onClick={() => navigate('/rentals')} className="btn-primary px-6 py-3 text-sm">Explore Places</button>
           </div>
         ) : (
           <div className="space-y-2">

@@ -123,9 +123,9 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>Search DealMatch</h1>
+        <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>What are you looking for?</h1>
         <p className="text-xs mb-5" style={{ color: '#647068' }}>
-          One search across every place and person on the platform.
+          Discover. Connect. Agree. One search across every place and person on DealMatch.
         </p>
 
         <form onSubmit={submit} className="flex gap-2 mb-3">
@@ -193,8 +193,8 @@ export default function SearchPage() {
 
         {!loading && results !== null && aiResults.length === 0 && keywordOnly.length === 0 && (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
-            <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>No matches yet</p>
-            <p className="text-xs" style={{ color: '#647068' }}>Try a different word, or broaden your radius.</p>
+            <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>We couldn't find a match for your search.</p>
+            <p className="text-xs" style={{ color: '#647068' }}>Try different search terms, or widen your search area.</p>
           </div>
         )}
 

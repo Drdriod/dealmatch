@@ -126,7 +126,7 @@ function SearchResultsView({ query }) {
       {state.loading ? (
         <div className="flex items-center gap-2 text-gray-400 text-sm py-8"><Loader2 size={16} className="animate-spin" /> Searching...</div>
       ) : state.results.length === 0 ? (
-        <p className="text-sm text-gray-400 py-8">Nothing matched that search. Try a broader term.</p>
+        <p className="text-sm text-gray-400 py-8">We couldn't find a match for your search. Try different search terms.</p>
       ) : (
         <div className="divide-y mt-4" style={{ borderColor: '#DEDDD6' }}>
           {state.results.map(r => (
@@ -158,7 +158,7 @@ function IndexView() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#17211B' }}>Tell Us What You Need</h1>
+      <h1 className="font-display text-3xl font-black mb-2" style={{ color: '#17211B' }}>Tell us what you need.</h1>
       <p className="text-sm text-gray-500 mb-6">Search across every category, or browse by name below.</p>
       <SearchBar autoFocus />
       <div className="grid gap-3">
@@ -263,9 +263,9 @@ function CategoryBrowseView({ categorySlug }) {
       <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
         <div>
           {loading ? (
-            <div className="flex items-center gap-2 text-gray-400 text-sm py-8"><Loader2 size={16} className="animate-spin" /> Loading...</div>
+            <div className="flex items-center gap-2 text-gray-400 text-sm py-8"><Loader2 size={16} className="animate-spin" /> Loading…</div>
           ) : results.length === 0 ? (
-            <p className="text-sm text-gray-400 py-8">No listings match yet. Be the first to post one.</p>
+            <p className="text-sm text-gray-400 py-8">No listings match yet. Be the first to create one.</p>
           ) : (
             <div className="grid gap-3">
               {results.map(item => (
@@ -319,7 +319,7 @@ function NewListingView({ categorySlug }) {
   const required = category?.attribute_schema?.required || []
 
   const submit = async () => {
-    if (!title.trim()) { toast.error('Title is required'); return }
+    if (!title.trim()) { toast.error('Add a title to continue'); return }
     const missing = required.filter(r => attributes[r] === undefined || attributes[r] === '')
     if (missing.length > 0) { toast.error(`Missing required field: ${missing[0]}`); return }
 
@@ -336,7 +336,7 @@ function NewListingView({ categorySlug }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not create listing')
-      toast.success('Listing posted')
+      toast.success('Your listing is posted')
       navigate(`/marketplace/${categorySlug}`)
     } catch (err) {
       toast.error(err.message)
@@ -398,7 +398,7 @@ function ListingDetailView({ id }) {
       .catch(() => setState({ loading: false, listing: null, category: null }))
   }, [id])
 
-  if (state.loading) return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-400 text-sm">Loading...</div>
+  if (state.loading) return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-400 text-sm">Loading…</div>
   if (!state.listing) return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-400 text-sm">Listing not found.</div>
 
   const { listing } = state
@@ -457,7 +457,7 @@ function CategoryOrGroupView({ categorySlug }) {
     fetch(`${API_BASE}/categories/${categorySlug}`).then(r => r.json()).then(category => setState({ loading: false, category }))
   }, [categorySlug])
 
-  if (state.loading) return <div className="max-w-md mx-auto px-4 py-16 text-center text-gray-400 text-sm">Loading...</div>
+  if (state.loading) return <div className="max-w-md mx-auto px-4 py-16 text-center text-gray-400 text-sm">Loading…</div>
   if (!state.category?.id) return <div className="max-w-md mx-auto px-4 py-16 text-center text-gray-400 text-sm">Not found.</div>
 
   if (state.category.children?.length > 0) {
