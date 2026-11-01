@@ -83,10 +83,10 @@ export default function BrowsePage() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
-                Browse Deals
+                Explore Places
               </h1>
               <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
-                {queue.length} propert{queue.length === 1 ? 'y' : 'ies'} matching your profile
+                {queue.length} propert{queue.length === 1 ? 'y' : 'ies'} matching what you're looking for
               </p>
             </div>
             <button onClick={loadProperties}
@@ -126,12 +126,12 @@ export default function BrowsePage() {
             <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
               <div className="flex justify-center mb-4">{queue.length === 0 && !hasSeenAny ? <Home size={48} className="text-terracotta" /> : <PartyPopper size={48} className="text-gold" />}</div>
               <h3 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
-                {hasSeenAny ? "You've seen everything!" : 'No listings yet'}
+                {hasSeenAny ? "You've seen everything." : 'No listings yet'}
               </h3>
               <p className="text-sm mb-6" style={{ color: '#647068' }}>
                 {hasSeenAny
-                  ? 'Check your matches or refresh for new listings.'
-                  : 'New properties are added regularly. Check back soon, or be the first to list one.'}
+                  ? 'Check your saved matches or refresh for new listings.'
+                  : 'New listings are added regularly. Check back soon, or create an offer of your own.'}
               </p>
               <button onClick={loadProperties} className="btn-primary px-8 py-3 text-sm">
                 {hasSeenAny ? 'Refresh Listings' : 'Check Again'}

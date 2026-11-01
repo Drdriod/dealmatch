@@ -63,7 +63,7 @@ function LeaveReview({ transactionId, providerId, reviewerId }) {
       return
     }
     setExisting(data)
-    toast.success('Thanks for your review')
+    toast.success('Thank you. Your review is in.')
   }
 
   if (existing === undefined) return null
@@ -184,8 +184,8 @@ export default function JobPostingPage() {
   }, [transaction?.id])
 
   const submit = async () => {
-    if (!description.trim()) { toast.error('Describe what you need'); return }
-    if (!location.trim()) { toast.error('Add a location'); return }
+    if (!description.trim()) { toast.error('Tell us what you need'); return }
+    if (!location.trim()) { toast.error('Add a location to continue'); return }
     if (!user) { setShowGuestAuth(true); return }
 
     setPosting(true)
@@ -203,10 +203,10 @@ export default function JobPostingPage() {
     })
 
     setPosting(false)
-    if (error) { toast.error(friendlyDbError(error, 'Could not post job. Try again.')); return }
+    if (error) { toast.error(friendlyDbError(error, 'We couldn\'t post that. Please try again.')); return }
     setTransaction(data)
     navigate(`/jobs/${data.id}`, { replace: true })
-    toast.success(toggle === 'book' ? 'Request sent!' : 'Job posted - bids coming in')
+    toast.success(toggle === 'book' ? 'Request sent.' : 'Job posted. Bids will appear here.')
   }
 
   // Resume the post automatically once guest phone verification succeeds --
@@ -230,10 +230,10 @@ export default function JobPostingPage() {
     }
 
     const { data: updatedTx, error } = await acceptBidForJob(transaction.id, bid.id)
-    if (error) { toast.error(friendlyDbError(error, 'Could not accept bid')); return }
+    if (error) { toast.error(friendlyDbError(error, 'We couldn\'t accept that bid. Please try again.')); return }
 
     setTransaction(updatedTx)
-    toast.success('Bid accepted - pay for protection to unlock contact details')
+    toast.success('Bid accepted. Pay through DealMatch Protection to unlock contact details.')
 
     emitEvent('bid.accepted', {
       providerId: bid.provider_id,
@@ -249,8 +249,8 @@ export default function JobPostingPage() {
     if (!counterCents || Number.isNaN(counterCents)) { toast.error('Enter a valid amount'); return }
 
     const { error } = await sendCounterOffer(bid.id, counterCents)
-    if (error) { toast.error(friendlyDbError(error, 'Could not send counter')); return }
-    toast.success('Counter sent - awaiting provider response')
+    if (error) { toast.error(friendlyDbError(error, 'We couldn\'t send your counter-offer. Please try again.')); return }
+    toast.success('Counter-offer sent. Waiting for the provider to respond.')
   }
 
   // Binds a payment reference to this transaction server-side (via RPC,
@@ -267,7 +267,7 @@ export default function JobPostingPage() {
 
     const { error: refErr } = await startEscrowPayment(transaction.id, reference)
     if (refErr) {
-      toast.error(friendlyDbError(refErr, 'Could not start payment'))
+      toast.error(friendlyDbError(refErr, 'We couldn\'t start the payment. Please try again.'))
       setFundingEscrow(false)
       return
     }

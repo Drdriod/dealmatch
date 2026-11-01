@@ -93,7 +93,7 @@ export default function ReferralPage() {
   const copyLink = async () => {
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
-    toast.success('Invite link copied!')
+    toast.success('Invite link copied.')
     setTimeout(() => setCopied(false), 2500)
   }
 
@@ -115,7 +115,7 @@ export default function ReferralPage() {
       return
     }
     if (redeemAmt > points.balance) {
-      toast.error('Insufficient points balance')
+      toast.error('You don\'t have enough points for that yet')
       return
     }
     setRedeeming(true)
@@ -125,7 +125,7 @@ export default function ReferralPage() {
       toast.success('Redemption request submitted! ' + fmt(result.cashValue) + ' will be paid within 3-5 days.')
       loadData()
     } else {
-      toast.error(result.error || 'Redemption failed')
+      toast.error(result.error || 'We couldn\'t complete that redemption. Please try again.')
     }
   }
 

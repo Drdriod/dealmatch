@@ -188,8 +188,8 @@ export default function FindProviderPage() {
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <div>
-            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find a Provider</motion.h1>
-            <p className="text-xs" style={{ color: '#647068' }}>Nearest verified providers first</p>
+            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find the right people.</motion.h1>
+            <p className="text-xs" style={{ color: '#647068' }}>Discover relevant people, explore available opportunities and make meaningful connections through DealMatch.</p>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ export default function FindProviderPage() {
 
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
           <Search size={15} style={{ color: '#647068' }} />
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="What do you need done?"
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Who or what are you looking for?"
             className="flex-1 bg-transparent outline-none text-sm" style={{ color: '#17211B' }} />
         </div>
 
@@ -286,7 +286,7 @@ export default function FindProviderPage() {
           <div className="col-span-full text-center py-16">
             <MapPin size={36} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
             <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Choose a state or use your location</p>
-            <p className="text-xs mt-1" style={{ color: '#647068' }}>We show providers near you first.</p>
+            <p className="text-xs mt-1" style={{ color: '#647068' }}>We show the closest people first.</p>
           </div>
         ) : loading ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -295,13 +295,13 @@ export default function FindProviderPage() {
         ) : filtered.length === 0 ? (
           <div className="col-span-full text-center py-16">
             <ShieldCheck size={36} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>No providers match yet</p>
+            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>We couldn't find a match for your search.</p>
             <p className="text-xs mt-1" style={{ color: '#647068' }}>
               {tab === 'identity'
-                ? 'Identity-verified providers appear here. Try another state, or check the Skill verified tab.'
-                : 'Try clearing filters, or post a job and let providers come to you.'}
+                ? 'Identity verified people appear here. Try another state, or check the Skill verified tab.'
+                : 'Try different search terms, clear your filters, or tell us what you need and let people come to you.'}
             </p>
-            <button onClick={() => navigate('/request?mode=bid')} className="btn-primary mt-4 px-6 py-2.5 text-sm">Post a request instead</button>
+            <button onClick={() => navigate('/request?mode=bid')} className="btn-primary mt-4 px-6 py-2.5 text-sm">Find a Match</button>
           </div>
         ) : filtered.map(p => (
           <motion.div key={p.id}
@@ -343,7 +343,7 @@ export default function FindProviderPage() {
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/request?mode=bid&provider=${p.id}`)}
                   className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
-                  Request Bid
+                  Request a Bid
                 </button>
                 <button onClick={() => navigate(`/provider/${p.id}`)}
                   className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#C85F2D' }}>

@@ -144,13 +144,13 @@ export default function ApplyProfessionalPage() {
   }
 
   const handleNext = () => {
-    if (!canProceed()) { toast.error('Please fill in all required fields'); return }
+    if (!canProceed()) { toast.error('Fill in the required fields to continue'); return }
     setStep(s => s + 1)
   }
 
   const handlePay = async () => {
-    if (!user) { toast.error('Please sign in first'); return }
-    if (!(chosenAmount > 0)) { toast.error('Prices are still loading. Please try again in a moment.'); return }
+    if (!user) { toast.error('Sign in to continue'); return }
+    if (!(chosenAmount > 0)) { toast.error('Prices are still loading. Try again in a moment.'); return }
 
     // Providers should not go live until verification is approved - this
     // sends unverified applicants to /verify-identity first and brings them
@@ -179,7 +179,7 @@ export default function ApplyProfessionalPage() {
     })
 
     if (error || !application) {
-      toast.error('Could not save application: ' + (error?.message || 'unknown error'))
+      toast.error('We couldn\'t save your application: ' + (error?.message || 'unknown error'))
       setSaving(false)
       return
     }
@@ -192,7 +192,7 @@ export default function ApplyProfessionalPage() {
       email:            form.email,
       planType,
       onSuccess: () => {
-        toast.success('Payment received! Your profile goes live shortly.')
+        toast.success('Payment received. Your profile goes live shortly.')
         navigate('/professionals')
       },
       onClose: () => {

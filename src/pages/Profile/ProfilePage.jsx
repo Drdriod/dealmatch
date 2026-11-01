@@ -59,11 +59,11 @@ export default function ProfilePage() {
     if (!file) return
     setUploading(true)
     const { url, error } = await uploadAvatar(user.id, file)
-    if (error) { toast.error('Upload failed: ' + error.message); setUploading(false); return }
+    if (error) { toast.error('We couldn\'t upload that: ' + error.message); setUploading(false); return }
     await updateUserProfile({ avatar_url: url })
     // Note: is_photo_verified is set only by admin after identity review
     await refreshProfile()
-    toast.success('Photo updated!')
+    toast.success('Photo updated.')
     setUploading(false)
   }
 
@@ -77,10 +77,10 @@ export default function ProfilePage() {
     setSaving(true)
     const { error } = await updateUserProfile(form)
     setSaving(false)
-    if (error) { toast.error('Save failed: ' + error.message); return }
+    if (error) { toast.error('We couldn\'t save that: ' + error.message); return }
     await refreshProfile()
     setEditing(false)
-    toast.success('Profile updated!')
+    toast.success('Profile updated.')
   }
 
   // FIX: Robust sign-out: calls supabase directly, then hard-redirect
@@ -107,9 +107,9 @@ export default function ProfilePage() {
     setBecomingProvider(true)
     const { error } = await markOffersServices(user.id)
     setBecomingProvider(false)
-    if (error) { toast.error('Could not save. Try again.'); return }
+    if (error) { toast.error('We couldn\'t save that. Please try again.'); return }
     await refreshProfile()
-    toast.success("You're on your way to becoming a provider!")
+    toast.success("You're on your way to becoming a provider.")
     navigate('/verify-skill')
   }
 
