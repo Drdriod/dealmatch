@@ -23,7 +23,6 @@ The admin console opens for `admin`, `superadmin`, `agent` and `verifier`, or an
 | `/providers`, `/provider/:id` | Find a provider, provider profile | People |
 | `/request` | Post a request (job posting) | People |
 | `/marketplace/*`, `/forum/*` | Marketplace, community forum | both |
-| `/t`, `/t/:code` | Personal tester task page. Exists only when `VITE_TEST_MODE=true` (Preview), never in production | test run |
 | `/escrow`, `/tenancy` | Escrow explainer and tenancy tools | both |
 | `/how-it-works`, `/protection`, `/help`, `/rules`, `/about`, `/contact` | Trust and help pages | both |
 | `/terms`, `/privacy`, `/delete-account` | Legal and account deletion | both |

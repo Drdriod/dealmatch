@@ -60,8 +60,8 @@ export default function LandlordDashboardPage() {
   const togglePause = async (listing) => {
     const newStatus = listing.status === 'active' ? 'paused' : 'active'
     const { error } = await setListingStatus(listing.id, newStatus)
-    if (error) { toast.error('Update failed'); return }
-    toast.success(`Listing ${newStatus === 'active' ? 'activated' : 'paused'}`)
+    if (error) { toast.error('We couldn\'t update that listing. Please try again.'); return }
+    toast.success(`Listing ${newStatus === 'active' ? 'activated' : 'paused'}.`)
     reload({ silent: true })
   }
 
@@ -114,9 +114,9 @@ export default function LandlordDashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
-              Landlord Dashboard
+              Manage your offers. Track your deals.
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: '#647068' }}>Manage your properties</p>
+            <p className="text-xs mt-0.5" style={{ color: '#647068' }}>Keep your offers organised, monitor interest and manage your transactions from one place.</p>
           </div>
           <button onClick={() => reload()}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -127,7 +127,7 @@ export default function LandlordDashboardPage() {
 
         <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
 
-        {loading && <div className="text-center py-12" style={{ color: '#647068' }}>Loading...</div>}
+        {loading && <div className="text-center py-12" style={{ color: '#647068' }}>Loading your dashboard…</div>}
 
         {!loading && (
           <>
@@ -156,7 +156,7 @@ export default function LandlordDashboardPage() {
               <Panel title="Rent collected vs due" sub={`Monthly, ${pool.length === rentals.length ? 'all rental properties' : 'selected property'} · due = current rent on occupied units`} className="mb-3">
                 {rentals.length === 0 ? (
                   <p className="text-xs py-8 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    Add a rental listing to start tracking rent against it.
+                    Create a rental offer to start tracking rent against it.
                   </p>
                 ) : (
                   <>
@@ -201,7 +201,7 @@ export default function LandlordDashboardPage() {
               {/* Occupancy */}
               <Panel title="Occupancy" sub="Rental listings by current state">
                 {rentals.length === 0 ? (
-                  <p className="text-xs py-6 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>No rental listings yet.</p>
+                  <p className="text-xs py-6 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>You haven't published a rental offer yet.</p>
                 ) : (
                   <div className="flex items-center gap-5">
                     <Donut slices={occupancySlices} size={136} thickness={18} center={rentals.length} centerSub="rentals" />
@@ -247,8 +247,8 @@ export default function LandlordDashboardPage() {
                 {rentals.length === 0 ? (
                   <div className="p-8 text-center">
                     <div className="flex justify-center mb-3"><Key size={36} className="text-terracotta" /></div>
-                    <p className="font-semibold text-sm" style={{ color: '#17211B' }}>No rental properties yet</p>
-                    <Link to="/list-rental" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">List Rental →</Link>
+                    <p className="font-semibold text-sm" style={{ color: '#17211B' }}>You haven't published a rental offer yet.</p>
+                    <Link to="/list-rental" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">Create Your First Offer →</Link>
                   </div>
                 ) : (
                   <>
@@ -288,7 +288,7 @@ export default function LandlordDashboardPage() {
 
             {/* Tabs */}
             <div className="flex gap-2 mb-5">
-              {[['listings','My Listings'],['bookings','Bookings']].map(([v,l]) => (
+              {[['listings','My Offers'],['bookings','Bookings']].map(([v,l]) => (
                 <button key={v} onClick={() => setTab(v)}
                   className="px-5 py-2.5 rounded-full text-sm font-semibold border transition-all"
                   style={{
@@ -309,8 +309,8 @@ export default function LandlordDashboardPage() {
             {listings.length === 0 ? (
               <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                 <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>No listings yet</p>
-                <Link to="/list" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">List Property →</Link>
+                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>You haven't published an offer yet.</p>
+                <Link to="/list" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">Create Your First Offer →</Link>
               </div>
             ) : listings.map(l => {
               const s = STATUS_STYLES[l.status] || STATUS_STYLES.paused
@@ -362,7 +362,7 @@ export default function LandlordDashboardPage() {
             {bookings.length === 0 ? (
               <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
                 <div className="flex justify-center mb-3"><ClipboardList size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>No bookings yet</p>
+                <p className="font-semibold text-sm" style={{ color: '#17211B' }}>You don't have any bookings yet.</p>
               </div>
             ) : bookings.map(b => (
               <div key={b.id} className="rounded-2xl border p-4"

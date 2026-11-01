@@ -7,7 +7,7 @@ export default function DisputeCasePage() {
   const { id } = useParams();
   const { user } = useAuth();
   return (
-    <PageShell title="Your case" subtitle="Add information or evidence while the case is open." backTo="/dashboard" backLabel="Dashboard">
+    <PageShell title="Your case" subtitle="Add information or evidence while your case is open." backTo="/dashboard" backLabel="Dashboard">
       <DisputeCaseView disputeId={id} userId={user?.id} />
     </PageShell>
   );

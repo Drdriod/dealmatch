@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { isSaleListing } from '@/lib/placeTypes'
 import { Shield, ShieldCheck, X, Loader2 } from 'lucide-react'
 import { fetchEscrowStatus, startPropertyEscrowPayment } from '@/data/propertyReserveRepository'
 import { useAuth } from '@/context/AuthContext'
@@ -38,7 +39,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   // Escrow rate from the platform fee registry (rental_escrow or sale_escrow,
   // one total split half per side). Null while loading: the pay action stays off.
   const { fees } = usePlatformFees()
-  const escrow = escrowRates(fees, property?.listing_type === 'sale' ? 'sale_escrow' : 'rental_escrow')
+  const escrow = escrowRates(fees, isSaleListing(property) ? 'sale_escrow' : 'rental_escrow')
 
   const gross = Number(amount) || 0
   const feePerParty = gross && escrow ? Math.round(gross * escrow.perSide / 100) : 0
@@ -74,7 +75,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     const { data: escrowRow, error: rpcError } = await startPropertyEscrowPayment({
       propertyId:      property.id,
       reference,
-      transactionType: property.listing_type === 'sale' ? 'sale' : 'rental',
+      transactionType: isSaleListing(property) ? 'sale' : 'rental',
       grossAmount:     gross,
       tenantName:      profile?.full_name || user.user_metadata?.full_name || 'DealMatch user',
       tenantPhone:     profile?.phone || '',
@@ -148,7 +149,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
               </div>
             </div>
 
-            {property?.listing_type !== 'sale' && (
+            {!isSaleListing(property) && (
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Preferred move-in date</label>
                 <input type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)}

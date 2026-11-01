@@ -14,23 +14,23 @@ const C = {
 const STEPS = [
   {
     icon: Search,
-    title: '1. Find',
-    body: 'Search a verified place or a verified person. No account needed to look.',
+    title: '1. Find your match',
+    body: 'Tell us what you need or explore available offers. No account needed to look.',
   },
   {
     icon: MessageCircle,
-    title: '2. Request',
-    body: "Tell us what you need and who you're interested in. Contact and chat stay locked for now.",
+    title: '2. Review and agree',
+    body: 'Evaluate the opportunity and say who you are interested in. Contact and chat stay locked until protection is confirmed.',
   },
   {
     icon: Lock,
-    title: '3. Pay for protection',
-    body: 'Your payment is held safely with DealMatch - not sent to the other side yet.',
+    title: '3. Pay through DealMatch',
+    body: 'Use DealMatch Protection where the transaction is eligible. Your payment is held by DealMatch, not sent to the other side yet.',
   },
   {
     icon: CheckCircle2,
-    title: '4. Unlock & confirm',
-    body: 'Once protection is confirmed, chat and contact details unlock and the deal moves forward.',
+    title: '4. Complete the deal',
+    body: 'Once protection is confirmed, chat and contact details unlock. Follow the transaction process and confirm completion.',
   },
 ]
 
@@ -38,9 +38,9 @@ export default function HowItWorksPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: C.bg }}>
       <div className="max-w-3xl mx-auto px-6">
-        <h1 className="font-display font-black text-3xl mb-3" style={{ color: C.dark }}>How DealMatch Works</h1>
+        <h1 className="font-display font-black text-3xl mb-3" style={{ color: C.dark }}>Simple discovery. Clear agreements. Better deals.</h1>
         <p className="text-base leading-relaxed mb-10" style={{ color: C.text }}>
-          Find a verified place or a verified person. Pay for protection first.
+          DealMatch brings discovery, communication and protected transactions into one marketplace.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-4 mb-12">
@@ -87,9 +87,9 @@ export default function HowItWorksPage() {
 
         <div className="flex flex-wrap gap-3">
           <Link to="/places" className="px-6 py-3 rounded-full text-sm font-semibold text-white"
-            style={{ backgroundColor: C.primary }}>Find a Place</Link>
+            style={{ backgroundColor: C.primary }}>Explore Places</Link>
           <Link to="/providers" className="px-6 py-3 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}`, color: C.dark }}>Find a Provider</Link>
+            style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}`, color: C.dark }}>Explore People</Link>
           <Link to="/request" className="px-6 py-3 rounded-full text-sm font-semibold"
             style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}`, color: C.dark }}>Post a Request</Link>
         </div>

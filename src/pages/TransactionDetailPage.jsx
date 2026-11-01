@@ -35,12 +35,12 @@ export default function TransactionDetailPage() {
   const isAdmin = profile?.role === 'admin'; // display hint only; the database decides with is_admin()
   const { data, error, loading, reload, confirm, action } = useProtectedTransaction(ref, { userId: user?.id, isAdmin });
 
-  if (loading && !data) return <PageShell title="Transaction"><LoadingBlock label="Loading transaction" /></PageShell>;
-  if (error) return <PageShell title="Transaction" backTo="/dashboard" backLabel="Dashboard"><LoadNotice error={error} onRetry={reload} /></PageShell>;
+  if (loading && !data) return <PageShell title="Your deal, clearly tracked."><LoadingBlock label="Loading transaction" /></PageShell>;
+  if (error) return <PageShell title="Your deal, clearly tracked." backTo="/dashboard" backLabel="Dashboard"><LoadNotice error={error} onRetry={reload} /></PageShell>;
   if (!data) {
     return (
-      <PageShell title="Transaction" backTo="/dashboard" backLabel="Dashboard">
-        <EmptyBlock icon={Receipt} title="Transaction not found" hint="It may not exist, or it belongs to another account." />
+      <PageShell title="Your deal, clearly tracked." backTo="/dashboard" backLabel="Dashboard">
+        <EmptyBlock icon={Receipt} title="We couldn't find this transaction" hint="It may not exist, or it may belong to another account." />
       </PageShell>
     );
   }
@@ -59,14 +59,14 @@ export default function TransactionDetailPage() {
       actions={<StatusBadge label={meta.label} tone={meta.tone} />}
     >
       <section className={card}>
-        <p className="text-xs text-warm">Amount held in protection</p>
+        <p className="text-xs text-warm">Agreed amount</p>
         <p className="text-3xl font-bold tracking-tight">{formatKobo(tx.amount_kobo, tx.currency)}</p>
         <p className="mt-2 text-sm text-warm">{meta.help}</p>
       </section>
 
       <section className={card} aria-labelledby="next-title">
         <h2 id="next-title" className="mb-2 text-sm font-bold">What happens next</h2>
-        {next ? <p className="text-sm text-warm">{next.description}</p> : <p className="text-sm text-warm">No action is needed from you.</p>}
+        {next ? <p className="text-sm text-warm">{next.description}</p> : <p className="text-sm text-warm">You don't need to do anything right now.</p>}
         <InlineError message={action.error} />
         <div className="mt-4 flex flex-wrap gap-2">
           {next?.label ? (
@@ -77,19 +77,19 @@ export default function TransactionDetailPage() {
           ) : null}
           {canReportProblem(tx.display_state, role) ? (
             <Link to={`/disputes/new?transaction=${encodeURIComponent(tx.ref)}`} className={btnSecondary}>
-              <Flag className="h-4 w-4" aria-hidden="true" /> Report a problem
+              <Flag className="h-4 w-4" aria-hidden="true" /> Report a Problem
             </Link>
           ) : null}
           {help ? (
             <a href={help} target="_blank" rel="noopener noreferrer" className={btnSecondary}>
-              <MessageCircle className="h-4 w-4" aria-hidden="true" /> Contact support
+              <MessageCircle className="h-4 w-4" aria-hidden="true" /> Contact Support
             </a>
           ) : null}
         </div>
       </section>
 
       <section className={card} aria-labelledby="terms-title">
-        <h2 id="terms-title" className="mb-3 text-sm font-bold">Agreed terms</h2>
+        <h2 id="terms-title" className="mb-3 text-sm font-bold">Transaction terms</h2>
         <TermsList snapshot={tx.terms_snapshot} />
         {tx.agreed_at ? (
           <p className="mt-3 text-xs text-warm">
@@ -101,10 +101,10 @@ export default function TransactionDetailPage() {
       </section>
 
       <section className={card} aria-labelledby="timeline-title">
-        <h2 id="timeline-title" className="mb-4 text-sm font-bold">Timeline</h2>
+        <h2 id="timeline-title" className="mb-4 text-sm font-bold">Transaction history</h2>
         <Timeline
           items={events.map((e) => ({ id: e.id, title: eventLabel(e.event_type), at: e.created_at, note: null }))}
-          emptyText="Updates will appear here as the transaction moves forward."
+          emptyText="Updates will appear here as your deal moves forward."
         />
       </section>
     </PageShell>

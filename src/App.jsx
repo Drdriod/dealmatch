@@ -16,8 +16,6 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import InstallPrompt  from '@/components/ui/InstallPrompt'
 import MfaGate        from '@/components/Admin/MfaGate'
 import ComingSoonPage from '@/pages/ComingSoonPage'
-import TestBanner from '@/components/ui/TestBanner'
-import { isTestMode } from '@/lib/testMode'
 
 // ─── Route code-splitting ──────────────────────────────────────────────────────
 const HomePage              = lazyWithRetry(() => import('@/pages/Home/HomePage'))
@@ -269,7 +267,6 @@ const PublicOnlyRoute = ({ children }) => {
 // ─── App shell ────────────────────────────────────────────────────────────────
 const AppShell = ({ children, showNav=true, showFooter=true, showWhatsApp=true, showTabBar=true }) => (
   <div className="min-h-screen flex flex-col">
-    <TestBanner />
     {showNav && <Navbar />}
     <main className="flex-1 pb-16 md:pb-0">{children}</main>
     {showFooter && <Footer />}

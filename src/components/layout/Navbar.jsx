@@ -96,8 +96,8 @@ export default function Navbar() {
                     >
                       <Link to="/dashboard" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
                       <Link to="/wallet" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
-                      <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Manage Listings</Link>
-                      <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Profile Settings</Link>
+                      <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>My Offers</Link>
+                      <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Account Settings</Link>
                       <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#C85F2D] hover:bg-black/5">Sign Out</button>
                     </motion.div>
                   )}
@@ -107,14 +107,14 @@ export default function Navbar() {
           ) : (
             <button onClick={() => navigate('/auth')}
               className="hidden md:block text-sm font-medium text-[#17211B] hover:text-[#C85F2D]">
-              Login
+              Sign In
             </button>
           )}
 
           {!user && (
             <button onClick={() => navigate('/auth')}
               className="bg-[#C85F2D] text-white text-[13px] font-bold px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
-              Sign Up
+              Create Account
             </button>
           )}
 
@@ -168,8 +168,8 @@ export default function Navbar() {
                 <>
                   <Link to="/dashboard" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
                   <Link to="/wallet" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
-                  <Link to="/manage-listings" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Manage Listings</Link>
-                  <Link to="/profile" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Profile Settings</Link>
+                  <Link to="/manage-listings" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Offers</Link>
+                  <Link to="/profile" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Account Settings</Link>
                   <button onClick={handleSignOut} className="w-full text-left text-[#C85F2D] font-medium py-2">
                     Sign Out
                   </button>
@@ -177,10 +177,10 @@ export default function Navbar() {
               ) : (
                 <>
                   <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-[#17211B] font-medium py-2">
-                    Login
+                    Sign In
                   </button>
                   <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#C85F2D] text-white font-medium py-2.5 rounded-full">
-                    Sign Up
+                    Create Account
                   </button>
                 </>
               )}

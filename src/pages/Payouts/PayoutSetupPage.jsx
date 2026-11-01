@@ -85,10 +85,10 @@ export default function PayoutSetupPage() {
         setResolved(true)
         toast.success('Account confirmed: ' + data.accountName)
       } else {
-        toast.error(data.error || 'Could not confirm this account - check the number and bank.')
+        toast.error(data.error || 'We couldn\'t confirm this account. Check the number and bank.')
       }
     } catch {
-      toast.error('Could not confirm this account right now.')
+      toast.error('We couldn\'t confirm this account right now. Please try again.')
     } finally {
       setResolving(false)
     }
@@ -110,7 +110,7 @@ export default function PayoutSetupPage() {
     })
     setSubmitting(false)
     if (error) {
-      toast.error(error.message || 'Could not submit your bank details. Try again.')
+      toast.error(error.message || 'We couldn\'t submit your bank details. Please try again.')
       return
     }
     toast.success('Submitted for review. We\u2019ll notify you once it\u2019s verified.')
@@ -192,7 +192,7 @@ export default function PayoutSetupPage() {
             <button type="submit" disabled={submitting || !resolved}
               className="w-full rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
               style={{ backgroundColor: '#17211B', color: '#FFF' }}>
-              {submitting ? 'Submitting...' : resolved ? 'Submit for verification' : 'Confirm your account first'}
+              {submitting ? 'Submitting…' : resolved ? 'Submit for verification' : 'Confirm your account first'}
             </button>
           </form>
         )}

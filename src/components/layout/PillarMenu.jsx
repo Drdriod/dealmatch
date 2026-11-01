@@ -11,7 +11,7 @@ const ease = [0.22, 1, 0.36, 1]
 const OPEN_DELAY = 90
 const CLOSE_DELAY = 180
 
-const VIEW_ALL = { place: 'Browse all places', people: 'Browse all people' }
+const VIEW_ALL = { place: 'Explore all places', people: 'Explore all people' }
 
 const listVariants = {
   hidden: {},

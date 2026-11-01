@@ -30,8 +30,8 @@ function ActiveEscrowSection() {
   const confirmMoveIn = async (escrowId) => {
     setConfirming(escrowId)
     const { error } = await recordMoveInConfirmation(escrowId, user.id)
-    if (error) toast.error('Could not confirm. Please try again.')
-    else toast.success('Move-in confirmed! Funds released to landlord.')
+    if (error) toast.error('We couldn\'t confirm your move-in. Please try again.')
+    else toast.success('Move-in confirmed. The funds will be released to the landlord.')
     setConfirming(null)
   }
 
@@ -52,7 +52,7 @@ function ActiveEscrowSection() {
           <button onClick={() => confirmMoveIn(e.id)} disabled={!!confirming}
             className="w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40"
             style={{backgroundColor:'#7A9E7E',color:'white'}}>
-            <CheckCircle size={16} /> {confirming === e.id ? 'Confirming...' : 'Confirm Move-In & Release Funds'}
+            <CheckCircle size={16} /> {confirming === e.id ? 'Confirming…' : 'Confirm Move-In & Release Funds'}
           </button>
           <p className="text-xs text-center mt-2" style={{color:'rgba(23,33,27,0.35)'}}>
             Only confirm after you have physically moved in and are satisfied with the property.
@@ -69,7 +69,7 @@ export default function EscrowPage() {
   const feeSentence = escrowFeeSentence(fees)
   const feeLine = feeSentence
     ? `DealMatch takes its fee when the funds are released: ${feeSentence}`
-    : 'Loading the current fee...'
+    : 'Loading the current fee…'
 
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
@@ -88,10 +88,10 @@ export default function EscrowPage() {
               DealMatch Protection
             </h1>
             <p className="text-sm leading-relaxed mb-6" style={{ color:'rgba(255,255,255,0.55)' }}>
-              Pay your rent or property deposit safely through DealMatch. Funds are held until you confirm move-in, so your money is protected until you have moved in.
+              Pay your rent or property deposit through DealMatch Protection. Funds are held until you confirm move-in.
             </p>
             <Link to="/rentals" className="btn-primary inline-block px-8 py-4 text-base">
-              Find a place to protect →
+              Explore Places →
             </Link>
             <p className="text-xs mt-3" style={{ color:'rgba(255,255,255,0.45)' }}>
               Protection starts when you pay for a specific place, so you pick the place first.
@@ -122,7 +122,7 @@ export default function EscrowPage() {
 
         {/* Benefits */}
         {[
-          { icon: <Shield size={28} className="text-terracotta" />, title:'Your money is safe',      desc:'DealMatch holds the funds until you confirm move-in. The landlord does not receive them before then.' },
+          { icon: <Shield size={28} className="text-terracotta" />, title:'Held until you confirm',      desc:'DealMatch holds the funds until you confirm move-in. The landlord does not receive them before then.' },
           { icon: <Clipboard size={22} className="text-terracotta" />, title:'A clear record',            desc:'Every protected payment is recorded with its payment reference, the property and both parties.' },
           { icon: <Ban size={22} className="text-terracotta" />, title:'Paid through DealMatch',    desc:'Keeping the payment on DealMatch means it is recorded and covered by this protection.' },
           { icon: <Zap size={22} className="text-terracotta" />, title:'Release on move-in',        desc:'Once you confirm move-in, the funds are released to the landlord.' },
@@ -138,7 +138,7 @@ export default function EscrowPage() {
         ))}
 
         <Link to="/rentals" className="btn-primary block w-full py-4 text-center text-base mt-3">
-          Find a place to protect →
+          Explore Places →
         </Link>
       </div>
 

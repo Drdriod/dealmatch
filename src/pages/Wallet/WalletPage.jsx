@@ -47,10 +47,10 @@ import toast from 'react-hot-toast'
 const fmt = (n = 0) => '₦' + Number(n || 0).toLocaleString()
 
 const ESCROW_STATUS_META = {
-  pending:          { label: 'Awaiting payment', color: '#D4A853' },
-  awaiting_payment: { label: 'Awaiting payment', color: '#D4A853' },
-  funded:           { label: 'Funded',           color: '#7A9E7E' },
-  confirmed:        { label: 'Funded',            color: '#7A9E7E' },
+  pending:          { label: 'Awaiting Payment', color: '#D4A853' },
+  awaiting_payment: { label: 'Awaiting Payment', color: '#D4A853' },
+  funded:           { label: 'Payment Confirmed', color: '#7A9E7E' },
+  confirmed:        { label: 'Payment Confirmed', color: '#7A9E7E' },
   completed:        { label: 'Completed',        color: '#5B8DEF' },
   disputed:         { label: 'Disputed',         color: '#C94A3A' },
   cancelled:        { label: 'Cancelled',        color: '#647068' },
@@ -58,8 +58,8 @@ const ESCROW_STATUS_META = {
 }
 const TX_STATUS_META = {
   OPEN:      { label: 'Open',            color: '#D4A853' },
-  PENDING:   { label: 'Awaiting protection payment', color: '#D4A853' },
-  FUNDED:    { label: 'Funded',           color: '#7A9E7E' },
+  PENDING:   { label: 'Awaiting Payment', color: '#D4A853' },
+  FUNDED:    { label: 'Payment Confirmed',          color: '#7A9E7E' },
   COMPLETED: { label: 'Completed',       color: '#5B8DEF' },
   DISPUTED:  { label: 'Disputed',        color: '#C94A3A' },
   CANCELLED: { label: 'Cancelled',       color: '#647068' },
@@ -139,7 +139,7 @@ export default function WalletPage() {
     if (error) {
       toast.error(error.message?.includes('no verified payout account')
         ? "Add a verified payout account before requesting a withdrawal."
-        : 'Could not submit the request. Try again in a moment.')
+        : 'We couldn\'t submit your request. Please try again in a moment.')
       return
     }
     toast.success("Withdrawal requested. We'll notify you once it's paid.")
@@ -282,7 +282,7 @@ export default function WalletPage() {
                 style={{ backgroundColor: '#FFF', color: '#17211B' }}
               >
                 {requesting ? <Loader2 size={14} className="animate-spin" /> : <Banknote size={14} />}
-                {requesting ? 'Submitting...' : 'Request withdrawal'}
+                {requesting ? 'Submitting…' : 'Request withdrawal'}
               </button>
             )}
           </div>
@@ -310,8 +310,8 @@ export default function WalletPage() {
         ) : feedByMonth.length === 0 ? (
           <div className="text-center py-12">
             <WalletIcon size={32} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>No transactions yet</p>
-            <p className="text-xs mt-1" style={{ color: '#647068' }}>Reserve a property or complete a job to see activity here.</p>
+            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>You don't have any transactions yet.</p>
+            <p className="text-xs mt-1" style={{ color: '#647068' }}>Find a match to see your payments and activity here.</p>
           </div>
         ) : (
           feedByMonth.map(([month, items]) => (
