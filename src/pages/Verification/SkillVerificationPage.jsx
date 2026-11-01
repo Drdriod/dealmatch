@@ -21,6 +21,8 @@ import { loadSkillVerificationState, submitSkillVerification } from '@/data/veri
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
 import toast from 'react-hot-toast'
+import useCategoryTree from '@/hooks/useCategoryTree'
+import { peopleGroups, providerTypeForGroup, groupForProviderType } from '@/lib/placeCategories'
 
 export default function SkillVerificationPage() {
   const navigate = useNavigate()
@@ -30,6 +32,12 @@ export default function SkillVerificationPage() {
   // Onboarding passes the chosen kind of work; fall back to the old default.
   const startType = ['artisan', 'tutor', 'home_service', 'other_skill'].includes(location.state?.categoryType) ? location.state.categoryType : 'artisan'
   const [categoryType, setCategoryType] = useState(startType)
+  // The kind of work is picked from the People groups in the database; the exact work is one of
+  // that group's subcategories. The subcategory NAME is what category pages match providers by.
+  const { tree } = useCategoryTree()
+  const groups = peopleGroups(tree)
+  const [groupSlug, setGroupSlug] = useState(groupForProviderType(location.state?.categoryType))
+  const openGroup = groups.find(g => g.slug === groupSlug)
   const [area, setArea] = useState(profile?.city || '')
   const [description, setDescription] = useState('')
   const [yearsExperience, setYearsExperience] = useState('')
@@ -63,6 +71,7 @@ export default function SkillVerificationPage() {
 
   const handleSubmit = async () => {
     if (!description.trim()) { toast.error('Describe the work you do'); return }
+    if (!category.trim()) { toast.error('Choose what you do'); return }
     if (files.length === 0) { toast.error('Add at least one photo of your work'); return }
 
     setSubmitting(true)
@@ -174,32 +183,46 @@ export default function SkillVerificationPage() {
           )}
 
           <div>
-            <NumberedLabel n={1}>Which best describes you? *</NumberedLabel>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'artisan',     label: 'Artisan' },
-                { id: 'tutor',       label: 'Tutor' },
-                { id: 'home_service', label: 'Home Service' },
-                { id: 'other_skill', label: 'Other Skill' },
-                { id: 'property_professional', label: 'Property Professional' },
-              ].map(opt => (
-                <button key={opt.id} type="button" onClick={() => setCategoryType(opt.id)}
-                  className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                  style={{
-                    backgroundColor: categoryType === opt.id ? '#C85F2D' : '#FFF',
-                    color: categoryType === opt.id ? '#FFF' : '#17211B',
-                    border: '1px solid #DEDDD6',
-                  }}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <NumberedLabel n={1}>What kind of work do you do? *</NumberedLabel>
+            {groups.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {groups.map(g => (
+                  <button key={g.slug} type="button"
+                    onClick={() => { setGroupSlug(g.slug); setCategoryType(providerTypeForGroup(g.slug)); setCategory('') }}
+                    className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
+                    style={{
+                      backgroundColor: groupSlug === g.slug ? '#C85F2D' : '#FFF',
+                      color: groupSlug === g.slug ? '#FFF' : '#17211B',
+                      border: '1px solid #DEDDD6',
+                    }}>
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs" style={{ color: '#647068' }}>Loading the list of work types...</p>
+            )}
           </div>
 
           <div>
-            <NumberedLabel n={2}>What do you do? *</NumberedLabel>
-            <input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Plumbing, Electrical, Catering, Tailoring"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
+            <NumberedLabel n={2}>What exactly do you do? *</NumberedLabel>
+            {openGroup ? (
+              <div className="flex flex-wrap gap-2">
+                {openGroup.children.map(c => (
+                  <button key={c.slug} type="button" onClick={() => setCategory(c.name)}
+                    className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
+                    style={{
+                      backgroundColor: category === c.name ? '#17211B' : '#FFF',
+                      color: category === c.name ? '#FFF' : '#17211B',
+                      border: '1px solid #DEDDD6',
+                    }}>
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs" style={{ color: '#647068' }}>Choose a kind of work above first.</p>
+            )}
           </div>
 
           <div>
