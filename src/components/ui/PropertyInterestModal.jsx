@@ -49,8 +49,8 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
   }
 
   const handleSubmit = async () => {
-    if (!intent)   return toast.error('Please select your intent')
-    if (!timeline) return toast.error('Please select your timeline')
+    if (!intent)   return toast.error('Choose what you would like to do.')
+    if (!timeline) return toast.error('Choose when you would like to proceed.')
     setSaving(true)
     const score = calculateScore()
     const { error } = await upsertPropertyInterest({
@@ -64,7 +64,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
       status:      'new',
     })
     setSaving(false)
-    if (error) { toast.error('Failed to save. Please try again.'); return }
+    if (error) { toast.error('We couldn\'t save that. Please try again.'); return }
     setStep(3)
     if (onComplete) onComplete()
   }
@@ -135,7 +135,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
                   Back
                 </button>
-                <p className="text-sm font-semibold mb-4" style={{color:'#17211B'}}>When are you looking to proceed?</p>
+                <p className="text-sm font-semibold mb-4" style={{color:'#17211B'}}>When would you like to proceed?</p>
                 <div className="space-y-2">
                   {TIMELINES.map(t => (
                     <button key={t.id} onClick={() => { setTimeline(t.id); setStep(2) }}
@@ -168,7 +168,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color:'rgba(23,33,27,0.5)'}}>Message (optional)</label>
                     <textarea value={message} onChange={e => setMessage(e.target.value)}
-                      placeholder="Anything specific you'd like to know..."
+                      placeholder="Anything you'd like to ask?"
                       rows={3}
                       className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#C85F2D] resize-none"
                       style={{borderColor:'#DEDDD6', backgroundColor:'#FFFFFF', color:'#17211B'}} />
@@ -197,8 +197,8 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                 </div>
                 {(() => { const lt = getLeadType(calculateScore()); return (
                   <>
-                    <p className="font-display font-black text-xl mb-1" style={{color:'#17211B'}}>Interest Registered</p>
-                    <p className="text-xs mb-4" style={{color:'#647068'}}>The seller will be notified. Expect contact soon.</p>
+                    <p className="font-display font-black text-xl mb-1" style={{color:'#17211B'}}>Your interest has been registered.</p>
+                    <p className="text-xs mb-4" style={{color:'#647068'}}>The seller will be notified.</p>
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
                       style={{backgroundColor:`${lt.color}15`, border:`1px solid ${lt.color}30`}}>
                       <div className="w-2 h-2 rounded-full" style={{backgroundColor:lt.color}} />

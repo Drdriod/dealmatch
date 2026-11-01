@@ -51,10 +51,10 @@ function BookingModal({ hotel, onClose }) {
 
   const handleBook = async () => {
     if (!form.checkin || !form.checkout || !form.guest_name || !form.guest_phone) {
-      toast.error('Please fill all required fields'); return
+      toast.error('Complete the required fields to continue.'); return
     }
-    if (nights <= 0) { toast.error('Check-out must be after check-in'); return }
-    if (hotelRate === null) { toast.error('Fees are still loading. Please try again in a moment.'); return }
+    if (nights <= 0) { toast.error('Choose a check-out date after check-in.'); return }
+    if (hotelRate === null) { toast.error('Fees are still loading. Try again in a moment.'); return }
 
     // ── Clash-prevention: check room availability for date range ──
     const selectedCategory = hotel.room_categories?.find(c => c.name === form.room_type)
@@ -75,11 +75,11 @@ function BookingModal({ hotel, onClose }) {
       const bookedRooms = (clashData || []).reduce((sum, b) => sum + (b.rooms_booked || 1), 0)
       const totalAvail  = hotel.room_categories?.reduce((s, c) => s + (c.available_rooms || 0), 0) || 0
       if (bookedRooms + form.rooms > totalAvail) {
-        toast.error(`Sorry! Only ${Math.max(0, totalAvail - bookedRooms)} room(s) available for those dates.`)
+        toast.error(`Only ${Math.max(0, totalAvail - bookedRooms)} room(s) are available for those dates.`)
         return
       }
     } else if (availCheck === false) {
-      toast.error('Sorry! No rooms available for the selected dates. Please choose different dates.')
+      toast.error('No rooms are available for those dates. Try different dates.')
       return
     }
 
@@ -149,7 +149,7 @@ function BookingModal({ hotel, onClose }) {
         {booked ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><PartyPopper size={48} className="text-gold" /></div>
-            <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>Booking Confirmed!</h3>
+            <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>Your booking is confirmed.</h3>
             <p className="text-sm mb-2" style={{ color:'#647068' }}>
               {hotel.title} has been notified. They'll contact you at <strong>{form.guest_phone}</strong> to confirm.
             </p>
@@ -221,7 +221,7 @@ function BookingModal({ hotel, onClose }) {
 
             {/* Guest details */}
             {[
-              { label:'Full Name *',  key:'guest_name',  type:'text',  placeholder:'Your full name' },
+              { label:'Full name *',  key:'guest_name',  type:'text',  placeholder:'Your full name' },
               { label:'Phone *',      key:'guest_phone', type:'tel',   placeholder:'+234 800 000 0000' },
               { label:'Email',        key:'guest_email', type:'email', placeholder:'email@example.com' },
             ].map(f => (
@@ -233,15 +233,15 @@ function BookingModal({ hotel, onClose }) {
             ))}
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Special Requests</label>
-              <textarea value={form.special} onChange={set('special')} rows={2} placeholder="Any special requests or notes..."
+              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Special requests</label>
+              <textarea value={form.special} onChange={set('special')} rows={2} placeholder="Anything the hotel should know?"
                 className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
             </div>
 
             {/* Price calculator */}
             {nights > 0 && pricePerNight && (
               <div className="rounded-2xl p-4" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.2)' }}>
-                <p className="text-xs font-bold mb-2" style={{ color:'#C85F2D' }}>Price Breakdown</p>
+                <p className="text-xs font-bold mb-2" style={{ color:'#C85F2D' }}>Price breakdown</p>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span style={{ color:'#647068' }}>₦{Number(pricePerNight).toLocaleString()} × {form.rooms} room{form.rooms>1?'s':''} × {nights} night{nights>1?'s':''}</span>
@@ -291,7 +291,7 @@ function HotelCard({ hotel, onBook }) {
         </div>
         {!available && (
           <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-            style={{ backgroundColor:'rgba(200,95,45,0.9)', color:'#FFFFFF' }}>Fully Booked</div>
+            style={{ backgroundColor:'rgba(200,95,45,0.9)', color:'#FFFFFF' }}>Fully booked</div>
         )}
       </div>
       <div className="p-4">
@@ -410,13 +410,13 @@ export default function HotelsPage() {
         {loading ? (
           <div className="text-center py-16" style={{ color:'#647068' }}>
             <div className="flex justify-center mb-3"><Hotel size={40} className="text-terracotta animate-bounce" /></div>
-            <p className="text-sm">Loading hotels...</p>
+            <p className="text-sm">Loading hotels…</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <div className="flex justify-center mb-3"><Hotel size={40} className="text-terracotta" /></div>
-            <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No hotels found</p>
-            <p className="text-xs mt-1" style={{ color:'#647068' }}>Try a different location or type.</p>
+            <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No matching hotels found yet. Try adjusting your search.</p>
+            <p className="text-xs mt-1" style={{ color:'#647068' }}>Try a different location or type of stay.</p>
           </div>
         ) : (
           <div className="grid gap-5">

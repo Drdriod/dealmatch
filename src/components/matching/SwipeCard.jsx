@@ -73,8 +73,8 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
       onSwipe?.(action, property)
     }, 380)
 
-    if (action === 'like')  toast.success('Added to your matches!')
-    if (action === 'super') toast.success('⭐ Super liked! Agent will contact you.')
+    if (action === 'like')  toast.success('Saved to your matches.')
+    if (action === 'super') toast.success('Super liked. Saved to your matches.')
   }, [exiting, user, property, matchScore, onSwipe])
 
   // ─── Transform calculation ────────────────────────────

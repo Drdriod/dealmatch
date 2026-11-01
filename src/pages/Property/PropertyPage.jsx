@@ -56,7 +56,7 @@ export default function PropertyPage() {
     if (!user) { setPendingAction('like'); setShowGuestAuth(true); return }
     await recordSwipe({ userId: user.id, propertyId: id, action: 'like' })
     setLiked(true)
-    toast.success('Added to matches!')
+    toast.success('Saved to your matches.')
   }
 
   const handleReserve = () => {
@@ -72,7 +72,7 @@ export default function PropertyPage() {
     if (action === 'like' && uid) {
       await recordSwipe({ userId: uid, propertyId: id, action: 'like' })
       setLiked(true)
-      toast.success('Added to matches!')
+      toast.success('Saved to your matches.')
     } else if (action === 'reserve') {
       setShowReserve(true)
     }
@@ -99,7 +99,7 @@ export default function PropertyPage() {
       await navigator.share({ title: property?.title, url })
     } else {
       await navigator.clipboard.writeText(url)
-      toast.success('Link copied!')
+      toast.success('Link copied.')
     }
   }
 
@@ -107,7 +107,7 @@ export default function PropertyPage() {
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
         <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta animate-bounce" /></div>
-        <p className="text-sm" style={{ color: '#647068' }}>Loading property...</p>
+        <p className="text-sm" style={{ color: '#647068' }}>Loading the details…</p>
       </div>
     </div>
   )
@@ -116,8 +116,8 @@ export default function PropertyPage() {
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
         <div className="flex justify-center mb-4"><Frown size={40} className="text-muted" /></div>
-        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Property not found</h2>
-        <button onClick={() => navigate('/browse')} className="btn-primary px-6 py-3 text-sm">Browse Properties</button>
+        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>We couldn't find this listing</h2>
+        <button onClick={() => navigate('/browse')} className="btn-primary px-6 py-3 text-sm">Explore Places</button>
       </div>
     </div>
   )
@@ -170,6 +170,8 @@ export default function PropertyPage() {
           </div>
         </div>
 
+        <h2 className="font-display font-black text-xl mb-3" style={{ color: '#17211B' }}>Explore the details before you decide.</h2>
+
         {/* Key stats */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {property.bedrooms  && (
@@ -198,7 +200,7 @@ export default function PropertyPage() {
         {/* Description */}
         {property.description && (
           <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-2" style={{ color: '#17211B' }}>About</h3>
+            <h3 className="font-display font-black text-base mb-2" style={{ color: '#17211B' }}>Overview</h3>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{property.description}</p>
           </div>
         )}
@@ -206,7 +208,7 @@ export default function PropertyPage() {
         {/* Features */}
         {property.features?.length > 0 && (
           <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Features</h3>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Details</h3>
             <div className="flex flex-wrap gap-2">
               {property.features.map(f => (
                 <span key={f} className="px-3 py-1.5 rounded-full text-xs font-semibold"
@@ -221,7 +223,7 @@ export default function PropertyPage() {
         {/* Documents */}
         {property.documents?.length > 0 && (
           <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Documents Available</h3>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Documents available</h3>
             <div className="space-y-2">
               {property.documents.map(d => (
                 <div key={d} className="flex items-center gap-2 text-sm">
@@ -251,7 +253,7 @@ export default function PropertyPage() {
             </div>
             <div className="flex-1">
               <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{property.profiles.full_name}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>Property Owner</p>
+              <p className="text-xs" style={{ color: '#647068' }}>Listed by</p>
             </div>
           </div>
         )}
@@ -261,7 +263,7 @@ export default function PropertyPage() {
       <div className="fixed bottom-0 left-0 right-0 z-20 p-4"
         style={{ backgroundColor: 'rgba(255,250,245,0.97)', backdropFilter: 'blur(10px)', borderTop: '1px solid #DEDDD6' }}>
         <div className="max-w-2xl mx-auto flex gap-3">
-          <button onClick={handleLike} disabled={liked}
+          <button onClick={handleLike} disabled={liked} aria-label="Save Listing"
             className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all flex-shrink-0"
             style={{
               borderColor:     liked ? '#7A9E7E' : '#DEDDD6',
@@ -273,12 +275,12 @@ export default function PropertyPage() {
           <button onClick={handleContact} className="btn-primary flex-1 py-3.5 flex items-center justify-center gap-2">
             {contact?.phone
               ? <><MessageCircle size={16} /> Contact Owner</>
-              : <><Lock size={16} /> Reserve to Unlock Contact</>}
+              : <><Lock size={16} /> I'm Interested</>}
           </button>
         </div>
         {!contact?.phone && contactChecked && (
           <p className="text-center text-[11px] mt-2" style={{ color: '#647068' }}>
-            Owner contact unlocks after your payment is placed under DealMatch Protection.
+            Phone locked. Contact details unlock once your payment is placed under DealMatch Protection. Review the details, understand the terms and know what you're agreeing to before proceeding.
           </p>
         )}
 
@@ -294,7 +296,7 @@ export default function PropertyPage() {
       {showGuestAuth && (
         <GuestAuthModal
           title="Sign in to continue"
-          subtitle="Verify your phone number to save or reserve this property - no password needed."
+          subtitle="Confirm your phone number to save this listing or show your interest. No password needed."
           onClose={() => { setShowGuestAuth(false); setPendingAction(null) }}
           onSuccess={handleGuestAuthSuccess}
         />
