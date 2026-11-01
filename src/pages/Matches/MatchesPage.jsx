@@ -35,9 +35,9 @@ export default function MatchesPage() {
 
   const removeMatch = async (swipeId) => {
     const { error } = await removeSwipe(swipeId)
-    if (error) { toast.error('Could not remove'); return }
+    if (error) { toast.error('We couldn\'t remove that. Please try again.'); return }
     setMatches(m => m.filter(s => s.id !== swipeId))
-    toast.success('Removed from matches')
+    toast.success('Removed from your saved matches')
   }
 
   const contactSeller = (property) => {
@@ -60,7 +60,7 @@ export default function MatchesPage() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
-            My Matches
+            Saved Matches
           </h1>
           <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
             {matches.length} saved propert{matches.length === 1 ? 'y' : 'ies'}
@@ -83,20 +83,20 @@ export default function MatchesPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-20" style={{ color: '#647068' }}>Loading matches...</div>
+          <div className="text-center py-20" style={{ color: '#647068' }}>Loading your saved matches…</div>
         )}
 
         {!loading && filtered.length === 0 && (
           <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
             <div className="flex justify-center mb-4"><HeartCrack size={48} className="text-terracotta" /></div>
             <h3 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
-              No matches yet
+              No saved matches yet
             </h3>
             <p className="text-sm mb-6" style={{ color: '#647068' }}>
-              Swipe right on properties you like to see them here.
+              Save the places you like and they will appear here.
             </p>
             <Link to="/browse" className="btn-primary px-8 py-3 text-sm inline-flex">
-              Browse Properties →
+              Explore Places →
             </Link>
           </div>
         )}

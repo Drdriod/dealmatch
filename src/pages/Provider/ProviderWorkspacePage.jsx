@@ -44,9 +44,9 @@ export default function ProviderWorkspacePage() {
   const { user } = useAuth();
   const { data, error, loading, reload } = useProviderDashboard(user?.id);
 
-  if (loading && !data) return <PageShell title="Provider workspace"><LoadingBlock label="Loading your workspace" /></PageShell>;
-  if (error) return <PageShell title="Provider workspace"><LoadNotice error={error} onRetry={reload} /></PageShell>;
-  if (!data) return <PageShell title="Provider workspace"><EmptyBlock icon={Briefcase} title="Sign in to see your workspace" /></PageShell>;
+  if (loading && !data) return <PageShell title="Manage your offers. Track your deals."><LoadingBlock label="Loading your workspace" /></PageShell>;
+  if (error) return <PageShell title="Manage your offers. Track your deals."><LoadNotice error={error} onRetry={reload} /></PageShell>;
+  if (!data) return <PageShell title="Manage your offers. Track your deals."><EmptyBlock icon={Briefcase} title="Sign in to see your workspace" /></PageShell>;
 
   const { profile, active, waiting, attention, totals } = data;
   const verified = profile?.identity_verification_status === 'verified';
@@ -67,14 +67,14 @@ export default function ProviderWorkspacePage() {
       {!verified ? (
         <div role="note" className="flex items-start gap-3 rounded-xl border border-gold bg-gold/15 p-4 text-sm">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-          <p>Finish identity verification to be shown as a verified provider. <Link to="/verify" className={linkCls}>Verify now</Link></p>
+          <p>Finish identity verification to show as Verified. <Link to="/verify" className={linkCls}>Verify now</Link></p>
         </div>
       ) : null}
 
       <Section icon={AlertCircle} title="Needs attention" rows={attention} empty="Nothing needs attention." />
       <Section icon={Briefcase} title="Active work" rows={active} empty="No active work. Browse new requests to get started." />
       <Section icon={Hourglass} title="Waiting for payment" rows={waiting} empty="Nothing is waiting on a customer." />
-      <p className="text-sm"><Link to="/jobs" className={linkCls}>Browse requests and send quotes</Link> {' | '} <Link to="/payout-setup" className={linkCls}>Payout account</Link></p>
+      <p className="text-sm"><Link to="/jobs" className={linkCls}>Explore requests and send quotes</Link> {' | '} <Link to="/payout-setup" className={linkCls}>Payout account</Link></p>
     </PageShell>
   );
 }

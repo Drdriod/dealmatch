@@ -104,7 +104,7 @@ export default function ProviderProfilePage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <p className="text-sm" style={{ color: '#647068' }}>Loading profile...</p>
+      <p className="text-sm" style={{ color: '#647068' }}>Loading profile…</p>
     </div>
   )
 
@@ -112,7 +112,7 @@ export default function ProviderProfilePage() {
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
         <div className="flex justify-center mb-4"><Frown size={40} style={{ color: '#647068' }} /></div>
-        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Provider not found</h2>
+        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>We couldn't find this profile</h2>
       </div>
     </div>
   )
@@ -180,7 +180,7 @@ export default function ProviderProfilePage() {
               </span>
             )}
             {level === 0 && (
-              <span className="text-[11px]" style={{ color: '#B5A99C' }}>Not yet verified</span>
+              <span className="text-[11px]" style={{ color: '#B5A99C' }}>Not verified yet</span>
             )}
           </div>
 
@@ -213,7 +213,7 @@ export default function ProviderProfilePage() {
               <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
                 {payoutStatus === 'failed' ? 'Payout setup needs another try' : 'Set up payouts to get booked'}
               </p>
-              <p className="text-xs" style={{ color: '#647068' }}>Add your bank account so clients can pay you.</p>
+              <p className="text-xs" style={{ color: '#647068' }}>Add your bank account so customers can pay you.</p>
             </div>
             <button onClick={() => navigate('/payout-setup')} className="text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#C85F2D', color: '#FFF' }}>
               Set up
@@ -293,7 +293,7 @@ export default function ProviderProfilePage() {
         {level === 2 && portfolioUrls.length === 0 && (
           <div className="rounded-2xl p-4 mb-4 border flex items-center gap-2" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
             <Camera size={14} style={{ color: '#B5A99C' }} />
-            <p className="text-xs" style={{ color: '#B5A99C' }}>No portfolio photos added yet</p>
+            <p className="text-xs" style={{ color: '#B5A99C' }}>No portfolio photos yet</p>
           </div>
         )}
 
@@ -336,7 +336,7 @@ export default function ProviderProfilePage() {
             Reviews {stats?.avg_rating ? `· ${stats.avg_rating} average` : ''}
           </h3>
           {reviews.length === 0 ? (
-            <p className="text-xs" style={{ color: '#647068' }}>No reviews yet</p>
+            <p className="text-xs" style={{ color: '#647068' }}>No reviews yet. They appear here after completed deals.</p>
           ) : (
             <div className="space-y-3">
               {reviews.map(r => (
