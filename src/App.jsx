@@ -16,6 +16,7 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import InstallPrompt  from '@/components/ui/InstallPrompt'
 import MfaGate        from '@/components/Admin/MfaGate'
 import ComingSoonPage from '@/pages/ComingSoonPage'
+import { isTestMode } from '@/lib/testMode'
 
 // ─── Route code-splitting ──────────────────────────────────────────────────────
 const HomePage              = lazyWithRetry(() => import('@/pages/Home/HomePage'))
