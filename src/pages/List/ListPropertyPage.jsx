@@ -94,16 +94,16 @@ export default function ListPropertyPage() {
   const steps = [
     // ── Step 0: Basics ──────────────────────────────────
     {
-      title: 'Property basics',
+      title: 'About the property',
       valid: () => !!form.property_type && !!form.title,
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Property basics</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Tell us what type of property you're selling.</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>About the property</h2>
+            <p className="text-sm" style={{color:'#647068'}}>Tell us what you're selling and how you'd like to list it.</p>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Property Type *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Property type *</label>
             <div className="grid grid-cols-2 gap-3">
               {TYPES.map(t => (
                 <button key={t.id} type="button" onClick={() => set('property_type', t.id)}
@@ -120,7 +120,7 @@ export default function ListPropertyPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Listing Type *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>How are you listing it? *</label>
             <div className="grid grid-cols-2 gap-2 mb-2">
               {LISTING_TYPES.map(lt => (
                 <button key={lt} type="button" onClick={() => set('listing_type', lt)}
@@ -143,14 +143,14 @@ export default function ListPropertyPage() {
               <button type="button" onClick={() => navigate('/list-rental')}
                 className="py-3 rounded-xl border-2 text-sm font-semibold transition-all col-span-2"
                 style={{ borderColor: '#DEDDD6', color: '#647068', backgroundColor: '#FFFFFF' }}>
-                For Rent (annual / long-term) →
+                Renting it out instead? List it as a rental →
               </button>
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Property Title *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Listing title *</label>
             <input className="input" type="text"
-              placeholder="e.g. 4-Bed Detached Duplex with Pool"
+              placeholder="e.g. 700 sqm plot with bungalow, Uyo"
               value={form.title} onChange={setE('title')}
               style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
           </div>
@@ -160,40 +160,40 @@ export default function ListPropertyPage() {
 
     // ── Step 1: Location & Price ─────────────────────────
     {
-      title: 'Location & price',
+      title: 'Location and price',
       valid: () => !!form.state && !!form.city && !!form.price,
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Location & Price</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Where is it and how much?</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Location and price</h2>
+            <p className="text-sm" style={{color:'#647068'}}>Where is it, and what are you asking for it?</p>
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>State *</label>
             <select className="select" value={form.state} onChange={setE('state')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}}>
-              <option value="">Select state...</option>
+              <option value="">Choose a state</option>
               {STATES.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>City / Area *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>City or area *</label>
             <input className="input" type="text" placeholder="e.g. Lekki Phase 1"
               value={form.city} onChange={setE('city')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Street Address (optional)</label>
-            <input className="input" type="text" placeholder="Shared with serious buyers only"
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Street address (optional)</label>
+            <input className="input" type="text" placeholder="Add it only if you want to share it with serious buyers"
               value={form.address} onChange={setE('address')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Asking Price (₦) *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Asking price (₦) *</label>
             <input className="input" type="number" min="0" placeholder="e.g. 38500000"
               value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             {form.price && (() => {
               if (!saleEscrow) {
                 return (
                   <div className="mt-3 rounded-2xl p-3" style={{backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)'}}>
-                    <p className="text-xs" style={{color:'#647068'}}>Loading the current fee...</p>
+                    <p className="text-xs" style={{color:'#647068'}}>Loading the current fee…</p>
                   </div>
                 )
               }
@@ -203,10 +203,10 @@ export default function ListPropertyPage() {
               const agentBonus  = Math.round(gross * 0.075 * 0.25)
               return (
                 <div className="mt-3 rounded-2xl p-3" style={{backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)'}}>
-                  <p className="text-xs font-bold mb-2" style={{color:'#4A7A4E'}}>Guaranteed Take-Home Pay</p>
+                  <p className="text-xs font-bold mb-2" style={{color:'#4A7A4E'}}>What you would receive</p>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span style={{color:'#647068'}}>Listing Price</span>
+                      <span style={{color:'#647068'}}>Listing price</span>
                       <span style={{color:'#17211B', fontWeight:600}}>₦{gross.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs">
@@ -231,13 +231,13 @@ export default function ListPropertyPage() {
 
     // ── Step 2: Details & Features ───────────────────────
     {
-      title: 'Details & features',
+      title: 'Details and features',
       valid: () => !!form.size_sqm,
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Details & Features</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Size, rooms, and what's included.</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Details and features</h2>
+            <p className="text-sm" style={{color:'#647068'}}>Size, rooms and what comes with it.</p>
           </div>
           <div className={clsx('grid gap-3', isLandType ? 'grid-cols-1' : 'grid-cols-3')}>
             {!isLandType && (
@@ -261,7 +261,7 @@ export default function ListPropertyPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Features & Amenities</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Features and amenities</label>
             <div className="flex flex-wrap gap-2">
               {FEATURES.map(f => (
                 <button key={f} type="button" onClick={() => toggle('features', f)}
@@ -277,7 +277,7 @@ export default function ListPropertyPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Available Documents</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Documents you can show buyers</label>
             <div className="flex flex-wrap gap-2">
               {DOCS.map(d => (
                 <button key={d} type="button" onClick={() => toggle('documents', d)}
@@ -299,14 +299,14 @@ export default function ListPropertyPage() {
     // ── Step 3: Photos & Video ───────────────────────────
     // FIX 1: valid() now requires at least 1 photo uploaded
     {
-      title: 'Photos & Video',
+      title: 'Photos and video',
       valid: () => form.images.length > 0,
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Photos & Video</h2>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Photos and video</h2>
             <p className="text-sm" style={{color:'#647068'}}>
-              Properties with photos get 5× more enquiries. At least <strong>1 photo is required</strong>.
+              Clear photos help buyers trust what they see. At least <strong>1 photo is required</strong>.
             </p>
           </div>
 
@@ -328,12 +328,12 @@ export default function ListPropertyPage() {
               onClick={() => document.getElementById('prop-photo-upload').click()}>
               <div className="flex justify-center mb-3">{form.images.length > 0 ? <CheckCircle size={40} className="text-green-600" /> : <Camera size={40} className="text-muted" />}</div>
               <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
-                {form.images.length > 0 ? `${form.images.length} photo${form.images.length > 1 ? 's' : ''} added: tap to add more` : 'Tap to upload photos'}
+                {form.images.length > 0 ? `${form.images.length} photo${form.images.length > 1 ? 's' : ''} added: tap to add more` : 'Tap to add photos'}
               </p>
               <p className="text-xs" style={{color: form.images.length === 0 ? '#C85F2D' : '#647068'}}>
                 {form.images.length === 0
-                  ? 'At least 1 photo required to continue'
-                  : 'JPG, PNG up to 10MB. Show front, rooms, compound, surroundings.'}
+                  ? 'Add at least 1 photo to continue'
+                  : 'JPG or PNG, up to 10MB each. Show the front, the rooms, the compound and the surroundings.'}
               </p>
               <input id="prop-photo-upload" type="file" accept="image/*" multiple className="hidden"
                 onChange={(e) => {
@@ -344,7 +344,7 @@ export default function ListPropertyPage() {
                     file: f,
                   }))
                   set('images', [...form.images, ...newImgs])
-                  toast.success(`${files.length} photo${files.length > 1 ? 's' : ''} added!`)
+                  toast.success(`${files.length} photo${files.length > 1 ? 's' : ''} added.`)
                 }} />
             </div>
 
@@ -394,7 +394,7 @@ export default function ListPropertyPage() {
           {/* Video upload */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>
-              Video Tour (optional but strongly recommended)
+              Video tour (optional, but it helps)
             </label>
             <div
               className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all"
@@ -405,17 +405,17 @@ export default function ListPropertyPage() {
               onClick={() => !form.video_url && document.getElementById('prop-video-upload').click()}>
               <div className="flex justify-center mb-3">{form.video_url ? <CheckCircle size={40} className="text-green-600" /> : <Video size={40} className="text-muted" />}</div>
               <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
-                {form.video_url ? 'Video uploaded!' : 'Record or upload a video tour'}
+                {form.video_url ? 'Video added' : 'Record or add a video tour'}
               </p>
               <p className="text-xs" style={{color:'#647068'}}>
-                Walk through the property on camera. Max 2 minutes. MP4 or MOV.
+                Walk through the property on camera. Up to 2 minutes, MP4 or MOV.
               </p>
               <input id="prop-video-upload" type="file" accept="video/*" className="hidden"
                 onChange={(e) => {
                   const file = e.target.files[0]
                   if (file) {
                     set('video_url', URL.createObjectURL(file))
-                    toast.success('Video added! Buyers will love this.')
+                    toast.success('Video added.')
                   }
                 }} />
             </div>
@@ -434,7 +434,7 @@ export default function ListPropertyPage() {
 
             <div className="mt-3">
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>
-                Or paste a YouTube / Loom link
+                Or paste a YouTube or Loom link
               </label>
               <input className="input" type="url"
                 placeholder="https://youtube.com/watch?v=..."
@@ -445,9 +445,9 @@ export default function ListPropertyPage() {
           </div>
 
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
-            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Pro tip</p>
+            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
             <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
-              Listings with a video tour get 5× more serious enquiries. Just walk through the property on your phone: no editing needed.
+              A short video tour shows buyers more than photos can. Walk through the property on your phone. No editing needed.
             </p>
           </div>
         </div>
@@ -462,21 +462,21 @@ export default function ListPropertyPage() {
         <div className="space-y-5">
           <div>
             <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Description</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Describe the property in your own words.</p>
+            <p className="text-sm" style={{color:'#647068'}}>Tell buyers about the property in your own words.</p>
           </div>
           <div>
             <textarea className="input resize-none" rows={8}
-              placeholder="Describe the property: location, features, access roads, nearby landmarks, title status, and why it's a great buy. Minimum 50 characters."
+              placeholder="Describe the property: where it is, its features, access roads, nearby landmarks and the title status. Write at least 50 characters."
               value={form.description} onChange={setE('description')}
               style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             <p className="text-xs mt-1.5" style={{color: form.description.length >= 50 ? '#7A9E7E' : '#647068'}}>
-              {form.description.length} / 50 min characters
+              {form.description.length} of 50 characters minimum
             </p>
           </div>
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
-            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Pro tip</p>
+            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
             <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
-              Listings with detailed descriptions get 3× more matches. Mention proximity to landmarks, road access, and title status.
+              Detailed descriptions help the right buyers find you. Mention nearby landmarks, road access and the title status.
             </p>
           </div>
         </div>
@@ -494,9 +494,9 @@ export default function ListPropertyPage() {
     // FIX 1c: Clear validation message per step
     if (!current.valid()) {
       if (step === 3 && form.images.length === 0) {
-        toast.error('Please upload at least 1 photo to continue')
+        toast.error('Add at least 1 photo to continue.')
       } else {
-        toast.error('Please complete all required fields')
+        toast.error('Complete the required fields to continue.')
       }
       return
     }
@@ -511,11 +511,11 @@ export default function ListPropertyPage() {
   // FIX 2: Upload images to Supabase Storage FIRST, then insert property
   const handleSubmit = async () => {
     if (!agreed) {
-      toast.error('Please agree to the listing terms to publish')
+      toast.error('Agree to the listing terms to publish.')
       return
     }
     if (!user?.id) {
-      toast.error('You must be logged in to list a property')
+      toast.error('Sign in to list a property.')
       return
     }
 
@@ -523,12 +523,12 @@ export default function ListPropertyPage() {
 
     try {
       // Step A: Upload all images to Supabase Storage
-      setUploadProgress('Uploading photos...')
+      setUploadProgress('Uploading your photos…')
       const uploadedImages = []
 
       for (let i = 0; i < form.images.length; i++) {
         const img = form.images[i]
-        setUploadProgress(`Uploading photo ${i + 1} of ${form.images.length}...`)
+        setUploadProgress(`Uploading photo ${i + 1} of ${form.images.length}…`)
 
         // If it's a blob (local file), upload it
         if (img.url.startsWith('blob:') && img.file) {
@@ -541,7 +541,7 @@ export default function ListPropertyPage() {
           } catch (uploadErr) {
             console.error('Image upload error:', uploadErr)
             // Don't block listing: skip failed image and warn
-            toast.error(`Photo ${i + 1} could not be uploaded and was skipped.`)
+            toast.error(`Photo ${i + 1} couldn't be uploaded, so we skipped it.`)
           }
         } else {
           // Already a URL (YouTube link etc) : keep as is
@@ -550,7 +550,7 @@ export default function ListPropertyPage() {
       }
 
       // Step B: Build and insert the property record
-      setUploadProgress('Publishing your listing...')
+      setUploadProgress('Submitting your listing…')
 
       const payload = {
         title:        form.title,
@@ -579,7 +579,7 @@ export default function ListPropertyPage() {
       if (error) {
         console.error('createProperty error:', error)
         // FIX 2c: Show the actual error so you know what's wrong
-        toast.error(`Could not publish: ${error.message || 'Unknown error'}`)
+        toast.error(`We couldn't submit your listing: ${error.message || 'please try again'}`)
         setSaving(false)
         setUploadProgress('')
         return
@@ -587,7 +587,7 @@ export default function ListPropertyPage() {
 
       // Step C: Index in Pinecone (don't let this failure block the success)
       try {
-        setUploadProgress('Finalising...')
+        setUploadProgress('Finishing up…')
         await indexProperty(data)
         analytics.propertyListed(data.id, data.property_type)
       } catch (indexErr) {
@@ -598,7 +598,7 @@ export default function ListPropertyPage() {
 
     } catch (err) {
       console.error('Unexpected error during submit:', err)
-      toast.error(`Something went wrong: ${err.message || 'Please try again'}`)
+      toast.error(`Something went wrong. ${err.message || 'Please try again.'}`)
       setSaving(false)
       setUploadProgress('')
     }
@@ -611,22 +611,22 @@ export default function ListPropertyPage() {
         <div className="w-full max-w-sm text-center">
           <div className="flex justify-center mb-5"><CheckCircle size={56} className="text-green-600" /></div>
           <h1 className="font-display text-3xl font-black mb-2" style={{color:'#17211B'}}>
-            Listing Submitted!
+            Your listing has been submitted.
           </h1>
           <div className="rounded-2xl p-4 mb-6 text-left" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.25)'}}>
-            <p className="text-sm font-bold mb-1" style={{color:'#D4A853'}}>Pending Verification</p>
+            <p className="text-sm font-bold mb-1" style={{color:'#D4A853'}}>Under review</p>
             <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
-              Your listing is live with an <strong>"Unverified"</strong> badge while our field agent schedules an on-site visit. Once verified, it becomes fully active and starts matching with buyers. You'll receive a notification when it's approved.
+              Your listing is under review. It will not appear to buyers until our team has verified it, which includes an on-site visit. Check your dashboard for its status.
             </p>
           </div>
           <div className="space-y-3">
             <button onClick={() => navigate('/browse')} className="btn-primary w-full py-4 text-base">
-              Browse Other Properties →
+              Explore Places →
             </button>
             <button onClick={() => navigate('/list')}
               className="w-full py-4 rounded-2xl text-sm font-semibold border-2 transition-all"
               style={{borderColor:'#DEDDD6', color:'#5C4A3A', backgroundColor:'#FFFFFF'}}>
-              + List Another Property
+              List another property
             </button>
             <button onClick={() => navigate('/dashboard')}
               className="w-full py-4 rounded-2xl text-sm font-semibold transition-all"
@@ -645,8 +645,8 @@ export default function ListPropertyPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-black mb-1" style={{color:'#17211B'}}>List a Property</h1>
-          <p className="text-sm mb-5" style={{color:'#647068'}}>Step {step + 1} of {steps.length} : {current.title}</p>
+          <h1 className="font-display text-3xl font-black mb-1" style={{color:'#17211B'}}>List a property for sale</h1>
+          <p className="text-sm mb-5" style={{color:'#647068'}}>Step {step + 1} of {steps.length}: {current.title}</p>
 
           <div className="space-y-2.5">
             {steps.map((s, i) => (
@@ -685,7 +685,7 @@ export default function ListPropertyPage() {
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
-                I agree to DealMatch Listing Terms
+                I agree to the DealMatch Listing Terms
               </p>
               <p className="text-xs mt-1 leading-relaxed" style={{ color: '#647068' }}>
                 I confirm this property is mine or I have authority to list it. I agree to DealMatch's{' '}
@@ -729,9 +729,9 @@ export default function ListPropertyPage() {
               (!current.valid() || saving) && 'opacity-40 cursor-not-allowed'
             )}>
             {saving
-              ? uploadProgress || 'Publishing...'
+              ? uploadProgress || 'Submitting…'
               : isLast
-                ? 'Publish Listing'
+                ? 'Submit listing'
                 : <>Continue <ArrowRight size={16} /></>
             }
           </button>

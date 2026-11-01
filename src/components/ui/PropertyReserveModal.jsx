@@ -51,7 +51,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     if (data?.status === 'confirmed' || data?.status === 'funded') {
       setConfirming(false)
       setDone(true)
-      toast.success('Protection funded - contact unlocked!')
+      toast.success('Protection funded. Contact details unlocked.')
       onFunded?.()
       return
     }
@@ -59,9 +59,9 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
   }
 
   const handleReserve = async () => {
-    if (!user) { toast.error('Please sign in to continue'); return }
-    if (!gross || gross <= 0) { toast.error('Enter a valid amount'); return }
-    if (!escrow) { toast.error('Fees are still loading. Please try again in a moment.'); return }
+    if (!user) { toast.error('Sign in to continue.'); return }
+    if (!gross || gross <= 0) { toast.error('Enter a valid amount.'); return }
+    if (!escrow) { toast.error('Fees are still loading. Try again in a moment.'); return }
     // Money is about to move: identity must be verified first.
     if (!(await requireVerification('escrow'))) return
     const email = user.email || `${user.id}@guest.dealmatch.com.ng`
@@ -84,7 +84,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
     if (rpcError || !escrowRow) {
       setSubmitting(false)
-      toast.error(rpcError?.message || 'Could not start protection payment. Try again.')
+      toast.error(rpcError?.message || 'We couldn\'t start your protected payment. Please try again.')
       return
     }
 
@@ -116,8 +116,8 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
               <Shield size={18} style={{ color: '#7A9E7E' }} />
             </div>
             <div>
-              <h3 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Reserve this property</h3>
-              <p className="text-xs" style={{ color: '#647068' }}>Held safely under DealMatch Protection</p>
+              <h3 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Reserve with DealMatch Protection</h3>
+              <p className="text-xs" style={{ color: '#647068' }}>Your payment is held under DealMatch Protection</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
@@ -128,7 +128,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
         {done ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><ShieldCheck size={48} className="text-terracotta" /></div>
-            <h4 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Protection funded!</h4>
+            <h4 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Protection funded.</h4>
             <p className="text-sm leading-relaxed mb-6" style={{ color: '#647068' }}>
               Your payment is held safely. The owner's contact details are now unlocked below.
             </p>

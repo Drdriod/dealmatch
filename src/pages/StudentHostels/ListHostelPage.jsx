@@ -155,22 +155,22 @@ export default function ListHostelPage() {
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
-    if (form.images.length + files.length > 8) { toast.error('Maximum 8 images'); return }
+    if (form.images.length + files.length > 8) { toast.error('You can add up to 8 images.'); return }
 
     setImageUploading(true)
     const uploaded = []
     for (const file of files) {
-      if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} is too large (max 5MB)`); continue }
+      if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} is too large. Choose one under 5MB.`); continue }
       const ext  = file.name.split('.').pop()
       const path = `hostels/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
       const { error } = await supabase.storage.from('property-images').upload(path, file, { upsert: false })
-      if (error) { toast.error(`Failed to upload ${file.name}`); continue }
+      if (error) { toast.error(`We couldn't upload ${file.name}.`); continue }
       const { data: { publicUrl } } = supabase.storage.from('property-images').getPublicUrl(path)
       uploaded.push(publicUrl)
     }
     setForm(f => ({ ...f, images: [...f.images, ...uploaded] }))
     setImageUploading(false)
-    if (uploaded.length) toast.success(`${uploaded.length} photo${uploaded.length > 1 ? 's' : ''} uploaded`)
+    if (uploaded.length) toast.success(`${uploaded.length} photo${uploaded.length > 1 ? 's' : ''} uploaded.`)
   }
 
   const removeImage = (url) => setForm(f => ({ ...f, images: f.images.filter(i => i !== url) }))
@@ -218,7 +218,7 @@ export default function ListHostelPage() {
       }
       return id
     } catch (err) {
-      toast.error('Failed to save listing. Please try again.')
+      toast.error('We couldn\'t save your listing. Please try again.')
       console.error(err)
       return null
     } finally {
@@ -229,7 +229,7 @@ export default function ListHostelPage() {
   // ── Payment ────────────────────────────────────────────────────────────
   const handlePayment = async () => {
     const planMeta  = LISTING_PLANS[plan]
-    if (!planMeta?.price) { toast.error('Prices are still loading. Please try again in a moment.'); return }
+    if (!planMeta?.price) { toast.error('Prices are still loading. Try again in a moment.'); return }
 
     const id = hostelId || await saveHostel()
     if (!id) return
@@ -264,7 +264,7 @@ export default function ListHostelPage() {
   }
 
   const handleNext = async () => {
-    if (!canProceed()) { toast.error('Please fill in all required fields'); return }
+    if (!canProceed()) { toast.error('Complete the required fields to continue.'); return }
     if (step === 3) {
       // Save before going to payment step
       const id = await saveHostel()
@@ -284,7 +284,7 @@ export default function ListHostelPage() {
           Listing Submitted!
         </h1>
         <p className="text-sm mb-2" style={{ color: '#647068' }}>
-          Your hostel listing is under review. We'll verify the details within 24 hours and notify you once it goes live.
+          Your hostel listing is under review. Once the details are verified, it will go live and you can check its status on your dashboard.
         </p>
         <p className="text-xs mb-6" style={{ color: '#647068' }}>
           Students will start seeing your hostel as soon as it's approved.
@@ -314,8 +314,8 @@ export default function ListHostelPage() {
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <div>
-            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>List Your Hostel</h1>
-            <p className="text-xs" style={{ color: '#647068' }}>Reach verified students near your campus</p>
+            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>List your hostel</h1>
+            <p className="text-xs" style={{ color: '#647068' }}>Reach students looking near your campus</p>
           </div>
         </div>
 
@@ -348,7 +348,7 @@ export default function ListHostelPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>Gender Policy <span style={{ color: '#C85F2D' }}>*</span></label>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>Gender policy <span style={{ color: '#C85F2D' }}>*</span></label>
                 <div className="flex gap-2">
                   {GENDER_OPTIONS.map(g => (
                     <button key={g.id} onClick={() => setVal('gender_policy', g.id)}
@@ -475,9 +475,9 @@ export default function ListHostelPage() {
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Add Photos</h2>
+                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Add photos</h2>
                 <p className="text-sm mb-4" style={{ color: '#647068' }}>
-                  Hostels with 4+ clear photos get 3× more enquiries. Max 8 photos, 5MB each.
+                  Clear photos help students trust what they see. Up to 8 photos, 5MB each.
                 </p>
 
                 <label className="block cursor-pointer">
@@ -491,7 +491,7 @@ export default function ListHostelPage() {
                     ) : (
                       <>
                         <Upload size={24} style={{ color: '#C85F2D', margin: '0 auto 8px' }} />
-                        <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Click to upload photos</p>
+                        <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Click to add photos</p>
                         <p className="text-xs mt-1" style={{ color: '#647068' }}>JPG, PNG · Max 5MB each</p>
                       </>
                     )}
@@ -525,7 +525,7 @@ export default function ListHostelPage() {
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Choose Your Listing Plan</h2>
+                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Choose your listing plan</h2>
                 <p className="text-sm mb-4" style={{ color: '#647068' }}>
                   Students browse for free - you pay a small fee to list your hostel.
                 </p>
@@ -583,7 +583,7 @@ export default function ListHostelPage() {
                 <div className="rounded-2xl p-3 flex items-start gap-2" style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
                   <Shield size={14} style={{ color: '#7A9E7E', flexShrink: 0, marginTop: 1 }} />
                   <p className="text-xs" style={{ color: '#647068' }}>
-                    Payment is secured by Flutterwave. Your listing goes live within 24hrs of payment + verification.
+                    Payment is secured by Flutterwave. Your listing goes live once your payment is confirmed and the details are verified.
                   </p>
                 </div>
 
