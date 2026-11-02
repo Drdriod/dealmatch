@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   subtypeOptions, defaultSubtype, findLeaf, subtypeChoices,
-  providerTypeForGroup, groupForProviderType, peopleGroups, placeGroups, categoryIdsFor,
+  providerTypeForGroup, groupForProviderType, providerMatchesKind, peopleGroups, placeGroups, categoryIdsFor,
 } from './placeCategories.js'
 
 const tree = [
@@ -82,4 +82,15 @@ test('onboarding kinds of work open the matching People group, and every group m
   for (const type of ['artisan', 'tutor', 'home_service', 'property_professional']) {
     assert.equal(providerTypeForGroup(groupForProviderType(type)), type)
   }
+})
+
+test('the People page keeps providers of the picked kind of work', () => {
+  const group = { children: [{ name: 'Coaching' }, { name: 'Training' }] }
+  assert.equal(providerMatchesKind('Coaching', undefined, ''), true, 'no filter keeps everyone')
+  assert.equal(providerMatchesKind(null, undefined, ''), true)
+  assert.equal(providerMatchesKind('Coaching', group, ''), true)
+  assert.equal(providerMatchesKind('Offices', group, ''), false)
+  assert.equal(providerMatchesKind(null, group, ''), false, 'no category does not match a group')
+  assert.equal(providerMatchesKind('Training', group, 'Training'), true)
+  assert.equal(providerMatchesKind('Coaching', group, 'Training'), false)
 })

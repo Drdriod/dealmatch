@@ -31,9 +31,14 @@ function groupsFor(pillarSlug, tree) {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function MenuStatus({ tree, error, groups }) {
+function MenuStatus({ tree, error, groups, retry }) {
   if (error) {
-    return <p role="status" className="text-sm text-[#647068]">Categories are unavailable right now. Please try again shortly.</p>
+    return (
+      <p role="status" className="text-sm text-[#647068]">
+        We couldn't load the categories. Check your connection and{' '}
+        <button type="button" onClick={retry} className="font-semibold text-[#C85F2D] underline">try again</button>.
+      </p>
+    )
   }
   if (!tree) {
     return (
@@ -64,7 +69,7 @@ function DesktopPillar({ pillar, active }) {
   const closeTimer = useRef(null)
   const focusFirst = useRef(false)
   const location = useLocation()
-  const { tree, error } = useCategoryTree()
+  const { tree, error, retry } = useCategoryTree()
   const groups = groupsFor(pillar.slug, tree) || []
   const panelId = `pillar-menu-${pillar.slug}`
 
@@ -109,7 +114,8 @@ function DesktopPillar({ pillar, active }) {
   return (
     <div
       ref={wrapRef}
-      className="relative"
+      // Not "relative": the panel is positioned against the whole header, so a wide panel stays
+      // centred on the page and cannot run off the left or right edge.
       onPointerEnter={e => { if (e.pointerType === 'mouse') show() }}
       onPointerLeave={e => { if (e.pointerType === 'mouse') hide() }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) hideNow() }}
@@ -163,7 +169,7 @@ function DesktopPillar({ pillar, active }) {
           >
             <nav
               aria-label={`${pillar.name} categories`}
-              className="w-[min(680px,92vw)] rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-5 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
+              className="w-[min(1240px,96vw)] max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
             >
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#647068]">{pillar.name}</p>
@@ -174,10 +180,10 @@ function DesktopPillar({ pillar, active }) {
               </div>
 
               {(!tree || error || groups.length === 0) ? (
-                <MenuStatus tree={tree} error={error} groups={groups} />
+                <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               ) : (
                 <motion.div variants={listVariants} initial="hidden" animate="show"
-                  className="grid grid-cols-2 gap-x-6 gap-y-5">
+                  className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-3 xl:grid-cols-5">
                   {groups.map(group => (
                     <motion.div key={group.id} variants={itemVariants}>
                       <Link to={categoryHref(group.slug)} onClick={hideNow} data-pillar-item
@@ -222,7 +228,7 @@ function DesktopPillar({ pillar, active }) {
 // Mobile: the pillar link plus a disclosure button that expands its groups.
 function MobilePillar({ pillar, active, onNavigate }) {
   const [open, setOpen] = useState(false)
-  const { tree, error } = useCategoryTree()
+  const { tree, error, retry } = useCategoryTree()
   const groups = groupsFor(pillar.slug, tree) || []
 
   return (
@@ -256,7 +262,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
             className="overflow-hidden"
           >
             <div className="mb-2 ml-1 space-y-4 border-l-2 border-[#C85F2D]/30 pb-3 pl-4">
-              <MenuStatus tree={tree} error={error} groups={groups} />
+              <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               {tree && !error && groups.map(group => (
                 <div key={group.id}>
                   <Link to={categoryHref(group.slug)} onClick={onNavigate}

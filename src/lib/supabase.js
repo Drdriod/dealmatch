@@ -30,8 +30,33 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 //     origin cannot read or overwrite our auth token.
 //   • `flowType: 'pkce'` is required for the OAuth callback to work correctly
 //     via exchangeCodeForSession(). The AuthCallback component handles this.
+// Supabase serialises auth work across browser tabs with a Web Lock. If another tab of the site
+// holds that lock and never lets go (a frozen or half-closed tab is enough), every request in
+// this tab waits for it forever: menus stay on their loading skeleton and pages sit on
+// "Finding places...". This lock waits a few seconds, then carries on without it. Worst case, two
+// tabs refresh the session at the same time, which is harmless.
+const AUTH_LOCK_WAIT_MS = 5000
+export async function authLock(name, _acquireTimeout, fn) {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
+  if (!locks?.request) return fn()
+  const abort = new AbortController()
+  const timer = setTimeout(() => abort.abort(), AUTH_LOCK_WAIT_MS)
+  try {
+    return await locks.request(name, { signal: abort.signal }, async () => {
+      clearTimeout(timer)
+      return fn()
+    })
+  } catch (err) {
+    if (err?.name === 'AbortError') return fn()
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
+    lock:               authLock,
     autoRefreshToken:   true,
     persistSession:     true,
     detectSessionInUrl: true,

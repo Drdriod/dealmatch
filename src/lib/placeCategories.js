@@ -115,3 +115,12 @@ export function categoryIdsFor(tree, slug) {
   }
   return []
 }
+
+// Does a provider belong to the kind of work picked on the People page? `category` is the
+// subcategory NAME the provider chose at signup. `group` is the open People group (or undefined
+// for "All kinds"); `leafName` is the picked subcategory name (or '' for the whole group).
+export function providerMatchesKind(category, group, leafName) {
+  if (leafName) return category === leafName
+  if (!group) return true
+  return (group.children || []).some(c => c.name === category)
+}
