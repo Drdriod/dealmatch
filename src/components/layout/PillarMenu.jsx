@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import useCategoryTree from '@/hooks/useCategoryTree'
+import { TAXONOMY_FALLBACK, sortByTaxonomy } from '@/data/taxonomyFallback'
 import { categoryHref } from '@/lib/taxonomy'
 
 const ease = [0.22, 1, 0.36, 1]
@@ -26,9 +27,9 @@ const itemVariants = {
 // Sorted by name so the order is stable and does not depend on the seed.
 function groupsFor(pillarSlug, tree) {
   if (!tree) return null
-  return tree
-    .filter(root => root.pillar === pillarSlug)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  // Approved taxonomy order (data/taxonomyFallback.js): the live tree has no sort column.
+  return sortByTaxonomy(tree.filter(root => root.pillar === pillarSlug))
+    .map(root => ({ ...root, children: sortByTaxonomy(root.children || []) }))
 }
 
 function MenuStatus({ tree, error, groups, retry }) {
@@ -69,7 +70,11 @@ function DesktopPillar({ pillar, active }) {
   const closeTimer = useRef(null)
   const focusFirst = useRef(false)
   const location = useLocation()
-  const { tree, error, retry } = useCategoryTree()
+  const { tree: liveTree, retry } = useCategoryTree()
+  // The bundled copy shows at once and until the live tree arrives (or if it never does), so the menu
+  // is never empty. Names, slugs and grouping are all the menu needs.
+  const tree = liveTree || TAXONOMY_FALLBACK
+  const error = null
   const groups = groupsFor(pillar.slug, tree) || []
   const panelId = `pillar-menu-${pillar.slug}`
 
@@ -228,7 +233,11 @@ function DesktopPillar({ pillar, active }) {
 // Mobile: the pillar link plus a disclosure button that expands its groups.
 function MobilePillar({ pillar, active, onNavigate }) {
   const [open, setOpen] = useState(false)
-  const { tree, error, retry } = useCategoryTree()
+  const { tree: liveTree, retry } = useCategoryTree()
+  // The bundled copy shows at once and until the live tree arrives (or if it never does), so the menu
+  // is never empty. Names, slugs and grouping are all the menu needs.
+  const tree = liveTree || TAXONOMY_FALLBACK
+  const error = null
   const groups = groupsFor(pillar.slug, tree) || []
 
   return (
