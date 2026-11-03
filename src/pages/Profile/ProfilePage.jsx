@@ -70,7 +70,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     // Basic validation for bank details if any field is filled
     if (form.account_number && !/^\d{10}$/.test(form.account_number)) {
-      toast.error('Account number must be exactly 10 digits');
+      toast.error('Your account number should be 10 digits. Please check it and try again.');
       return;
     }
 
@@ -109,7 +109,7 @@ export default function ProfilePage() {
     setBecomingProvider(false)
     if (error) { toast.error('We couldn\'t save that. Please try again.'); return }
     await refreshProfile()
-    toast.success("You're on your way to becoming a provider.")
+    toast.success("You're on your way. Add your details to publish your offer.")
     navigate('/verify-skill')
   }
 
@@ -124,6 +124,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
       <div className="max-w-lg mx-auto px-4">
+        <h1 className="font-display font-black text-lg mb-3" style={{ color:'#17211B' }}>Account Settings</h1>
 
         {/* Profile hero card */}
         <div className="rounded-3xl overflow-hidden mb-5" style={{ backgroundColor:'#17211B' }}>
@@ -245,7 +246,7 @@ export default function ProfilePage() {
               style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
               <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>Verify your identity</p>
               <p className="text-xs leading-relaxed mb-3" style={{ color:'#647068' }}>
-                Upload your government-issued ID and take a selfie. Required for full buy/sell access.
+                Upload your government-issued ID and take a selfie. Needed before you can complete deals.
               </p>
               <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
                 style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
@@ -325,7 +326,7 @@ export default function ProfilePage() {
           <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
             <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'#DEDDD6' }}>
               <h3 className="font-display font-black text-base flex items-center gap-2" style={{ color:'#17211B' }}>
-                <Briefcase size={16} className="text-terracotta" /> Provider Details
+                <Briefcase size={16} className="text-terracotta" /> Offer Details
               </h3>
               <Link to="/verify-skill" className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border"
                 style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>
@@ -338,7 +339,7 @@ export default function ProfilePage() {
               ) : !providerInfo?.submission && skillLevel < 1 ? (
                 <div className="text-center py-3">
                   <p className="text-xs mb-3" style={{ color:'#647068' }}>
-                    You haven't submitted proof of your skills yet. Add photos of your work to get Skill Verified and start appearing in Find a Provider.
+                    You haven't submitted proof of your skills yet. Add photos of your work to get Skill Verified and start appearing in Explore People.
                   </p>
                   <Link to="/verify-skill" className="btn-primary text-sm px-5 py-2.5 inline-flex">Submit Verification →</Link>
                 </div>
@@ -395,9 +396,9 @@ export default function ProfilePage() {
         <div className="grid grid-cols-2 gap-3 mb-5">
           {[
             { to:'/dashboard',        icon: <LayoutDashboard size={20} className="text-terracotta" />, label:'Dashboard'          },
-            { to:'/manage-listings',  icon: <Home size={20} className="text-terracotta" />,            label:'My Listings'        },
-            { to:'/matches',          icon: <Heart size={20} className="text-terracotta" />,           label:'My Requests / Matches' },
-            ...(isProvider ? [] : [{ onClick: handleBecomeProvider, icon: <Briefcase size={20} className="text-terracotta" />, label: becomingProvider ? 'Saving…' : 'Become a Provider' }]),
+            { to:'/manage-listings',  icon: <Home size={20} className="text-terracotta" />,            label:'My Offers'        },
+            { to:'/matches',          icon: <Heart size={20} className="text-terracotta" />,           label:'My Matches' },
+            ...(isProvider ? [] : [{ onClick: handleBecomeProvider, icon: <Briefcase size={20} className="text-terracotta" />, label: becomingProvider ? 'Saving…' : 'Offer a Service' }]),
           ].map(({ to, onClick, icon, label }) => (
             onClick ? (
               <button key={label} onClick={onClick} disabled={becomingProvider}
