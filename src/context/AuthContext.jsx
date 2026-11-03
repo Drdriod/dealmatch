@@ -85,22 +85,29 @@ export function AuthProvider({ children }) {
     })
 
     // ── Step 2: Subscribe to ongoing auth changes ──────────────────────────
+    // IMPORTANT: this callback runs while Supabase holds its auth lock. Calling Supabase from inside
+    // it (fetchProfile does) and waiting for the answer deadlocks: the query needs the same lock to
+    // read the session. That is what froze pages after a session refresh ("Finding places..." with
+    // no request ever sent). So the callback only records the user, and the profile fetch is
+    // started on the next tick, after the lock is released.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setUser(session?.user ?? null)
 
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-        }
+        setTimeout(async () => {
+          if (session?.user) {
+            await fetchProfile(session.user.id)
+          } else {
+            setProfile(null)
+          }
 
-        // Release loading gate on the very first event
-        // (handles the case where onAuthStateChange fires before getSession resolves)
-        if (!initialised.current) {
-          initialised.current = true
-          setLoading(false)
-        }
+          // Release loading gate on the very first event
+          // (handles the case where onAuthStateChange fires before getSession resolves)
+          if (!initialised.current) {
+            initialised.current = true
+            setLoading(false)
+          }
+        }, 0)
       }
     )
 
