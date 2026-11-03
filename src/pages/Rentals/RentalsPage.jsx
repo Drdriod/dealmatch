@@ -387,30 +387,7 @@ export default function RentalsPage() {
             className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
         </div>
 
-        {/* Filters row 1 - type */}
-        <div className="flex gap-2 overflow-x-auto mb-2 pb-1" style={{ scrollbarWidth:'none' }}>
-          {TYPES.map(t => (
-            <button key={t} onClick={() => setType(t)}
-              className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
-              style={{
-                backgroundColor: type === t ? '#C85F2D' : '#FFFFFF',
-                color:           type === t ? '#FFFFFF' : '#5C4A3A',
-                borderColor:     type === t ? '#C85F2D' : '#DEDDD6',
-              }}>{PLACE_TYPE_LABEL[t] || t}</button>
-          ))}
-          <Link to="/hotels"
-            className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
-            style={{ backgroundColor: '#FFFFFF', color: '#5C4A3A', borderColor: '#DEDDD6' }}>
-            Hotels
-          </Link>
-          <Link to="/student-hostels"
-            className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
-            style={{ backgroundColor: '#FFFFFF', color: '#5C4A3A', borderColor: '#DEDDD6' }}>
-            Student housing
-          </Link>
-        </div>
-
-        {/* Filters row 2 - kind of place (groups from the database, then subcategories) */}
+        {/* Filters row 1 - kind of place (groups from the database, then subcategories) */}
         {groups.length > 0 && (
           <div className="mb-2">
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth:'none' }} role="group" aria-label="Kind of place">
