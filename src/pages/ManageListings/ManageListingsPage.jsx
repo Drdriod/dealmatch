@@ -23,7 +23,13 @@ import toast from 'react-hot-toast'
 const PROPERTY_STATUS_META = {
   active:  { label: 'Active',  color: '#7A9E7E' },
   pending: { label: 'Pending review', color: '#D4A853' },
-  sold:    { label: 'Sold/Let', color: '#5B8DEF' },
+  pending_review: { label: 'Pending review', color: '#D4A853' },
+  under_verification: { label: 'Under verification', color: '#D4A853' },
+  paused:  { label: 'Paused',  color: '#647068' },
+  inactive: { label: 'Paused', color: '#647068' },
+  rejected: { label: 'Not approved', color: '#C94A3A' },
+  rented:  { label: 'Rented', color: '#5B8DEF' },
+  sold:    { label: 'Sold', color: '#5B8DEF' },
   removed: { label: 'Paused',  color: '#647068' },
 }
 const LISTING_STATUS_META = {
@@ -58,16 +64,16 @@ export default function ManageListingsPage() {
   const items = useMemo(() => {
     const a = properties.map(p => ({
       kind: 'property', id: p.id, title: p.title, price: p.price,
-      subtitle: `${p.city}, ${p.state} · ${p.listing_type || 'For Sale'}`,
+      subtitle: [p.category?.name, [p.city, p.state].filter(Boolean).join(', '), p.listing_type || 'For Sale'].filter(Boolean).join(' · '),
       status: p.status, meta: PROPERTY_STATUS_META[p.status] || { label: p.status, color: '#647068' },
       views: p.view_count, likes: p.like_count, createdAt: p.created_at,
-      isPaused: p.status === 'removed',
-      togglePausedTo: p.status === 'removed' ? 'active' : 'removed',
+      isPaused: p.status === 'removed' || p.status === 'paused',
+      togglePausedTo: (p.status === 'removed' || p.status === 'paused') ? 'active' : 'removed',
       link: `/property/${p.id}`,
     }))
     const b = listings.map(l => ({
       kind: 'listing', id: l.id, title: l.title, price: l.price_cents ? l.price_cents / 100 : null,
-      subtitle: `${l.categories?.name || 'Listing'} · ${l.type}`,
+      subtitle: `${l.categories?.name || 'Offer'} · ${l.type}`,
       status: l.status, meta: LISTING_STATUS_META[l.status] || { label: l.status, color: '#647068' },
       views: null, likes: null, createdAt: l.created_at,
       isPaused: l.status === 'SUSPENDED',
@@ -75,7 +81,7 @@ export default function ManageListingsPage() {
       link: null, // no generic /listing/:id detail route exists yet -- see PRODUCTION_HANDOFF.md follow-ups; avoid linking to a 404
     }))
     const all = [...a, ...b].sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt))
-    if (filter === 'active')  return all.filter(x => !x.isPaused && x.status !== 'sold' && x.status !== 'CLOSED')
+    if (filter === 'active')  return all.filter(x => !x.isPaused && x.status !== 'sold' && x.status !== 'rented' && x.status !== 'CLOSED')
     if (filter === 'paused')  return all.filter(x => x.isPaused)
     return all
   }, [properties, listings, filter])
@@ -89,13 +95,13 @@ export default function ManageListingsPage() {
       try { await updateListingStatus(supabase, item.id, user.id, item.togglePausedTo) } catch (e) { error = e }
     }
     setBusyId(null)
-    if (error) { toast.error('Could not update listing'); return }
-    toast.success(item.isPaused ? 'Listing reactivated' : 'Listing paused')
+    if (error) { toast.error('We couldn\'t update that offer. Please try again.'); return }
+    toast.success(item.isPaused ? 'Offer reactivated.' : 'Offer paused.')
     load()
   }
 
   const remove = async (item) => {
-    if (!window.confirm('Remove this listing? This cannot be undone.')) return
+    if (!window.confirm('Remove this offer? This cannot be undone.')) return
     setBusyId(item.id)
     // Soft-delete via status, matching the rest of the app's pattern
     // (properties/category_listings are referenced by escrow/transaction
@@ -107,8 +113,8 @@ export default function ManageListingsPage() {
       try { await updateListingStatus(supabase, item.id, user.id, 'CLOSED') } catch (e) { error = e }
     }
     setBusyId(null)
-    if (error) { toast.error('Could not remove listing'); return }
-    toast.success('Listing removed')
+    if (error) { toast.error('We couldn\'t remove that offer. Please try again.'); return }
+    toast.success('Offer removed.')
     load()
   }
 
@@ -119,12 +125,14 @@ export default function ManageListingsPage() {
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
-          <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>My Listings</h1>
+          <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>My Offers</h1>
         </div>
         <button onClick={() => navigate('/list')} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#C85F2D' }}>
           <Plus size={16} className="text-white" />
         </button>
       </div>
+
+      <p className="px-4 -mt-1 mb-3 text-xs" style={{ color: '#647068' }}>Manage your offers. Track your deals.</p>
 
       <div className="px-4 flex gap-2 mb-4">
         {[['all', 'All'], ['active', 'Active'], ['paused', 'Paused']].map(([id, label]) => (
@@ -142,9 +150,9 @@ export default function ManageListingsPage() {
         ) : items.length === 0 ? (
           <div className="text-center py-16">
             <Package size={32} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>No listings yet</p>
-            <p className="text-xs mt-1 mb-4" style={{ color: '#647068' }}>Post a property, shortlet, or service to get started.</p>
-            <button onClick={() => navigate('/list')} className="btn-primary px-6 py-2.5 text-sm">Create a listing</button>
+            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>You haven't published an offer yet.</p>
+            <p className="text-xs mt-1 mb-4" style={{ color: '#647068' }}>Offer a place or a service and get matched with people looking for it.</p>
+            <button onClick={() => navigate('/list')} className="btn-primary px-6 py-2.5 text-sm">Create Your First Offer</button>
           </div>
         ) : items.map(item => (
           <div key={item.kind + item.id} className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>

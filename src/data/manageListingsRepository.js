@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 // The seller's own properties, newest first, with the columns the list shows.
 export function fetchMyProperties(userId) {
   return supabase.from('properties')
-    .select('id, title, price, city, state, status, view_count, like_count, listing_type, created_at')
+    .select('id, title, price, city, state, status, view_count, like_count, listing_type, created_at, category:categories(name)')
     .eq('seller_id', userId)
     .order('created_at', { ascending: false })
 }
