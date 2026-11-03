@@ -10,7 +10,10 @@ let inflight = null
 function loadTree() {
   if (cachedTree) return Promise.resolve(cachedTree)
   if (!inflight) {
-    inflight = getCategoryTree(supabase)
+    // Do not wait forever on a weak or blocked connection: give up after 10 seconds so pages can show
+    // their retry message, and let the next visit try again.
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('categories timeout')), 10000))
+    inflight = Promise.race([getCategoryTree(supabase), timeout])
       .then(tree => { cachedTree = tree; return tree })
       .catch(err => { inflight = null; throw err })
   }

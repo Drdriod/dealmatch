@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
-import useCategoryTree from '@/hooks/useCategoryTree'
+import useMenuTree from '@/hooks/useMenuTree'
+import { sortByTaxonomy } from '@/data/taxonomyFallback'
 import { categoryHref } from '@/lib/taxonomy'
 
 const ease = [0.22, 1, 0.36, 1]
@@ -23,12 +24,12 @@ const itemVariants = {
 }
 
 // The active groups for one pillar, read from the database `pillar` column.
-// Sorted by name so the order is stable and does not depend on the seed.
+// Sorted in the approved taxonomy order (see data/taxonomyFallback.js), so the menu reads the same
+// whether it shows the live tree or the bundled copy.
 function groupsFor(pillarSlug, tree) {
   if (!tree) return null
-  return tree
-    .filter(root => root.pillar === pillarSlug)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return sortByTaxonomy(tree.filter(root => root.pillar === pillarSlug))
+    .map(root => ({ ...root, children: sortByTaxonomy(root.children || []) }))
 }
 
 function MenuStatus({ tree, error, groups }) {
@@ -64,7 +65,7 @@ function DesktopPillar({ pillar, active }) {
   const closeTimer = useRef(null)
   const focusFirst = useRef(false)
   const location = useLocation()
-  const { tree, error } = useCategoryTree()
+  const { tree, error } = useMenuTree()
   const groups = groupsFor(pillar.slug, tree) || []
   const panelId = `pillar-menu-${pillar.slug}`
 
@@ -158,12 +159,12 @@ function DesktopPillar({ pillar, active }) {
             animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
             exit={{ opacity: 0, x: '-50%', y: -6, scale: 0.98 }}
             transition={{ duration: 0.2, ease }}
-            className="absolute top-full left-1/2 z-50 origin-top pt-3"
+            className="fixed left-1/2 top-[78px] z-50 origin-top pt-1"
             onPointerEnter={clearTimers}
           >
             <nav
               aria-label={`${pillar.name} categories`}
-              className="w-[min(680px,92vw)] rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-5 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
+              className={`${pillar.slug === 'people' ? 'w-[min(1180px,95vw)]' : 'w-[min(900px,94vw)]'} max-h-[calc(100vh-110px)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]`}
             >
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#647068]">{pillar.name}</p>
@@ -177,9 +178,9 @@ function DesktopPillar({ pillar, active }) {
                 <MenuStatus tree={tree} error={error} groups={groups} />
               ) : (
                 <motion.div variants={listVariants} initial="hidden" animate="show"
-                  className="grid grid-cols-2 gap-x-6 gap-y-5">
+                  className={pillar.slug === 'people' ? 'columns-2 lg:columns-3 xl:columns-4 gap-x-6' : 'columns-2 lg:columns-3 gap-x-8'}>
                   {groups.map(group => (
-                    <motion.div key={group.id} variants={itemVariants}>
+                    <motion.div key={group.id} variants={itemVariants} className="mb-6 break-inside-avoid">
                       <Link to={categoryHref(group.slug)} onClick={hideNow} data-pillar-item
                         className="text-sm font-bold text-[#17211B] hover:text-[#C85F2D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D] rounded">
                         {group.name}
@@ -222,7 +223,7 @@ function DesktopPillar({ pillar, active }) {
 // Mobile: the pillar link plus a disclosure button that expands its groups.
 function MobilePillar({ pillar, active, onNavigate }) {
   const [open, setOpen] = useState(false)
-  const { tree, error } = useCategoryTree()
+  const { tree, error } = useMenuTree()
   const groups = groupsFor(pillar.slug, tree) || []
 
   return (
