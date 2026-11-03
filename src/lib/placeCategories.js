@@ -116,10 +116,11 @@ export function categoryIdsFor(tree, slug) {
   return []
 }
 
-// Does a provider's category (the subcategory NAME they picked, or older free text) belong to this
-// People group? Compared ignoring case and surrounding spaces. A missing category matches no group.
-export function groupMatchesCategory(group, categoryName) {
-  if (!group || !categoryName) return false
-  const wanted = String(categoryName).trim().toLowerCase()
-  return (group.children || []).some(c => String(c.name).trim().toLowerCase() === wanted)
+// Does a provider belong to the kind of work picked on the People page? `category` is the
+// subcategory NAME the provider chose at signup. `group` is the open People group (or undefined
+// for "All kinds"); `leafName` is the picked subcategory name (or '' for the whole group).
+export function providerMatchesKind(category, group, leafName) {
+  if (leafName) return category === leafName
+  if (!group) return true
+  return (group.children || []).some(c => c.name === category)
 }

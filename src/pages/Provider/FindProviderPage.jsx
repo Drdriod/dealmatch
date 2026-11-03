@@ -5,8 +5,8 @@ import { ArrowLeft, MapPin, Search, ShieldCheck, Star, Zap, ChevronRight, Crossh
 import { fetchStatePoints, searchProvidersNear, fetchProviderCardDetails } from '@/data/providerSearchRepository'
 import { useAuth } from '@/context/AuthContext'
 import { NIGERIAN_STATES } from '@/lib/location'
-import useMenuTree from '@/hooks/useMenuTree'
-import { peopleGroups, groupMatchesCategory } from '@/lib/placeCategories'
+import useCategoryTree from '@/hooks/useCategoryTree'
+import { peopleGroups, providerMatchesKind } from '@/lib/placeCategories'
 
 const CHIPS = [
   { id: 'available', label: 'Recently active' },
@@ -55,10 +55,13 @@ export default function FindProviderPage() {
   const [loading, setLoading]         = useState(true)
   const [query, setQuery]             = useState('')
   const [activeChips, setActiveChips] = useState([])
-  // Work group filter: '' shows everyone, otherwise one of the People groups (data/taxonomyFallback.js).
-  const { tree: menuTree } = useMenuTree()
-  const groups = useMemo(() => peopleGroups(menuTree), [menuTree])
-  const [activeGroup, setActiveGroup] = useState('')
+  // What kind of work: a People group (Trades & Craftsmen, Education...) and, inside it, one
+  // subcategory. Both come from the database taxonomy.
+  const { tree } = useCategoryTree()
+  const groups = peopleGroups(tree)
+  const [kindGroup, setKindGroup] = useState('')
+  const [kindLeaf, setKindLeaf]   = useState('')
+  const openKind = groups.find(g => g.slug === kindGroup)
   const [statePoints, setStatePoints] = useState({})   // { 'Lagos': {lat,lng}, ... }
   const [origin, setOrigin]           = useState(null)  // { lat, lng, label, precise }
   const [locating, setLocating]       = useState(false)
@@ -163,10 +166,7 @@ export default function FindProviderPage() {
     let list = [...rows]
     // Identity tab shows only level 1; Skill tab shows level 2 and above
     list = tab === 'identity' ? list.filter(p => p.level === 1) : list.filter(p => p.level >= 2)
-    if (activeGroup) {
-      const group = groups.find(g => g.slug === activeGroup)
-      list = list.filter(p => groupMatchesCategory(group, p.category))
-    }
+    list = list.filter(p => providerMatchesKind(p.category, openKind, kindLeaf))
     if (query.trim()) {
       const q = query.toLowerCase()
       list = list.filter(p => p.name?.toLowerCase().includes(q) || p.bio?.toLowerCase().includes(q))
@@ -175,7 +175,7 @@ export default function FindProviderPage() {
     if (activeChips.includes('rated')) list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0))
     else list = [...list].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0))
     return list
-  }, [rows, tab, query, activeChips, activeGroup, groups])
+  }, [rows, tab, query, activeChips, openKind, kindLeaf])
 
   const originText = origin
     ? (origin.precise ? 'your location' : origin.label)
@@ -229,17 +229,34 @@ export default function FindProviderPage() {
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3" role="group" aria-label="Kind of work">
-          {[{ slug: '', name: 'All kinds of work' }, ...groups].map(g => (
-            <button key={g.slug || 'all'} onClick={() => setActiveGroup(g.slug)}
-              className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
-              style={activeGroup === g.slug
-                ? { backgroundColor: '#17211B', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
-              {g.name}
-            </button>
-          ))}
-        </div>
+        {groups.length > 0 && (
+          <div className="mb-2">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2" role="group" aria-label="Kind of work">
+              {[{ slug: '', name: 'All kinds' }, ...groups].map(g => (
+                <button key={g.slug || 'all'} onClick={() => { setKindGroup(g.slug); setKindLeaf('') }}
+                  className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
+                  style={kindGroup === g.slug
+                    ? { backgroundColor: '#17211B', color: '#FFF' }
+                    : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                  {g.name}
+                </button>
+              ))}
+            </div>
+            {openKind && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar mb-1" role="group" aria-label={openKind.name}>
+                {[{ slug: '', name: `All ${openKind.name}` }, ...openKind.children].map(c => (
+                  <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug === kindLeaf ? '' : c.name)}
+                    className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
+                    style={(c.slug ? kindLeaf === c.name : !kindLeaf)
+                      ? { backgroundColor: '#C85F2D', color: '#FFF' }
+                      : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {CHIPS.map(chip => {

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
-import useMenuTree from '@/hooks/useMenuTree'
-import { sortByTaxonomy } from '@/data/taxonomyFallback'
+import useCategoryTree from '@/hooks/useCategoryTree'
+import { TAXONOMY_FALLBACK, sortByTaxonomy } from '@/data/taxonomyFallback'
 import { categoryHref } from '@/lib/taxonomy'
 
 const ease = [0.22, 1, 0.36, 1]
@@ -24,17 +24,22 @@ const itemVariants = {
 }
 
 // The active groups for one pillar, read from the database `pillar` column.
-// Sorted in the approved taxonomy order (see data/taxonomyFallback.js), so the menu reads the same
-// whether it shows the live tree or the bundled copy.
+// Sorted by name so the order is stable and does not depend on the seed.
 function groupsFor(pillarSlug, tree) {
   if (!tree) return null
+  // Approved taxonomy order (data/taxonomyFallback.js): the live tree has no sort column.
   return sortByTaxonomy(tree.filter(root => root.pillar === pillarSlug))
     .map(root => ({ ...root, children: sortByTaxonomy(root.children || []) }))
 }
 
-function MenuStatus({ tree, error, groups }) {
+function MenuStatus({ tree, error, groups, retry }) {
   if (error) {
-    return <p role="status" className="text-sm text-[#647068]">Categories are unavailable right now. Please try again shortly.</p>
+    return (
+      <p role="status" className="text-sm text-[#647068]">
+        We couldn't load the categories. Check your connection and{' '}
+        <button type="button" onClick={retry} className="font-semibold text-[#C85F2D] underline">try again</button>.
+      </p>
+    )
   }
   if (!tree) {
     return (
@@ -65,7 +70,11 @@ function DesktopPillar({ pillar, active }) {
   const closeTimer = useRef(null)
   const focusFirst = useRef(false)
   const location = useLocation()
-  const { tree, error } = useMenuTree()
+  const { tree: liveTree, retry } = useCategoryTree()
+  // The bundled copy shows at once and until the live tree arrives (or if it never does), so the menu
+  // is never empty. Names, slugs and grouping are all the menu needs.
+  const tree = liveTree || TAXONOMY_FALLBACK
+  const error = null
   const groups = groupsFor(pillar.slug, tree) || []
   const panelId = `pillar-menu-${pillar.slug}`
 
@@ -110,7 +119,8 @@ function DesktopPillar({ pillar, active }) {
   return (
     <div
       ref={wrapRef}
-      className="relative"
+      // Not "relative": the panel is positioned against the whole header, so a wide panel stays
+      // centred on the page and cannot run off the left or right edge.
       onPointerEnter={e => { if (e.pointerType === 'mouse') show() }}
       onPointerLeave={e => { if (e.pointerType === 'mouse') hide() }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) hideNow() }}
@@ -159,12 +169,12 @@ function DesktopPillar({ pillar, active }) {
             animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
             exit={{ opacity: 0, x: '-50%', y: -6, scale: 0.98 }}
             transition={{ duration: 0.2, ease }}
-            className="fixed left-1/2 top-[78px] z-50 origin-top pt-1"
+            className="absolute top-full left-1/2 z-50 origin-top pt-3"
             onPointerEnter={clearTimers}
           >
             <nav
               aria-label={`${pillar.name} categories`}
-              className={`${pillar.slug === 'people' ? 'w-[min(1180px,95vw)]' : 'w-[min(900px,94vw)]'} max-h-[calc(100vh-110px)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]`}
+              className="w-[min(1240px,96vw)] max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
             >
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#647068]">{pillar.name}</p>
@@ -175,12 +185,12 @@ function DesktopPillar({ pillar, active }) {
               </div>
 
               {(!tree || error || groups.length === 0) ? (
-                <MenuStatus tree={tree} error={error} groups={groups} />
+                <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               ) : (
                 <motion.div variants={listVariants} initial="hidden" animate="show"
-                  className={pillar.slug === 'people' ? 'columns-2 lg:columns-3 xl:columns-4 gap-x-6' : 'columns-2 lg:columns-3 gap-x-8'}>
+                  className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-3 xl:grid-cols-5">
                   {groups.map(group => (
-                    <motion.div key={group.id} variants={itemVariants} className="mb-6 break-inside-avoid">
+                    <motion.div key={group.id} variants={itemVariants}>
                       <Link to={categoryHref(group.slug)} onClick={hideNow} data-pillar-item
                         className="text-sm font-bold text-[#17211B] hover:text-[#C85F2D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D] rounded">
                         {group.name}
@@ -223,7 +233,11 @@ function DesktopPillar({ pillar, active }) {
 // Mobile: the pillar link plus a disclosure button that expands its groups.
 function MobilePillar({ pillar, active, onNavigate }) {
   const [open, setOpen] = useState(false)
-  const { tree, error } = useMenuTree()
+  const { tree: liveTree, retry } = useCategoryTree()
+  // The bundled copy shows at once and until the live tree arrives (or if it never does), so the menu
+  // is never empty. Names, slugs and grouping are all the menu needs.
+  const tree = liveTree || TAXONOMY_FALLBACK
+  const error = null
   const groups = groupsFor(pillar.slug, tree) || []
 
   return (
@@ -257,7 +271,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
             className="overflow-hidden"
           >
             <div className="mb-2 ml-1 space-y-4 border-l-2 border-[#C85F2D]/30 pb-3 pl-4">
-              <MenuStatus tree={tree} error={error} groups={groups} />
+              <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               {tree && !error && groups.map(group => (
                 <div key={group.id}>
                   <Link to={categoryHref(group.slug)} onClick={onNavigate}
