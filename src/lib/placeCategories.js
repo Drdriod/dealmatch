@@ -1,3 +1,5 @@
+import { sortByTaxonomy } from '../data/taxonomyFallback.js'
+
 // Which Place subcategory a listing belongs to, and which People group a provider belongs to.
 // Pure functions, no database access, so they are unit tested.
 //
@@ -91,18 +93,14 @@ export function groupForProviderType(type) {
 
 // Active People groups with their subcategories, in the order shown to the person.
 export function peopleGroups(tree) {
-  return (tree || [])
-    .filter(g => g.pillar === 'people' && g.children?.length)
-    .map(g => ({ ...g, children: [...g.children].sort((a, b) => a.name.localeCompare(b.name)) }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return sortByTaxonomy((tree || []).filter(g => g.pillar === 'people' && g.children?.length))
+    .map(g => ({ ...g, children: sortByTaxonomy(g.children) }))
 }
 
 // Active Place groups with their subcategories.
 export function placeGroups(tree) {
-  return (tree || [])
-    .filter(g => g.pillar === 'place' && g.children?.length)
-    .map(g => ({ ...g, children: [...g.children].sort((a, b) => a.name.localeCompare(b.name)) }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return sortByTaxonomy((tree || []).filter(g => g.pillar === 'place' && g.children?.length))
+    .map(g => ({ ...g, children: sortByTaxonomy(g.children) }))
 }
 
 // Leaf ids for a group slug or leaf slug, for the Places page filter. null means "no filter".

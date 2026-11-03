@@ -94,3 +94,13 @@ test('the People page keeps providers of the picked kind of work', () => {
   assert.equal(providerMatchesKind('Training', group, 'Training'), true)
   assert.equal(providerMatchesKind('Coaching', group, 'Training'), false)
 })
+
+test('groups and subcategories come back in the approved order, not alphabetical', () => {
+  const t = [
+    { id: 1, slug: 'land-and-plots', name: 'Land & Plots', pillar: 'place', children: [{ id: 3, slug: 'agricultural-land', name: 'Agricultural Land' }, { id: 2, slug: 'residential-land', name: 'Residential Land' }] },
+    { id: 4, slug: 'residential-properties', name: 'Residential Properties', pillar: 'place', children: [{ id: 5, slug: 'houses-for-rent', name: 'Houses for Rent' }] },
+    { id: 6, slug: 'commercial-properties', name: 'Commercial Properties', pillar: 'place', children: [{ id: 7, slug: 'offices', name: 'Offices' }] },
+  ]
+  assert.deepEqual(placeGroups(t).map(g => g.slug), ['residential-properties', 'commercial-properties', 'land-and-plots'])
+  assert.deepEqual(placeGroups(t)[2].children.map(c => c.slug), ['residential-land', 'agricultural-land'])
+})
