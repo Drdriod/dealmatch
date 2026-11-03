@@ -115,3 +115,11 @@ export function categoryIdsFor(tree, slug) {
   }
   return []
 }
+
+// Does a provider's category (the subcategory NAME they picked, or older free text) belong to this
+// People group? Compared ignoring case and surrounding spaces. A missing category matches no group.
+export function groupMatchesCategory(group, categoryName) {
+  if (!group || !categoryName) return false
+  const wanted = String(categoryName).trim().toLowerCase()
+  return (group.children || []).some(c => String(c.name).trim().toLowerCase() === wanted)
+}

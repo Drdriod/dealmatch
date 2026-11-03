@@ -5,12 +5,9 @@ import { ArrowLeft, MapPin, Search, ShieldCheck, Star, Zap, ChevronRight, Crossh
 import { fetchStatePoints, searchProvidersNear, fetchProviderCardDetails } from '@/data/providerSearchRepository'
 import { useAuth } from '@/context/AuthContext'
 import { NIGERIAN_STATES } from '@/lib/location'
+import useMenuTree from '@/hooks/useMenuTree'
+import { peopleGroups, groupMatchesCategory } from '@/lib/placeCategories'
 
-const DEFAULT_CATEGORIES = ['artisan', 'tutor', 'home_service', 'other_skill']
-const CATEGORY_LABEL = {
-  artisan: 'Artisan', tutor: 'Tutor', home_service: 'Home Service',
-  other_skill: 'Other Skill', property_professional: 'Property Professional',
-}
 const CHIPS = [
   { id: 'available', label: 'Recently active' },
   { id: 'rated',     label: 'Highest rated' },
@@ -58,8 +55,10 @@ export default function FindProviderPage() {
   const [loading, setLoading]         = useState(true)
   const [query, setQuery]             = useState('')
   const [activeChips, setActiveChips] = useState([])
-  const [activeCategories, setActiveCategories] = useState(DEFAULT_CATEGORIES)
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  // Work group filter: '' shows everyone, otherwise one of the People groups (data/taxonomyFallback.js).
+  const { tree: menuTree } = useMenuTree()
+  const groups = useMemo(() => peopleGroups(menuTree), [menuTree])
+  const [activeGroup, setActiveGroup] = useState('')
   const [statePoints, setStatePoints] = useState({})   // { 'Lagos': {lat,lng}, ... }
   const [origin, setOrigin]           = useState(null)  // { lat, lng, label, precise }
   const [locating, setLocating]       = useState(false)
@@ -159,13 +158,15 @@ export default function FindProviderPage() {
     if (id === 'nearby' && !origin?.precise) return   // needs a precise origin
     setActiveChips(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id])
   }
-  const toggleCategory = (id) => setActiveCategories(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id])
 
   const filtered = useMemo(() => {
     let list = [...rows]
     // Identity tab shows only level 1; Skill tab shows level 2 and above
     list = tab === 'identity' ? list.filter(p => p.level === 1) : list.filter(p => p.level >= 2)
-    list = list.filter(p => activeCategories.includes(p.categoryType))
+    if (activeGroup) {
+      const group = groups.find(g => g.slug === activeGroup)
+      list = list.filter(p => groupMatchesCategory(group, p.category))
+    }
     if (query.trim()) {
       const q = query.toLowerCase()
       list = list.filter(p => p.name?.toLowerCase().includes(q) || p.bio?.toLowerCase().includes(q))
@@ -174,7 +175,7 @@ export default function FindProviderPage() {
     if (activeChips.includes('rated')) list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0))
     else list = [...list].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0))
     return list
-  }, [rows, tab, query, activeChips, activeCategories])
+  }, [rows, tab, query, activeChips, activeGroup, groups])
 
   const originText = origin
     ? (origin.precise ? 'your location' : origin.label)
@@ -228,33 +229,17 @@ export default function FindProviderPage() {
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2">
-          {DEFAULT_CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => toggleCategory(cat)}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3" role="group" aria-label="Kind of work">
+          {[{ slug: '', name: 'All kinds of work' }, ...groups].map(g => (
+            <button key={g.slug || 'all'} onClick={() => setActiveGroup(g.slug)}
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
-              style={activeCategories.includes(cat)
+              style={activeGroup === g.slug
                 ? { backgroundColor: '#17211B', color: '#FFF' }
                 : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
-              {CATEGORY_LABEL[cat]}
+              {g.name}
             </button>
           ))}
-          <button onClick={() => setShowAdvanced(s => !s)}
-            className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0"
-            style={{ backgroundColor: 'transparent', color: '#647068', border: '1px dashed #C9BBAE' }}>
-            {showAdvanced ? 'Hide advanced' : 'Advanced ▾'}
-          </button>
         </div>
-        {showAdvanced && (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3">
-            <button onClick={() => toggleCategory('property_professional')}
-              className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
-              style={activeCategories.includes('property_professional')
-                ? { backgroundColor: '#C85F2D', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
-              {CATEGORY_LABEL.property_professional}
-            </button>
-          </div>
-        )}
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {CHIPS.map(chip => {
