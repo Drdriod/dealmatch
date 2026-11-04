@@ -13,7 +13,7 @@ or category listing would be left on a retired category).
 - **Event & Recreation Spaces**: Event Centres, Conference Halls, Outdoor Venues, Recreational Facilities
 
 How a place is offered (rent, short-let, sale, joint venture, off-plan) is NOT a category. It stays on the
-listing (`properties.category`, `listing_type`) and is the Places page's first filter row.
+listing (`properties.category`, `listing_type`). The Places page no longer has a separate row for it; its filters are the kind-of-place rows, then state.
 
 ## People (10 groups, 50 subcategories)
 Auto Services, Creativity & Lifestyle, Home & Property Care, Trades & Craftsmen, Licensed Experts,
@@ -25,7 +25,7 @@ Professional & Business Services, Logistics & Mobility, Education, Events, Healt
   listing (`src/lib/placeCategories.js`) and sends `category_id`. Leave it alone and the database files the
   listing by its type. The trigger `fn_set_property_category_id` keeps only an active Place subcategory, so a
   People category or a group can never be filed against a place.
-- **Places page** (`/places`): second filter row = Place groups, then their subcategories (`properties.category_id`).
+- **Places page** (`/places`): first filter row = Place groups, then their subcategories (`properties.category_id`).
 - **Menus and `/category/:slug`**: read the tree; the page lists active properties by `category_id`, and
   verified providers whose category NAME matches.
 - **Provider signup** (`/verify-skill`): pick a People group, then a subcategory. The subcategory name is stored
