@@ -39,8 +39,10 @@ export const SEATS = [
       { to: '/onboarding', do: 'Choose that you list a place. Finish your profile.', expect: 'You reach a dashboard with a clear next step.' },
       { to: '/verify-identity', do: 'Submit identity details with a sample or blurred ID photo.', expect: 'Status says submitted or pending. It must never say Verified before the owner approves.' },
       { to: '/payout-setup', do: 'Add a test bank account.', expect: 'Status is pending until staff verify it.' },
-      { to: '/list-rental', do: 'Create a rental listing with 4 photos, a price and a location. Make a second one as a short-let if you can.', expect: 'You see a preview, then a moderation state. Photos upload and show.' },
-      { to: '/manage-listings', do: 'Edit the price, pause the listing, then unpause it.', expect: 'Changes show on the public listing page.' },
+      { to: '/list-rental', do: 'Create an offer for a rental with 4 photos, a price and a location. Pick the kind of place (for example Apartment, then Self-contained). Make a second one as a short-let if you can.', expect: 'The kind-of-place choices match what you picked. You see a preview, then a review state. Photos upload and show.' },
+      { to: '/list', do: 'Create one offer for sale (for example land or a house) with photos, a price and the kind of place.', expect: 'It saves with the kind you chose. Land is offered for sale, not as a rental.' },
+      { to: '/manage-listings', do: 'Open My Offers. Check each offer shows its kind of place, location and status. Edit the price, pause one, then reactivate it.', expect: 'Statuses read plainly (Pending review, Active, Paused). Changes show on the public page. Messages are friendly and clear.' },
+      { to: '/places', do: 'Find your own offer on the Places page by choosing its kind of place in the filter rows.', expect: 'It appears under the right kind once approved, and not under the wrong one.' },
       { to: '/availability', do: 'Block some dates on the short-let.', expect: 'The T2 guest cannot book the blocked dates.' },
       { to: '/landlord', do: 'When the T1 renter pays, open your landlord dashboard.', expect: 'The funded amount is shown separately from money available to pay out.' },
     ],
@@ -58,7 +60,8 @@ export const SEATS = [
     steps: [
       { to: '/auth?tab=signup', do: 'Sign up with your email and confirm the 6-digit code.', expect: 'You land on the onboarding screen.' },
       { to: '/apply-professional', do: 'Submit a professional application: your trade, area, rates and a short bio.', expect: 'Saved, and shows as pending.' },
-      { to: '/verify-skill', do: 'Submit skill evidence (a sample photo or document is fine).', expect: 'Pending until staff approve.' },
+      { to: '/verify-skill', do: 'Pick your group (for example Trades and craftsmen) and your category (for example Plumber), then submit skill evidence (a sample photo or document is fine).', expect: 'The category is required. Saved as pending until staff approve.' },
+      { to: '/providers', do: 'After staff approve you, find yourself on the People page by choosing your group.', expect: 'You show under the right group and nowhere else.' },
       { to: '/provider', do: 'Wait for the T6 customer, then open your workspace. Open their request and send a quote.', expect: 'Every state is explicit: quoted, countered, accepted.' },
       { to: '/provider', do: 'After the customer pays, mark the work complete.', expect: 'It waits for the customer to confirm. Your money is NOT yet available.' },
       { to: '/wallet', do: 'After release, look at your earnings and request a withdrawal.', expect: 'Earnings and available balance are separate. Withdrawal needs a verified payout account.' },
@@ -112,7 +115,8 @@ export const SEATS = [
     steps: [
       { to: '/auth?tab=signup', do: 'Sign up with your email and confirm the 6-digit code.', expect: 'You land on the onboarding screen.' },
       { to: '/onboarding', do: 'Pick what you are looking for and finish your profile.', expect: 'You reach a dashboard with a clear next step.' },
-      { to: '/places', do: 'Search a location, apply price and bedroom filters, and sort.', expect: 'Results match your filters. If nothing matches, the page suggests widening the search.' },
+      { to: '/places', do: 'Search a location. Choose a kind of place from the rows (for example Residential, then Apartment), apply a state, price and bedroom filters, and sort.', expect: 'Results match your filters and the kind you chose. If nothing matches, the page suggests widening the search.' },
+      { to: '/', do: 'Hover or tap Places and People in the top menu.', expect: 'The groups and kinds open, are in a sensible order, and each link goes to a working page.' },
       { to: '/places', do: 'Open the landlord\'s listing.', expect: 'Photos, price, trust label and how Protection works. No phone number or email is shown.' },
       { to: '/messages', do: 'Save the listing, then message the landlord.', expect: 'The saved item appears on your dashboard. Your message sends.' },
       { to: '/places', do: 'Start the protected payment on the listing.', expect: 'You get bank transfer details. The amount matches the listing.' },
@@ -133,7 +137,7 @@ export const SEATS = [
     pairWith: 'T4 Landlord (blocked dates)',
     steps: [
       { to: '/auth?tab=signup', do: 'Sign up and confirm your email code.', expect: 'You land on the onboarding screen.' },
-      { to: '/hotels', do: 'Search with dates and number of guests.', expect: 'Only available rooms show.' },
+      { to: '/hotels', do: 'Search with dates and number of guests. Also try Places, then the Hospitality and stays group.', expect: 'Only available rooms show. Short-lets and hotels appear under the right kind.' },
       { to: '/hotels', do: 'Try to book dates the landlord blocked.', expect: 'It is refused with a clear message.' },
       { to: '/hotels', do: 'Book available dates and pay with the sandbox test details.', expect: 'Both the booking and the transaction appear.' },
       { to: '/dashboard', do: 'Cancel inside the rules.', expect: 'The terms show first. Refund status shows pending, then refunded, as separate states.' },
@@ -151,7 +155,7 @@ export const SEATS = [
     pairWith: 'Works alone',
     steps: [
       { to: '/auth?tab=signup', do: 'Sign up and confirm your email code.', expect: 'You land on the onboarding screen.' },
-      { to: '/student-hostels', do: 'Filter hostels by your school.', expect: 'Hostel cards show price and trust labels. Your school is in the list.' },
+      { to: '/student-hostels', do: 'Filter hostels by your school.', expect: 'Hostel cards show price and trust labels. Your school is in the list. The same hostels also appear under Places, Student housing.' },
       { to: '/student-verify', do: 'Submit a student ID. A blurred or sample photo is fine.', expect: 'Status says pending, not verified.' },
       { to: '/student-hostels', do: 'Send a hostel enquiry.', expect: 'You get a confirmation.' },
     ],
@@ -168,7 +172,7 @@ export const SEATS = [
     pairWith: 'T7 Professional (live)',
     steps: [
       { to: '/auth?tab=signup', do: 'Sign up and confirm your email code.', expect: 'You land on the onboarding screen.' },
-      { to: '/providers', do: 'Search by service and area.', expect: 'Cards show only true trust labels. No invented ratings.' },
+      { to: '/providers', do: 'Choose a group (for example Trades and craftsmen), then search by service and area.', expect: 'Only people in that group show. Cards show only true trust labels. No invented ratings.' },
       { to: '/providers', do: 'Open the professional\'s profile and ask for a quote.', expect: 'The request is sent.' },
       { to: '/request', do: 'Post a job with budget, location and date.', expect: 'It appears on your job page.' },
       { to: '/request', do: 'Receive the quote, try a counter-offer, then accept.', expect: 'Counter-offer works. Accepting locks the agreed amount and terms.' },
@@ -219,6 +223,8 @@ export const SEATS = [
       { to: '/auth?tab=signup', do: 'Sign up 5 times quickly with the same phone or device.', expect: 'Conflicts caught or rate limited.' },
       { to: '/list-rental', do: 'Upload an .exe renamed to .jpg.', expect: 'Refused.' },
       { to: '/', do: 'Try to submit a story with status "approved".', expect: 'Refused.' },
+      { to: '/verify-skill', do: 'Try to submit skill verification with no category, or a made-up category.', expect: 'Refused with a clear message.' },
+      { to: '/list', do: 'Try to list a place with a People category, or a rental as a land kind.', expect: 'Refused or corrected. The kind of place always matches the type.' },
     ],
   },
   {
@@ -233,7 +239,7 @@ export const SEATS = [
     pairWith: 'Works alone',
     steps: [
       { to: '/', do: 'Open the home page for the first time.', expect: 'It loads in under 5 seconds.' },
-      { to: '/places', do: 'Open the filters.', expect: 'They open as a drawer that is easy to use.' },
+      { to: '/places', do: 'Use the kind-of-place rows and the state row, and open the Places and People menu.', expect: 'Rows scroll sideways with your thumb, the menu opens and closes easily, and nothing is cut off.' },
       { to: '/list-rental', do: 'Upload a photo straight from the camera.', expect: 'It works.' },
       { to: '/dashboard', do: 'Open a payment screen with the keyboard up.', expect: 'The keyboard does not hide the pay button.' },
       { to: '/dashboard', do: 'Switch to another app in the middle of a payment, then come back.', expect: 'Nothing is lost.' },
