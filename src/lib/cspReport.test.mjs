@@ -12,7 +12,7 @@ test('real violations are reported', () => {
   assert.equal(shouldReportCsp(fonts), true)
   assert.equal(shouldReportCsp(manifest), true)
   assert.equal(shouldReportCsp({ blockedURI: 'inline', effectiveDirective: 'script-src-elem' }), true)
-  assert.equal(shouldReportCsp({ blockedURI: 'eval', effectiveDirective: 'script-src' }), true)
+  assert.equal(shouldReportCsp({ blockedURI: 'eval', effectiveDirective: 'script-src', sourceFile: 'https://www.dealmatch.com.ng/assets/index-abc.js' }), true)
 })
 
 test('the Cloudflare analytics beacon is blocked on purpose and not reported', () => {
@@ -42,4 +42,9 @@ test('the event title names the directive so the list is readable', () => {
   assert.equal(sent[0].tags.security_event, 'csp_violation')
   assert.equal(sent[0].tags.csp_directive, 'manifest-src')
   assert.equal(sent[0].extra.blockedURI, manifest.blockedURI)
+})
+
+test('eval blocked in code that is not ours (in-app browsers, extensions) is not reported', () => {
+  assert.equal(shouldReportCsp({ blockedURI: 'eval', effectiveDirective: 'script-src' }), false)
+  assert.equal(shouldReportCsp({ blockedURI: 'eval', effectiveDirective: 'script-src', sourceFile: 'https://www.dealmatch.com.ng/' }), false)
 })

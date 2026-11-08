@@ -24,6 +24,8 @@ export function initSentry() {
     // ── PII Scrubbing ──────────────────────────────────────────
     // NEVER send passwords, tokens, or personal data to Sentry.
     // These patterns are scrubbed from all events before transmission.
+    // The same injected-eval noise also arrives as a thrown EvalError.
+    ignoreErrors: [/Refused to evaluate a string as JavaScript/],
     beforeSend(event) {
       // Strip request bodies entirely - they may contain passwords
       if (event.request?.data) {
