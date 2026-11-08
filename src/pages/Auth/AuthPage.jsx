@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useId } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, Check, CheckCircle, Eye, EyeOff, Loader, Store, X, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -53,19 +53,27 @@ function Field({
   value, onChange, status, error,
 }) {
   const borderColor = error ? '#B8511E' : status === 'free' ? '#7A9E7E' : '#DEDDD6'
+  const uid = useId()
+  const inputId = `${uid}-input`
+  const noteId = `${uid}-note`
   return (
     <div>
       <label
+        htmlFor={inputId}
         className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
         style={{ color:'rgba(23,33,27,0.5)' }}>
         {label}{required && <span style={{ color:'#B8511E' }}> *</span>}
       </label>
       <div className="relative">
         <input
+          id={inputId}
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          aria-invalid={error ? 'true' : undefined}
+          aria-required={required || undefined}
+          aria-describedby={error || hint || status === 'free' ? noteId : undefined}
           autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : 'off'}
           // Prevent autocomplete dropdowns from triggering re-renders that
           // dismiss the keyboard on Android Chrome
@@ -82,17 +90,17 @@ function Field({
         )}
       </div>
       {error && (
-        <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#B8511E' }}>
+        <p id={noteId} role="alert" className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#B8511E' }}>
           <XCircle size={11} /> {error}
         </p>
       )}
       {!error && status === 'free' && (
-        <p className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#7A9E7E' }}>
+        <p id={noteId} className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#7A9E7E' }}>
           <CheckCircle size={11} /> Available
         </p>
       )}
       {hint && !error && status !== 'free' && (
-        <p className="text-xs mt-1" style={{ color:'#647068' }}>{hint}</p>
+        <p id={noteId} className="text-xs mt-1" style={{ color:'#647068' }}>{hint}</p>
       )}
     </div>
   )
@@ -690,7 +698,7 @@ export default function AuthPage() {
                 </div>
                 {/* Feedback message */}
                 {fieldErrors.inviteCode && (
-                  <p className="text-xs mt-1 font-semibold"
+                  <p role={fieldStatus.inviteCode === 'valid' ? 'status' : 'alert'} className="text-xs mt-1 font-semibold"
                     style={{ color: fieldStatus.inviteCode === 'valid' ? '#7A9E7E' : '#B8511E' }}>
                     {fieldErrors.inviteCode}
                   </p>

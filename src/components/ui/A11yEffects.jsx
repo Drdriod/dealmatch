@@ -1,12 +1,13 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { linkLabels, titleFor } from '@/lib/a11y'
+import { linkLabels, titleFor, fixLowContrast } from '@/lib/a11y'
 
 const DEFAULT_TITLE = typeof document !== 'undefined' ? document.title : 'DealMatch'
 
 // Renders nothing. Two app-wide accessibility jobs:
 //  1. Gives each page its own browser-tab / screen-reader title, taken from the page's <h1>.
 //  2. Links form labels to their fields (see linkLabels), including fields rendered later.
+//  3. Darkens pale gold and sage text where it sits on a light background (see fixLowContrast).
 export default function A11yEffects() {
   const { pathname } = useLocation()
 
@@ -23,7 +24,7 @@ export default function A11yEffects() {
 
   useEffect(() => {
     let frame = 0
-    const run = () => { frame = 0; linkLabels(document) }
+    const run = () => { frame = 0; linkLabels(document); fixLowContrast(document) }
     const schedule = () => { if (!frame) frame = requestAnimationFrame(run) }
     run()
     const observer = new MutationObserver(schedule)
