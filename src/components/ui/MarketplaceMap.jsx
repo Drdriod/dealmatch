@@ -69,7 +69,7 @@ export function MarketplaceMap({ listings = [], height = '320px', zoom = 12 }) {
           <InfoWindow position={{ lat: selected.lat, lng: selected.lng }} onCloseClick={() => setSelected(null)}>
             <div style={{ fontSize: 12, maxWidth: 160 }}>
               <p style={{ fontWeight: 600, marginBottom: 2 }}>{selected.title}</p>
-              {selected.price_cents != null && <p style={{ color: '#C85F2D' }}>₦{(selected.price_cents / 100).toLocaleString()}</p>}
+              {selected.price_cents != null && <p style={{ color: '#B8511E' }}>₦{(selected.price_cents / 100).toLocaleString()}</p>}
             </div>
           </InfoWindow>
         )}

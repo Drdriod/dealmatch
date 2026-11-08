@@ -245,7 +245,7 @@ export default function OnboardingPage() {
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
               <div className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${(stepNo / totalSteps) * 100}%`, backgroundColor: '#C85F2D' }} />
+                style={{ width: `${(stepNo / totalSteps) * 100}%`, backgroundColor: '#B8511E' }} />
             </div>
           </div>
         )}
@@ -263,9 +263,9 @@ export default function OnboardingPage() {
                 return (
                   <button key={c.id} type="button" onClick={() => chooseIntent(c.id)} aria-pressed={active}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? '#C85F2D' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
+                    style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     <span className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={20} style={{ color: '#C85F2D' }} />
+                      <Icon size={20} style={{ color: '#B8511E' }} />
                     </span>
                     <span className="flex-1">
                       <span className="block font-semibold text-sm" style={{ color: '#17211B' }}>{c.title}</span>
@@ -293,15 +293,15 @@ export default function OnboardingPage() {
                 return (
                   <button key={o.id} type="button" onClick={() => togglePick(o.id)} aria-pressed={active}
                     className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? '#C85F2D' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
+                    style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={18} style={{ color: '#C85F2D' }} />
+                      <Icon size={18} style={{ color: '#B8511E' }} />
                     </span>
                     <span className="flex-1">
                       <span className="block font-semibold text-sm" style={{ color: '#17211B' }}>{o.label}</span>
                       <span className="block text-xs mt-0.5" style={{ color: '#647068' }}>{o.desc}</span>
                     </span>
-                    {active && <Check size={16} style={{ color: '#C85F2D' }} />}
+                    {active && <Check size={16} style={{ color: '#B8511E' }} />}
                   </button>
                 )
               })}

@@ -35,7 +35,7 @@ export function SkillVerifyTab() {
   const [reject,setReject]=useState(null)
   const [reason,setReason]=useState('')
   const [busyId,setBusyId]=useState(null)
-  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
+  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#B8511E'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -79,7 +79,7 @@ export function SkillVerifyTab() {
       </div>
       <FilterBar value={filter} onChange={setFilter} options={[['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['all','All']]}/>
       {loading?<Spinner/>:items.length===0?(
-        <div className="text-center py-12 text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No submissions in this filter</div>
+        <div className="text-center py-12 text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No submissions in this filter</div>
       ):(
         <div className="space-y-3">
           {items.map(s=>(
@@ -89,10 +89,10 @@ export function SkillVerifyTab() {
                 <Badge label={s.status} color={SC[s.status]||'#888'}/>
                 {s.submission_data?.category&&<Badge label={s.submission_data.category} color="#5B8DEF"/>}
               </div>
-              <div className="text-xs mb-2" style={{color:'rgba(255,255,255,0.4)'}}>{maskEmail(s.profile?.email)} · {maskPhone(s.profile?.phone)} · {ago(s.created_at)}</div>
+              <div className="text-xs mb-2" style={{color:'rgba(255,255,255,0.6)'}}>{maskEmail(s.profile?.email)} · {maskPhone(s.profile?.phone)} · {ago(s.created_at)}</div>
               <p className="text-xs mb-3" style={{color:'rgba(255,255,255,0.55)'}}>{s.submission_data?.description}</p>
-              {s.submission_data?.years_experience&&<div className="text-xs mb-1" style={{color:'rgba(255,255,255,0.4)'}}>{s.submission_data.years_experience} years experience</div>}
-              {s.submission_data?.references&&<div className="text-xs mb-2" style={{color:'rgba(255,255,255,0.4)'}}>References: {s.submission_data.references}</div>}
+              {s.submission_data?.years_experience&&<div className="text-xs mb-1" style={{color:'rgba(255,255,255,0.6)'}}>{s.submission_data.years_experience} years experience</div>}
+              {s.submission_data?.references&&<div className="text-xs mb-2" style={{color:'rgba(255,255,255,0.6)'}}>References: {s.submission_data.references}</div>}
               {s.signedUrls.length>0&&(
                 <div className="flex gap-2 flex-wrap mb-3">
                   {s.signedUrls.map((url,i)=>(
@@ -108,7 +108,7 @@ export function SkillVerifyTab() {
                   <button onClick={()=>approve(s)} disabled={busyId===s.id} className="py-2.5 rounded-2xl text-xs font-bold disabled:opacity-40" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>{busyId===s.id?'Processing...':'Approve - Skill Verified'}</button>
                 </div>
               )}
-              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Reason: {s.admin_note}</div>}
+              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#B8511E'}}>Reason: {s.admin_note}</div>}
             </div>
           ))}
         </div>
@@ -122,7 +122,7 @@ export function SkillVerifyTab() {
                 className="w-full px-3 py-2.5 rounded-xl text-sm outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'#fff'}}/>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={()=>{setReject(null);setReason('')}} className="py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#B8511E',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>

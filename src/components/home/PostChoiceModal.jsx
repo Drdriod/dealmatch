@@ -47,7 +47,7 @@ export default function PostChoiceModal({ open, onClose }) {
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-colors hover:bg-[#EEE9DE]"
                     style={{ border: '1px solid #DEDDD6' }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={18} style={{ color: '#C85F2D' }} />
+                      <Icon size={18} style={{ color: '#B8511E' }} />
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: '#17211B' }}>{choice.label}</p>

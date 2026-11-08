@@ -14,7 +14,7 @@ import toast from 'react-hot-toast'
 const fmt = (n = 0) => 'N' + Number(n || 0).toLocaleString()
 
 const LEVEL_CONFIG = [
-  { level: 1, rate: '8%',  type: 'cash',   color: '#C85F2D', label: 'Direct Referral' },
+  { level: 1, rate: '8%',  type: 'cash',   color: '#B8511E', label: 'Direct Referral' },
   { level: 2, rate: '4%',  type: 'cash',   color: '#D4A853', label: 'Level 2' },
   { level: 3, rate: '2%',  type: 'cash',   color: '#7A9E7E', label: 'Level 3' },
   { level: 4, rate: '60pts', type: 'points', color: '#5B8DEF', label: 'Level 4+' },
@@ -157,13 +157,13 @@ export default function ReferralPage() {
             <Gift size={14} style={{ color: '#D4A853' }} />
             <p className="text-xs font-bold" style={{ color: '#D4A853' }}>YOUR INVITE LINK</p>
           </div>
-          <p className="text-xs mb-4 font-mono break-all" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs mb-4 font-mono break-all" style={{ color: 'rgba(255,255,255,0.6)' }}>
             {inviteCode ? inviteUrl : 'Generating...'}
           </p>
           <div className="flex gap-2">
             <button onClick={copyLink}
               className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-              style={{ backgroundColor: copied ? '#7A9E7E' : '#C85F2D', color: '#fff' }}>
+              style={{ backgroundColor: copied ? '#7A9E7E' : '#B8511E', color: '#fff' }}>
               {copied ? <><Check size={14} />Copied!</> : <><Copy size={14} />Copy Link</>}
             </button>
             <button onClick={shareLink}
@@ -179,7 +179,7 @@ export default function ReferralPage() {
           {[
             { label: 'Cash Earned',    value: fmt(stats.total),    icon: TrendingUp, color: '#7A9E7E' },
             { label: 'Pending Cash',   value: fmt(stats.pending),  icon: Zap,        color: '#D4A853' },
-            { label: 'Points Balance', value: points.balance + ' pts', icon: Star,   color: '#C85F2D' },
+            { label: 'Points Balance', value: points.balance + ' pts', icon: Star,   color: '#B8511E' },
             { label: 'People Invited', value: stats.referees,      icon: Users,      color: '#5B8DEF' },
           ].map(s => (
             <div key={s.label} className="rounded-2xl p-4"
@@ -217,7 +217,7 @@ export default function ReferralPage() {
           <div className="space-y-3">
             {/* Chain explanation */}
             <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(200,95,45,0.05)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <p className="text-xs font-bold mb-3" style={{ color: '#C85F2D' }}>
+              <p className="text-xs font-bold mb-3" style={{ color: '#B8511E' }}>
                 HOW THE EARNING CHAIN WORKS
               </p>
               <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function ReferralPage() {
               ].map((r, i) => (
                 <div key={i} className="flex justify-between py-1.5" style={{ borderBottom: '1px solid rgba(23,33,27,0.05)' }}>
                   <span className="text-xs" style={{ color: '#5C4A3A' }}>{r.who}</span>
-                  <span className="text-xs font-bold" style={{ color: '#C85F2D' }}>{r.earns}</span>
+                  <span className="text-xs font-bold" style={{ color: '#B8511E' }}>{r.earns}</span>
                 </div>
               ))}
             </div>
@@ -330,7 +330,7 @@ export default function ReferralPage() {
           <div className="space-y-4">
             {/* Balance card */}
             <div className="rounded-2xl p-5 text-center" style={{ backgroundColor: '#17211B' }}>
-              <p className="text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
                 POINTS BALANCE
               </p>
               <p className="font-display font-black text-5xl mb-1" style={{ color: '#D4A853' }}>
@@ -341,19 +341,19 @@ export default function ReferralPage() {
               </p>
               <div className="mt-4 flex justify-center gap-6">
                 <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Lifetime</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Lifetime</p>
                   <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     {points.lifetime} pts
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Redeemed</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Redeemed</p>
                   <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     {points.redeemed} pts
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Cash Value</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Cash Value</p>
                   <p className="font-bold text-sm" style={{ color: '#7A9E7E' }}>
                     {fmt(pointsToCash(points.balance))}
                   </p>
@@ -379,7 +379,7 @@ export default function ReferralPage() {
                     -
                   </button>
                   <div className="flex-1 text-center">
-                    <p className="font-black text-2xl" style={{ color: '#C85F2D' }}>
+                    <p className="font-black text-2xl" style={{ color: '#B8511E' }}>
                       {redeemAmt} pts
                     </p>
                     <p className="text-xs" style={{ color: '#647068' }}>
@@ -389,7 +389,7 @@ export default function ReferralPage() {
                   <button
                     onClick={() => setRedeemAmt(Math.min(points.balance, redeemAmt + 100))}
                     className="w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
                     +
                   </button>
                 </div>
@@ -398,7 +398,7 @@ export default function ReferralPage() {
                   disabled={redeeming || redeemAmt > points.balance}
                   className="w-full py-3.5 rounded-xl text-sm font-bold"
                   style={{
-                    backgroundColor: redeeming ? 'rgba(23,33,27,0.08)' : '#C85F2D',
+                    backgroundColor: redeeming ? 'rgba(23,33,27,0.08)' : '#B8511E',
                     color: redeeming ? '#647068' : '#fff',
                   }}>
                   {redeeming ? 'Processing...' : 'Redeem ' + redeemAmt + ' pts for ' + fmt(pointsToCash(redeemAmt))}
@@ -428,7 +428,7 @@ export default function ReferralPage() {
             {loading ? (
               <div className="py-10 text-center">
                 <div className="w-6 h-6 rounded-full border-2 border-transparent animate-spin mx-auto"
-                  style={{ borderTopColor: '#C85F2D' }} />
+                  style={{ borderTopColor: '#B8511E' }} />
               </div>
             ) : earnings.length === 0 ? (
               <div className="rounded-2xl p-8 text-center"

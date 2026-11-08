@@ -176,7 +176,7 @@ export default function BrowsePage() {
             <div className="flex items-center justify-center gap-8 mt-6 text-xs" style={{ color: '#647068' }}>
               <div className="flex items-center gap-1.5">
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
-                  style={{ borderColor: '#C85F2D', color: '#C85F2D' }}><X size={18} /></div>
+                  style={{ borderColor: '#B8511E', color: '#B8511E' }}><X size={18} /></div>
                 <span>Pass</span>
               </div>
               <div className="flex items-center gap-1.5">

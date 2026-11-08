@@ -127,7 +127,7 @@ export default function AuthCallback() {
         <div className="flex gap-1.5 mt-2">
           {[0,1,2].map(i => (
             <div key={i} className="w-2 h-2 rounded-full animate-pulse"
-              style={{backgroundColor:'#C85F2D', animationDelay:`${i*0.15}s`}} />
+              style={{backgroundColor:'#B8511E', animationDelay:`${i*0.15}s`}} />
           ))}
         </div>
       </div>

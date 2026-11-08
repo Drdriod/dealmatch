@@ -45,7 +45,7 @@ export default function PlaceCard({ place }) {
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
-            <Home size={32} style={{ color: '#C85F2D' }} />
+            <Home size={32} style={{ color: '#B8511E' }} />
           </div>
         )}
         {place.verified && (
@@ -60,13 +60,13 @@ export default function PlaceCard({ place }) {
         <p className="font-display font-black text-sm mb-1 truncate" style={{ color: '#17211B' }}>{place.title}</p>
         {place.area && (
           <div className="flex items-center gap-1 text-xs mb-2" style={{ color: '#647068' }}>
-            <MapPin size={11} style={{ color: '#C85F2D' }} />
+            <MapPin size={11} style={{ color: '#B8511E' }} />
             <span className="truncate">{place.area}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
           {price ? (
-            <p className="font-black text-sm" style={{ color: '#C85F2D' }}>
+            <p className="font-black text-sm" style={{ color: '#B8511E' }}>
               {price}<span className="text-xs font-normal" style={{ color: '#647068' }}> {place.priceUnit || ''}</span>
             </p>
           ) : <span />}

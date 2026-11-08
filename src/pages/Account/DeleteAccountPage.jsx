@@ -42,7 +42,7 @@ export default function DeleteAccountPage() {
               <li>Sign in to your account.</li>
               <li>Come back to this page (or open Profile in the app) and tap <b>Delete my account</b>.</li>
             </ol>
-            <Link to="/login" className="inline-block px-5 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: '#C85F2D' }}>Sign in</Link>
+            <Link to="/login" className="inline-block px-5 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: '#B8511E' }}>Sign in</Link>
           </div>
         )}
 

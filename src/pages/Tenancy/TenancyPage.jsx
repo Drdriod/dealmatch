@@ -62,7 +62,7 @@ export default function TenancyPage() {
         <div className="grid grid-cols-2 gap-3 mt-6">
           <Link to="/rentals" className="btn-primary py-4 text-sm text-center">Browse Rentals →</Link>
           <Link to="/escrow" className="py-4 rounded-2xl text-sm font-semibold text-center border-2 transition-all"
-            style={{ borderColor: '#C85F2D', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.04)' }}>
+            style={{ borderColor: '#B8511E', color: '#B8511E', backgroundColor: 'rgba(200,95,45,0.04)' }}>
             Get Protected
           </Link>
         </div>

@@ -143,13 +143,13 @@ export default function ProfilePage() {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"
                     style={{ backgroundColor:'rgba(200,95,45,0.2)' }}>
-                    <User size={32} style={{ color:'#C85F2D' }} />
+                    <User size={32} style={{ color:'#B8511E' }} />
                   </div>
                 )}
               </div>
               <button onClick={() => fileRef.current?.click()}
                 className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor:'#C85F2D', border:'2px solid #17211B' }}>
+                style={{ backgroundColor:'#B8511E', border:'2px solid #17211B' }}>
                 <Camera size={13} color="white" />
               </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden"
@@ -160,7 +160,7 @@ export default function ProfilePage() {
               {profile?.full_name || 'Your Name'}
             </h2>
             {/* Email on its own line, smaller -- per spec, separate from role */}
-            <p className="text-xs" style={{ color:'rgba(255,255,255,0.4)' }}>{user?.email}</p>
+            <p className="text-xs" style={{ color:'rgba(255,255,255,0.6)' }}>{user?.email}</p>
 
             {profile?.bio && (
               <p className="text-xs mt-2 max-w-xs" style={{ color:'rgba(255,255,255,0.55)' }}>{profile.bio}</p>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                                     verificationLevel === 'photo' ? 'rgba(212,168,83,0.2)'   :
                                     'rgba(200,95,45,0.2)',
                   color:           verificationLevel === 'live'  ? '#7A9E7E' :
-                                    verificationLevel === 'photo' ? '#D4A853' : '#C85F2D',
+                                    verificationLevel === 'photo' ? '#D4A853' : '#B8511E',
                 }}>
                 <Shield size={12} />
                 <span className="text-xs font-bold">
@@ -227,14 +227,14 @@ export default function ProfilePage() {
             return (
               <div className="rounded-2xl p-4 mb-5 border-2"
                 style={{ backgroundColor:'rgba(200,95,45,0.06)', borderColor:'rgba(200,95,45,0.3)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color:'#C85F2D' }}>Verification not approved</p>
+                <p className="font-semibold text-sm mb-1" style={{ color:'#B8511E' }}>Verification not approved</p>
                 {profile?.identity_rejection_note && (
                   <p className="text-xs mb-2 leading-relaxed" style={{ color:'#647068' }}>
                     Reason: {profile.identity_rejection_note}
                   </p>
                 )}
                 <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                  style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
+                  style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
                   <Shield size={14} /> Resubmit Verification
                 </Link>
               </div>
@@ -249,7 +249,7 @@ export default function ProfilePage() {
                 Upload your government-issued ID and take a selfie. Needed before you can complete deals.
               </p>
               <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
+                style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
                 <Shield size={14} /> Verify My Identity
               </Link>
             </div>
@@ -263,7 +263,7 @@ export default function ProfilePage() {
             {editing ? (
               <button onClick={handleSave} disabled={saving}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
+                style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
                 <Save size={12} /> {saving ? 'Saving...' : 'Save'}
               </button>
             ) : (
@@ -335,7 +335,7 @@ export default function ProfilePage() {
             </div>
             <div className="p-4">
               {loadingProvider ? (
-                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C85F2D' }} /></div>
+                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#B8511E' }} /></div>
               ) : !providerInfo?.submission && skillLevel < 1 ? (
                 <div className="text-center py-3">
                   <p className="text-xs mb-3" style={{ color:'#647068' }}>
@@ -421,7 +421,7 @@ export default function ProfilePage() {
         {/* Sign out button */}
         <button onClick={handleSignOut} disabled={signingOut}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold border-2 transition-all"
-          style={{ borderColor:'rgba(200,95,45,0.4)', color:'#C85F2D', backgroundColor:'rgba(200,95,45,0.05)' }}>
+          style={{ borderColor:'rgba(200,95,45,0.4)', color:'#B8511E', backgroundColor:'rgba(200,95,45,0.05)' }}>
           <LogOut size={16} />
           {signingOut ? 'Signing out...' : 'Sign Out'}
         </button>

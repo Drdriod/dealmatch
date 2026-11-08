@@ -102,7 +102,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
 
         <div className="flex items-center gap-3 mb-1">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F0D4BE' }}>
-            <ShieldCheck size={18} style={{ color: '#C85F2D' }} />
+            <ShieldCheck size={18} style={{ color: '#B8511E' }} />
           </div>
           <div>
             <h3 className="font-display text-lg font-black" style={{ color: '#17211B' }}>{title}</h3>
@@ -115,7 +115,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
             <p className="text-sm mb-4" style={{ color: '#1F2B24' }}>
               Phone sign-in isn't available right now. Please continue with email instead - it only takes a minute.
             </p>
-            <a href="/auth" className="block w-full text-center py-3 rounded-2xl font-bold text-sm text-white" style={{ backgroundColor: '#C85F2D' }}>
+            <a href="/auth" className="block w-full text-center py-3 rounded-2xl font-bold text-sm text-white" style={{ backgroundColor: '#B8511E' }}>
               Continue with email
             </a>
           </div>
@@ -144,7 +144,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
             </div>
             <button onClick={handleSendOtp} disabled={sending}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
-              style={{ backgroundColor: '#C85F2D' }}>
+              style={{ backgroundColor: '#B8511E' }}>
               {sending ? <Loader2 size={16} className="animate-spin" /> : <>Send code <ArrowRight size={15} /></>}
             </button>
             <p className="text-[11px] text-center" style={{ color: '#647068' }}>
@@ -164,7 +164,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
             />
             <button onClick={handleVerifyOtp} disabled={verifying}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
-              style={{ backgroundColor: '#C85F2D' }}>
+              style={{ backgroundColor: '#B8511E' }}>
               {verifying ? <Loader2 size={16} className="animate-spin" /> : 'Verify & continue'}
             </button>
             <button onClick={() => { setStep('phone'); setOtp('') }} className="w-full text-center text-xs font-medium py-2" style={{ color: '#647068' }}>

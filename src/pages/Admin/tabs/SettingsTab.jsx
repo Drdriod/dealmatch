@@ -2,6 +2,7 @@
  * DealMatch Admin Dashboard - Full Production Version
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -102,7 +103,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
     <div className="space-y-4">
       {categories.map(cat=>(
         <div key={cat} className="rounded-2xl p-5" style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{color:'rgba(255,255,255,0.3)'}}>{cat}</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{color:'rgba(255,255,255,0.55)'}}>{cat}</p>
           <div className="space-y-4">
             {FIELDS.filter(f=>f.category===cat).map(f=>(
               <div key={f.key}>
@@ -138,6 +139,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
 // land. Sensitive - restricted to admin/staff read, superadmin write only
 // (enforced server-side via RLS in db/platform-settings-schema.sql).
 function BankDetailsSection({isSuperAdmin}) {
+  const confirm = useConfirm()
   const [accounts,setAccounts]=useState([])
   const [loading,setLoading]=useState(true)
   const [editing,setEditing]=useState(null) // account being edited, or 'new'
@@ -203,7 +205,7 @@ function BankDetailsSection({isSuperAdmin}) {
   }
   const remove=async(acc)=>{
     if(!isSuperAdmin)return
-    if(!window.confirm('Delete this bank account? This cannot be undone.'))return
+    if(!(await confirm({title:'Delete this bank account?',message:'This cannot be undone.',confirmLabel:'Delete',danger:true})))return
     if(!(await requireReauth()))return
     await deleteBankAccount(acc.id)
     await auditLog('bank_details_deleted',{id:acc.id,by:admin?.id})
@@ -216,7 +218,7 @@ function BankDetailsSection({isSuperAdmin}) {
   return(
     <div className="space-y-4">
       <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(200,95,45,0.06)',border:'1px solid rgba(200,95,45,0.15)'}}>
-        <Shield size={14} style={{color:'#C85F2D',flexShrink:0,marginTop:2}}/>
+        <Shield size={14} style={{color:'#B8511E',flexShrink:0,marginTop:2}}/>
         <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>
           These are DealMatch's own business accounts for receiving large or manually-confirmed payments.
           This is separate from a user's personal bank account used for referral payouts.
@@ -299,7 +301,7 @@ function BankDetailsSection({isSuperAdmin}) {
 
       {accounts.length===0&&!editing&&(
         <div className="rounded-2xl p-6 text-center" style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px dashed rgba(255,255,255,0.1)'}}>
-          <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>No bank accounts added yet</p>
+          <p className="text-sm" style={{color:'rgba(255,255,255,0.6)'}}>No bank accounts added yet</p>
         </div>
       )}
 
@@ -310,11 +312,11 @@ function BankDetailsSection({isSuperAdmin}) {
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-white">{acc.bank_name}</p>
                 {acc.is_primary&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(212,168,83,0.15)',color:'#D4A853'}}>PRIMARY</span>}
-                {!acc.is_active&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.4)'}}>INACTIVE</span>}
+                {!acc.is_active&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.6)'}}>INACTIVE</span>}
               </div>
               <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.5)'}}>{acc.account_name}</p>
               <p className="text-sm font-mono mt-1" style={{color:'rgba(255,255,255,0.7)'}}>{acc.account_number} · {acc.currency}</p>
-              {acc.notes&&<p className="text-xs mt-1.5" style={{color:'rgba(255,255,255,0.3)'}}>{acc.notes}</p>}
+              {acc.notes&&<p className="text-xs mt-1.5" style={{color:'rgba(255,255,255,0.55)'}}>{acc.notes}</p>}
             </div>
           </div>
           {isSuperAdmin&&(
@@ -322,7 +324,7 @@ function BankDetailsSection({isSuperAdmin}) {
               <button onClick={()=>startEdit(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Edit</button>
               {!acc.is_primary&&<button onClick={()=>setPrimary(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}>Set Primary</button>}
               <button onClick={()=>toggleActive(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>{acc.is_active?'Deactivate':'Activate'}</button>
-              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D'}}>Delete</button>
+              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#B8511E'}}>Delete</button>
             </div>
           )}
         </div>

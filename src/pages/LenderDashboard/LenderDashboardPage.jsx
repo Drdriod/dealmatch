@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { CHART, fmtNaira, fmtNum, Funnel, HBars, KpiTile, Panel, Radial } from '@/components/charts/ChartKit'
 
 const STATUS_CONFIG = {
-  pending:    { label: 'New',         color: '#C85F2D', bg: 'rgba(200,95,45,0.1)' },
+  pending:    { label: 'New',         color: '#B8511E', bg: 'rgba(200,95,45,0.1)' },
   processing: { label: 'Processing',  color: '#5B8DEF', bg: 'rgba(91,141,239,0.1)' },
   reviewing:  { label: 'Reviewing',   color: '#D4A853', bg: 'rgba(212,168,83,0.1)' },
   approved:   { label: 'Approved',    color: '#7A9E7E', bg: 'rgba(122,158,126,0.1)' },
@@ -294,8 +294,8 @@ export default function LenderDashboardPage() {
             ) : (
               apps.map(app => (
                 <div key={app.id} className="rounded-2xl border overflow-hidden transition-all bg-white"
-                  style={{ borderColor: selected?.id === app.id ? '#C85F2D' : '#DEDDD6' }}>
-                  <div className="p-5 cursor-pointer" onClick={() => setSelected(selected?.id === app.id ? null : app)}>
+                  style={{ borderColor: selected?.id === app.id ? '#B8511E' : '#DEDDD6' }}>
+                  <div className="p-5 cursor-pointer" role="button" tabIndex={0} aria-expanded={selected?.id === app.id} onClick={() => setSelected(selected?.id === app.id ? null : app)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(selected?.id === app.id ? null : app) } }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -313,7 +313,7 @@ export default function LenderDashboardPage() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-display font-black text-lg" style={{ color:'#C85F2D' }}>
+                        <p className="font-display font-black text-lg" style={{ color:'#B8511E' }}>
                           ₦{(Number(app.property_value) - Number(app.down_payment)).toLocaleString()}
                         </p>
                         <p className="text-[10px] font-bold uppercase" style={{ color:'rgba(23,33,27,0.3)' }}>Loan Requested</p>

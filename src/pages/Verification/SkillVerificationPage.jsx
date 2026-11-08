@@ -110,14 +110,14 @@ export default function SkillVerificationPage() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EEE9DE' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#C85F2D', borderTopColor: 'transparent' }} />
+      <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#B8511E', borderTopColor: 'transparent' }} />
     </div>
   }
 
   const NumberedLabel = ({ n, children }) => (
     <label className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color: '#17211B' }}>
       <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
-        style={{ backgroundColor: 'rgba(200,95,45,0.12)', color: '#C85F2D' }}>{n}</span>
+        style={{ backgroundColor: 'rgba(200,95,45,0.12)', color: '#B8511E' }}>{n}</span>
       {children}
     </label>
   )
@@ -191,7 +191,7 @@ export default function SkillVerificationPage() {
                     onClick={() => { setGroupSlug(g.slug); setCategoryType(providerTypeForGroup(g.slug)); setCategory('') }}
                     className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
                     style={{
-                      backgroundColor: groupSlug === g.slug ? '#C85F2D' : '#FFF',
+                      backgroundColor: groupSlug === g.slug ? '#B8511E' : '#FFF',
                       color: groupSlug === g.slug ? '#FFF' : '#17211B',
                       border: '1px solid #DEDDD6',
                     }}>
@@ -236,12 +236,12 @@ export default function SkillVerificationPage() {
             <div className="flex items-center gap-2 mb-2">
               <button type="button" onClick={() => setOpenPrice(true)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: openPrice ? '#C85F2D' : '#FFF', color: openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
+                style={{ backgroundColor: openPrice ? '#B8511E' : '#FFF', color: openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
                 Open price
               </button>
               <button type="button" onClick={() => setOpenPrice(false)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: !openPrice ? '#C85F2D' : '#FFF', color: !openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
+                style={{ backgroundColor: !openPrice ? '#B8511E' : '#FFF', color: !openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
                 Set a starting price
               </button>
             </div>
@@ -294,7 +294,7 @@ export default function SkillVerificationPage() {
 
           <button onClick={handleSubmit} disabled={submitting}
             className="w-full py-3.5 rounded-full font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-transform hover:scale-[1.01]"
-            style={{ backgroundColor: '#C85F2D' }}>
+            style={{ backgroundColor: '#B8511E' }}>
             {submitting ? 'Submitting…' : <><Upload size={15} /> Submit for review</>}
           </button>
           <p className="text-[11px] text-center" style={{ color: '#647068' }}>

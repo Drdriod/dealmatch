@@ -78,7 +78,7 @@ export default function SearchPalette({ isOpen, onClose }) {
                       {p.city}, {p.state} · ₦{Number(p.price).toLocaleString()}
                     </p>
                   </div>
-                  <ArrowRight size={14} style={{ color: '#C85F2D', flexShrink: 0 }} />
+                  <ArrowRight size={14} style={{ color: '#B8511E', flexShrink: 0 }} />
                 </button>
               ))}
             </div>

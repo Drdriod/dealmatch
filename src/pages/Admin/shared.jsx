@@ -34,7 +34,7 @@ export const ROLE_LABELS = {
 }
 export const ROLE_COLORS = { admin:'#D4A853', agent:'#5B8DEF', verifier:'#7A9E7E', lender:'#8B6BD9' }
 export const STATUS_LABELS = { active:'Active', suspended:'Suspended', deleted:'Deleted' }
-export const STATUS_COLORS = { active:'#7A9E7E', suspended:'#C85F2D', deleted:'#888' }
+export const STATUS_COLORS = { active:'#7A9E7E', suspended:'#B8511E', deleted:'#888' }
 
 export const fmt    = (n=0) => n>=1e6?`₦${(n/1e6).toFixed(1)}M`:n>=1e3?`₦${(n/1e3).toFixed(0)}K`:`₦${Math.round(n)}`
 export const fmtNum = (n=0) => Number(n||0).toLocaleString()
@@ -171,7 +171,7 @@ export const ActionBtn = ({ icon:Icon, color, tip, onClick, disabled=false }) =>
 
 export const SearchBar = ({ value, onChange, placeholder='Search...', onSearch }) => (
   <div className="relative flex-1">
-    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color:'rgba(255,255,255,0.3)' }} />
+    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color:'rgba(255,255,255,0.55)' }} />
     <input value={value} onChange={e=>onChange(e.target.value)}
       onKeyDown={e=>{ if(e.key==='Enter'&&onSearch) onSearch(value) }}
       placeholder={placeholder}
@@ -181,19 +181,19 @@ export const SearchBar = ({ value, onChange, placeholder='Search...', onSearch }
 )
 
 export const StatCard = ({ icon:Icon, label, value, trend, color='#D4A853', onClick }) => (
-  <div onClick={onClick} className={`rounded-2xl p-4 ${onClick?'cursor-pointer hover:opacity-80 transition-all':''}`}
+  <div onClick={onClick} {...(onClick?{role:'button',tabIndex:0,onKeyDown:(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick(e)}}}:{})} className={`rounded-2xl p-4 ${onClick?'cursor-pointer hover:opacity-80 transition-all':''}`}
     style={{ backgroundColor:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)' }}>
     <div className="flex items-start justify-between mb-3">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor:`${color}18` }}>
         <Icon size={16} style={{ color }} />
       </div>
       {trend!==undefined&&<span className="text-xs font-semibold flex items-center gap-0.5"
-        style={{ color:trend>=0?'#7A9E7E':'#C85F2D' }}>
+        style={{ color:trend>=0?'#7A9E7E':'#B8511E' }}>
         {trend>=0?<TrendingUp size={11}/>:<TrendingDown size={11}/>}{Math.abs(trend)}%
       </span>}
     </div>
     <div className="text-2xl font-black text-white mb-0.5">{value??'N/A'}</div>
-    <div className="text-xs font-semibold" style={{ color:'rgba(255,255,255,0.4)' }}>{label}</div>
+    <div className="text-xs font-semibold" style={{ color:'rgba(255,255,255,0.6)' }}>{label}</div>
   </div>
 )
 
@@ -205,7 +205,7 @@ export const ConfirmModal = ({ title, body, danger, onConfirm, onCancel }) => (
       style={{ backgroundColor:'#1E1510', border:'1px solid rgba(255,255,255,0.08)' }}>
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
         style={{ backgroundColor:danger?'rgba(200,95,45,0.12)':'rgba(212,168,83,0.1)' }}>
-        {danger?<AlertTriangle size={22} style={{ color:'#C85F2D' }}/>:<Shield size={22} style={{ color:'#D4A853' }}/>}
+        {danger?<AlertTriangle size={22} style={{ color:'#B8511E' }}/>:<Shield size={22} style={{ color:'#D4A853' }}/>}
       </div>
       <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
       <p className="text-sm mb-6" style={{ color:'rgba(255,255,255,0.5)' }}>{body}</p>
@@ -213,14 +213,14 @@ export const ConfirmModal = ({ title, body, danger, onConfirm, onCancel }) => (
         <button onClick={onCancel} className="flex-1 py-3 rounded-2xl text-sm font-semibold"
           style={{ backgroundColor:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.6)' }}>Cancel</button>
         <button onClick={onConfirm} className="flex-1 py-3 rounded-2xl text-sm font-bold"
-          style={{ backgroundColor:danger?'#C85F2D':'#D4A853', color:'#17211B' }}>Confirm</button>
+          style={{ backgroundColor:danger?'#B8511E':'#D4A853', color:'#17211B' }}>Confirm</button>
       </div>
     </motion.div>
   </div>
 )
 
 export const ImageLightbox = ({ src, label, onClose }) => (
-  <div onClick={onClose} className="fixed inset-0 z-[60] flex items-center justify-center px-3 py-6"
+  <div onClick={onClose} role="dialog" aria-modal="true" aria-label={label||'Image preview'} onKeyDown={(e)=>{if(e.key==='Escape')onClose()}} className="fixed inset-0 z-[60] flex items-center justify-center px-3 py-6"
     style={{ backgroundColor:'rgba(0,0,0,0.92)', backdropFilter:'blur(4px)' }}>
     <motion.div initial={{ scale:0.95, opacity:0 }} animate={{ scale:1, opacity:1 }}
       onClick={e=>e.stopPropagation()} className="relative w-full max-w-2xl flex flex-col items-center">
@@ -241,7 +241,7 @@ export const ImageLightbox = ({ src, label, onClose }) => (
       <div className="w-full max-h-[80vh] overflow-auto rounded-2xl" style={{ border:'1px solid rgba(255,255,255,0.15)' }}>
         <img src={src} alt={label||'Document'} className="w-full h-auto block" style={{ touchAction:'pinch-zoom' }}/>
       </div>
-      <p className="text-xs mt-3" style={{ color:'rgba(255,255,255,0.4)' }}>Pinch to zoom, or tap the link icon to open full-size in a new tab.</p>
+      <p className="text-xs mt-3" style={{ color:'rgba(255,255,255,0.6)' }}>Pinch to zoom, or tap the link icon to open full-size in a new tab.</p>
     </motion.div>
   </div>
 )
@@ -282,7 +282,7 @@ export const TR = ({ children }) => (
 )
 
 export const EmptyRow = ({ cols, msg='No records found' }) => (
-  <tr><td colSpan={cols} className="px-4 py-10 text-center text-sm" style={{ color:'rgba(255,255,255,0.3)' }}>{msg}</td></tr>
+  <tr><td colSpan={cols} className="px-4 py-10 text-center text-sm" style={{ color:'rgba(255,255,255,0.55)' }}>{msg}</td></tr>
 )
 
 // ── Constants that used to sit between tabs ──

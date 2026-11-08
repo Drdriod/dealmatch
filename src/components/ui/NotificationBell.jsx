@@ -27,14 +27,14 @@ const COLORS = {
   points_redeemed:  '#D4A853',
   listing_approved: '#7A9E7E',
   booking_conflict: '#C94A3A',
-  bid_received:     '#C85F2D',
+  bid_received:     '#B8511E',
   bid_accepted:     '#7A9E7E',
   escrow_funded:    '#5C8060',
   job_completed:    '#7A9E7E',
   dispute_opened:   '#C94A3A',
   identity_approved: '#7A9E7E',
   identity_rejected: '#C94A3A',
-  general:          '#C85F2D',
+  general:          '#B8511E',
 }
 
 const ago = (ts) => {
@@ -137,7 +137,7 @@ export default function NotificationBell() {
         <Bell size={16} style={{ color: '#5C4A3A' }} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-            style={{ backgroundColor: '#C85F2D', color: '#fff' }}>
+            style={{ backgroundColor: '#B8511E', color: '#fff' }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -181,7 +181,7 @@ export default function NotificationBell() {
                         <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>{ago(n.created_at)}</p>
                       </div>
                       {!n.read && (
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#C85F2D' }} />
+                        <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#B8511E' }} />
                       )}
                     </Link>
                   )
@@ -209,7 +209,7 @@ export default function NotificationBell() {
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{toast.message}</p>
             </div>
             <button onClick={() => setToast(null)} className="flex-shrink-0">
-              <X size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <X size={14} style={{ color: 'rgba(255,255,255,0.6)' }} />
             </button>
           </motion.div>
         )}

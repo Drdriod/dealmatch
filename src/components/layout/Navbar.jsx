@@ -18,7 +18,7 @@ function Underline({ id }) {
   return (
     <motion.span
       layoutId={id}
-      className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#C85F2D]"
+      className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#B8511E]"
       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
     />
   )
@@ -67,7 +67,7 @@ export default function Navbar() {
                 active={isPillarActive(pillar, location.pathname)} />
             ))}
 
-            <Link to={POST_ROUTE} className={`relative py-2 hover:text-[#C85F2D] ${postActive ? 'text-[#C85F2D]' : ''}`}>
+            <Link to={POST_ROUTE} className={`relative py-2 hover:text-[#B8511E] ${postActive ? 'text-[#B8511E]' : ''}`}>
               Post a Request
               {postActive && <Underline id="nav-underline" />}
             </Link>
@@ -82,7 +82,7 @@ export default function Navbar() {
               </div>
               <div className="hidden md:block relative">
                 <button onClick={() => setProfileOpen(o => !o)}
-                  className="text-sm font-medium text-[#17211B] hover:text-[#C85F2D]">
+                  className="text-sm font-medium text-[#17211B] hover:text-[#B8511E]">
                   Profile
                 </button>
                 <AnimatePresence>
@@ -94,11 +94,11 @@ export default function Navbar() {
                       transition={{ duration: 0.16, ease }}
                       className="absolute right-0 top-8 w-48 bg-[#F7F4ED] border border-[#DEDDD6] rounded-xl shadow-lg py-2 text-sm"
                     >
-                      <Link to="/dashboard" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
-                      <Link to="/wallet" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
-                      <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>My Offers</Link>
-                      <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#C85F2D]" onClick={() => setProfileOpen(false)}>Account Settings</Link>
-                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#C85F2D] hover:bg-black/5">Sign Out</button>
+                      <Link to="/dashboard" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
+                      <Link to="/wallet" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
+                      <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>My Offers</Link>
+                      <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>Account Settings</Link>
+                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#B8511E] hover:bg-black/5">Sign Out</button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -106,14 +106,14 @@ export default function Navbar() {
             </>
           ) : (
             <button onClick={() => navigate('/auth')}
-              className="hidden md:block text-sm font-medium text-[#17211B] hover:text-[#C85F2D]">
+              className="hidden md:block text-sm font-medium text-[#17211B] hover:text-[#B8511E]">
               Sign In
             </button>
           )}
 
           {!user && (
             <button onClick={() => navigate('/auth')}
-              className="bg-[#C85F2D] text-white text-[13px] font-bold px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
+              className="bg-[#B8511E] text-white text-[13px] font-bold px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
               Create Account
             </button>
           )}
@@ -170,7 +170,7 @@ export default function Navbar() {
                   <Link to="/wallet" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
                   <Link to="/manage-listings" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Offers</Link>
                   <Link to="/profile" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Account Settings</Link>
-                  <button onClick={handleSignOut} className="w-full text-left text-[#C85F2D] font-medium py-2">
+                  <button onClick={handleSignOut} className="w-full text-left text-[#B8511E] font-medium py-2">
                     Sign Out
                   </button>
                 </>
@@ -179,7 +179,7 @@ export default function Navbar() {
                   <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-[#17211B] font-medium py-2">
                     Sign In
                   </button>
-                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#C85F2D] text-white font-medium py-2.5 rounded-full">
+                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#B8511E] text-white font-medium py-2.5 rounded-full">
                     Create Account
                   </button>
                 </>

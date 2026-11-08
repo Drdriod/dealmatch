@@ -275,7 +275,7 @@ export default function VerifyIdentityPage() {
           </p>
           <button onClick={handleDone}
             className="w-full py-4 rounded-2xl font-bold text-white"
-            style={{ backgroundColor:'#C85F2D' }}>
+            style={{ backgroundColor:'#B8511E' }}>
             Continue →
           </button>
         </div>
@@ -333,7 +333,7 @@ export default function VerifyIdentityPage() {
           </p>
           <button onClick={handleDone}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C85F2D' }}>
+            style={{ backgroundColor:'#B8511E' }}>
             Start Exploring DealMatch
           </button>
         </div>
@@ -357,7 +357,7 @@ export default function VerifyIdentityPage() {
           <div className="text-center mb-8">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
               style={{ backgroundColor:'rgba(200,95,45,0.1)' }}>
-              <Shield size={36} style={{ color:'#C85F2D' }} />
+              <Shield size={36} style={{ color:'#B8511E' }} />
             </div>
             <h1 className="font-display font-black text-3xl mb-2" style={{ color:'#17211B' }}>Verify Your Identity</h1>
             <p className="text-sm" style={{ color:'#647068' }}>
@@ -395,7 +395,7 @@ export default function VerifyIdentityPage() {
           {/* What requires verification */}
           <div className="p-4 rounded-2xl mb-6"
             style={{ backgroundColor:'rgba(200,95,45,0.05)', border:'1px solid rgba(200,95,45,0.15)' }}>
-            <p className="text-xs font-bold mb-2" style={{ color:'#C85F2D' }}>
+            <p className="text-xs font-bold mb-2" style={{ color:'#B8511E' }}>
               <Lock size={11} className="inline mr-1" />Requires verification
             </p>
             <ul className="text-xs space-y-1" style={{ color:'#647068' }}>
@@ -418,7 +418,7 @@ export default function VerifyIdentityPage() {
           {/* CTA */}
           <button onClick={() => setStep(1)}
             className="w-full py-4 rounded-2xl font-bold text-white mb-3 flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C85F2D', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
+            style={{ backgroundColor:'#B8511E', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
             <Shield size={16} /> Verify Now - Free
           </button>
 
@@ -456,7 +456,7 @@ export default function VerifyIdentityPage() {
                 <div className="flex items-center gap-1.5">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                     style={{
-                      backgroundColor: i < 1 ? '#C85F2D' : 'rgba(23,33,27,0.08)',
+                      backgroundColor: i < 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
                       color: i < 1 ? 'white' : 'rgba(23,33,27,0.3)',
                     }}>
                     {i < 0 ? <Check size={14} /> : i + 1}
@@ -494,7 +494,7 @@ export default function VerifyIdentityPage() {
                 </span>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                   style={{
-                    backgroundColor: idType === t.id ? '#C85F2D' : 'transparent',
+                    backgroundColor: idType === t.id ? '#B8511E' : 'transparent',
                     border: idType === t.id ? 'none' : '1.5px solid #E0D4C4',
                   }}>
                   {idType === t.id && <Check size={12} className="text-white" strokeWidth={3} />}
@@ -517,7 +517,7 @@ export default function VerifyIdentityPage() {
               <div className="rounded-2xl p-10 text-center transition-colors"
                 style={{ border: '1.5px dashed #DCCFBE', backgroundColor:'#FFFFFF' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
-                  <Upload size={20} style={{ color:'#C85F2D' }} />
+                  <Upload size={20} style={{ color:'#B8511E' }} />
                 </div>
                 <p className="font-semibold text-sm" style={{ color:'#17211B' }}>Upload ID Photo</p>
                 <p className="text-xs mt-1" style={{ color:'#647068' }}>JPG, PNG or WEBP - max 5MB</p>
@@ -547,7 +547,7 @@ export default function VerifyIdentityPage() {
               setStep(2)
             }}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C85F2D' }}>
+            style={{ backgroundColor:'#B8511E' }}>
             Next: Take Selfie <ArrowRight size={16} />
           </button>
         </div>
@@ -571,7 +571,7 @@ export default function VerifyIdentityPage() {
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{
-                    backgroundColor: i <= 1 ? '#C85F2D' : 'rgba(23,33,27,0.08)',
+                    backgroundColor: i <= 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
                     color: i <= 1 ? 'white' : 'rgba(23,33,27,0.3)',
                   }}>
                   {i < 1 ? <Check size={14} /> : i + 1}
@@ -604,7 +604,7 @@ export default function VerifyIdentityPage() {
             <label htmlFor="selfie-input"
               className="relative rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 p-6 cursor-pointer"
               style={{ backgroundColor:'#17211B', minHeight:240 }}>
-              <Camera size={40} style={{ color:'rgba(255,255,255,0.4)' }} />
+              <Camera size={40} style={{ color:'rgba(255,255,255,0.6)' }} />
               <p className="text-xs text-center" style={{ color:'rgba(255,255,255,0.5)' }}>
                 Tap to open your camera and take a selfie
               </p>
@@ -622,7 +622,7 @@ export default function VerifyIdentityPage() {
             onClick={handleSubmit}
             disabled={saving}
             className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#C85F2D' }}>
+            style={{ backgroundColor:'#B8511E' }}>
             {saving
               ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               : <><Shield size={16} /> Submit for Verification</>}

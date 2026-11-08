@@ -156,7 +156,7 @@ export default function PayoutSetupPage() {
         {(!current || current.status !== 'verified') && (
           <form onSubmit={handleSubmit} className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
             <div className="flex items-center gap-2 mb-1">
-              <Landmark size={15} style={{ color: '#C85F2D' }} />
+              <Landmark size={15} style={{ color: '#B8511E' }} />
               <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
                 {current ? 'Submit new details' : 'Add your bank details'}
               </p>

@@ -104,7 +104,7 @@ export function StaffTab({isSuperAdmin}) {
               </div>
               <div className="flex items-center gap-3">
                 <Badge label={ROLE_LABELS[inv.role]||inv.role} color={ROLE_COLORS[inv.role]||'#888'}/>
-                <ActionBtn icon={UserX} color="#C85F2D" tip="Revoke invite" onClick={()=>revokeInvite(inv)}/>
+                <ActionBtn icon={UserX} color="#B8511E" tip="Revoke invite" onClick={()=>revokeInvite(inv)}/>
               </div>
             </div>
           ))}
@@ -129,13 +129,13 @@ export function StaffTab({isSuperAdmin}) {
                   <select value={s.role} onChange={e=>changeRole(s.id,e.target.value,s.full_name)} className="text-xs rounded-xl px-2 py-1.5 outline-none" style={{backgroundColor:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
                     {['agent','verifier','admin'].map(r=><option key={r} value={r} style={{backgroundColor:'#17211B'}}>{ROLE_LABELS[r]}</option>)}
                   </select>
-                  <ActionBtn icon={UserX} color="#C85F2D" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate staff?',body:`${s.full_name}'s access will be revoked immediately.`,danger:true,onConfirm:()=>deactivate(s.id,s.full_name)})}/>
+                  <ActionBtn icon={UserX} color="#B8511E" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate staff?',body:`${s.full_name}'s access will be revoked immediately.`,danger:true,onConfirm:()=>deactivate(s.id,s.full_name)})}/>
                 </>}
                 {SUPERADMIN_EMAILS.includes(s.email)&&<span className="text-xs px-2 py-1 rounded-lg" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}> Owner</span>}
               </div>
             </div>
           ))}
-          {staff.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No staff accounts yet</div>}
+          {staff.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No staff accounts yet</div>}
         </div>
       )}
       <AnimatePresence>
@@ -162,8 +162,8 @@ export function StaffTab({isSuperAdmin}) {
                   </select>
                 </div>
                 <div className="rounded-xl p-3 flex items-start gap-2" style={{backgroundColor:'rgba(255,255,255,0.04)'}}>
-                  <Mail size={14} style={{color:'rgba(255,255,255,0.4)',flexShrink:0,marginTop:2}}/>
-                  <p className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>An invite link is emailed to this address. They choose their own password and must set up two-factor authentication before their first admin session.</p>
+                  <Mail size={14} style={{color:'rgba(255,255,255,0.6)',flexShrink:0,marginTop:2}}/>
+                  <p className="text-xs" style={{color:'rgba(255,255,255,0.6)'}}>An invite link is emailed to this address. They choose their own password and must set up two-factor authentication before their first admin session.</p>
                 </div>
               </div>
               <div className="flex gap-3 mt-5">

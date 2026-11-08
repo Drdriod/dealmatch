@@ -98,7 +98,7 @@ export function PayoutsTab() {
   }
 
   const money=(c)=>`\u20a6${(Number(c||0)/100).toLocaleString()}`
-  const SC={pending:'#D4A853',verified:'#7A9E7E',rejected:'#C85F2D',processing:'#5B8DEF',paid:'#7A9E7E',failed:'#C85F2D'}
+  const SC={pending:'#D4A853',verified:'#7A9E7E',rejected:'#B8511E',processing:'#5B8DEF',paid:'#7A9E7E',failed:'#B8511E'}
 
   return(
     <div className="space-y-4">
@@ -109,14 +109,14 @@ export function PayoutsTab() {
           {items.map(a=>(
             <TR key={a.id}>
               <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{a.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{a.profiles?.email}</div></td>
-              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'#C85F2D'}}>No bank code (pre-automation)</span>}</td>
+              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'#B8511E'}}>No bank code (pre-automation)</span>}</td>
               <td className="px-4 py-3 text-xs text-white">{a.account_name}<div style={{color:'rgba(255,255,255,0.35)'}}>****{String(a.account_number).slice(-4)}</div></td>
               <td className="px-4 py-3"><Badge label={a.status} color={SC[a.status]}/></td>
               <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(a.created_at)}</td>
               <td className="px-4 py-3">
                 {a.status==='pending'&&<div className="flex gap-1">
                   <ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Verify" onClick={()=>verifyAccount(a.id)}/>
-                  <ActionBtn icon={XCircleIcon} color="#C85F2D" tip="Reject" onClick={()=>setRejectTarget(a.id)}/>
+                  <ActionBtn icon={XCircleIcon} color="#B8511E" tip="Reject" onClick={()=>setRejectTarget(a.id)}/>
                 </div>}
               </td>
             </TR>
@@ -133,7 +133,7 @@ export function PayoutsTab() {
               <td className="px-4 py-3 font-semibold text-white text-sm">{money(q.amount_cents)}</td>
               <td className="px-4 py-3"><Badge label={q.status} color={SC[q.status]}/></td>
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{q.attempts}/5</td>
-              <td className="px-4 py-3 text-xs" style={{color:'#C85F2D',maxWidth:220}}>{q.failure_reason||'-'}</td>
+              <td className="px-4 py-3 text-xs" style={{color:'#B8511E',maxWidth:220}}>{q.failure_reason||'-'}</td>
               <td className="px-4 py-3">
                 {q.status==='failed'&&<ActionBtn icon={RefreshCw} color="#D4A853" tip="Retry" onClick={()=>retryQueueRow(q.id)}/>}
               </td>
@@ -154,7 +154,7 @@ export function PayoutsTab() {
               <td className="px-4 py-3">
                 {w.status==='pending'&&<div className="flex gap-1">
                   <ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Mark paid" onClick={()=>fulfillWithdrawal(w.id)}/>
-                  <ActionBtn icon={XCircleIcon} color="#C85F2D" tip="Reject" onClick={()=>rejectWithdrawal(w.id)}/>
+                  <ActionBtn icon={XCircleIcon} color="#B8511E" tip="Reject" onClick={()=>rejectWithdrawal(w.id)}/>
                 </div>}
               </td>
             </TR>
@@ -171,7 +171,7 @@ export function PayoutsTab() {
               className="w-full rounded-xl px-3 py-2.5 text-xs resize-none outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}/>
             <div className="flex gap-2">
               <button onClick={()=>{setRejectTarget(null);setRejectReason('')}} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#C85F2D',color:'#fff'}}>Reject</button>
+              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#B8511E',color:'#fff'}}>Reject</button>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -85,7 +86,7 @@ function LeaveReview({ transactionId, providerId, reviewerId }) {
         placeholder="Optional: tell others about the work" className="input mb-3" />
       <button onClick={submit} disabled={saving || rating < 1}
         className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50"
-        style={{ backgroundColor: '#C85F2D' }}>
+        style={{ backgroundColor: '#B8511E' }}>
         {saving ? 'Saving…' : 'Submit review'}
       </button>
     </div>
@@ -93,6 +94,7 @@ function LeaveReview({ transactionId, providerId, reviewerId }) {
 }
 
 export default function JobPostingPage() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const { user }   = useAuth()
   const { requireVerification } = useVerificationGuard()
@@ -291,7 +293,7 @@ export default function JobPostingPage() {
   // is FUNDED - at that point it has to go through the dispute/refund flow
   // instead, so this can never be used to walk away from a funded escrow.
   const cancelJob = async () => {
-    if (!window.confirm('Cancel this request? This cannot be undone.')) return
+    if (!(await confirm({ title: 'Cancel this request?', message: 'This cannot be undone.', confirmLabel: 'Cancel request', cancelLabel: 'Keep it', danger: true }))) return
     setCancelling(true)
     const { data: updatedTx, error } = await cancelTransaction(transaction.id, 'Cancelled by requester')
     setCancelling(false)
@@ -338,7 +340,7 @@ export default function JobPostingPage() {
         <span className="font-display font-black text-base" style={{ color: '#17211B' }}>Post a Request</span>
         {transaction && (
           <span className="ml-auto text-[11px] font-bold px-2.5 py-1 rounded-full"
-            style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+            style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
             {STATUS_LABEL[transaction.status] || transaction.status}
           </span>
         )}
@@ -353,7 +355,7 @@ export default function JobPostingPage() {
               <button onClick={() => setToggle('book')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'book' ? '#C85F2D' : 'transparent',
+                  backgroundColor: toggle === 'book' ? '#B8511E' : 'transparent',
                   color: toggle === 'book' ? '#FFFFFF' : '#647068',
                 }}>
                 <Zap size={14} /> I need someone now
@@ -361,7 +363,7 @@ export default function JobPostingPage() {
               <button onClick={() => setToggle('bid')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'bid' ? '#C85F2D' : 'transparent',
+                  backgroundColor: toggle === 'bid' ? '#B8511E' : 'transparent',
                   color: toggle === 'bid' ? '#FFFFFF' : '#647068',
                 }}>
                 <Gavel size={14} /> Let providers bid
@@ -387,7 +389,7 @@ export default function JobPostingPage() {
                   <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>Location *</p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
                     style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
-                    <MapPin size={13} style={{ color: '#C85F2D' }} />
+                    <MapPin size={13} style={{ color: '#B8511E' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
                       placeholder="e.g. Lekki, Lagos"
                       className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
@@ -399,7 +401,7 @@ export default function JobPostingPage() {
                   </p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
                     style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
-                    <Wallet size={13} style={{ color: '#C85F2D' }} />
+                    <Wallet size={13} style={{ color: '#B8511E' }} />
                     <input value={budget} onChange={e => setBudget(e.target.value)}
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
                       className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
@@ -415,7 +417,7 @@ export default function JobPostingPage() {
 
             <button onClick={submit} disabled={posting}
               className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50"
-              style={{ backgroundColor: '#C85F2D' }}>
+              style={{ backgroundColor: '#B8511E' }}>
               {posting ? 'Posting...' : toggle === 'book' ? 'Send Request' : 'Post Job'}
             </button>
           </div>
@@ -431,7 +433,7 @@ export default function JobPostingPage() {
               style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.35), rgba(28,20,16,0.9))' }}>
               {invitedProvider?.avatar_url
                 ? <img src={invitedProvider.avatar_url} alt="" className="w-full h-full object-cover absolute inset-0" />
-                : <User size={40} style={{ color: 'rgba(255,255,255,0.4)' }} />}
+                : <User size={40} style={{ color: 'rgba(255,255,255,0.6)' }} />}
             </div>
             <div className="p-5">
               <p className="font-display font-bold text-white text-base mb-1">
@@ -465,7 +467,7 @@ export default function JobPostingPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-black text-base" style={{ color: '#17211B' }}>Bids coming in</h3>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
                     {bids.length} {bids.length === 1 ? 'bid' : 'bids'}
                   </span>
                 </div>
@@ -481,7 +483,7 @@ export default function JobPostingPage() {
                           style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                           {b.providerProfile?.avatar_url
                             ? <img src={b.providerProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                            : <User size={16} style={{ color: '#C85F2D' }} />}
+                            : <User size={16} style={{ color: '#B8511E' }} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{b.providerProfile?.full_name || 'Provider'}</p>
@@ -543,7 +545,7 @@ export default function JobPostingPage() {
                 </p>
                 <button onClick={fundEscrow} disabled={fundingEscrow}
                   className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: '#C85F2D' }}>
+                  style={{ backgroundColor: '#B8511E' }}>
                   <Lock size={14} /> {fundingEscrow ? 'Opening payment...' : `Pay for Protection - ${formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)}`}
                 </button>
               </div>

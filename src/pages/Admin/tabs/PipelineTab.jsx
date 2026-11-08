@@ -2,6 +2,7 @@
  * DealMatch Admin Dashboard - Full Production Version
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, BookOpen, Briefcase, Building, Check, CheckCircle, ChevronRight, Clock, CreditCard, ExternalLink, Eye, EyeOff, FileText, Gavel, GitBranch, GraduationCap, Home, Landmark, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Pause, Percent, Play, Plus, Quote, RefreshCw, Save, Search, Settings, Shield, ShieldAlert, Star, ThumbsDown, ThumbsUp, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserCog, UserX, Users, Wallet, X, XCircle as XCircleIcon, UserPlus } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -18,6 +19,7 @@ import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/comp
 import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
 
 export function PipelineTab() {
+  const confirm = useConfirm()
   const [rows,setRows]=useState([])
   const [loading,setLoading]=useState(true)
   const [source,setSource]=useState('all')
@@ -37,7 +39,7 @@ export function PipelineTab() {
   // backed by escrow_transactions and need their own equivalent, so the
   // button only appears where it can actually do something.
   const cancelDeal = async (item) => {
-    if (!window.confirm(`Cancel "${item.listing_title||'this job'}"? This cannot be undone.`)) return
+    if (!(await confirm({ title: `Cancel "${item.listing_title||'this job'}"?`, message: 'This cannot be undone.', confirmLabel: 'Cancel job', cancelLabel: 'Keep it', danger: true }))) return
     setCancellingId(item.deal_id)
     const { error } = await cancelDeal(Number(item.deal_id), 'Cancelled by admin via Pipeline')
     setCancellingId(null)
@@ -50,7 +52,7 @@ export function PipelineTab() {
   // itself also refuses a second run for the same transaction, this just
   // avoids a wasted round-trip and a confusing duplicate-error toast.
   const payoutReferrals = async (item) => {
-    if (!window.confirm(`Process referral payouts for "${item.listing_title||'this job'}"? This cannot be undone.`)) return
+    if (!(await confirm({ title: `Process referral payouts for "${item.listing_title||'this job'}"?`, message: 'This cannot be undone.', confirmLabel: 'Process payouts' }))) return
     setPayingOutId(item.deal_id)
     const result = await processReferralPayoutsForTransaction(Number(item.deal_id))
     setPayingOutId(null)
@@ -71,15 +73,15 @@ export function PipelineTab() {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl p-3" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
-          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.4)'}}>Total deals</p>
+          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.6)'}}>Total deals</p>
           <p className="text-white font-bold text-lg">{filtered.length}</p>
         </div>
         <div className="rounded-2xl p-3" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
-          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.4)'}}>Completed value</p>
+          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.6)'}}>Completed value</p>
           <p className="text-white font-bold text-lg">₦{totalValue.toLocaleString()}</p>
         </div>
         <div className="rounded-2xl p-3" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
-          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.4)'}}>Commissioned</p>
+          <p className="text-[10px] font-semibold mb-1" style={{color:'rgba(255,255,255,0.6)'}}>Commissioned</p>
           <p className="text-white font-bold text-lg">{commissioned}</p>
         </div>
       </div>

@@ -16,7 +16,7 @@ export default function FindOfferCard({ variant, icon: Icon, title, description,
       <h3 className="font-display text-3xl mb-2" style={{ color: variant === 'offering' ? '#FFFFFF' : '#17211B' }}>{title}</h3>
       <p className="text-sm mb-5" style={{ color: variant === 'offering' ? 'rgba(255,255,255,0.6)' : '#536058' }}>{description}</p>
       <span className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold"
-        style={{ backgroundColor: variant === 'offering' ? '#C85F2D' : '#234C3A', color: '#FFFFFF' }}>
+        style={{ backgroundColor: variant === 'offering' ? '#B8511E' : '#234C3A', color: '#FFFFFF' }}>
         {ctaLabel}
         <motion.span variants={{ rest: { x: 0 }, hover: { x: 3 } }} transition={{ duration: 0.2 }} className="inline-flex">
           <ArrowRight size={14} />

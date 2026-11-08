@@ -7,7 +7,7 @@ import { DEALMATCH_WHATSAPP } from '@/lib/contact'
 import toast from 'react-hot-toast'
 
 const INTENTS = [
-  { id:'urgent_buyer',     icon: Zap,      label:'Ready to Buy Now',    desc:'I want to move forward immediately', score:40, color:'#C85F2D' },
+  { id:'urgent_buyer',     icon: Zap,      label:'Ready to Buy Now',    desc:'I want to move forward immediately', score:40, color:'#B8511E' },
   { id:'make_offer',       icon: Heart,    label:'Make an Offer',       desc:'I\'d like to submit an offer', score:35, color:'#7A9E7E' },
   { id:'schedule_viewing', icon: Calendar, label:'Schedule Viewing',    desc:'I want to see the property first', score:25, color:'#D4A853' },
   { id:'request_info',     icon: MessageSquare, label:'Get More Info',  desc:'I have questions about this property', score:15, color:'#647068' },
@@ -41,7 +41,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
   }
 
   const getLeadType = (score) => {
-    if (score >= 70) return { label:'Immediate Buyer',  color:'#C85F2D' }
+    if (score >= 70) return { label:'Immediate Buyer',  color:'#B8511E' }
     if (score >= 50) return { label:'Decision Maker',   color:'#7A9E7E' }
     if (score >= 30) return { label:'Interested Lead',  color:'#D4A853' }
     if (score >= 15) return { label:'Potential Buyer',  color:'#647068' }
@@ -111,7 +111,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                     const Icon = item.icon
                     return (
                       <button key={item.id} onClick={() => { setIntent(item.id); setStep(1) }}
-                        className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left transition-all hover:border-[#C85F2D]"
+                        className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left transition-all hover:border-[#B8511E]"
                         style={{ borderColor: intent === item.id ? item.color : '#DEDDD6', backgroundColor: intent === item.id ? `${item.color}0F` : '#FFFFFF' }}>
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{backgroundColor:`${item.color}15`}}>
@@ -139,8 +139,8 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                 <div className="space-y-2">
                   {TIMELINES.map(t => (
                     <button key={t.id} onClick={() => { setTimeline(t.id); setStep(2) }}
-                      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left transition-all hover:border-[#C85F2D]"
-                      style={{ borderColor: timeline === t.id ? '#C85F2D' : '#DEDDD6' }}>
+                      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left transition-all hover:border-[#B8511E]"
+                      style={{ borderColor: timeline === t.id ? '#B8511E' : '#DEDDD6' }}>
                       <Clock size={14} style={{color:'#647068'}} />
                       <p className="text-sm font-semibold" style={{color:'#17211B'}}>{t.label}</p>
                     </button>
@@ -162,7 +162,7 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                     <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color:'rgba(23,33,27,0.5)'}}>Phone (for faster response)</label>
                     <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                       placeholder="e.g. 08012345678"
-                      className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#C85F2D]"
+                      className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#B8511E]"
                       style={{borderColor:'#DEDDD6', backgroundColor:'#FFFFFF', color:'#17211B'}} />
                   </div>
                   <div>
@@ -170,13 +170,13 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                     <textarea value={message} onChange={e => setMessage(e.target.value)}
                       placeholder="Anything you'd like to ask?"
                       rows={3}
-                      className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#C85F2D] resize-none"
+                      className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#B8511E] resize-none"
                       style={{borderColor:'#DEDDD6', backgroundColor:'#FFFFFF', color:'#17211B'}} />
                   </div>
                 </div>
                 <button onClick={handleSubmit} disabled={saving}
                   className="w-full py-3.5 rounded-2xl font-bold text-white mb-3 transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{backgroundColor:'#C85F2D'}}>
+                  style={{backgroundColor:'#B8511E'}}>
                   {saving ? 'Saving...' : 'Confirm Interest'}
                 </button>
                 <button onClick={handleWhatsApp}

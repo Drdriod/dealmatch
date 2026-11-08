@@ -25,7 +25,7 @@ export function AnnouncementsTab() {
   const [showForm,setShowForm]=useState(false)
   const [saving,setSaving]=useState(false)
   const [form,setForm]=useState({title:'',body:'',type:'info',target:'all'})
-  const TC={info:'#5B8DEF',warning:'#D4A853',success:'#7A9E7E',critical:'#C85F2D'}
+  const TC={info:'#5B8DEF',warning:'#D4A853',success:'#7A9E7E',critical:'#B8511E'}
 
   const load=async()=>{
     setLoading(true)
@@ -107,7 +107,7 @@ export function AnnouncementsTab() {
               </div>
             </div>
           ))}
-          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No announcements yet. Create one above.</div>}
+          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No announcements yet. Create one above.</div>}
         </div>
       )}
     </div>
