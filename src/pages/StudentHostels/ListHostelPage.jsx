@@ -11,10 +11,10 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, Fence, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
 import { updateHostel, insertHostel } from '@/data/hostelListingRepository'
 import { useAuth } from '@/context/AuthContext'
 import { initializeFlutterwavePayment, generateReference, getFeeAmounts } from '@/lib/flutterwave'
@@ -163,10 +163,9 @@ export default function ListHostelPage() {
       if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} is too large. Choose one under 5MB.`); continue }
       const ext  = file.name.split('.').pop()
       const path = `hostels/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage.from('property-images').upload(path, file, { upsert: false })
+      const { error } = await uploadFile('property-images', path, file, { upsert: false })
       if (error) { toast.error(`We couldn't upload ${file.name}.`); continue }
-      const { data: { publicUrl } } = supabase.storage.from('property-images').getPublicUrl(path)
-      uploaded.push(publicUrl)
+      uploaded.push(publicUrlFor('property-images', path))
     }
     setForm(f => ({ ...f, images: [...f.images, ...uploaded] }))
     setImageUploading(false)

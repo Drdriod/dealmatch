@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle, XCircle, MapPin, RefreshCw, LogOut, Camera,
@@ -96,9 +97,7 @@ export default function AgentDashboardPage() {
     for (const file of Array.from(files)) {
       const ext  = file.name.split('.').pop()
       const path = `${user.id}/${propertyId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage
-        .from('verification-photos')
-        .upload(path, file, { upsert: true })
+      const { error } = await uploadFile('verification-photos', path, file, { upsert: true })
       if (error) { toast.error(`Photo upload failed: ${error.message}`); continue }
       paths.push(path)
     }

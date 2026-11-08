@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Camera, Check, CheckCircle, Hotel, PartyPopper, Store, Upload, Video, Wifi, X } from 'lucide-react'
-import { supabase, stripControlChars } from '@/lib/supabase'
+import { stripControlChars } from '@/lib/supabase'
 import { insertListedProperty } from '@/data/rentalsRepository'
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
@@ -14,10 +15,9 @@ const RENTAL_FEATURES = ['Furnished','Wifi','Generator','AC','Security','Parking
 async function uploadToStorage(file, userId, folder) {
   const ext  = file.name.split('.').pop()
   const path = `${userId}/${folder}_${Date.now()}.${ext}`
-  const { data, error } = await supabase.storage.from('property-images').upload(path, file, { upsert:false, contentType:file.type })
+  const { data, error } = await uploadFile('property-images', path, file, { upsert:false, contentType:file.type })
   if (error) throw error
-  const { data: urlData } = supabase.storage.from('property-images').getPublicUrl(data.path)
-  return urlData.publicUrl
+  return publicUrlFor('property-images', data.path)
 }
 
 export default function ListRentalPage() {

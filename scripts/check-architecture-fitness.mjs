@@ -130,6 +130,26 @@ function checkGatewayAdapter() {
 const NOTIFICATION_WRITERS = ['src/lib/notificationFactory.js', 'src/lib/notifications.js']
 const NOTIFICATION_INSERT = /from\('notifications'\)\s*\.insert\(/
 
+// Pages, components and hooks must not query the database or storage themselves. They call a
+// repository in src/data (the only place that knows table, bucket and column names). Auth calls
+// (supabase.auth) are allowed in the auth screens and context.
+function checkUiDataAccess() {
+  const dirs = ['src/pages', 'src/components', 'src/hooks']
+  const hits = []
+  for (const d of dirs) {
+    const abs = join(ROOT, d)
+    if (!existsSync(abs)) continue
+    for (const f of walk(abs, ['.js', '.jsx'])) {
+      const lines = readFileSync(f, 'utf8').split('\n')
+      lines.forEach((line, n) => {
+        if (/^\s*(\/\/|\*)/.test(line)) return
+        if (/supabase\s*\.\s*(from|rpc|storage)\b/.test(line)) hits.push({ file: relative(ROOT, f), line: n + 1 })
+      })
+    }
+  }
+  return hits
+}
+
 function checkNotificationFactory() {
   const offenders = []
   for (const scope of ['src', 'api']) {
@@ -476,6 +496,17 @@ function main() {
     failed = true
     console.log(`    FAIL: ${rawNotif.length} inline insert(s):`)
     for (const v of rawNotif) console.log(`      ${v.file}`)
+  }
+
+  // 11. UI data access
+  const uiData = checkUiDataAccess()
+  console.log('\n[11] Pages, components and hooks reach data only through src/data (BLOCKING)')
+  if (uiData.length === 0) {
+    console.log('    PASS: no supabase.from / rpc / storage calls in the UI layer.')
+  } else {
+    failed = true
+    console.log(`    FAIL: ${uiData.length} direct call(s). Move them into a repository in src/data:`)
+    for (const v of uiData) console.log(`      ${v.file}:${v.line}`)
   }
 
   // 6. Repository ratchet
