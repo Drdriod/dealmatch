@@ -57,7 +57,7 @@ export const MACHINES = {
     unwritten: ['inactive'], // allowed by the database, never written by the code
     enforcedBy: ['check-constraint'],
     owner: 'src/data/manageListingsRepository.js',
-    notes: 'Known inconsistency: the Manage listings page pauses by writing "removed", while the landlord dashboard and the admin tab write "paused". Both hide the listing and both restore to "active". "inactive" is in the CHECK list and the form allow-list but nothing in the code writes it. The database default is "active", while new listings are inserted as "pending_review".',
+    notes: 'Owners pause with "paused" and delete with "removed" (from migration 20261108000000, PR #63). Before it, the database refused "paused" from an owner, so Manage listings paused with "removed" and the landlord dashboard pause button failed. Old "removed" rows still show as paused and can be restored. "inactive" is in the CHECK list but nothing writes it. The database default is "active", while new listings are inserted as "pending_review".',
   },
   staff_invite: {
     table: 'staff_invites', column: 'status', initial: 'pending',
