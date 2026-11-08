@@ -29,6 +29,7 @@
  */
 
 import React, { useState, useRef } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Camera, Car, Check, Clock, CreditCard, Eye, Info, Lock, Shield, SkipForward, Store, Upload, Users, Vote, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -207,7 +208,7 @@ export default function VerifyIdentityPage() {
       const facePath = `${user.id}/selfie`
 
       if (idFile) {
-        const { error: idErr } = await supabase.storage.from('identity-docs').upload(idPath, idFile, { upsert:true, contentType: idFile.type || 'image/jpeg' })
+        const { error: idErr } = await uploadFile('identity-docs', idPath, idFile, { upsert:true, contentType: idFile.type || 'image/jpeg' })
         // ✅ SECURITY FIX: no longer falls back to the PUBLIC 'avatars'
         // bucket on failure - identity documents must stay in the private
         // bucket. A real failure here should surface as an error, not
@@ -218,7 +219,7 @@ export default function VerifyIdentityPage() {
       // Upload selfie - faceFile is the compressed Blob set by
       // handleFaceUpload when the file was selected/captured.
       if (!faceFile) throw new Error('Selfie image was not captured correctly. Please retake it.')
-      const { error: faceErr } = await supabase.storage.from('identity-docs').upload(facePath, faceFile, { upsert:true, contentType:'image/jpeg' })
+      const { error: faceErr } = await uploadFile('identity-docs', facePath, faceFile, { upsert:true, contentType:'image/jpeg' })
       if (faceErr) throw new Error(`Selfie upload failed: ${faceErr.message}`)
 
       // Store the storage paths (not public URLs) - bucket is PRIVATE

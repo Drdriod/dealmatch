@@ -10,10 +10,10 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate, Link } from 'react-router-dom'
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Clock, GraduationCap, Info, Shield, Upload, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/lib/supabase'
 import { loadStudentVerifyData, updateStudentVerification, insertStudentVerification, saveStudentInstitution } from '@/data/studentVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
@@ -88,7 +88,7 @@ export default function StudentVerifyPage() {
     // folder segment equals auth.uid().
     // One fixed path per user, replaced in place on re-upload (no superseded copies).
     const path = `${user.id}/student-id`
-    const { error } = await supabase.storage.from('identity-docs').upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
+    const { error } = await uploadFile('identity-docs', path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
     if (error) { toast.error('The upload didn\'t work. Please try again.'); setUploading(false); return }
     // Store the storage PATH, not a public URL - bucket is private.
     // Admin generates a short-lived signed URL when reviewing submissions.

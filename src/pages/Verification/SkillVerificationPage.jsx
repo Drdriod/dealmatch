@@ -14,9 +14,9 @@
  * See supabase/migrations/20260812000000_production_hardening.sql.
  */
 import React, { useState, useEffect } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Camera, CheckCircle2, Clock, ShieldCheck, Upload, X, Award } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { loadSkillVerificationState, submitSkillVerification } from '@/data/verificationRepository'
 import { useAuth } from '@/context/AuthContext'
 import VerifyReminder from '@/components/ui/VerifyReminder'
@@ -80,7 +80,7 @@ export default function SkillVerificationPage() {
       for (const { file } of files) {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
         const path = `${user.id}/portfolio_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`
-        const { error } = await supabase.storage.from('provider-portfolio').upload(path, file, { upsert: true })
+        const { error } = await uploadFile('provider-portfolio', path, file, { upsert: true })
         if (error) throw new Error(`Upload failed: ${error.message}`)
         uploadedPaths.push(path) // storage path, not a public URL -- bucket is private; staff view via signed URLs
       }

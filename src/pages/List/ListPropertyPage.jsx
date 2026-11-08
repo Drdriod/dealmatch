@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Building, Building2, Camera, Check, CheckCircle, Home, Leaf, MapPin, Store, Upload, Video, X } from 'lucide-react'
-import { createProperty, supabase } from '@/lib/supabase'
+import { createProperty } from '@/lib/supabase'
 import { indexProperty } from '@/lib/pinecone'
 import { analytics } from '@/lib/posthog'
 import { useAuth } from '@/context/AuthContext'
@@ -54,21 +55,15 @@ async function uploadImageToSupabase(file, userId) {
   const ext      = file.name.split('.').pop()
   const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
-  const { data, error } = await supabase.storage
-    .from('property-images')           // ← your bucket name
-    .upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType: file.type,
-    })
+  const { data, error } = await uploadFile('property-images', fileName, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type,
+  })
 
   if (error) throw new Error(`Image upload failed: ${error.message}`)
 
-  const { data: urlData } = supabase.storage
-    .from('property-images')
-    .getPublicUrl(data.path)
-
-  return urlData.publicUrl
+  return publicUrlFor('property-images', data.path)
 }
 
 export default function ListPropertyPage() {
