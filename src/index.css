@@ -4,6 +4,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* Brand colours as CSS variables, for inline styles: style={{ color: 'var(--dm-deep)' }}.
+     Keep in step with tailwind.config.js. */
+  :root {
+    --dm-cream: #F7F4ED; --dm-deep: #17211B; --dm-terracotta: #B8511E; --dm-terracotta-dark: #A8441D;
+    --dm-forest: #234C3A; --dm-gold: #D4A853; --dm-sage: #7A9E7E; --dm-warm: #647068; --dm-line: #DEDDD6;
+  }
+
   * {
     box-sizing: border-box;
   }
