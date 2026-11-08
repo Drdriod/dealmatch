@@ -30,7 +30,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Fitness checks 1 to 9 (module boundaries, function budget, money and column
+      # Lint (undefined names, hook rules), then fitness checks 1 to 9 (module boundaries, function budget, money and column
       # rules) followed by the unit tests.
       - name: Fitness checks and tests
         run: npm run check
