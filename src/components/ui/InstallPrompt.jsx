@@ -54,12 +54,12 @@ export default function InstallPrompt() {
             <div className="flex flex-col gap-1.5">
               <button onClick={handleInstall}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
+                style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
                 Install
               </button>
               <button onClick={handleDismiss}
                 className="flex items-center justify-center w-full py-1"
-                style={{ color: 'rgba(255,255,255,0.3)' }}>
+                style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <X size={12} />
               </button>
             </div>

@@ -16,7 +16,7 @@ const MAP_STYLES = [
   { elementType: 'geometry', stylers: [{ color: '#F7F4ED' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F4ED' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#C85F2D' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#B8511E' }] },
   { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#647068' }] },
   { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#E8F0E9' }] },
   { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7A9E7E' }] },
@@ -31,7 +31,7 @@ const MAP_STYLES = [
 
 const AMENITY_TYPES = [
   { type: 'school',        label: 'Schools',   icon: <GraduationCap size={14} className="text-white" />, color: '#7A9E7E' },
-  { type: 'hospital',      label: 'Hospitals', icon: <Building2 size={14} className="text-white" />, color: '#C85F2D' },
+  { type: 'hospital',      label: 'Hospitals', icon: <Building2 size={14} className="text-white" />, color: '#B8511E' },
   { type: 'shopping_mall', label: 'Shopping',  icon: <ShoppingBag size={14} className="text-white" />, color: '#D4A853' },
   { type: 'bank',          label: 'Banks',     icon: <Landmark size={14} className="text-white" />, color: '#1F2B24' },
 ]
@@ -148,7 +148,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
             onClick={() => setSelected('property')}
             icon={window.google ? {
               path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: '#C85F2D',
+              fillColor: '#B8511E',
               fillOpacity: 1,
               strokeColor: '#FFFFFF',
               strokeWeight: 3,
@@ -158,15 +158,15 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
         ) : (
           /* Masked: show only a broad area circle, no precise pin */
           <Circle center={center} radius={600} options={{
-            fillColor: '#C85F2D', fillOpacity: 0.10,
-            strokeColor: '#C85F2D', strokeOpacity: 0.35, strokeWeight: 2,
+            fillColor: '#B8511E', fillOpacity: 0.10,
+            strokeColor: '#B8511E', strokeOpacity: 0.35, strokeWeight: 2,
           }} />
         )}
 
         {/* Radius */}
         <Circle center={center} radius={2000} options={{
-          fillColor: '#C85F2D', fillOpacity: 0.04,
-          strokeColor: '#C85F2D', strokeOpacity: 0.2, strokeWeight: 1,
+          fillColor: '#B8511E', fillOpacity: 0.04,
+          strokeColor: '#B8511E', strokeOpacity: 0.2, strokeWeight: 1,
         }} />
 
         {/* Amenity markers */}
@@ -222,7 +222,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
           <span>{property?.city}, {property?.state}</span>
         </div>
         {!hasConfirmedInspection && (
-          <p className="text-xs font-semibold" style={{color:'#C85F2D'}}>
+          <p className="text-xs font-semibold" style={{color:'#B8511E'}}>
             Exact address revealed after confirmed inspection
           </p>
         )}
@@ -280,7 +280,7 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
               onClick={() => setSelected(property)}
               icon={window.google ? {
                 path: window.google.maps.SymbolPath.CIRCLE,
-                fillColor: '#C85F2D',
+                fillColor: '#B8511E',
                 fillOpacity: 0.9,
                 strokeColor: '#FFFFFF',
                 strokeWeight: 2,
@@ -307,7 +307,7 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
               <p className="font-bold text-deep text-sm leading-tight">{selected.title}</p>
               <p className="text-terracotta font-black text-base mt-1">{formatPrice(selected.price)}</p>
               <p className="text-xs text-deep/50 mt-0.5">{selected.city}, {selected.state}</p>
-              <div className="mt-2 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full" style={{backgroundColor:"#C85F2D", color:"#FFFFFF", display:"inline-flex"}}>
+              <div className="mt-2 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full" style={{backgroundColor:"#B8511E", color:"#FFFFFF", display:"inline-flex"}}>
                 View Property →
               </div>
             </div>

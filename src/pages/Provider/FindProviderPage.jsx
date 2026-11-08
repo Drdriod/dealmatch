@@ -223,7 +223,7 @@ export default function FindProviderPage() {
           <button onClick={useMyLocation} disabled={locating}
             className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 disabled:opacity-60"
             style={origin?.precise
-              ? { backgroundColor: '#C85F2D', color: '#FFF' }
+              ? { backgroundColor: '#B8511E', color: '#FFF' }
               : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
             <Crosshair size={12} /> {locating ? 'Locating…' : 'Use my location'}
           </button>
@@ -248,7 +248,7 @@ export default function FindProviderPage() {
                   <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug === kindLeaf ? '' : c.name)}
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
                     style={(c.slug ? kindLeaf === c.name : !kindLeaf)
-                      ? { backgroundColor: '#C85F2D', color: '#FFF' }
+                      ? { backgroundColor: '#B8511E', color: '#FFF' }
                       : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
                     {c.name}
                   </button>
@@ -266,7 +266,7 @@ export default function FindProviderPage() {
                 title={disabled ? 'Use my location to filter within 5 km' : undefined}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors disabled:opacity-40"
                 style={activeChips.includes(chip.id)
-                  ? { backgroundColor: '#C85F2D', color: '#FFF' }
+                  ? { backgroundColor: '#B8511E', color: '#FFF' }
                   : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
                 {chip.label}
               </button>
@@ -314,7 +314,7 @@ export default function FindProviderPage() {
               {p.avatar
                 ? <img src={p.avatar} alt="" className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.15), rgba(122,158,126,0.15))' }}>
-                    <span className="font-display text-3xl font-black" style={{ color: '#C85F2D' }}>{p.name?.[0] || '?'}</span>
+                    <span className="font-display text-3xl font-black" style={{ color: '#B8511E' }}>{p.name?.[0] || '?'}</span>
                   </div>}
               <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
                 style={{ backgroundColor: '#3D7A45', color: '#FFFFFF' }}>
@@ -331,10 +331,10 @@ export default function FindProviderPage() {
             <div className="p-5">
               <p className="font-display font-black text-base mb-1" style={{ color: '#17211B' }}>{p.name}</p>
               {p.category && (
-                <p className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{p.category}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#B8511E' }}>{p.category}</p>
               )}
               <div className="flex items-center gap-1.5 text-xs mb-2 flex-wrap" style={{ color: '#647068' }}>
-                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: '#C85F2D' }} /> {p.area || p.city || p.state}</span>}
+                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: '#B8511E' }} /> {p.area || p.city || p.state}</span>}
                 {p.distanceKm != null && <span className="ml-1">{p.distanceKm} km</span>}
                 {p.rating != null && <span className="flex items-center gap-1 ml-1"><Star size={11} className="fill-current" style={{ color: '#D4A853' }} /> {p.rating} ({p.reviewCount})</span>}
               </div>
@@ -344,11 +344,11 @@ export default function FindProviderPage() {
 
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/request?mode=bid&provider=${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
                   Request a Bid
                 </button>
                 <button onClick={() => navigate(`/provider/${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#C85F2D' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#B8511E' }}>
                   View <ChevronRight size={12} />
                 </button>
               </div>

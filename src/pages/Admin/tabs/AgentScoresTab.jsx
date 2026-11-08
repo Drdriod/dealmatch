@@ -70,7 +70,7 @@ export function AgentScoresTab({ admin }) {
       {agents.length === 0 && (
         <div className="text-center py-16 rounded-3xl" style={{backgroundColor:'rgba(255,255,255,0.03)'}}>
           <Award size={36} style={{color:'rgba(255,255,255,0.15)',margin:'0 auto 12px'}} />
-          <p style={{color:'rgba(255,255,255,0.3)',fontSize:13}}>No agents on record yet</p>
+          <p style={{color:'rgba(255,255,255,0.55)',fontSize:13}}>No agents on record yet</p>
         </div>
       )}
 
@@ -99,26 +99,26 @@ export function AgentScoresTab({ admin }) {
                 {[
                   {label:'Verified', value:a.verified_count, color:'#7A9E7E'},
                   {label:'Success',  value:`${a.success_rate_pct}%`, color:'#7A9E7E'},
-                  {label:'Complaints', value:`${a.complaints_upheld}/${a.complaints_received}`, color:a.complaints_upheld>0?'#C85F2D':'rgba(255,255,255,0.5)'},
-                  {label:'Strikes', value:`${a.strike_count}/3`, color:a.strike_count>=2?'#C94A3A':a.strike_count===1?'#C85F2D':'rgba(255,255,255,0.5)'},
+                  {label:'Complaints', value:`${a.complaints_upheld}/${a.complaints_received}`, color:a.complaints_upheld>0?'#B8511E':'rgba(255,255,255,0.5)'},
+                  {label:'Strikes', value:`${a.strike_count}/3`, color:a.strike_count>=2?'#C94A3A':a.strike_count===1?'#B8511E':'rgba(255,255,255,0.5)'},
                 ].map(m => (
                   <div key={m.label} className="rounded-xl p-2 text-center" style={{backgroundColor:'rgba(255,255,255,0.04)'}}>
                     <p className="text-sm font-black" style={{color:m.color}}>{m.value}</p>
-                    <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{m.label}</p>
+                    <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{m.label}</p>
                   </div>
                 ))}
               </div>
 
               {/* Strike progress bar */}
               <div className="mb-3">
-                <div className="flex justify-between text-xs mb-1" style={{color:'rgba(255,255,255,0.3)'}}>
+                <div className="flex justify-between text-xs mb-1" style={{color:'rgba(255,255,255,0.55)'}}>
                   <span>Strike progress</span>
                   <span>{a.strikes_remaining} remaining before suspension</span>
                 </div>
                 <div className="h-1.5 rounded-full" style={{backgroundColor:'rgba(255,255,255,0.08)'}}>
                   <div className="h-full rounded-full transition-all" style={{
                     width:`${(a.strike_count/3)*100}%`,
-                    backgroundColor:a.strike_count>=2?'#C94A3A':a.strike_count>=1?'#C85F2D':'#7A9E7E'
+                    backgroundColor:a.strike_count>=2?'#C94A3A':a.strike_count>=1?'#B8511E':'#7A9E7E'
                   }} />
                 </div>
               </div>
@@ -149,12 +149,12 @@ export function AgentScoresTab({ admin }) {
             {/* Verification history */}
             {selected?.id === a.id && verifications.length > 0 && (
               <div className="border-t px-4 py-3 space-y-2" style={{borderColor:'rgba(255,255,255,0.06)'}}>
-                <p className="text-xs font-bold mb-2" style={{color:'rgba(255,255,255,0.4)'}}>Recent Verifications</p>
+                <p className="text-xs font-bold mb-2" style={{color:'rgba(255,255,255,0.6)'}}>Recent Verifications</p>
                 {verifications.map(v => (
                   <div key={v.id} className="flex items-center justify-between py-2 border-b" style={{borderColor:'rgba(255,255,255,0.04)'}}>
                     <div>
                       <p className="text-xs font-semibold text-white">{v.properties?.title}</p>
-                      <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{v.properties?.city} · {new Date(v.submitted_at).toLocaleDateString()}</p>
+                      <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{v.properties?.city} · {new Date(v.submitted_at).toLocaleDateString()}</p>
                       {v.gps_lat && <p className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>GPS: {parseFloat(v.gps_lat).toFixed(4)}, {parseFloat(v.gps_lng).toFixed(4)} (±{v.gps_accuracy_m}m)</p>}
                       <p className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>Photos: {v.photos?.length || 0}</p>
                     </div>

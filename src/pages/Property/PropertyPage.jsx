@@ -153,11 +153,11 @@ export default function PropertyPage() {
         {/* Price & title */}
         <div className="mb-4">
           <div className="flex items-start justify-between gap-3 mb-1">
-            <h1 className="font-display font-black text-3xl" style={{ color: '#C85F2D' }}>
+            <h1 className="font-display font-black text-3xl" style={{ color: '#B8511E' }}>
               {formatPrice(property.price)}
             </h1>
             <span className="px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0"
-              style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+              style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
               {property.listing_type}
             </span>
           </div>
@@ -165,7 +165,7 @@ export default function PropertyPage() {
             {property.title}
           </h2>
           <div className="flex items-center gap-1.5 text-sm" style={{ color: '#647068' }}>
-            <MapPin size={14} style={{ color: '#C85F2D' }} />
+            <MapPin size={14} style={{ color: '#B8511E' }} />
             <span>{property.city}, {property.state}</span>
           </div>
         </div>
@@ -176,21 +176,21 @@ export default function PropertyPage() {
         <div className="grid grid-cols-3 gap-3 mb-5">
           {property.bedrooms  && (
             <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Bed size={18} className="mx-auto mb-1" style={{ color: '#C85F2D' }} />
+              <Bed size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
               <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.bedrooms}</p>
               <p className="text-xs" style={{ color: '#647068' }}>Bedrooms</p>
             </div>
           )}
           {property.bathrooms && (
             <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Bath size={18} className="mx-auto mb-1" style={{ color: '#C85F2D' }} />
+              <Bath size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
               <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.bathrooms}</p>
               <p className="text-xs" style={{ color: '#647068' }}>Bathrooms</p>
             </div>
           )}
           {property.size_sqm  && (
             <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Maximize size={18} className="mx-auto mb-1" style={{ color: '#C85F2D' }} />
+              <Maximize size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
               <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.size_sqm}</p>
               <p className="text-xs" style={{ color: '#647068' }}>sqm</p>
             </div>
@@ -268,7 +268,7 @@ export default function PropertyPage() {
             style={{
               borderColor:     liked ? '#7A9E7E' : '#DEDDD6',
               backgroundColor: liked ? 'rgba(122,158,126,0.1)' : '#FFFFFF',
-              color:           liked ? '#7A9E7E' : '#C85F2D',
+              color:           liked ? '#7A9E7E' : '#B8511E',
             }}>
             <Heart size={18} fill={liked ? '#7A9E7E' : 'none'} />
           </button>

@@ -12,7 +12,7 @@ const STATUS_STYLES = {
   active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
   pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20',  label: 'Under Review' },
   paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#647068',  label: 'Paused' },
-  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#C85F2D',  label: 'Rejected' },
+  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#B8511E',  label: 'Rejected' },
   sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
 }
 
@@ -20,7 +20,7 @@ const STATUS_STYLES = {
 const TONES = {
   good:  { bg: 'rgba(122,158,126,0.12)', color: '#5C8060' },
   warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20' },
-  bad:   { bg: 'rgba(200,95,45,0.12)',   color: '#C85F2D' },
+  bad:   { bg: 'rgba(200,95,45,0.12)',   color: '#B8511E' },
   muted: { bg: 'rgba(23,33,27,0.08)',    color: '#647068' },
 }
 
@@ -102,7 +102,7 @@ export default function LandlordDashboardPage() {
   const vacantCount   = rentals.filter(p => p.status !== 'pending_review' && p.occupancy_status !== 'occupied').length
   const occupancySlices = [
     { label: 'Occupied',       value: occupiedCount,  color: '#7A9E7E' },
-    { label: 'Vacant',         value: vacantCount,    color: '#C85F2D' },
+    { label: 'Vacant',         value: vacantCount,    color: '#B8511E' },
     { label: 'Pending review', value: pendingReview,  color: '#D4A853' },
   ]
 
@@ -148,7 +148,7 @@ export default function LandlordDashboardPage() {
                 <KpiTile label="Rent collected" value={fmtNaira(collected6m)} spark={collectedByMonth} color="#D4A853" />
                 <KpiTile label="Active listings" value={activeCount} spark={listingsByMonth} color="#7A9E7E" />
                 <div className="col-span-2">
-                  <KpiTile label="Enquiries" value={enquiries.length} spark={enquiriesByMonth} color="#C85F2D" />
+                  <KpiTile label="Enquiries" value={enquiries.length} spark={enquiriesByMonth} color="#B8511E" />
                 </div>
               </div>
 
@@ -182,12 +182,12 @@ export default function LandlordDashboardPage() {
                       height={200}
                       series={[
                         { key: 'collected',   label: 'Collected',   color: '#7A9E7E' },
-                        { key: 'outstanding', label: 'Outstanding', color: '#C85F2D' },
+                        { key: 'outstanding', label: 'Outstanding', color: '#B8511E' },
                       ]}
                     />
                     <div className="flex items-center gap-4 mt-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
                       <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ background: '#7A9E7E' }} />Collected</span>
-                      <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ background: '#C85F2D' }} />Outstanding</span>
+                      <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ background: '#B8511E' }} />Outstanding</span>
                     </div>
                     {!rentPeriodHasData && (
                       <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -230,7 +230,7 @@ export default function LandlordDashboardPage() {
               ].map(l => (
                 <Link key={l.to} to={l.to}
                   className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-dashed transition-all"
-                  style={{ borderColor: 'rgba(200,95,45,0.3)', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.03)' }}>
+                  style={{ borderColor: 'rgba(200,95,45,0.3)', color: '#B8511E', backgroundColor: 'rgba(200,95,45,0.03)' }}>
                   <span>{l.icon}</span>
                   <span className="text-xs font-semibold">+ {l.label}</span>
                 </Link>
@@ -345,7 +345,7 @@ export default function LandlordDashboardPage() {
                     {(l.category === 'hotel' || l.category === 'shortlet' || l.category === 'rental') && (
                       <Link to="/availability"
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border"
-                        style={{ borderColor: '#C85F2D', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.04)' }}>
+                        style={{ borderColor: '#B8511E', color: '#B8511E', backgroundColor: 'rgba(200,95,45,0.04)' }}>
                         {l.category === 'rental' ? 'Occupancy' : 'Rooms'}
                       </Link>
                     )}

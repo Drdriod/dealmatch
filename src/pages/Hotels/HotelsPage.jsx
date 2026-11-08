@@ -154,7 +154,7 @@ function BookingModal({ hotel, onClose }) {
               {hotel.title} has been notified. They'll contact you at <strong>{form.guest_phone}</strong> to confirm.
             </p>
             {totalDue && (
-              <p className="text-base font-black mb-6" style={{ color:'#C85F2D' }}>
+              <p className="text-base font-black mb-6" style={{ color:'#B8511E' }}>
                 Total: ₦{totalDue.toLocaleString()}
               </p>
             )}
@@ -171,14 +171,14 @@ function BookingModal({ hotel, onClose }) {
                     <button key={c.id} type="button" onClick={() => setForm(f => ({ ...f, room_type: c.name }))}
                       className="p-3 rounded-2xl border-2 text-left transition-all"
                       style={{
-                        borderColor:     form.room_type === c.name ? '#C85F2D' : '#DEDDD6',
+                        borderColor:     form.room_type === c.name ? '#B8511E' : '#DEDDD6',
                         backgroundColor: form.room_type === c.name ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                       }}>
                       <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{c.name}</p>
                       {c.price_per_night && (
-                        <p className="text-xs mt-0.5" style={{ color:'#C85F2D' }}>₦{Number(c.price_per_night).toLocaleString()}/night</p>
+                        <p className="text-xs mt-0.5" style={{ color:'#B8511E' }}>₦{Number(c.price_per_night).toLocaleString()}/night</p>
                       )}
-                      <p className="text-[10px] mt-0.5" style={{ color: c.available_rooms > 0 ? '#7A9E7E' : '#C85F2D' }}>
+                      <p className="text-[10px] mt-0.5" style={{ color: c.available_rooms > 0 ? '#7A9E7E' : '#B8511E' }}>
                         {c.available_rooms > 0 ? `${c.available_rooms} available` : 'Fully booked'}
                       </p>
                     </button>
@@ -241,7 +241,7 @@ function BookingModal({ hotel, onClose }) {
             {/* Price calculator */}
             {nights > 0 && pricePerNight && (
               <div className="rounded-2xl p-4" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.2)' }}>
-                <p className="text-xs font-bold mb-2" style={{ color:'#C85F2D' }}>Price breakdown</p>
+                <p className="text-xs font-bold mb-2" style={{ color:'#B8511E' }}>Price breakdown</p>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span style={{ color:'#647068' }}>₦{Number(pricePerNight).toLocaleString()} × {form.rooms} room{form.rooms>1?'s':''} × {nights} night{nights>1?'s':''}</span>
@@ -249,11 +249,11 @@ function BookingModal({ hotel, onClose }) {
                   </div>
                   <div className="flex justify-between">
                     <span style={{ color:'#647068' }}>{hotelFeeLabel ? `Platform fee (${hotelFeeLabel})` : 'Platform fee (loading)'}</span>
-                    <strong style={{ color:'#C85F2D' }}>₦{platform_fee?.toLocaleString()}</strong>
+                    <strong style={{ color:'#B8511E' }}>₦{platform_fee?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between border-t pt-1.5 font-black" style={{ borderColor:'rgba(200,95,45,0.2)', fontSize:'1rem' }}>
                     <span style={{ color:'#17211B' }}>Total</span>
-                    <span style={{ color:'#C85F2D' }}>₦{totalDue?.toLocaleString()}</span>
+                    <span style={{ color:'#B8511E' }}>₦{totalDue?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -286,7 +286,7 @@ function HotelCard({ hotel, onBook }) {
           : <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor:'rgba(200,95,45,0.08)' }}></div>
         }
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-          style={{ backgroundColor: hotel.category === 'hotel' ? '#17211B' : '#C85F2D', color:'#FFFFFF' }}>
+          style={{ backgroundColor: hotel.category === 'hotel' ? '#17211B' : '#B8511E', color:'#FFFFFF' }}>
           {hotel.category === 'hotel' ? 'Hotel' : 'Short-let'}
         </div>
         {!available && (
@@ -297,7 +297,7 @@ function HotelCard({ hotel, onBook }) {
       <div className="p-4">
         <h3 className="font-display font-black text-base mb-1" style={{ color:'#17211B' }}>{hotel.title}</h3>
         <div className="flex items-center gap-1 text-xs mb-2" style={{ color:'#647068' }}>
-          <MapPin size={11} style={{ color:'#C85F2D' }} />
+          <MapPin size={11} style={{ color:'#B8511E' }} />
           <span>{hotel.city}, {hotel.state}</span>
         </div>
         {hotel.features?.length > 0 && (
@@ -311,7 +311,7 @@ function HotelCard({ hotel, onBook }) {
         <div className="flex items-center justify-between mb-3">
           <div>
             {minPrice && minPrice < Infinity ? (
-              <p className="font-black text-base" style={{ color:'#C85F2D' }}>
+              <p className="font-black text-base" style={{ color:'#B8511E' }}>
                 ₦{Number(minPrice).toLocaleString()}<span className="text-xs font-normal" style={{ color:'#647068' }}>/night</span>
               </p>
             ) : (
@@ -319,7 +319,7 @@ function HotelCard({ hotel, onBook }) {
             )}
           </div>
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? '#5C8060' : '#C85F2D' }}>
+            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? '#5C8060' : '#B8511E' }}>
             {available ? 'Available' : 'Fully Booked'}
           </span>
         </div>
@@ -331,7 +331,7 @@ function HotelCard({ hotel, onBook }) {
           </Link>
           <button onClick={() => onBook(hotel)} disabled={!available}
             className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
-            style={{ backgroundColor: available ? '#C85F2D' : 'rgba(23,33,27,0.06)', color: available ? '#FFFFFF' : '#647068' }}>
+            style={{ backgroundColor: available ? '#B8511E' : 'rgba(23,33,27,0.06)', color: available ? '#FFFFFF' : '#647068' }}>
             {available ? 'Book Now' : 'Fully Booked'}
           </button>
         </div>
@@ -400,9 +400,9 @@ export default function HotelsPage() {
             <button key={t} onClick={() => setTypeFilter(t)}
               className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
-                backgroundColor: typeFilter === t ? '#C85F2D' : '#FFFFFF',
+                backgroundColor: typeFilter === t ? '#B8511E' : '#FFFFFF',
                 color:           typeFilter === t ? '#FFFFFF' : '#5C4A3A',
-                borderColor:     typeFilter === t ? '#C85F2D' : '#DEDDD6',
+                borderColor:     typeFilter === t ? '#B8511E' : '#DEDDD6',
               }}>{t}</button>
           ))}
         </div>

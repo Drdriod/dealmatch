@@ -30,8 +30,8 @@ export default function MatchToast({ property, onClose }) {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Heart size={11} fill="#C85F2D" style={{ color: '#C85F2D' }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#C85F2D' }}>
+            <Heart size={11} fill="#B8511E" style={{ color: '#B8511E' }} />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#B8511E' }}>
               New Match!
             </span>
           </div>
@@ -41,7 +41,7 @@ export default function MatchToast({ property, onClose }) {
           </p>
         </div>
         <button onClick={onClose} className="w-7 h-7 flex items-center justify-center flex-shrink-0"
-          style={{ color: 'rgba(255,255,255,0.3)' }}>
+          style={{ color: 'rgba(255,255,255,0.55)' }}>
           <X size={14} />
         </button>
       </div>

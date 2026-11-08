@@ -145,14 +145,14 @@ export default function StudentVerifyPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C85F2D' }} />
+      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#B8511E' }} />
     </div>
   )
 
   const STATUS_META = {
     pending:  { label: 'Under Review',  color: '#D4A853', bg: 'rgba(212,168,83,0.08)',  border: 'rgba(212,168,83,0.2)',  icon: Clock    },
     approved: { label: 'Verified',   color: '#7A9E7E', bg: 'rgba(122,158,126,0.08)', border: 'rgba(122,158,126,0.2)', icon: Check    },
-    rejected: { label: 'Rejected',      color: '#C85F2D', bg: 'rgba(200,95,45,0.08)',  border: 'rgba(200,95,45,0.2)',  icon: X        },
+    rejected: { label: 'Rejected',      color: '#B8511E', bg: 'rgba(200,95,45,0.08)',  border: 'rgba(200,95,45,0.2)',  icon: X        },
   }
   const statusMeta = existing ? STATUS_META[existing.status] : null
 
@@ -190,7 +190,7 @@ export default function StudentVerifyPage() {
               {existing.status === 'approved' && (
                 <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
                   You can now view owner contact details on all hostel listings.{' '}
-                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: '#C85F2D' }}>Explore hostels →</Link>
+                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: '#B8511E' }}>Explore hostels →</Link>
                 </p>
               )}
               {existing.status === 'rejected' && (
@@ -224,7 +224,7 @@ export default function StudentVerifyPage() {
             {/* Why verify */}
             <div className="rounded-2xl p-4 flex items-start gap-3"
               style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <Info size={16} style={{ color: '#C85F2D', flexShrink: 0, marginTop: 2 }} />
+              <Info size={16} style={{ color: '#B8511E', flexShrink: 0, marginTop: 2 }} />
               <div className="text-xs" style={{ color: '#647068' }}>
                 <strong style={{ color: '#17211B' }}>Why we verify:</strong> Hostel owners listed here are real. We verify students so that owners know genuine students are contacting them - this keeps scams out on both sides.
               </div>
@@ -233,7 +233,7 @@ export default function StudentVerifyPage() {
             {/* Institution */}
             <div>
               <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Your School <span style={{ color: '#C85F2D' }}>*</span>
+                Your School <span style={{ color: '#B8511E' }}>*</span>
               </label>
               <div className="relative">
                 <select value={form.institution_id} onChange={e => {
@@ -252,7 +252,7 @@ export default function StudentVerifyPage() {
             {/* ID type selector */}
             <div>
               <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Student ID Type <span style={{ color: '#C85F2D' }}>*</span>
+                Student ID Type <span style={{ color: '#B8511E' }}>*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -265,9 +265,9 @@ export default function StudentVerifyPage() {
                     className="p-3 rounded-xl text-left transition-all"
                     style={{
                       backgroundColor: form.id_type === opt.id ? 'rgba(200,95,45,0.08)' : '#F5EDE0',
-                      border: `1.5px solid ${form.id_type === opt.id ? '#C85F2D' : 'transparent'}`,
+                      border: `1.5px solid ${form.id_type === opt.id ? '#B8511E' : 'transparent'}`,
                     }}>
-                    <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? '#C85F2D' : '#17211B' }}>
+                    <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? '#B8511E' : '#17211B' }}>
                       {opt.label}
                     </div>
                     <div className="text-xs mt-0.5 leading-tight" style={{ color: '#647068' }}>{opt.sub}</div>
@@ -280,7 +280,7 @@ export default function StudentVerifyPage() {
             {form.id_type === 'matric' && (
               <div>
                 <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  Matriculation Number <span style={{ color: '#C85F2D' }}>*</span>
+                  Matriculation Number <span style={{ color: '#B8511E' }}>*</span>
                 </label>
                 <input value={form.matric_number} onChange={set('matric_number')}
                   placeholder="e.g. 190401045" autoCapitalize="characters"
@@ -296,7 +296,7 @@ export default function StudentVerifyPage() {
             {form.id_type === 'jamb' && (
               <div>
                 <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  JAMB Registration Number <span style={{ color: '#C85F2D' }}>*</span>
+                  JAMB Registration Number <span style={{ color: '#B8511E' }}>*</span>
                 </label>
                 <input value={form.jamb_reg_number} onChange={set('jamb_reg_number')}
                   placeholder="e.g. 20376549AB" autoCapitalize="characters" maxLength={12}
@@ -313,7 +313,7 @@ export default function StudentVerifyPage() {
             {form.id_type === 'application' && (
               <div>
                 <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  Application Number <span style={{ color: '#C85F2D' }}>*</span>
+                  Application Number <span style={{ color: '#B8511E' }}>*</span>
                 </label>
                 <input value={form.application_number} onChange={set('application_number')}
                   placeholder="e.g. APP/2024/00123" autoCapitalize="characters"
@@ -340,7 +340,7 @@ export default function StudentVerifyPage() {
             {/* Student ID upload */}
             <div>
               <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Student ID Card Photo <span style={{ color: '#C85F2D' }}>*</span>
+                Student ID Card Photo <span style={{ color: '#B8511E' }}>*</span>
               </label>
               <label className="block cursor-pointer">
                 {previewUrl ? (
@@ -366,7 +366,7 @@ export default function StudentVerifyPage() {
                       </div>
                     ) : (
                       <>
-                        <Upload size={24} style={{ color: '#C85F2D', margin: '0 auto 8px' }} />
+                        <Upload size={24} style={{ color: '#B8511E', margin: '0 auto 8px' }} />
                         <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Upload your student ID</p>
                         <p className="text-xs mt-1" style={{ color: '#647068' }}>
                           NIN card, school ID card, or any valid student ID

@@ -71,7 +71,7 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
           <button key={t} onClick={() => setThreadType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{
-              background: threadType === t ? '#C85F2D' : '#F7F4ED',
+              background: threadType === t ? '#B8511E' : '#F7F4ED',
               color: threadType === t ? '#fff' : '#647068',
             }}>
             {t === 'QUESTION' ? 'Ask a question' : 'Start a discussion'}
@@ -230,7 +230,7 @@ function GroupView({ category, childCategories }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Breadcrumb items={[category]} />
-      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C85F2D' }}>{category.name}</p>
+      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#B8511E' }}>{category.name}</p>
       <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{category.tagline || category.name}</h1>
       <p className="text-sm text-gray-500 mb-6">{category.description}</p>
       <div className="grid gap-3">
@@ -254,7 +254,7 @@ function CategoryView({ category, breadcrumb, threads, onCreated }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Breadcrumb items={breadcrumb.slice(1)} />
-      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#C85F2D' }}>{category.name}</p>
+      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#B8511E' }}>{category.name}</p>
       <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{category.tagline || category.name}</h1>
       <p className="text-sm text-gray-500 mb-6">{category.description}</p>
       <NewThreadForm categorySlugPath={slugPath} onCreated={onCreated} />
@@ -268,7 +268,7 @@ function CategoryView({ category, breadcrumb, threads, onCreated }) {
                 <div className="flex items-center gap-2 font-semibold" style={{ color: '#17211B' }}>
                   {t.is_pinned && <Pin size={14} className="text-terracotta" />}
                   {t.title}
-                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F7F4ED', color: '#C85F2D' }}>Q</span>}
+                  {t.thread_type === 'QUESTION' && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F7F4ED', color: '#B8511E' }}>Q</span>}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">{timeAgo(t.last_activity_at)}</div>
               </div>

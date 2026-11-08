@@ -109,7 +109,7 @@ export default function Carousel({ items, renderItem, perPage = 3, autoPlayMs = 
                 className="rounded-full transition-all"
                 style={{
                   width: i === page ? 18 : 6, height: 6,
-                  backgroundColor: i === page ? '#C85F2D' : '#DEDDD6',
+                  backgroundColor: i === page ? '#B8511E' : '#DEDDD6',
                 }} />
             ))}
           </div>

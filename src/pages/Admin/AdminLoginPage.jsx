@@ -63,7 +63,7 @@ function ForgotPassword({ onBack }) {
       </p>
       <button onClick={onBack}
         className="text-xs font-semibold flex items-center gap-1.5 mx-auto"
-        style={{ color:'rgba(255,255,255,0.4)' }}>
+        style={{ color:'rgba(255,255,255,0.6)' }}>
         <ArrowLeft size={12} /> Back to login
       </button>
     </motion.div>
@@ -73,7 +73,7 @@ function ForgotPassword({ onBack }) {
     <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}>
       <button onClick={onBack}
         className="flex items-center gap-1.5 text-xs font-semibold mb-6"
-        style={{ color:'rgba(255,255,255,0.4)' }}>
+        style={{ color:'rgba(255,255,255,0.6)' }}>
         <ArrowLeft size={12} /> Back to login
       </button>
       <div className="text-center mb-6">
@@ -224,9 +224,9 @@ export default function AdminLoginPage() {
               {isLocked && (
                 <div className="rounded-2xl p-4 mb-5 flex items-start gap-3"
                   style={{ backgroundColor:'rgba(200,95,45,0.15)', border:'1px solid rgba(200,95,45,0.3)' }}>
-                  <AlertTriangle size={16} style={{ color:'#C85F2D', flexShrink:0, marginTop:1 }} />
+                  <AlertTriangle size={16} style={{ color:'#B8511E', flexShrink:0, marginTop:1 }} />
                   <div>
-                    <p className="text-sm font-semibold" style={{ color:'#C85F2D' }}>Too many failed attempts</p>
+                    <p className="text-sm font-semibold" style={{ color:'#B8511E' }}>Too many failed attempts</p>
                     <p className="text-xs mt-0.5" style={{ color:'rgba(200,95,45,0.8)' }}>
                       {lockedMsg}
                     </p>
@@ -292,7 +292,7 @@ export default function AdminLoginPage() {
                     />
                     <button type="button" onClick={() => setShowPass(v => !v)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2"
-                      style={{ color:'rgba(255,255,255,0.4)' }}>
+                      style={{ color:'rgba(255,255,255,0.6)' }}>
                       {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
@@ -302,7 +302,7 @@ export default function AdminLoginPage() {
                 {!showForgotHint && (
                   <div className="text-right">
                     <button type="button" onClick={() => setShowForgot(true)}
-                      className="text-xs" style={{ color:'rgba(255,255,255,0.3)' }}>
+                      className="text-xs" style={{ color:'rgba(255,255,255,0.55)' }}>
                       Forgot password?
                     </button>
                   </div>

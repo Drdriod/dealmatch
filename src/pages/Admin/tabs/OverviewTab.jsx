@@ -52,7 +52,7 @@ export function OverviewTab() {
 
   useEffect(()=>{load()},[load])
 
-  const SC={pending_review:'#D4A853',active:'#7A9E7E',rejected:'#C85F2D',paused:'#888',sold:'#888'}
+  const SC={pending_review:'#D4A853',active:'#7A9E7E',rejected:'#B8511E',paused:'#888',sold:'#888'}
   if(loading) return <Spinner/>
 
   // ── Derived view data (every figure traces back to a query above) ──────────
@@ -90,7 +90,7 @@ export function OverviewTab() {
     { label:'Active listings', value:v(stats?.activeListings), sub: lst ? `+${sumLast(lst)} new in last 7 days` : 'Listings unavailable', to:'/admin/properties', color:'#7A9E7E', icon:Home, spark:vals(lst) },
     { label:'Pending review', value:v(stats?.pendingListings), sub:'Listings awaiting a decision', to:'/admin/properties', color:'#D4A853', icon:Clock },
     { label:'Total revenue', value: stats?.totalRevenue==null ? '—' : fmt(stats.totalRevenue), sub: pay ? `${fmt(sumLast(pay))} in last 7 days` : 'Payments unavailable', color:'#D4A853', icon:Wallet, spark:vals(pay) },
-    { label:'ID pending', value:v(stats?.pendingIdentity), sub:'Identity checks to review', to:'/admin/identity', color:'#C85F2D', icon:Shield },
+    { label:'ID pending', value:v(stats?.pendingIdentity), sub:'Identity checks to review', to:'/admin/identity', color:'#B8511E', icon:Shield },
     { label:'Professionals', value:v(stats?.totalPros), sub:'Active professional accounts', to:'/admin/professionals', color:'#5B8DEF', icon:Briefcase },
     { label:'Mortgage apps', value:v(stats?.mortgageApps), sub:'All applications', to:'/admin/mortgage', color:'#888', icon:FileText },
     { label:'Enquiries', value:v(stats?.rentalEnquiries), sub:'Rental enquiries received', to:'/admin/enquiries', color:'#888', icon:MessageSquare },
@@ -101,16 +101,16 @@ export function OverviewTab() {
     { label:'Pending review', value:command?.mix.pending_review??0, color:'#D4A853' },
     { label:'Paused', value:command?.mix.paused??0, color:'#888888' },
     { label:'Sold', value:command?.mix.sold??0, color:'#F0D4BE' },
-    { label:'Rejected', value:command?.mix.rejected??0, color:'#C85F2D' },
+    { label:'Rejected', value:command?.mix.rejected??0, color:'#B8511E' },
   ]
   const mixTotal = mixSlices.reduce((s,x)=>s+x.value,0)
 
   const queues = [
-    { key:'id', label:'ID verifications', sub:'Identity documents submitted', count:stats?.pendingIdentity, to:'/admin/identity', color:'#C85F2D' },
+    { key:'id', label:'ID verifications', sub:'Identity documents submitted', count:stats?.pendingIdentity, to:'/admin/identity', color:'#B8511E' },
     { key:'listings', label:'Listings to review', sub:'Pending review', count:stats?.pendingListings, to:'/admin/properties', color:'#D4A853' },
     { key:'students', label:'Student IDs', sub:'Pending verification', count:command?.studentIds, to:'/admin/student-verifications', color:'#5B8DEF' },
     { key:'complaints', label:'Complaints', sub:'Open or escalated', count:command?.complaints, to:'/admin/complaints', color:'#C94A3A' },
-    { key:'failed', label:'Failed payouts', sub:'Retry from Payouts', count:command?.failedPayouts, to:'/admin/payouts', color:'#C85F2D' },
+    { key:'failed', label:'Failed payouts', sub:'Retry from Payouts', count:command?.failedPayouts, to:'/admin/payouts', color:'#B8511E' },
     { key:'withdrawals', label:'Withdrawal requests', sub:'Awaiting approval', count:command?.withdrawals, to:'/admin/payouts', color:'#D4A853' },
     { key:'bank', label:'Bank accounts', sub:'Payout accounts to verify', count:command?.bankAccounts, to:'/admin/payouts', color:'#8B6BD9' },
   ]
@@ -159,7 +159,7 @@ export function OverviewTab() {
               </div>
               <span className="text-2xl font-black text-white leading-none truncate">{k.value}</span>
               {k.spark && k.spark.some(x=>x>0) && <Sparkline values={k.spark} color={k.color} height={30}/>}
-              <span className="text-[11px] truncate" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</span>
+              <span className="text-[11px] truncate" style={{color:'rgba(255,255,255,0.6)'}}>{k.sub}</span>
             </button>
           )
         })}
@@ -211,7 +211,7 @@ export function OverviewTab() {
                 <div className="rounded-xl py-8 px-4 text-center" style={{background:'rgba(122,158,126,0.06)',border:'1px solid rgba(122,158,126,0.15)'}}>
                   <CheckCircle size={20} className="mx-auto mb-2" style={{color:'#7A9E7E'}}/>
                   <p className="text-sm font-semibold text-white">All queues are clear</p>
-                  <p className="text-xs mt-1" style={{color:'rgba(255,255,255,0.4)'}}>Nothing is waiting on a decision right now.</p>
+                  <p className="text-xs mt-1" style={{color:'rgba(255,255,255,0.6)'}}>Nothing is waiting on a decision right now.</p>
                 </div>
               )
           ) : (
@@ -223,10 +223,10 @@ export function OverviewTab() {
                   <span className="w-1 h-9 rounded-full shrink-0" style={{background:q.color}}/>
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-white truncate">{q.label}</span>
-                    <span className="block text-[11px] truncate" style={{color:'rgba(255,255,255,0.4)'}}>{q.sub}</span>
+                    <span className="block text-[11px] truncate" style={{color:'rgba(255,255,255,0.6)'}}>{q.sub}</span>
                   </span>
                   <span className="text-lg font-black text-white leading-none shrink-0">{fmtNum(q.count)}</span>
-                  <ChevronRight size={14} className="shrink-0" style={{color:'rgba(255,255,255,0.3)'}}/>
+                  <ChevronRight size={14} className="shrink-0" style={{color:'rgba(255,255,255,0.55)'}}/>
                 </button>
               ))}
             </div>
@@ -251,9 +251,9 @@ export function OverviewTab() {
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-semibold text-white truncate">{e.title}</span>
-                      <span className="block text-[11px] truncate" style={{color:'rgba(255,255,255,0.4)'}}>{e.sub}</span>
+                      <span className="block text-[11px] truncate" style={{color:'rgba(255,255,255,0.6)'}}>{e.sub}</span>
                     </span>
-                    <span className="text-[11px] shrink-0" style={{color:'rgba(255,255,255,0.3)'}}>{ago(e.at)}</span>
+                    <span className="text-[11px] shrink-0" style={{color:'rgba(255,255,255,0.55)'}}>{ago(e.at)}</span>
                   </li>
                 )
               })}

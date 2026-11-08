@@ -29,7 +29,7 @@ export function StudentVerificationsTab() {
   const [reject,setReject]=useState(null)
   const [reason,setReason]=useState('')
   const [lightbox,setLightbox]=useState(null)
-  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
+  const SC={pending:'#D4A853',approved:'#7A9E7E',rejected:'#B8511E'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -82,12 +82,12 @@ export function StudentVerificationsTab() {
                       <span className="text-white font-semibold text-sm">{name}</span>
                       <Badge label={v.status||'pending'} color={SC[v.status]||'#888'}/>
                     </div>
-                    <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{maskEmail(v.profiles?.email)} · {v.institution_name||'N/A'}</div>
-                    <div className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>
+                    <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.6)'}}>{maskEmail(v.profiles?.email)} · {v.institution_name||'N/A'}</div>
+                    <div className="text-xs" style={{color:'rgba(255,255,255,0.6)'}}>
                       {v.matric_number?<>Matric: <span className="text-white font-mono">{v.matric_number}</span></>:v.jamb_reg_number?<>JAMB: <span className="text-white font-mono">{v.jamb_reg_number}</span> <Badge label="Fresher" color="#5B8DEF"/></>:v.application_number?<>App: <span className="text-white font-mono">{v.application_number}</span></>:'N/A'}
                     </div>
-                    <div className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.3)'}}>{ago(v.created_at)}</div>
-                    {v.rejection_reason&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Reason: {v.rejection_reason}</div>}
+                    <div className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.55)'}}>{ago(v.created_at)}</div>
+                    {v.rejection_reason&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#B8511E'}}>Reason: {v.rejection_reason}</div>}
                   </div>
                   {v.id_image_signed&&<button onClick={()=>setLightbox({src:v.id_image_signed,label:`${name} - Student ID`})} className="flex-shrink-0 relative overflow-hidden rounded-xl border" style={{width:80,height:56,borderColor:'rgba(255,255,255,0.1)'}}>
                     <img src={v.id_image_signed} alt="Student ID" className="w-full h-full object-cover"/>
@@ -97,26 +97,26 @@ export function StudentVerificationsTab() {
                 {v.status==='pending'&&(
                   <div className="flex gap-2 mt-3">
                     <button onClick={()=>setConfirm({title:'Approve student?',body:`${name} will be verified and can view hostel contacts.`,onConfirm:()=>approve(v.id,v.user_id,name)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}><Check size={12}/> Approve</button>
-                    <button onClick={()=>setReject({id:v.id,userId:v.user_id,name})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D',border:'1px solid rgba(200,95,45,0.2)'}}><X size={12}/> Reject</button>
+                    <button onClick={()=>setReject({id:v.id,userId:v.user_id,name})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#B8511E',border:'1px solid rgba(200,95,45,0.2)'}}><X size={12}/> Reject</button>
                   </div>
                 )}
               </div>
             )
           })}
-          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No {filter==='all'?'':filter} verifications</div>}
+          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No {filter==='all'?'':filter} verifications</div>}
         </div>
       )}
       <AnimatePresence>
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(6px)'}}>
             <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} className="w-full max-w-sm rounded-3xl p-6" style={{backgroundColor:'#1E1510',border:'1px solid rgba(255,255,255,0.08)'}}>
-              <X size={22} style={{color:'#C85F2D'}} className="mb-3"/>
+              <X size={22} style={{color:'#B8511E'}} className="mb-3"/>
               <h3 className="text-white font-bold text-lg mb-1">Reject Verification</h3>
               <p className="text-sm mb-4" style={{color:'rgba(255,255,255,0.45)'}}>Tell <strong className="text-white">{reject.name}</strong> why their ID was rejected.</p>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="e.g. ID photo is blurry, please upload a clearer image" className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}/>
               <div className="flex gap-3">
                 <button onClick={()=>{setReject(null);setReason('')}} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#B8511E',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>

@@ -109,7 +109,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
         className="w-full max-w-md rounded-3xl overflow-hidden"
         style={{ backgroundColor:'#FFFAF5', maxHeight:'90vh', overflowY:'auto' }}>
         <div className="p-5 border-b" style={{ borderColor:'#DEDDD6' }}>
-          <h3 className="font-display font-black text-lg" style={{ color:'#C85F2D' }}>File a Dispute</h3>
+          <h3 className="font-display font-black text-lg" style={{ color:'#B8511E' }}>File a Dispute</h3>
           <p className="text-xs mt-0.5" style={{ color:'#647068' }}>DealMatch team will investigate within 48 hours</p>
         </div>
         <div className="p-5 space-y-4">
@@ -119,7 +119,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
               {REASONS.map(r => (
                 <button key={r} onClick={() => setReason(r)}
                   className="px-3 py-2 rounded-full text-xs font-medium border-2 transition-all"
-                  style={{ borderColor: reason === r ? '#C85F2D' : '#DEDDD6', backgroundColor: reason === r ? '#C85F2D' : '#FFFFFF', color: reason === r ? '#FFFFFF' : '#5C4A3A' }}>
+                  style={{ borderColor: reason === r ? '#B8511E' : '#DEDDD6', backgroundColor: reason === r ? '#B8511E' : '#FFFFFF', color: reason === r ? '#FFFFFF' : '#5C4A3A' }}>
                   {r}
                 </button>
               ))}
@@ -132,7 +132,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
               className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
           </div>
           <div className="rounded-xl p-3" style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.2)' }}>
-            <p className="text-xs" style={{ color:'#C85F2D' }}>
+            <p className="text-xs" style={{ color:'#B8511E' }}>
               Filing a false dispute may result in account suspension. Only file if you have a genuine issue.
             </p>
           </div>
@@ -140,7 +140,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
             <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-sm font-semibold border" style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>Cancel</button>
             <button onClick={handleSubmit} disabled={saving || !reason || !desc}
               className="flex-1 py-3 rounded-2xl text-sm font-bold"
-              style={{ backgroundColor:'#C85F2D', color:'#FFFFFF', opacity: (!reason || !desc) ? 0.5 : 1 }}>
+              style={{ backgroundColor:'#B8511E', color:'#FFFFFF', opacity: (!reason || !desc) ? 0.5 : 1 }}>
               {saving ? 'Filing...' : 'File Dispute'}
             </button>
           </div>
@@ -219,7 +219,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
             className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor:'rgba(200,95,45,0.1)' }}
             title="File a dispute">
-            <AlertCircle size={14} style={{ color:'#C85F2D' }} />
+            <AlertCircle size={14} style={{ color:'#B8511E' }} />
           </button>
         </div>
       </div>
@@ -238,12 +238,12 @@ function MessageThread({ thread, currentUserId, onBack }) {
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-sm"
                 style={{
-                  backgroundColor: isMe ? '#C85F2D' : '#FFFFFF',
+                  backgroundColor: isMe ? '#B8511E' : '#FFFFFF',
                   color:           isMe ? '#FFFFFF' : '#17211B',
                   borderRadius:    isMe ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                   border:          isMe ? 'none' : '1px solid #DEDDD6',
                 }}>
-                {!isMe && <p className="text-[10px] font-semibold mb-0.5" style={{ color:'#C85F2D' }}>{msg.sender_name}</p>}
+                {!isMe && <p className="text-[10px] font-semibold mb-0.5" style={{ color:'#B8511E' }}>{msg.sender_name}</p>}
                 <p className="leading-relaxed">{msg.content}</p>
                 <p className="text-[10px] mt-1 text-right" style={{ color: isMe ? 'rgba(255,255,255,0.6)' : '#647068' }}>
                   {new Date(msg.created_at).toLocaleTimeString('en-NG',{ hour:'2-digit', minute:'2-digit' })}
@@ -264,7 +264,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
           style={{ backgroundColor:'#FFFFFF', color:'#17211B', borderColor:'#DEDDD6' }} />
         <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
           className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all"
-          style={{ backgroundColor: newMsg.trim() ? '#C85F2D' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? '#FFFFFF' : '#647068' }}>
+          style={{ backgroundColor: newMsg.trim() ? '#B8511E' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? '#FFFFFF' : '#647068' }}>
           <Send size={16} />
         </button>
       </div>
@@ -390,7 +390,7 @@ export default function MessagesPage() {
                 className="w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:-translate-y-0.5"
                 style={{ backgroundColor: t.unread ? 'rgba(200,95,45,0.04)' : '#FFFAF5', borderColor: t.unread ? 'rgba(200,95,45,0.25)' : '#DEDDD6' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-black text-lg"
-                  style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#C85F2D' }}>
+                  style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#B8511E' }}>
                   {t.other_user_name[0] || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -408,7 +408,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
                 {t.unread && (
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor:'#C85F2D' }} />
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor:'#B8511E' }} />
                 )}
               </button>
             ))}

@@ -3,6 +3,8 @@ import React, { Suspense, Component, useEffect, useRef } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { ConfirmProvider } from '@/components/ui/ConfirmDialog'
+import A11yEffects from '@/components/ui/A11yEffects'
 import { lazyWithRetry } from '@/lib/lazyLoad'
 import { captureRenderError } from '@/lib/sentry'
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
@@ -114,13 +116,13 @@ class ErrorBoundary extends Component {
         </h1>
         <p style={{ color:'#647068', fontSize:14, maxWidth:320, lineHeight:1.6, margin:0 }}>
           DealMatch hit an unexpected error. Our team has been notified. Please try refreshing or{' '}
-          <a href="/" style={{ color:'#C85F2D', fontWeight:600 }}>return home</a>.
+          <a href="/" style={{ color:'#B8511E', fontWeight:600 }}>return home</a>.
         </p>
         <button
           onClick={() => { this.setState({ hasError:false, error:null }); window.location.href = '/' }}
           style={{
             marginTop:8, padding:'12px 28px', borderRadius:100,
-            backgroundColor:'#C85F2D', color:'#fff',
+            backgroundColor:'#B8511E', color:'#fff',
             fontWeight:700, fontSize:14, border:'none', cursor:'pointer',
           }}>
           Go home
@@ -197,7 +199,7 @@ const PageSkeleton = () => (
       <div style={{ position:'relative', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{
           position:'absolute', width:44, height:44, borderRadius:'50%',
-          border:'2.5px solid #DEDDD6', borderTopColor:'#C85F2D',
+          border:'2.5px solid #DEDDD6', borderTopColor:'#B8511E',
           animation:'dm-spin 0.8s linear infinite',
         }} />
         <img src="/brand/dealmatch-icon-transparent.png" alt="" style={{ width:22, height:'auto', animation:'dm-skel-breathe 1.6s ease-in-out infinite' }} />
@@ -900,11 +902,14 @@ export default function App() {
                   fontSize:'14px', lineHeight:'1.45', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
                 },
                 success: { iconTheme:{ primary:'#7A9E7E', secondary:'#F7F4ED' } },
-                error:   { iconTheme:{ primary:'#C85F2D', secondary:'#F7F4ED' } },
+                error:   { iconTheme:{ primary:'#B8511E', secondary:'#F7F4ED' } },
               }}
             />
-            <WaLinkResume />
-            <AnimatedRoutes />
+            <ConfirmProvider>
+              <A11yEffects />
+              <WaLinkResume />
+              <AnimatedRoutes />
+            </ConfirmProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

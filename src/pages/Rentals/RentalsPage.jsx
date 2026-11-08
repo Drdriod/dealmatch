@@ -115,7 +115,7 @@ function InterestModal({ rental, onClose }) {
             <div className="flex justify-center mb-4">
               {contact?.phone
                 ? <CheckCircle size={48} className="text-green-600" />
-                : <Lock size={40} style={{ color: '#C85F2D' }} />}
+                : <Lock size={40} style={{ color: '#B8511E' }} />}
             </div>
             <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>
               {contact?.phone ? 'Interest Recorded!' : 'One Step Left'}
@@ -157,7 +157,7 @@ function InterestModal({ rental, onClose }) {
                 <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{rental.title}</p>
                 <p className="text-xs" style={{ color:'#647068' }}>{rental.city}, {rental.state}</p>
               </div>
-              <p className="font-black text-base" style={{ color:'#C85F2D' }}>{formatPrice(rental.price)}/yr</p>
+              <p className="font-black text-base" style={{ color:'#B8511E' }}>{formatPrice(rental.price)}/yr</p>
             </div>
 
             {[
@@ -234,7 +234,7 @@ function RentalCard({ rental, onInterest }) {
         }
         {rental.hostVerified && (
           <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
-            style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
+            style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
             Verified Host
           </div>
         )}
@@ -246,15 +246,15 @@ function RentalCard({ rental, onInterest }) {
       <div className="p-5">
         <h3 className="font-display font-black text-base mb-1" style={{ color:'#17211B' }}>{rental.title}</h3>
         <div className="flex items-center gap-1 text-xs mb-3" style={{ color:'#647068' }}>
-          <MapPin size={11} style={{ color:'#C85F2D' }} />
+          <MapPin size={11} style={{ color:'#B8511E' }} />
           <span>{rental.city}, {rental.state}</span>
         </div>
         <div className="flex gap-2 mb-3 text-[10px] font-bold uppercase tracking-wide">
           {rental.verified_at && <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(23,33,27,0.08)', color:'#17211B' }}>Verified</span>}
-          <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#C85F2D' }}>Available</span>
+          <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#B8511E' }}>Available</span>
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-black text-lg" style={{ color:'#C85F2D' }}>
+          <p className="font-black text-lg" style={{ color:'#B8511E' }}>
             {formatPrice(rental.price)}
             <span className="text-xs font-normal" style={{ color:'#647068' }}>
               {priceSuffix(rental)}
@@ -269,13 +269,13 @@ function RentalCard({ rental, onInterest }) {
         {isSaleListing(rental) ? (
           <Link to={`/property/${rental.id}`}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
             View details
           </Link>
         ) : (
           <button onClick={() => onInterest(rental)}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'#C85F2D', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
             <MessageCircle size={14} /> I'm Interested
           </button>
         )}
@@ -407,9 +407,9 @@ export default function RentalsPage() {
                   <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug)}
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                     style={{
-                      backgroundColor: kindLeaf === c.slug ? '#C85F2D' : '#FFFFFF',
+                      backgroundColor: kindLeaf === c.slug ? '#B8511E' : '#FFFFFF',
                       color:           kindLeaf === c.slug ? '#FFFFFF' : '#5C4A3A',
-                      borderColor:     kindLeaf === c.slug ? '#C85F2D' : '#DEDDD6',
+                      borderColor:     kindLeaf === c.slug ? '#B8511E' : '#DEDDD6',
                     }}>{c.name}</button>
                 ))}
               </div>
@@ -467,7 +467,7 @@ export default function RentalsPage() {
                   <p className="text-xs mb-4" style={{ color:'#647068' }}>Got a place of your own to rent out? List it and reach verified seekers.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button onClick={loadRentals} className="btn-primary px-8 py-3 text-sm">Refresh</button>
-                    <Link to={emptyListPath(type)} className="text-sm font-bold px-8 py-3 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>List a place</Link>
+                    <Link to={emptyListPath(type)} className="text-sm font-bold px-8 py-3 rounded-full border" style={{ borderColor:'#B8511E', color:'#B8511E' }}>List a place</Link>
                   </div>
                 </div>
               )
@@ -481,7 +481,7 @@ export default function RentalsPage() {
                   <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No matching places found yet. Try adjusting your search.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
                     <button onClick={() => { setSearch(''); setType('All'); setStateF('All States'); setKindGroup(''); setKindLeaf('') }} className="btn-primary inline-flex px-6 py-2.5 text-sm">Update Search</button>
-                    <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#C85F2D', color:'#C85F2D' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
+                    <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#B8511E', color:'#B8511E' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
                   </div>
                 </div>
               ) : (

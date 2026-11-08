@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </div>
           </Link>
           <Link to="/find-provider" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: '#C85F2D', minHeight: 140 }}>
+            style={{ backgroundColor: '#B8511E', minHeight: 140 }}>
             <HardHat size={26} className="text-white" />
             <div>
               <p className="font-display text-lg leading-tight text-white">Explore People</p>

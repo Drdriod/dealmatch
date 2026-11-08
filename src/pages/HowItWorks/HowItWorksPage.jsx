@@ -5,7 +5,7 @@ import { ShieldCheck, Search, MessageCircle, Lock, CheckCircle2, Home, Wrench } 
 // Spec palette - do not substitute the warm tones used elsewhere in the app.
 const C = {
   bg:      '#EEE9DE',
-  primary: '#C85F2D',
+  primary: '#B8511E',
   text:    '#17211B',
   dark:    '#1C1410',
   line:    '#DEDDD6',

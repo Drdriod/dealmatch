@@ -21,7 +21,7 @@ export default function PlacesRail() {
             <h2 className="font-display text-3xl" style={{ color: '#17211B' }}>Places near you</h2>
             <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Places and homes worth seeing.</p>
           </div>
-          <Link to="/places" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: '#C85F2D' }}>
+          <Link to="/places" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: '#B8511E' }}>
             See all <ArrowRight size={13} />
           </Link>
         </div>

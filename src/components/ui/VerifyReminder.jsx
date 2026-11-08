@@ -37,7 +37,7 @@ export default function VerifyReminder({ returnTo, className = '' }) {
           <span className="font-bold">Verify your identity (about 2 minutes).</span> It is optional for now, and required before any booking, payment or agreement.
         </p>
         <Link to="/verify-identity" state={returnTo ? { returnTo } : undefined}
-          className="inline-block mt-2 text-xs font-bold underline" style={{ color: '#C85F2D' }}>
+          className="inline-block mt-2 text-xs font-bold underline" style={{ color: '#B8511E' }}>
           Verify now
         </Link>
       </div>

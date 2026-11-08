@@ -189,7 +189,7 @@ export default function TestimonialsSection() {
                 </p>
               ) : (
                 <button onClick={() => setShowModal(true)}
-                  className="text-sm font-bold underline" style={{ color: '#C85F2D' }}>
+                  className="text-sm font-bold underline" style={{ color: '#B8511E' }}>
                   Share your own story →
                 </button>
               )

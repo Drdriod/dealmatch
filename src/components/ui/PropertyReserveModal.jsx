@@ -164,7 +164,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <button onClick={handleReserve} disabled={submitting || confirming || !escrow}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
-              style={{ backgroundColor: '#C85F2D' }}>
+              style={{ backgroundColor: '#B8511E' }}>
               {submitting || confirming
                 ? <><Loader2 size={16} className="animate-spin" /> {confirming ? 'Confirming payment…' : 'Starting…'}</>
                 : !escrow

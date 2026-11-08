@@ -25,7 +25,7 @@ export function ProfessionalsTab() {
   const [filter,setFilter]=useState('all')
   const [search,setSearch]=useState('')
   const [confirm,setConfirm]=useState(null)
-  const SC={approved:'#7A9E7E',pending:'#D4A853',inactive:'#888',rejected:'#C85F2D'}
+  const SC={approved:'#7A9E7E',pending:'#D4A853',inactive:'#888',rejected:'#B8511E'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -50,7 +50,7 @@ export function ProfessionalsTab() {
         <SearchBar value={search} onChange={setSearch} placeholder="Search name, type, company…"/>
         <FilterBar value={filter} onChange={setFilter} options={[['all','All'],['pending','Pending Payment'],['approved','Approved'],['rejected','Rejected']]}/>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} professional{filtered.length!==1?'s':''}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{filtered.length} professional{filtered.length!==1?'s':''}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={['Name / Company','Type','Fee/mo','Rating','Status','Date','Actions']}>
           {filtered.map(p=>(
@@ -65,7 +65,7 @@ export function ProfessionalsTab() {
                 <div className="flex gap-1">
                   {p.status!=='approved'&&<ActionBtn icon={Check} color="#7A9E7E" tip="Activate" onClick={()=>setConfirm({title:'Activate professional?',body:`${p.full_name} will appear in the directory.`,onConfirm:()=>setStatus(p.id,'active',p.full_name)})}/>}
                   {p.status==='approved'&&<ActionBtn icon={Pause} color="#D4A853" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate?',body:`${p.full_name} will be hidden.`,danger:true,onConfirm:()=>setStatus(p.id,'paused',p.full_name)})}/>}
-                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${p.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.full_name)})}/>}
+                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#B8511E" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${p.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.full_name)})}/>}
                 </div>
               </td>
             </TR>

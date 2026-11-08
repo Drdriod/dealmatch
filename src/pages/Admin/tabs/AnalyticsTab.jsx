@@ -45,13 +45,13 @@ export function AnalyticsTab() {
     {label:'All Properties',value:fmtNum(data?.totalProps),icon:Home,color:'#7A9E7E'},
     {label:'Live Properties',value:fmtNum(data?.activeListings),icon:CheckCircle,color:'#7A9E7E'},
     {label:'Pending Review',value:fmtNum(data?.pendingListings),icon:Clock,color:'#D4A853'},
-    {label:'Total Pros',value:fmtNum(data?.totalPros),icon:Briefcase,color:'#C85F2D'},
-    {label:'Active Pros',value:fmtNum(data?.activePros),icon:Star,color:'#C85F2D'},
+    {label:'Total Pros',value:fmtNum(data?.totalPros),icon:Briefcase,color:'#B8511E'},
+    {label:'Active Pros',value:fmtNum(data?.activePros),icon:Star,color:'#B8511E'},
     {label:'Mortgage Apps',value:fmtNum(data?.mortgageApps),icon:Building,color:'#D4A853'},
     {label:'Escrow Txns',value:fmtNum(data?.escrowTxns),icon:Wallet,color:'#5B8DEF'},
     {label:'Total Revenue',value:fmt(data?.totalRevenue||0),icon:TrendingUp,color:'#D4A853'},
     {label:'Rental Enquiries',value:fmtNum(data?.rentalEnquiries),icon:MessageSquare,color:'#888'},
-    {label:'ID Pending',value:fmtNum(data?.pendingIdentity),icon:Shield,color:'#C85F2D'},
+    {label:'ID Pending',value:fmtNum(data?.pendingIdentity),icon:Shield,color:'#B8511E'},
     {label:'Student Pending',value:fmtNum(data?.studentVerifs||0),icon:GraduationCap,color:'#5B8DEF'},
   ]
 
@@ -81,7 +81,7 @@ export function AnalyticsTab() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <RatioBar label="Listing Approval Rate" rate={listingRate} color="#7A9E7E" subA={`${fmtNum(data?.activeListings)} live`} subB={`${fmtNum(data?.pendingListings)} pending`}/>
-        <RatioBar label="Professional Activation" rate={proRate} color="#C85F2D" subA={`${fmtNum(data?.activePros)} active`} subB={`${fmtNum((data?.totalPros||0)-(data?.activePros||0))} inactive`}/>
+        <RatioBar label="Professional Activation" rate={proRate} color="#B8511E" subA={`${fmtNum(data?.activePros)} active`} subB={`${fmtNum((data?.totalPros||0)-(data?.activePros||0))} inactive`}/>
       </div>
     </div>
   )

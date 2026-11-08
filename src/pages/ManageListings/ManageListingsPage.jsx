@@ -12,6 +12,7 @@
  * correctly (seller_id = auth.uid() / user_id = auth.uid()).
  */
 import React, { useState, useEffect, useMemo } from 'react'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, Heart, MoreVertical, Pause, Play, Plus, Trash2, Home, Package } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -40,6 +41,7 @@ const LISTING_STATUS_META = {
 }
 
 export default function ManageListingsPage() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
@@ -101,7 +103,7 @@ export default function ManageListingsPage() {
   }
 
   const remove = async (item) => {
-    if (!window.confirm('Remove this offer? This cannot be undone.')) return
+    if (!(await confirm({ title: 'Remove this offer?', message: 'This cannot be undone.', confirmLabel: 'Remove', danger: true }))) return
     setBusyId(item.id)
     // Soft-delete via status, matching the rest of the app's pattern
     // (properties/category_listings are referenced by escrow/transaction
@@ -127,7 +129,7 @@ export default function ManageListingsPage() {
           </button>
           <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>My Offers</h1>
         </div>
-        <button onClick={() => navigate('/list')} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#C85F2D' }}>
+        <button onClick={() => navigate('/list')} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#B8511E' }}>
           <Plus size={16} className="text-white" />
         </button>
       </div>
@@ -138,7 +140,7 @@ export default function ManageListingsPage() {
         {[['all', 'All'], ['active', 'Active'], ['paused', 'Paused']].map(([id, label]) => (
           <button key={id} onClick={() => setFilter(id)}
             className="px-3.5 py-1.5 rounded-full text-xs font-semibold"
-            style={filter === id ? { backgroundColor: '#C85F2D', color: '#FFF' } : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+            style={filter === id ? { backgroundColor: '#B8511E', color: '#FFF' } : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
             {label}
           </button>
         ))}

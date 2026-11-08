@@ -21,8 +21,8 @@ export default function PlaceSubtypePicker({ category, propertyType, value, onCh
               onClick={() => onChange(c.id)}
               className="px-3.5 py-2 rounded-full text-xs font-semibold border-2 transition-all"
               style={{
-                borderColor: selected ? '#C85F2D' : '#DEDDD6',
-                color: selected ? '#C85F2D' : '#647068',
+                borderColor: selected ? '#B8511E' : '#DEDDD6',
+                color: selected ? '#B8511E' : '#647068',
                 backgroundColor: selected ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
               }}>
               {c.name}

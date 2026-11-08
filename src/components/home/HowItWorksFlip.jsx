@@ -48,7 +48,7 @@ export default function HowItWorksFlip() {
               <ol className="space-y-5 mb-8">
                 {j.steps.map((s, i) => (
                   <li key={s.title} className="flex gap-4">
-                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#C85F2D' }}>
+                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#B8511E' }}>
                       <s.icon size={19} color="#FFFFFF" />
                     </span>
                     <div>

@@ -31,7 +31,7 @@ function CategoryChip({ active, onClick, children }) {
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#C85F2D] hover:text-[#C85F2D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D]"
+      className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#B8511E] hover:text-[#B8511E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E]"
       style={active
         ? { backgroundColor: '#17211B', color: '#FFFFFF', border: '1px solid #17211B' }
         : { backgroundColor: '#FFFDF8', color: '#17211B', border: '1px solid #DEDDD6' }}
@@ -140,7 +140,7 @@ export default function SearchPage() {
             />
           </div>
           <button type="submit" className="px-6 py-3.5 rounded-full text-sm font-bold flex-shrink-0"
-            style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
+            style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
             Search
           </button>
         </form>
@@ -200,7 +200,7 @@ export default function SearchPage() {
 
         {aiResults.length > 0 && (
           <div className="mb-8">
-            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#C85F2D' }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#B8511E' }}>
               Best matches {coords ? '(AI + location matched)' : '(AI matched)'}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -212,13 +212,13 @@ export default function SearchPage() {
                     <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{r.title}</p>
                     {typeof r.score === 'number' && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#C85F2D' }}>
+                        style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
                         {Math.round(r.score * 100)}% match
                       </span>
                     )}
                   </div>
                   {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
-                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C85F2D' }}>{formatPrice(r.price_cents)}</p>}
+                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#B8511E' }}>{formatPrice(r.price_cents)}</p>}
                 </Link>
               ))}
             </div>
@@ -241,7 +241,7 @@ export default function SearchPage() {
                     </div>
                     <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>{r.title}</p>
                     {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
-                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#C85F2D' }}>{formatPrice(r.price_cents)}</p>}
+                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#B8511E' }}>{formatPrice(r.price_cents)}</p>}
                   </Link>
                 </motion.div>
               ))}

@@ -20,11 +20,11 @@ const DARK_STATUS = {
   pending_review:     '#D4A853',
   under_verification: '#5B8DEF',
   active:             '#7A9E7E',
-  rejected:           '#C85F2D',
+  rejected:           '#B8511E',
 }
 
 function EmptyNote({ text }) {
-  return <p className="text-xs py-6 text-center" style={{ color:'rgba(255,255,255,0.4)' }}>{text}</p>
+  return <p className="text-xs py-6 text-center" style={{ color:'rgba(255,255,255,0.6)' }}>{text}</p>
 }
 
 const STATUS_CFG = {
@@ -267,8 +267,8 @@ export default function AgentDashboardPage() {
             {[
               { label:'Total',     value: score.total_verifications },
               { label:'Verified',  value: score.verified_count,   color:'#7A9E7E' },
-              { label:'Complaints',value: score.complaints_received, color: score.complaints_received > 0 ? '#C85F2D' : undefined },
-              { label:'Strikes',   value: `${score.strike_count}/3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C85F2D' : undefined },
+              { label:'Complaints',value: score.complaints_received, color: score.complaints_received > 0 ? '#B8511E' : undefined },
+              { label:'Strikes',   value: `${score.strike_count}/3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#B8511E' : undefined },
             ].map(s => (
               <div key={s.label} className="rounded-xl p-2 text-center" style={{ backgroundColor:'rgba(255,255,255,0.05)' }}>
                 <p className="text-lg font-black" style={{ color: s.color || 'white' }}>{s.value}</p>
@@ -300,13 +300,13 @@ export default function AgentDashboardPage() {
             <>
               <div className="flex gap-4 mb-2 text-[11px]" style={{ color:'rgba(255,255,255,0.55)' }}>
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background:'#7A9E7E' }} />Verified</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background:'#C85F2D' }} />Rejected</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background:'#B8511E' }} />Rejected</span>
               </div>
               <AreaChart
                 data={monthBuckets}
                 series={[
                   { key:'verified', label:'Verified', color:'#7A9E7E' },
-                  { key:'rejected', label:'Rejected', color:'#C85F2D' },
+                  { key:'rejected', label:'Rejected', color:'#B8511E' },
                 ]}
                 height={200}
               />
@@ -330,7 +330,7 @@ export default function AgentDashboardPage() {
                   <li key={l.id} className="py-3 flex items-center gap-3" style={{ borderTop:'1px solid rgba(255,255,255,0.06)' }}>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-white truncate">{l.title}</p>
-                      <p className="text-[11px] mt-0.5 truncate" style={{ color:'rgba(255,255,255,0.4)' }}>
+                      <p className="text-[11px] mt-0.5 truncate" style={{ color:'rgba(255,255,255,0.6)' }}>
                         {[l.city, created].filter(Boolean).join(' · ')}
                       </p>
                     </div>
@@ -348,7 +348,7 @@ export default function AgentDashboardPage() {
 
       {/* Liability declaration notice */}
       <div className="mx-4 mt-4 rounded-2xl p-3 flex items-start gap-2.5" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.15)' }}>
-        <Shield size={15} style={{ color:'#C85F2D', flexShrink:0, marginTop:1 }} />
+        <Shield size={15} style={{ color:'#B8511E', flexShrink:0, marginTop:1 }} />
         <p className="text-xs leading-relaxed" style={{ color:'#647068' }}>
           As a DealMatch agent you are legally accountable for every verification you submit. False or negligent verifications will result in strikes, suspension, and potential legal referral. All submissions are GPS-stamped, photo-evidenced, and permanently audit-logged.
         </p>
@@ -365,7 +365,7 @@ export default function AgentDashboardPage() {
             }}>
             {t.label}
             {t.count > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs" style={{ backgroundColor: tab === t.id ? 'rgba(212,168,83,0.3)' : 'rgba(200,95,45,0.15)', color: tab === t.id ? '#D4A853' : '#C85F2D' }}>
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs" style={{ backgroundColor: tab === t.id ? 'rgba(212,168,83,0.3)' : 'rgba(200,95,45,0.15)', color: tab === t.id ? '#D4A853' : '#B8511E' }}>
                 {t.count}
               </span>
             )}
@@ -429,7 +429,7 @@ export default function AgentDashboardPage() {
                   {tab === 'assigned' && !alreadyDone && (
                     <button onClick={() => initForm(property.id)}
                       className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
-                      style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D', border:'1px solid rgba(200,95,45,0.2)' }}>
+                      style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#B8511E', border:'1px solid rgba(200,95,45,0.2)' }}>
                       <FileText size={14} />
                       {isOpen ? 'Close Evidence Form' : 'Submit Verification Evidence'}
                       {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -466,7 +466,7 @@ export default function AgentDashboardPage() {
                         </p>
                         <button onClick={() => fileRef.current?.click()}
                           className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2"
-                          style={{ backgroundColor:'rgba(200,95,45,0.06)', color:'#C85F2D', border:'1.5px dashed rgba(200,95,45,0.3)' }}>
+                          style={{ backgroundColor:'rgba(200,95,45,0.06)', color:'#B8511E', border:'1.5px dashed rgba(200,95,45,0.3)' }}>
                           <Camera size={14} /> Take / Upload Photos
                         </button>
                         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
@@ -475,7 +475,7 @@ export default function AgentDashboardPage() {
                           <div className="flex gap-2 mt-2 flex-wrap">
                             {ev.photos.map((p,i) => (
                               <div key={i} className="w-16 h-16 rounded-xl overflow-hidden" style={{ border:'1px solid #DEDDD6' }}>
-                                <div className="w-full h-full flex items-center justify-center text-xs" style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D' }}>
+                                <div className="w-full h-full flex items-center justify-center text-xs" style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#B8511E' }}>
                                   <Camera size={18} />
                                 </div>
                               </div>
@@ -582,11 +582,11 @@ export default function AgentDashboardPage() {
                 {[
                   { label:'Success Rate', value:`${score.total_verifications === 0 ? 100 : Math.round(score.verified_count/score.total_verifications*100)}%`, color:'#7A9E7E' },
                   { label:'Rating',       value:`${score.rating?.toFixed(1)} / 5.0`, color:'#D4A853' },
-                  { label:'Complaints',   value:`${score.complaints_upheld} upheld / ${score.complaints_received} total`, color: score.complaints_upheld > 0 ? '#C85F2D' : '#7A9E7E' },
-                  { label:'Strikes',      value:`${score.strike_count} of 3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#C85F2D' : '#7A9E7E' },
+                  { label:'Complaints',   value:`${score.complaints_upheld} upheld / ${score.complaints_received} total`, color: score.complaints_upheld > 0 ? '#B8511E' : '#7A9E7E' },
+                  { label:'Strikes',      value:`${score.strike_count} of 3`, color: score.strike_count >= 2 ? '#C94A3A' : score.strike_count === 1 ? '#B8511E' : '#7A9E7E' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3" style={{ backgroundColor:'rgba(255,255,255,0.05)' }}>
-                    <p className="text-xs mb-0.5" style={{ color:'rgba(255,255,255,0.4)' }}>{s.label}</p>
+                    <p className="text-xs mb-0.5" style={{ color:'rgba(255,255,255,0.6)' }}>{s.label}</p>
                     <p className="text-sm font-bold" style={{ color: s.color }}>{s.value}</p>
                   </div>
                 ))}

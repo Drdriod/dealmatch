@@ -17,7 +17,7 @@ export const CHART = {
   indicator: '#D4A853',
   surface: '#17211B',
   text: '#FFFAF5',
-  palette: ['#7A9E7E', '#D4A853', '#C85F2D', '#F3C96A', '#4A7A4E', '#F0D4BE'],
+  palette: ['#7A9E7E', '#D4A853', '#B8511E', '#F3C96A', '#4A7A4E', '#F0D4BE'],
 }
 
 export const fmtNum = (n) => {
@@ -317,7 +317,7 @@ export function KpiTile({ label, value, delta, deltaLabel, spark, color = CHART.
       <div className="flex items-end justify-between gap-2">
         <p className="text-2xl font-bold text-white leading-none">{value}</p>
         {delta !== undefined && delta !== null && (
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: up ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)', color: up ? '#7A9E7E' : '#C85F2D' }}>
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: up ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)', color: up ? '#7A9E7E' : '#B8511E' }}>
             {up ? '+' : ''}{delta}%{deltaLabel ? ` ${deltaLabel}` : ''}
           </span>
         )}
@@ -335,7 +335,7 @@ export function Panel({ title, sub, action, children, className = '' }) {
         <header className="flex items-start justify-between gap-3 mb-4">
           <div>
             {title && <h3 className="text-sm font-semibold text-white">{title}</h3>}
-            {sub && <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{sub}</p>}
+            {sub && <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{sub}</p>}
           </div>
           {action}
         </header>
