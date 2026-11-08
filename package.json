@@ -10,7 +10,8 @@
     "check:fitness": "node scripts/check-architecture-fitness.mjs",
     "test": "node --experimental-test-module-mocks --test src/lib/*.test.mjs",
     "check": "npm run lint && npm run check:fitness && npm test",
-    "lint": "eslint src api scripts"
+    "lint": "eslint src api scripts",
+    "test:e2e": "node --test e2e/*.test.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",
@@ -41,6 +42,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "playwright": "^1.63.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^7.0.2",
