@@ -70,7 +70,9 @@ export default function ManageListingsPage() {
       status: p.status, meta: PROPERTY_STATUS_META[p.status] || { label: p.status, color: '#647068' },
       views: p.view_count, likes: p.like_count, createdAt: p.created_at,
       isPaused: p.status === 'removed' || p.status === 'paused',
-      togglePausedTo: (p.status === 'removed' || p.status === 'paused') ? 'active' : 'removed',
+      // Pausing writes 'paused'. 'removed' is what the Remove button writes; rows paused before
+      // this change also hold 'removed', so both still count as paused and can be restored.
+      togglePausedTo: (p.status === 'removed' || p.status === 'paused') ? 'active' : 'paused',
       link: `/property/${p.id}`,
     }))
     const b = listings.map(l => ({
