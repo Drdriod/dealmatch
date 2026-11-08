@@ -37,7 +37,7 @@ const RULES = [
 
 function strength(p) {
   const passed = RULES.filter(r => r.test(p)).length
-  if (passed <= 1) return { score: 1, label: 'Very weak',  color: '#C85F2D' }
+  if (passed <= 1) return { score: 1, label: 'Very weak',  color: '#B8511E' }
   if (passed === 2) return { score: 2, label: 'Weak',       color: '#E07B39' }
   if (passed === 3) return { score: 3, label: 'Fair',       color: '#D4A853' }
   if (passed === 4) return { score: 4, label: 'Strong',     color: '#7A9E7E' }
@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   const bgColor = isAdmin ? '#17211B' : '#FFFAF5'
-  const accent  = isAdmin ? '#D4A853' : '#C85F2D'
+  const accent  = isAdmin ? '#D4A853' : '#B8511E'
   const textPri = isAdmin ? '#FFFFFF' : '#17211B'
   const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#647068'
   const inputBg = isAdmin ? 'rgba(255,255,255,0.07)' : '#FFFFFF'
@@ -194,7 +194,7 @@ export default function ResetPasswordPage() {
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
               style={{ backgroundColor: 'rgba(200,95,45,0.12)', border: `1px solid rgba(200,95,45,0.25)` }}
             >
-              <AlertTriangle size={28} style={{ color: '#C85F2D' }} />
+              <AlertTriangle size={28} style={{ color: '#B8511E' }} />
             </div>
             <h2 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
               This link has expired
@@ -298,7 +298,7 @@ export default function ResetPasswordPage() {
                         <li key={r.id} className="flex items-center gap-2 text-xs">
                           {ok
                             ? <Check size={11} style={{ color: '#7A9E7E', flexShrink: 0 }} />
-                            : <X size={11} style={{ color: '#C85F2D', flexShrink: 0 }} />
+                            : <X size={11} style={{ color: '#B8511E', flexShrink: 0 }} />
                           }
                           <span style={{ color: ok ? '#7A9E7E' : textSub }}>{r.label}</span>
                         </li>
@@ -328,7 +328,7 @@ export default function ResetPasswordPage() {
                       backgroundColor: inputBg,
                       border: `1px solid ${
                         confirm.length > 0
-                          ? matches ? '#7A9E7E' : '#C85F2D'
+                          ? matches ? '#7A9E7E' : '#B8511E'
                           : inputBd
                       }`,
                       color: textPri,
@@ -344,7 +344,7 @@ export default function ResetPasswordPage() {
                   </button>
                 </div>
                 {confirm.length > 0 && !matches && (
-                  <p className="text-xs mt-1" style={{ color: '#C85F2D' }}>
+                  <p className="text-xs mt-1" style={{ color: '#B8511E' }}>
                     Passwords do not match
                   </p>
                 )}

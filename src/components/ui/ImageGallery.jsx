@@ -41,7 +41,7 @@ export default function ImageGallery({ images = [], title = '' }) {
                   style={{
                     width: i === activeIdx ? 18 : 6,
                     height: 6,
-                    backgroundColor: i === activeIdx ? '#C85F2D' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: i === activeIdx ? '#B8511E' : 'rgba(255,255,255,0.6)',
                   }} />
               ))}
             </div>
@@ -64,7 +64,7 @@ export default function ImageGallery({ images = [], title = '' }) {
           {filtered.map((img, i) => (
             <button key={i} onClick={() => setActiveIdx(i)}
               className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all"
-              style={{ borderColor: i === activeIdx ? '#C85F2D' : 'transparent' }}>
+              style={{ borderColor: i === activeIdx ? '#B8511E' : 'transparent' }}>
               <img src={img.url} alt="" className="w-full h-full object-cover" />
             </button>
           ))}

@@ -111,12 +111,12 @@ export default function ListPropertyPage() {
                 <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, property_type: t.id, category_id: null }))}
                   className="p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3"
                   style={{
-                    borderColor: form.property_type === t.id ? '#C85F2D' : '#DEDDD6',
+                    borderColor: form.property_type === t.id ? '#B8511E' : '#DEDDD6',
                     backgroundColor: form.property_type === t.id ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                   }}>
                   <span className="text-xl">{t.icon}</span>
                   <span className="text-sm font-semibold" style={{color:'#17211B'}}>{t.label}</span>
-                  {form.property_type === t.id && <Check size={14} style={{color:'#C85F2D', marginLeft:'auto', flexShrink:0}} />}
+                  {form.property_type === t.id && <Check size={14} style={{color:'#B8511E', marginLeft:'auto', flexShrink:0}} />}
                 </button>
               ))}
             </div>
@@ -130,8 +130,8 @@ export default function ListPropertyPage() {
                 <button key={lt} type="button" onClick={() => set('listing_type', lt)}
                   className="py-3 rounded-xl border-2 text-sm font-semibold transition-all"
                   style={{
-                    borderColor: form.listing_type === lt ? '#C85F2D' : '#DEDDD6',
-                    color: form.listing_type === lt ? '#C85F2D' : '#647068',
+                    borderColor: form.listing_type === lt ? '#B8511E' : '#DEDDD6',
+                    color: form.listing_type === lt ? '#B8511E' : '#647068',
                     backgroundColor: form.listing_type === lt ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                   }}>
                   {lt}
@@ -215,7 +215,7 @@ export default function ListPropertyPage() {
                     </div>
                     <div className="flex justify-between text-xs">
                       <span style={{color:'#647068'}}>DealMatch fee ({formatPlatformFee({ kind: 'percent', value: saleEscrow.perSide })} per side)</span>
-                      <span style={{color:'#C85F2D'}}>-₦{feeEach.toLocaleString()}</span>
+                      <span style={{color:'#B8511E'}}>-₦{feeEach.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs border-t pt-1 mt-1" style={{borderColor:'rgba(122,158,126,0.2)'}}>
                       <span className="font-bold" style={{color:'#4A7A4E'}}>You receive</span>
@@ -271,8 +271,8 @@ export default function ListPropertyPage() {
                 <button key={f} type="button" onClick={() => toggle('features', f)}
                   className="px-3 py-2 rounded-full text-xs font-medium border-2 transition-all"
                   style={{
-                    borderColor: form.features.includes(f) ? '#C85F2D' : '#DEDDD6',
-                    backgroundColor: form.features.includes(f) ? '#C85F2D' : '#FFFFFF',
+                    borderColor: form.features.includes(f) ? '#B8511E' : '#DEDDD6',
+                    backgroundColor: form.features.includes(f) ? '#B8511E' : '#FFFFFF',
                     color: form.features.includes(f) ? '#FFFFFF' : '#5C4A3A',
                   }}>
                   {f}
@@ -319,14 +319,14 @@ export default function ListPropertyPage() {
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>
               Photos {form.images.length > 0
                 ? <span style={{color:'#7A9E7E'}}>({form.images.length} added)</span>
-                : <span style={{color:'#C85F2D'}}>* required</span>}
+                : <span style={{color:'#B8511E'}}>* required</span>}
             </label>
 
             {/* Red border hint when no photos yet */}
             <div
               className="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all"
               style={{
-                borderColor: form.images.length > 0 ? '#7A9E7E' : '#C85F2D',
+                borderColor: form.images.length > 0 ? '#7A9E7E' : '#B8511E',
                 backgroundColor: form.images.length > 0 ? 'rgba(122,158,126,0.04)' : 'rgba(200,95,45,0.03)',
               }}
               onClick={() => document.getElementById('prop-photo-upload').click()}>
@@ -334,7 +334,7 @@ export default function ListPropertyPage() {
               <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
                 {form.images.length > 0 ? `${form.images.length} photo${form.images.length > 1 ? 's' : ''} added: tap to add more` : 'Tap to add photos'}
               </p>
-              <p className="text-xs" style={{color: form.images.length === 0 ? '#C85F2D' : '#647068'}}>
+              <p className="text-xs" style={{color: form.images.length === 0 ? '#B8511E' : '#647068'}}>
                 {form.images.length === 0
                   ? 'Add at least 1 photo to continue'
                   : 'JPG or PNG, up to 10MB each. Show the front, the rooms, the compound and the surroundings.'}
@@ -357,7 +357,7 @@ export default function ListPropertyPage() {
               <div className="flex flex-wrap gap-2 mt-3">
                 {form.images.map((img, i) => (
                   <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border-2"
-                    style={{borderColor: img.is_primary ? '#C85F2D' : '#DEDDD6'}}>
+                    style={{borderColor: img.is_primary ? '#B8511E' : '#DEDDD6'}}>
                     <img src={img.url} alt="" className="w-full h-full object-cover" />
                     {img.is_primary && (
                       <div className="absolute bottom-0 left-0 right-0 text-center text-[10px] py-0.5 font-bold"
@@ -375,7 +375,7 @@ export default function ListPropertyPage() {
                             set('images', imgs)
                           }}
                           className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                          style={{backgroundColor:'#C85F2D', color:'#FFFFFF'}}>
+                          style={{backgroundColor:'#B8511E', color:'#FFFFFF'}}>
                           Main
                         </button>
                       )}
@@ -659,7 +659,7 @@ export default function ListPropertyPage() {
               <div key={s.title} className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold transition-colors"
                   style={{
-                    backgroundColor: i < step ? '#3D7A45' : i === step ? '#C85F2D' : '#FFFFFF',
+                    backgroundColor: i < step ? '#3D7A45' : i === step ? '#B8511E' : '#FFFFFF',
                     color: i <= step ? '#FFFFFF' : '#B5A99C',
                     border: i === step ? 'none' : '1.5px solid #DEDDD6',
                   }}>
@@ -682,11 +682,11 @@ export default function ListPropertyPage() {
       {/* Listing Terms */}
       <div className="mt-6 space-y-4">
         <div className="rounded-2xl border-2 p-4 transition-all cursor-pointer"
-          style={{ borderColor: agreed ? '#C85F2D' : '#DEDDD6', backgroundColor: agreed ? 'rgba(200,95,45,0.04)' : '#FFFFFF' }}
+          style={{ borderColor: agreed ? '#B8511E' : '#DEDDD6', backgroundColor: agreed ? 'rgba(200,95,45,0.04)' : '#FFFFFF' }}
           onClick={() => setAgreed(v => !v)}>
           <div className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-              style={{ borderColor: agreed ? '#C85F2D' : '#DEDDD6', backgroundColor: agreed ? '#C85F2D' : 'transparent' }}>
+              style={{ borderColor: agreed ? '#B8511E' : '#DEDDD6', backgroundColor: agreed ? '#B8511E' : 'transparent' }}>
               {agreed && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <div>
@@ -695,8 +695,8 @@ export default function ListPropertyPage() {
               </p>
               <p className="text-xs mt-1 leading-relaxed" style={{ color: '#647068' }}>
                 I confirm this property is mine or I have authority to list it. I agree to DealMatch's{' '}
-                <a href="/terms" target="_blank" className="underline" style={{ color: '#C85F2D' }}>Terms of Service</a> and{' '}
-                <a href="/privacy" target="_blank" className="underline" style={{ color: '#C85F2D' }}>Privacy Policy</a>.
+                <a href="/terms" target="_blank" className="underline" style={{ color: '#B8511E' }}>Terms of Service</a> and{' '}
+                <a href="/privacy" target="_blank" className="underline" style={{ color: '#B8511E' }}>Privacy Policy</a>.
               </p>
             </div>
           </div>
@@ -710,10 +710,10 @@ export default function ListPropertyPage() {
             <div style={{
               width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
               border: '2px solid rgba(200,95,45,0.2)',
-              borderTop: '2px solid #C85F2D',
+              borderTop: '2px solid #B8511E',
               animation: 'spin 0.8s linear infinite',
             }} />
-            <p className="text-xs font-medium" style={{color:'#C85F2D'}}>{uploadProgress}</p>
+            <p className="text-xs font-medium" style={{color:'#B8511E'}}>{uploadProgress}</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}

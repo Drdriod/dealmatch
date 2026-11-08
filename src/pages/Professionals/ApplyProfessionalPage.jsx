@@ -210,7 +210,7 @@ export default function ApplyProfessionalPage() {
         <div className="mb-6">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
             style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-            <Briefcase size={22} style={{ color: '#C85F2D' }} />
+            <Briefcase size={22} style={{ color: '#B8511E' }} />
           </div>
           <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
             Join as a Professional
@@ -224,7 +224,7 @@ export default function ApplyProfessionalPage() {
         <div className="flex gap-1.5 mb-6">
           {[0, 1, 2].map(i => (
             <div key={i} className="h-1.5 flex-1 rounded-full transition-all"
-              style={{ backgroundColor: i <= step ? '#C85F2D' : '#DEDDD6' }} />
+              style={{ backgroundColor: i <= step ? '#B8511E' : '#DEDDD6' }} />
           ))}
         </div>
 
@@ -247,7 +247,7 @@ export default function ApplyProfessionalPage() {
                   onClick={() => setShowDropdown(v => !v)}
                   className="w-full px-4 py-3.5 rounded-xl border-2 text-sm text-left flex items-center justify-between transition-all"
                   style={{
-                    borderColor: form.profession_id ? '#C85F2D' : '#DEDDD6',
+                    borderColor: form.profession_id ? '#B8511E' : '#DEDDD6',
                     backgroundColor: '#FFFAF5',
                     color: form.profession_id ? '#17211B' : '#647068',
                   }}>
@@ -279,7 +279,7 @@ export default function ApplyProfessionalPage() {
                             style={{
                               backgroundColor: form.profession_id === opt.id
                                 ? 'rgba(200,95,45,0.08)' : 'transparent',
-                              color: form.profession_id === opt.id ? '#C85F2D' : '#17211B',
+                              color: form.profession_id === opt.id ? '#B8511E' : '#17211B',
                             }}>
                             {opt.label}
                           </button>
@@ -302,7 +302,7 @@ export default function ApplyProfessionalPage() {
                         style={{
                           backgroundColor: form.profession_id === 'other'
                             ? 'rgba(200,95,45,0.08)' : 'transparent',
-                          color: form.profession_id === 'other' ? '#C85F2D' : '#17211B',
+                          color: form.profession_id === 'other' ? '#B8511E' : '#17211B',
                         }}>
                         Other - I will specify below
                       </button>
@@ -350,7 +350,7 @@ export default function ApplyProfessionalPage() {
 
             <div className="p-3 rounded-xl mb-2"
               style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <p className="text-xs" style={{ color: '#C85F2D' }}>
+              <p className="text-xs" style={{ color: '#B8511E' }}>
                 Listing as: <strong>{professionForDB}</strong>
               </p>
             </div>
@@ -463,7 +463,7 @@ export default function ApplyProfessionalPage() {
                 <button key={p.id} onClick={() => setPlanType(p.id)}
                   className="flex-1 rounded-2xl border-2 p-4 text-left transition-all"
                   style={{
-                    borderColor: planType === p.id ? '#C85F2D' : '#DEDDD6',
+                    borderColor: planType === p.id ? '#B8511E' : '#DEDDD6',
                     backgroundColor: planType === p.id ? 'rgba(200,95,45,0.05)' : '#FFFAF5',
                   }}>
                   <p className="text-xs font-semibold" style={{ color: '#647068' }}>{p.label}</p>

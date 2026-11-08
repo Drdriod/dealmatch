@@ -37,7 +37,7 @@ function MenuStatus({ tree, error, groups, retry }) {
     return (
       <p role="status" className="text-sm text-[#647068]">
         We couldn't load the categories. Check your connection and{' '}
-        <button type="button" onClick={retry} className="font-semibold text-[#C85F2D] underline">try again</button>.
+        <button type="button" onClick={retry} className="font-semibold text-[#B8511E] underline">try again</button>.
       </p>
     )
   }
@@ -140,7 +140,7 @@ function DesktopPillar({ pillar, active }) {
             setOpen(true)
           }
         }}
-        className={`relative inline-flex items-center gap-1 py-2 hover:text-[#C85F2D] ${active ? 'text-[#C85F2D]' : ''}`}
+        className={`relative inline-flex items-center gap-1 py-2 hover:text-[#B8511E] ${active ? 'text-[#B8511E]' : ''}`}
       >
         {pillar.name}
         <motion.span
@@ -154,7 +154,7 @@ function DesktopPillar({ pillar, active }) {
         {active && (
           <motion.span
             layoutId="nav-underline"
-            className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#C85F2D]"
+            className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#B8511E]"
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           />
         )}
@@ -179,7 +179,7 @@ function DesktopPillar({ pillar, active }) {
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#647068]">{pillar.name}</p>
                 <Link to={pillar.route} onClick={hideNow}
-                  className="text-xs font-semibold text-[#C85F2D] hover:text-[#A8441D]">
+                  className="text-xs font-semibold text-[#B8511E] hover:text-[#A8441D]">
                   {VIEW_ALL[pillar.slug]} →
                 </Link>
               </div>
@@ -192,7 +192,7 @@ function DesktopPillar({ pillar, active }) {
                   {groups.map(group => (
                     <motion.div key={group.id} variants={itemVariants}>
                       <Link to={categoryHref(group.slug)} onClick={hideNow} data-pillar-item
-                        className="text-sm font-bold text-[#17211B] hover:text-[#C85F2D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D] rounded">
+                        className="text-sm font-bold text-[#17211B] hover:text-[#B8511E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E] rounded">
                         {group.name}
                       </Link>
                       {group.children?.length > 0 && (
@@ -204,11 +204,11 @@ function DesktopPillar({ pillar, active }) {
                                 onMouseEnter={() => setHovered(child.id)}
                                 onFocus={() => setHovered(child.id)}
                                 onBlur={() => setHovered(null)}
-                                className="relative block rounded-lg px-2 py-1.5 text-[13px] text-[#3A4740] hover:text-[#17211B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85F2D]">
+                                className="relative block rounded-lg px-2 py-1.5 text-[13px] text-[#3A4740] hover:text-[#17211B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E]">
                                 {hovered === child.id && (
                                   <motion.span
                                     layoutId={`pillar-hover-${pillar.slug}`}
-                                    className="absolute inset-0 rounded-lg bg-[#C85F2D]/10"
+                                    className="absolute inset-0 rounded-lg bg-[#B8511E]/10"
                                     transition={{ type: 'spring', stiffness: 500, damping: 40 }}
                                   />
                                 )}
@@ -244,7 +244,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
     <div>
       <div className="flex items-center justify-between">
         <Link to={pillar.route} onClick={onNavigate}
-          className={`block flex-1 py-3 font-semibold ${active ? 'text-[#C85F2D]' : 'text-[#17211B]'}`}>
+          className={`block flex-1 py-3 font-semibold ${active ? 'text-[#B8511E]' : 'text-[#17211B]'}`}>
           {pillar.name}
         </Link>
         <button
@@ -270,7 +270,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
             transition={{ duration: 0.22, ease }}
             className="overflow-hidden"
           >
-            <div className="mb-2 ml-1 space-y-4 border-l-2 border-[#C85F2D]/30 pb-3 pl-4">
+            <div className="mb-2 ml-1 space-y-4 border-l-2 border-[#B8511E]/30 pb-3 pl-4">
               <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               {tree && !error && groups.map(group => (
                 <div key={group.id}>

@@ -25,7 +25,7 @@ export function PropertiesTab() {
   const [filter,setFilter]=useState('all')
   const [search,setSearch]=useState('')
   const [confirm,setConfirm]=useState(null)
-  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},rejected:{label:'Rejected',color:'#C85F2D'},paused:{label:'Paused',color:'#888'},sold:{label:'Sold',color:'#888'}}
+  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},rejected:{label:'Rejected',color:'#B8511E'},paused:{label:'Paused',color:'#888'},sold:{label:'Sold',color:'#888'}}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -52,14 +52,14 @@ export function PropertiesTab() {
         <SearchBar value={search} onChange={setSearch} placeholder="Search title, owner, state…"/>
         <FilterBar value={filter} onChange={setFilter} options={[['all','All'],['pending_review','Pending'],['active','Live'],['rejected','Rejected'],['paused','Paused'],['sold','Sold']]}/>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} listing{filtered.length!==1?'s':''}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{filtered.length} listing{filtered.length!==1?'s':''}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={['Property','Owner','Price','Type','Status','Date','Actions']}>
           {filtered.map(p=>{
             const meta=SM[p.status]||{label:p.status,color:'#888'}
             return(<TR key={p.id}>
-              <td className="px-4 py-3"><div className="font-semibold text-white text-sm truncate max-w-[180px]">{p.title}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{p.city}, {p.state}</div></td>
-              <td className="px-4 py-3"><div className="text-white text-xs">{p.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{maskEmail(p.profiles?.email)}</div></td>
+              <td className="px-4 py-3"><div className="font-semibold text-white text-sm truncate max-w-[180px]">{p.title}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{p.city}, {p.state}</div></td>
+              <td className="px-4 py-3"><div className="text-white text-xs">{p.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{maskEmail(p.profiles?.email)}</div></td>
               <td className="px-4 py-3 text-white font-semibold text-sm">{fmt(p.price||0)}</td>
               <td className="px-4 py-3 text-xs capitalize" style={{color:'rgba(255,255,255,0.5)'}}>{(p.listing_type||p.category||'N/A').replace(/_/g,' ')}</td>
               <td className="px-4 py-3"><Badge label={meta.label} color={meta.color}/></td>
@@ -69,7 +69,7 @@ export function PropertiesTab() {
                   {p.status!=='active'&&<ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve listing?',body:`"${p.title}" will go live.`,onConfirm:()=>setStatus(p.id,'active',p.title)})}/>}
                   {p.status==='active'&&<ActionBtn icon={Pause} color="#D4A853" tip="Pause" onClick={()=>setConfirm({title:'Pause listing?',body:`"${p.title}" will be hidden.`,onConfirm:()=>setStatus(p.id,'paused',p.title)})}/>}
                   {p.status==='paused'&&<ActionBtn icon={Play} color="#5B8DEF" tip="Restore" onClick={()=>setStatus(p.id,'active',p.title)}/>}
-                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject listing?',body:`"${p.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.title)})}/>}
+                  {p.status!=='rejected'&&<ActionBtn icon={X} color="#B8511E" tip="Reject" onClick={()=>setConfirm({title:'Reject listing?',body:`"${p.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(p.id,'rejected',p.title)})}/>}
                 </div>
               </td>
             </TR>)

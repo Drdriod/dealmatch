@@ -23,7 +23,7 @@ export function TransactionsTab() {
   const [items,setItems]=useState([])
   const [loading,setLoading]=useState(true)
   const [search,setSearch]=useState('')
-  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#C85F2D',rejected:'#C85F2D',disputed:'#C85F2D',refunded:'#888',unapplied:'#C85F2D'}
+  const SC={success:'#7A9E7E',paid:'#7A9E7E',confirmed:'#7A9E7E',released:'#7A9E7E',pending:'#D4A853',funded:'#5B8DEF',failed:'#B8511E',rejected:'#B8511E',disputed:'#B8511E',refunded:'#888',unapplied:'#B8511E'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -65,7 +65,7 @@ export function TransactionsTab() {
         </div>
         <SearchBar value={search} onChange={setSearch} placeholder="Search reference, email…"/>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} records · Total: {fmt(total)}{unapplied.length>0&&` · ${unapplied.length} unapplied (to return)`}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{filtered.length} records · Total: {fmt(total)}{unapplied.length>0&&` · ${unapplied.length} unapplied (to return)`}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={tab==='payments'?['Reference','Amount','Type','Email','Status','Date']:['Property','User','Amount','Fee','Status','Date']}>
           {filtered.map(item=>(

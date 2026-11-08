@@ -75,9 +75,9 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
                   onClick={() => setForm(f => ({...f, name: p}))}
                   className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
                   style={{
-                    borderColor: form.name === p ? '#C85F2D' : '#DEDDD6',
+                    borderColor: form.name === p ? '#B8511E' : '#DEDDD6',
                     backgroundColor: form.name === p ? 'rgba(200,95,45,0.08)' : '#FFFFFF',
-                    color: form.name === p ? '#C85F2D' : '#647068',
+                    color: form.name === p ? '#B8511E' : '#647068',
                   }}>
                   {p}
                 </button>
@@ -126,7 +126,7 @@ function CategoryCard({ cat, onUpdate }) {
   const available  = cat.available_rooms
   const total      = cat.total_rooms
   const pct        = total > 0 ? (available / total) * 100 : 0
-  const statusColor = pct === 0 ? '#C85F2D' : pct < 30 ? '#D4A853' : '#7A9E7E'
+  const statusColor = pct === 0 ? '#B8511E' : pct < 30 ? '#D4A853' : '#7A9E7E'
   const statusLabel = pct === 0 ? 'Fully Booked' : pct < 30 ? 'Almost Full' : 'Available'
 
   const adjust = async (delta) => {
@@ -209,7 +209,7 @@ function CategoryCard({ cat, onUpdate }) {
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-all"
             style={{
               backgroundColor: available === 0 ? 'rgba(23,33,27,0.04)' : 'rgba(200,95,45,0.1)',
-              color: available === 0 ? '#647068' : '#C85F2D',
+              color: available === 0 ? '#647068' : '#B8511E',
             }}>
             <Minus size={16} />
           </button>
@@ -234,7 +234,7 @@ function CategoryCard({ cat, onUpdate }) {
           className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
           style={{
             borderColor: 'rgba(200,95,45,0.3)',
-            color: available === 0 ? '#647068' : '#C85F2D',
+            color: available === 0 ? '#647068' : '#B8511E',
             backgroundColor: available === 0 ? 'rgba(23,33,27,0.03)' : 'rgba(200,95,45,0.04)',
           }}>
           Mark All Booked
@@ -398,15 +398,15 @@ export default function AvailabilityPage() {
             <div className="rounded-2xl p-5 mb-5"
               style={{backgroundColor:'#17211B'}}>
               <p className="text-xs font-bold uppercase tracking-wider mb-3"
-                style={{color:'rgba(255,255,255,0.4)'}}>
+                style={{color:'rgba(255,255,255,0.6)'}}>
                 Overall Availability
               </p>
               <div className="flex items-end gap-2 mb-3">
                 <span className="font-display font-black text-4xl"
-                  style={{color: totalAvailable === 0 ? '#C85F2D' : '#7A9E7E'}}>
+                  style={{color: totalAvailable === 0 ? '#B8511E' : '#7A9E7E'}}>
                   {totalAvailable}
                 </span>
-                <span className="text-sm mb-1" style={{color:'rgba(255,255,255,0.4)'}}>
+                <span className="text-sm mb-1" style={{color:'rgba(255,255,255,0.6)'}}>
                   / {totalRooms} rooms available
                 </span>
               </div>
@@ -415,7 +415,7 @@ export default function AvailabilityPage() {
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: totalRooms > 0 ? (totalAvailable/totalRooms*100) + '%' : '0%',
-                    backgroundColor: totalAvailable === 0 ? '#C85F2D' : '#7A9E7E',
+                    backgroundColor: totalAvailable === 0 ? '#B8511E' : '#7A9E7E',
                   }} />
               </div>
               {lastUpdated && (
@@ -468,7 +468,7 @@ export default function AvailabilityPage() {
             {/* Add category button */}
             <button onClick={() => setShowAdd(true)}
               className="w-full py-4 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 text-sm font-semibold transition-all"
-              style={{borderColor:'#C85F2D', color:'#C85F2D', backgroundColor:'rgba(200,95,45,0.03)'}}>
+              style={{borderColor:'#B8511E', color:'#B8511E', backgroundColor:'rgba(200,95,45,0.03)'}}>
               <Plus size={16} /> Add Room Category
             </button>
           </>
@@ -566,7 +566,7 @@ function RentalManagerPanel({ user }) {
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold"
                   style={{
                     backgroundColor: occupied ? 'rgba(200,95,45,0.12)' : 'rgba(122,158,126,0.12)',
-                    color: occupied ? '#C85F2D' : '#5C8060',
+                    color: occupied ? '#B8511E' : '#5C8060',
                   }}>
                   {occupied ? 'Occupied' : 'Vacant'}
                 </span>
@@ -575,7 +575,7 @@ function RentalManagerPanel({ user }) {
                 className="w-full py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
                 style={{
                   borderColor: occupied ? 'rgba(122,158,126,0.3)' : 'rgba(200,95,45,0.3)',
-                  color: occupied ? '#5C8060' : '#C85F2D',
+                  color: occupied ? '#5C8060' : '#B8511E',
                   backgroundColor: occupied ? 'rgba(122,158,126,0.05)' : 'rgba(200,95,45,0.04)',
                 }}>
                 {updating === r.id ? 'Updating...' : occupied ? 'Mark Vacant' : 'Mark Occupied'}
@@ -667,7 +667,7 @@ function HostelManagerPanel({ user }) {
       <div className="space-y-4">
         {hostels.map(h => {
           const pct = h.total_rooms > 0 ? (h.rooms_available / h.total_rooms) * 100 : 0
-          const statusColor = pct === 0 ? '#C85F2D' : pct < 30 ? '#D4A853' : '#7A9E7E'
+          const statusColor = pct === 0 ? '#B8511E' : pct < 30 ? '#D4A853' : '#7A9E7E'
           return (
             <div key={h.id} className="rounded-2xl border p-5"
               style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
@@ -700,7 +700,7 @@ function HostelManagerPanel({ user }) {
                     className="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
                     style={{
                       backgroundColor: h.rooms_available === 0 ? 'rgba(23,33,27,0.04)' : 'rgba(200,95,45,0.1)',
-                      color: h.rooms_available === 0 ? '#647068' : '#C85F2D',
+                      color: h.rooms_available === 0 ? '#647068' : '#B8511E',
                     }}>
                     <Minus size={16} />
                   </button>
@@ -723,7 +723,7 @@ function HostelManagerPanel({ user }) {
                   className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
                   style={{
                     borderColor: 'rgba(200,95,45,0.3)',
-                    color: h.rooms_available === 0 ? '#647068' : '#C85F2D',
+                    color: h.rooms_available === 0 ? '#647068' : '#B8511E',
                     backgroundColor: h.rooms_available === 0 ? 'rgba(23,33,27,0.03)' : 'rgba(200,95,45,0.04)',
                   }}>
                   Mark Full

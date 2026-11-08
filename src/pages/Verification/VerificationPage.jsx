@@ -17,7 +17,7 @@ const STATUS_FLOW = {
   pending_review:      { label:'Awaiting Verification', color:'#D4A853', bg:'rgba(212,168,83,0.12)', next:'under_verification' },
   under_verification:  { label:'Agent Assigned',        color:'#5B8DEF', bg:'rgba(91,141,239,0.12)', next:'active' },
   active:              { label:'Verified & Live',        color:'#5C8060', bg:'rgba(122,158,126,0.12)', next:null },
-  rejected:            { label:'Rejected',               color:'#C85F2D', bg:'rgba(200,95,45,0.12)', next:null },
+  rejected:            { label:'Rejected',               color:'#B8511E', bg:'rgba(200,95,45,0.12)', next:null },
 }
 
 export default function VerificationPage() {
@@ -105,7 +105,7 @@ export default function VerificationPage() {
           <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Verification Workflow</p>
           <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'#647068' }}>
             {['Landlord Submits','→','Agent Visits Location','→','Agent Verifies / Rejects','→','Property Goes Live'].map((s,i) => (
-              <span key={i} style={{ color: s === '→' ? '#C85F2D' : undefined }}>{s}</span>
+              <span key={i} style={{ color: s === '→' ? '#B8511E' : undefined }}>{s}</span>
             ))}
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function VerificationPage() {
               return (
                 <motion.div key={listing.id} layout
                   className="rounded-2xl border overflow-hidden cursor-pointer transition-all"
-                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? '#C85F2D' : '#DEDDD6' }}
+                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? '#B8511E' : '#DEDDD6' }}
                   onClick={() => setSelected(isSelected ? null : listing)}>
 
                   <div className="flex gap-0">
@@ -167,7 +167,7 @@ export default function VerificationPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs mb-1" style={{ color:'#647068' }}>
-                        <MapPin size={10} style={{ color:'#C85F2D' }} />
+                        <MapPin size={10} style={{ color:'#B8511E' }} />
                         <span className="truncate">{listing.address || listing.city}, {listing.state}</span>
                       </div>
                       <div className="text-xs" style={{ color:'#647068' }}>
@@ -236,7 +236,7 @@ export default function VerificationPage() {
                         {listing.status !== 'rejected' && (
                           <button onClick={() => updateStatus(listing, 'rejected')} disabled={saving}
                             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                            style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#C85F2D', border:'2px solid rgba(200,95,45,0.2)' }}>
+                            style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#B8511E', border:'2px solid rgba(200,95,45,0.2)' }}>
                             <X size={14} /> Reject
                           </button>
                         )}

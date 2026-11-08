@@ -63,12 +63,12 @@ export function ComplaintsTab({ admin }) {
         ))}
       </div>
 
-      <p className="text-xs mb-4" style={{color:'rgba(255,255,255,0.3)'}}>{complaints.length} complaint{complaints.length!==1?'s':''}</p>
+      <p className="text-xs mb-4" style={{color:'rgba(255,255,255,0.55)'}}>{complaints.length} complaint{complaints.length!==1?'s':''}</p>
 
       {complaints.length === 0 && (
         <div className="text-center py-16 rounded-3xl" style={{backgroundColor:'rgba(255,255,255,0.03)'}}>
           <Gavel size={36} style={{color:'rgba(255,255,255,0.1)',margin:'0 auto 12px'}} />
-          <p style={{color:'rgba(255,255,255,0.3)',fontSize:13}}>No {filter} complaints</p>
+          <p style={{color:'rgba(255,255,255,0.55)',fontSize:13}}>No {filter} complaints</p>
         </div>
       )}
 
@@ -83,13 +83,13 @@ export function ComplaintsTab({ admin }) {
                     <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{backgroundColor:`${STATUS_COLOR[c.status]||'#D4A853'}20`,color:STATUS_COLOR[c.status]||'#D4A853'}}>
                       {c.status?.replace('_',' ')}
                     </span>
-                    <span className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{CAT_LABEL[c.category]||c.category}</span>
+                    <span className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{CAT_LABEL[c.category]||c.category}</span>
                   </div>
                   <p className="font-bold text-white text-sm">{c.properties?.title || 'Unknown Property'}</p>
-                  <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.3)'}}>{c.properties?.city}</p>
+                  <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.55)'}}>{c.properties?.city}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{new Date(c.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{new Date(c.created_at).toLocaleDateString()}</p>
                   {c.status === 'open' && new Date() > new Date(c.response_deadline) && (
                     <p className="text-xs font-bold mt-0.5" style={{color:'#C94A3A'}}>Response overdue</p>
                   )}
@@ -101,16 +101,16 @@ export function ComplaintsTab({ admin }) {
                 <div className="rounded-xl p-2.5" style={{backgroundColor:'rgba(255,255,255,0.04)'}}>
                   <p className="text-xs font-bold mb-0.5" style={{color:'rgba(255,255,255,0.35)'}}>Complainant</p>
                   <p className="text-xs text-white">{c.profiles?.full_name || 'Unknown'}</p>
-                  <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{c.profiles?.email}</p>
+                  <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{c.profiles?.email}</p>
                 </div>
                 <div className="rounded-xl p-2.5" style={{backgroundColor: c.agent ? 'rgba(201,74,58,0.06)' : 'rgba(255,255,255,0.04)', border: c.agent ? '1px solid rgba(201,74,58,0.15)' : 'none'}}>
                   <p className="text-xs font-bold mb-0.5" style={{color:'rgba(255,255,255,0.35)'}}>Responsible Agent</p>
                   {c.agent ? (
                     <>
-                      <p className="text-xs font-bold" style={{color:'#C85F2D'}}>{c.agent.full_name}</p>
-                      <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{c.agent.email}</p>
+                      <p className="text-xs font-bold" style={{color:'#B8511E'}}>{c.agent.full_name}</p>
+                      <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{c.agent.email}</p>
                     </>
-                  ) : <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>Not yet assigned</p>}
+                  ) : <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>Not yet assigned</p>}
                 </div>
               </div>
 

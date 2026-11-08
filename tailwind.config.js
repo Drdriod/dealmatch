@@ -7,7 +7,7 @@ export default {
       colors: {
         cream:      '#F7F4ED',
         deep:       '#17211B',
-        terracotta: '#C85F2D',
+        terracotta: '#B8511E',
         'terracotta-dark': '#A8441D',
         blush:      '#F0D4BE',
         sage:       '#7A9E7E',

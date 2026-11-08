@@ -80,7 +80,7 @@ export function PlatformFeesTab() {
     toast.success('Archived'); load()
   }
 
-  const STATUS_COLOR={DRAFT:'#888',SCHEDULED:'#D4A853',ACTIVE:'#7A9E7E',EXPIRED:'#C85F2D',ARCHIVED:'#555'}
+  const STATUS_COLOR={DRAFT:'#888',SCHEDULED:'#D4A853',ACTIVE:'#7A9E7E',EXPIRED:'#B8511E',ARCHIVED:'#555'}
 
   return(
     <div className="space-y-4">
@@ -100,7 +100,7 @@ export function PlatformFeesTab() {
             <td className="px-4 py-3"><Badge label={c.status} color={STATUS_COLOR[c.status]||'#888'}/></td>
             <td className="px-4 py-3">
               <div className="flex gap-1">
-                {c.status==='ACTIVE'&&<ActionBtn icon={Pause} color="#C85F2D" tip="Expire now" onClick={()=>expireNow(c)}/>}
+                {c.status==='ACTIVE'&&<ActionBtn icon={Pause} color="#B8511E" tip="Expire now" onClick={()=>expireNow(c)}/>}
                 {(c.status==='DRAFT'||c.status==='SCHEDULED')&&<ActionBtn icon={Trash2} color="#888" tip="Archive (never went live)" onClick={()=>archive(c)}/>}
               </div>
             </td>

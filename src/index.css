@@ -18,6 +18,15 @@
     overflow-x: hidden;
   }
 
+  /* Keyboard focus: always visible. !important because many controls use outline-none for the mouse look. */
+  :focus-visible {
+    outline: 2px solid #A8441D !important;
+    outline-offset: 2px !important;
+  }
+  .bg-deep :focus-visible, [data-dark] :focus-visible {
+    outline-color: #F3C96A !important;
+  }
+
   h1, h2, h3, h4 {
     @apply font-display;
     font-weight: 400;
@@ -129,7 +138,7 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #C85F2D, #D4A853);
+    background-image: linear-gradient(135deg, #B8511E, #D4A853);
   }
 
   .bg-noise {
@@ -180,3 +189,14 @@
   scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+
+/* Respect the operating system's "reduce motion" setting for CSS animations and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

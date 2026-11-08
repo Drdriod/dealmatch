@@ -39,7 +39,7 @@ export function EnquiriesTab() {
         <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-70 transition-all" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}><RefreshCw size={12}/> Refresh</button>
       </div>
       <SearchBar value={search} onChange={setSearch} placeholder="Search tenant or property…"/>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{filtered.length} enquir{filtered.length!==1?'ies':'y'}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{filtered.length} enquir{filtered.length!==1?'ies':'y'}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={['Tenant','Property','Type','Move-in','Duration','Message','Date']}>
           {filtered.map(e=>(

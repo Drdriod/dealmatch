@@ -132,7 +132,7 @@ function SearchResultsView({ query }) {
           {state.results.map(r => (
             <Link key={`${r.source}-${r.item_id}`} to={r.url_path} className="flex items-center justify-between py-4">
               <div>
-                <div className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{r.category_name}</div>
+                <div className="text-xs font-semibold mb-1" style={{ color: '#B8511E' }}>{r.category_name}</div>
                 <div className="font-semibold" style={{ color: '#17211B' }}>{r.title}</div>
                 <div className="text-xs text-gray-400 mt-1">{r.snippet}</div>
               </div>
@@ -229,13 +229,13 @@ function CategoryBrowseView({ categorySlug }) {
           {!category?.source_table && ['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: type === t ? '#C85F2D' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
+              style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
               {t === 'SUPPLY' ? 'Available now' : 'Looking for'}
             </button>
           ))}
           <button onClick={() => setShowMobileMap(m => !m)}
             className="lg:hidden flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: showMobileMap ? '#C85F2D' : '#F7F4ED', color: showMobileMap ? '#fff' : '#647068' }}>
+            style={{ background: showMobileMap ? '#B8511E' : '#F7F4ED', color: showMobileMap ? '#fff' : '#647068' }}>
             <MapIcon size={12} /> Map
           </button>
         </div>
@@ -272,7 +272,7 @@ function CategoryBrowseView({ categorySlug }) {
                 <Link key={item.id} to={item.detailUrl || `/marketplace/${categorySlug}/listing/${item.id}`}
                   className="p-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', background: '#fff' }}>
                   <div className="font-semibold" style={{ color: '#17211B' }}>{item.title}</div>
-                  {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#C85F2D' }}>{formatPrice(item.price_cents)}</div>}
+                  {item.price_cents != null && <div className="text-sm font-bold mt-1" style={{ color: '#B8511E' }}>{formatPrice(item.price_cents)}</div>}
                   {item.location_name && <div className="text-xs text-gray-400 mt-1 flex items-center gap-1"><MapPin size={11} />{item.location_name}</div>}
                 </Link>
               ))}
@@ -354,7 +354,7 @@ function NewListingView({ categorySlug }) {
         {['SUPPLY', 'DEMAND'].map(t => (
           <button key={t} onClick={() => setType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: type === t ? '#C85F2D' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
+            style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
             {t === 'SUPPLY' ? 'I have this to offer' : 'I need this'}
           </button>
         ))}
@@ -404,7 +404,7 @@ function ListingDetailView({ id }) {
   const { listing } = state
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <p className="text-xs font-semibold mb-1" style={{ color: '#C85F2D' }}>{state.category?.name}</p>
+      <p className="text-xs font-semibold mb-1" style={{ color: '#B8511E' }}>{state.category?.name}</p>
       <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>{listing.title}</h1>
       {listing.price_cents != null && <p className="text-lg font-bold mb-3" style={{ color: '#17211B' }}>{formatPrice(listing.price_cents)}</p>}
       <p className="text-sm mb-4" style={{ color: '#3a2f2a' }}>{listing.description}</p>

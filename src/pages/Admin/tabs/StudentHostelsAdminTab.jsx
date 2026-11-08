@@ -24,7 +24,7 @@ export function StudentHostelsAdminTab() {
   const [loading,setLoading]=useState(true)
   const [filter,setFilter]=useState('all')
   const [confirm,setConfirm]=useState(null)
-  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},paused:{label:'Paused',color:'#888'},rejected:{label:'Rejected',color:'#C85F2D'},filled:{label:'Filled',color:'#5B8DEF'}}
+  const SM={pending_review:{label:'Pending',color:'#D4A853'},active:{label:'Live',color:'#7A9E7E'},paused:{label:'Paused',color:'#888'},rejected:{label:'Rejected',color:'#B8511E'},filled:{label:'Filled',color:'#5B8DEF'}}
   const ROOM={single:'Single',shared_2:'Shared×2',shared_4:'Shared×4',shared_6:'Shared×6',self_contain:'Self Contain',mini_flat:'Mini Flat','2_bedroom':'2 Bed'}
 
   const load=useCallback(async()=>{
@@ -47,7 +47,7 @@ export function StudentHostelsAdminTab() {
   return(
     <div className="space-y-4">
       <FilterBar value={filter} onChange={setFilter} options={[['all','All'],['pending_review','Pending'],['active','Live'],['paused','Paused'],['rejected','Rejected'],['filled','Filled']]}/>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{items.length} hostel{items.length!==1?'s':''}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{items.length} hostel{items.length!==1?'s':''}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={['Hostel','Owner','Institution','Type','Price/yr','Paid','Status','Actions']}>
           {items.map(h=>{
@@ -58,14 +58,14 @@ export function StudentHostelsAdminTab() {
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>{h.institution_name||'N/A'}</td>
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{ROOM[h.room_type]||h.room_type||'N/A'}</td>
               <td className="px-4 py-3 text-white text-sm font-semibold">{fmt(h.price_per_year||0)}</td>
-              <td className="px-4 py-3">{h.listing_paid?<Badge label="Paid" color="#7A9E7E"/>:<Badge label="Unpaid" color="#C85F2D"/>}</td>
+              <td className="px-4 py-3">{h.listing_paid?<Badge label="Paid" color="#7A9E7E"/>:<Badge label="Unpaid" color="#B8511E"/>}</td>
               <td className="px-4 py-3"><Badge label={meta.label} color={meta.color}/></td>
               <td className="px-4 py-3">
                 <div className="flex gap-1">
                   {h.status!=='active'&&h.listing_paid&&<ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve hostel?',body:`"${h.title}" will go live for students.`,onConfirm:()=>setStatus(h.id,'active',h.title)})}/>}
                   {h.status==='active'&&<ActionBtn icon={Pause} color="#D4A853" tip="Pause" onClick={()=>setConfirm({title:'Pause hostel?',body:`"${h.title}" will be hidden.`,onConfirm:()=>setStatus(h.id,'paused',h.title)})}/>}
                   {h.status==='paused'&&<ActionBtn icon={Play} color="#5B8DEF" tip="Restore" onClick={()=>setStatus(h.id,'active',h.title)}/>}
-                  {h.status!=='rejected'&&<ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject hostel?',body:`"${h.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(h.id,'rejected',h.title)})}/>}
+                  {h.status!=='rejected'&&<ActionBtn icon={X} color="#B8511E" tip="Reject" onClick={()=>setConfirm({title:'Reject hostel?',body:`"${h.title}" will be rejected.`,danger:true,onConfirm:()=>setStatus(h.id,'rejected',h.title)})}/>}
                 </div>
               </td>
             </TR>)

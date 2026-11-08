@@ -19,7 +19,7 @@ export default function ComingSoon({ title = 'Coming Soon', message }) {
         Unlocking Soon - Stay Tuned
       </div>
       <Link to="/dashboard" className="flex items-center gap-2 text-sm font-semibold"
-        style={{ color:'#C85F2D' }}>
+        style={{ color:'#B8511E' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
     </div>

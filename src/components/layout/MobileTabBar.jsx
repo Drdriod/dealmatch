@@ -29,7 +29,7 @@ function TabPill() {
     <motion.span
       layoutId="tab-pill"
       className="absolute top-0 left-3 right-3 h-0.5 rounded-full"
-      style={{ backgroundColor: '#C85F2D' }}
+      style={{ backgroundColor: '#B8511E' }}
       transition={{ type: 'spring', stiffness: 420, damping: 34 }}
     />
   )
@@ -62,7 +62,7 @@ export default function MobileTabBar() {
           const Icon = pillar.slug === 'place' ? Building2 : User
           return (
             <Link key={pillar.slug} to={pillar.route} className={linkClass}
-              style={{ color: active ? '#C85F2D' : '#647068' }}>
+              style={{ color: active ? '#B8511E' : '#647068' }}>
               {active && <TabPill />}
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">{pillar.name}</span>
@@ -78,7 +78,7 @@ export default function MobileTabBar() {
             className="absolute flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
             style={{
               width: 52, height: 52, top: -20,
-              backgroundColor: '#C85F2D', color: '#FFFFFF',
+              backgroundColor: '#B8511E', color: '#FFFFFF',
               border: '4px solid #F7F4ED',
             }}>
             <Plus size={24} strokeWidth={2.5} />
@@ -89,13 +89,13 @@ export default function MobileTabBar() {
         {isAuthenticated ? (
           <>
             <Link to="/messages" className={linkClass}
-              style={{ color: isActivePath('/messages') ? '#C85F2D' : '#647068' }}>
+              style={{ color: isActivePath('/messages') ? '#B8511E' : '#647068' }}>
               {isActivePath('/messages') && <TabPill />}
               <Inbox size={20} strokeWidth={isActivePath('/messages') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Inbox</span>
             </Link>
             <Link to="/profile" className={linkClass}
-              style={{ color: isActivePath('/profile') ? '#C85F2D' : '#647068' }}>
+              style={{ color: isActivePath('/profile') ? '#B8511E' : '#647068' }}>
               {isActivePath('/profile') && <TabPill />}
               <User size={20} strokeWidth={isActivePath('/profile') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Profile</span>
@@ -103,7 +103,7 @@ export default function MobileTabBar() {
           </>
         ) : (
           <Link to="/auth" className={linkClass}
-            style={{ color: isActivePath('/auth') ? '#C85F2D' : '#647068' }}>
+            style={{ color: isActivePath('/auth') ? '#B8511E' : '#647068' }}>
             {isActivePath('/auth') && <TabPill />}
             <User size={20} strokeWidth={isActivePath('/auth') ? 2.5 : 2} />
             <span className="text-[10px] font-semibold">Sign In</span>
@@ -141,7 +141,7 @@ export default function MobileTabBar() {
                       className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left"
                       style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                        <Icon size={18} style={{ color: '#C85F2D' }} />
+                        <Icon size={18} style={{ color: '#B8511E' }} />
                       </div>
                       <div>
                         <p className="text-sm font-bold" style={{ color: '#17211B' }}>{choice.label}</p>

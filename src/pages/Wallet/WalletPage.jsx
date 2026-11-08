@@ -35,6 +35,7 @@
  * creation time.
  */
 import React, { useState, useEffect, useMemo } from 'react'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Wallet as WalletIcon, ShieldCheck, Clock, CheckCircle2, Gift, Star,
@@ -76,6 +77,7 @@ const WALLET_ENTRY_META = {
 }
 
 export default function WalletPage() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
@@ -130,7 +132,7 @@ export default function WalletPage() {
 
   const handleRequestWithdrawal = async () => {
     if (walletTotals.availableBalance <= 0 || pendingWithdrawal || requesting) return
-    if (!window.confirm(`Request withdrawal of ${fmt(walletTotals.availableBalance)} to your saved bank account?`)) return
+    if (!(await confirm({ title: `Request withdrawal of ${fmt(walletTotals.availableBalance)}?`, message: 'It will be sent to your saved bank account.', confirmLabel: 'Request withdrawal' }))) return
 
     setRequesting(true)
     const { data, error } = await requestWithdrawal(Math.round(walletTotals.availableBalance * 100))
@@ -212,7 +214,7 @@ export default function WalletPage() {
           <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(summary.jobsEarned)}</p>
         </div>
         <button onClick={() => navigate('/referral')} className="rounded-2xl p-4 text-left" style={{ backgroundColor: '#F0D4BE' }}>
-          <div className="flex items-center gap-2 mb-2"><Gift size={14} style={{ color: '#C85F2D' }} /><p className="text-[11px] font-semibold" style={{ color: '#8B5E3C' }}>Referral earnings</p></div>
+          <div className="flex items-center gap-2 mb-2"><Gift size={14} style={{ color: '#B8511E' }} /><p className="text-[11px] font-semibold" style={{ color: '#8B5E3C' }}>Referral earnings</p></div>
           <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(referralTotal)}</p>
         </button>
       </div>
@@ -234,7 +236,7 @@ export default function WalletPage() {
         className="mx-4 mb-5 w-[calc(100%-2rem)] rounded-2xl p-3.5 flex items-center justify-between"
         style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
         <div className="flex items-center gap-2">
-          <Landmark size={15} style={{ color: '#C85F2D' }} />
+          <Landmark size={15} style={{ color: '#B8511E' }} />
           <span className="text-sm font-semibold" style={{ color: '#17211B' }}>
             {payoutAccount ? payoutAccount.bank_name : 'Payout account'}
           </span>
@@ -323,7 +325,7 @@ export default function WalletPage() {
                     className="w-full flex items-center gap-3 rounded-2xl p-3.5 text-left" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
                     <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: item.direction === 'in' ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.1)' }}>
-                      {item.direction === 'in' ? <ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /> : <ArrowUpRight size={14} style={{ color: '#C85F2D' }} />}
+                      {item.direction === 'in' ? <ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /> : <ArrowUpRight size={14} style={{ color: '#B8511E' }} />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>

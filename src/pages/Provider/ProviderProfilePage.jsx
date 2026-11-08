@@ -136,7 +136,7 @@ export default function ProviderProfilePage() {
               style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
               {profile.avatar_url
                 ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                : <User size={26} style={{ color: '#C85F2D' }} />
+                : <User size={26} style={{ color: '#B8511E' }} />
               }
             </div>
             <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ export default function ProviderProfilePage() {
                   own category_label column exists but nothing writes to it
                   yet, so read from level_data to actually show the skill. */}
               {levelData?.category && (
-                <p className="text-xs font-semibold" style={{ color: '#C85F2D' }}>{levelData.category}</p>
+                <p className="text-xs font-semibold" style={{ color: '#B8511E' }}>{levelData.category}</p>
               )}
               {levelData?.area && (
                 <p className="text-xs" style={{ color: '#647068' }}>{levelData.area}</p>
@@ -208,14 +208,14 @@ export default function ProviderProfilePage() {
             acceptBid() in JobPostingPage also checks server-side. */}
         {user?.id === id && payoutStatus !== 'verified' && (
           <div className="rounded-2xl p-4 mb-4 border flex items-center gap-3" style={{ backgroundColor: 'rgba(200,95,45,0.06)', borderColor: '#E8C4A8' }}>
-            <ShieldCheck size={20} style={{ color: '#C85F2D' }} className="flex-shrink-0" />
+            <ShieldCheck size={20} style={{ color: '#B8511E' }} className="flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
                 {payoutStatus === 'failed' ? 'Payout setup needs another try' : 'Set up payouts to get booked'}
               </p>
               <p className="text-xs" style={{ color: '#647068' }}>Add your bank account so customers can pay you.</p>
             </div>
-            <button onClick={() => navigate('/payout-setup')} className="text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#C85F2D', color: '#FFF' }}>
+            <button onClick={() => navigate('/payout-setup')} className="text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#B8511E', color: '#FFF' }}>
               Set up
             </button>
           </div>
@@ -239,7 +239,7 @@ export default function ProviderProfilePage() {
             <p className="text-[11px]" style={{ color: '#647068' }}>Completion</p>
           </div>
           <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <Clock size={14} className="mx-auto mb-0.5" style={{ color: '#C85F2D' }} />
+            <Clock size={14} className="mx-auto mb-0.5" style={{ color: '#B8511E' }} />
             <p className="font-black text-lg" style={{ color: '#17211B' }}>
               {profile.avg_reply_minutes != null ? `${profile.avg_reply_minutes}m` : ' - '}
             </p>
@@ -263,7 +263,7 @@ export default function ProviderProfilePage() {
         <div className="flex items-center justify-between p-3 rounded-2xl mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
           <div>
             <p className="text-[11px] mb-0.5" style={{ color: '#647068' }}>Price</p>
-            <p className="font-black text-base" style={{ color: '#C85F2D' }}>
+            <p className="font-black text-base" style={{ color: '#B8511E' }}>
               {levelData?.open_price === false && levelData?.price_cents ? `From ₦${(levelData.price_cents / 100).toLocaleString()}` : 'Open price'}
             </p>
           </div>
@@ -319,7 +319,7 @@ export default function ProviderProfilePage() {
               {pageListings.map((l) => (
                 <div key={l.id} className="rounded-xl p-2.5 border" style={{ borderColor: '#F0E8DC' }}>
                   <p className="text-xs font-semibold truncate" style={{ color: '#17211B' }}>{l.title}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: '#C85F2D' }}>
+                  <p className="text-[11px] mt-0.5" style={{ color: '#B8511E' }}>
                     {l.price_cents ? `₦${(l.price_cents / 100).toLocaleString()}` : 'Open price'}
                   </p>
                 </div>
@@ -371,12 +371,12 @@ export default function ProviderProfilePage() {
         style={{ backgroundColor: 'rgba(255,250,245,0.97)', backdropFilter: 'blur(10px)', borderTop: '1px solid #DEDDD6' }}>
         <button onClick={() => startBooking('bid')}
           className="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2"
-          style={{ borderColor: '#C85F2D', color: '#C85F2D', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: '#B8511E', color: '#B8511E', backgroundColor: '#FFFFFF' }}>
           Request Bid
         </button>
         <button onClick={() => startBooking('book')}
           className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white"
-          style={{ backgroundColor: '#C85F2D' }}>
+          style={{ backgroundColor: '#B8511E' }}>
           Book Now
         </button>
       </div>

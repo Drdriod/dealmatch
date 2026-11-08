@@ -30,7 +30,7 @@ export function IdentityTab() {
   const [reason,setReason]=useState('')
   const [lightbox,setLightbox]=useState(null)
   const DOC={nin:'NIN Slip',voters:"Voter's Card",passport:'Passport',drivers:"Driver's License"}
-  const SC={submitted:'#D4A853',approved:'#7A9E7E',rejected:'#C85F2D'}
+  const SC={submitted:'#D4A853',approved:'#7A9E7E',rejected:'#B8511E'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -91,25 +91,25 @@ export function IdentityTab() {
                     <span className="text-white font-semibold text-sm">{u.full_name||'N/A'}</span>
                     <Badge label={u.identity_verification_status} color={SC[u.identity_verification_status]||'#888'}/>
                     {u.identity_doc_type&&<Badge label={DOC[u.identity_doc_type]||u.identity_doc_type} color="#5B8DEF"/>}
-                    <Badge label={u.identity_nin_submitted_at?'NIN/BVN submitted':'NIN/BVN not submitted'} color={u.identity_nin_submitted_at?'#7A9E7E':'#C85F2D'}/>
+                    <Badge label={u.identity_nin_submitted_at?'NIN/BVN submitted':'NIN/BVN not submitted'} color={u.identity_nin_submitted_at?'#7A9E7E':'#B8511E'}/>
                     <Badge label={ROLE_LABELS[u.role]||u.role||'N/A'} color={ROLE_COLORS[u.role]||'#888'}/>
                   </div>
-                  <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{maskEmail(u.email)} · {maskPhone(u.phone)}</div>
-                  <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{ago(u.created_at)}</div>
-                  <div className="text-xs mt-0.5" style={{color:u.identity_nin_submitted_at?'rgba(255,255,255,0.4)':'#C85F2D'}}>
+                  <div className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.6)'}}>{maskEmail(u.email)} · {maskPhone(u.phone)}</div>
+                  <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{ago(u.created_at)}</div>
+                  <div className="text-xs mt-0.5" style={{color:u.identity_nin_submitted_at?'rgba(255,255,255,0.4)':'#B8511E'}}>
                     {u.identity_nin_submitted_at?`NIN/BVN submitted ${ago(u.identity_nin_submitted_at)}`:'NIN/BVN not submitted yet. Approval is blocked until it is.'}
                   </div>
-                  {u.identity_rejection_note&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#C85F2D'}}>Prev rejection: {u.identity_rejection_note}</div>}
+                  {u.identity_rejection_note&&<div className="mt-2 text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#B8511E'}}>Prev rejection: {u.identity_rejection_note}</div>}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   {u.photo_signed&&<button onClick={()=>setLightbox({src:u.photo_signed,label:`${u.full_name||'User'} - ID Doc`})} className="relative overflow-hidden rounded-xl border" style={{width:80,height:56,borderColor:'rgba(255,255,255,0.1)'}}>
                     <img src={u.photo_signed} alt="ID" className="w-full h-full object-cover" onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex'}}/>
-                    <div style={{display:'none',position:'absolute',inset:0,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.3)',fontSize:9}}>No bucket</div>
+                    <div style={{display:'none',position:'absolute',inset:0,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.55)',fontSize:9}}>No bucket</div>
                     <div className="absolute bottom-0 left-0 right-0 text-center py-0.5 text-white" style={{fontSize:8,backgroundColor:'rgba(0,0,0,0.6)'}}>ID DOC · TAP TO VIEW</div>
                   </button>}
                   {u.selfie_signed&&<button onClick={()=>setLightbox({src:u.selfie_signed,label:`${u.full_name||'User'} - Selfie`})} className="relative overflow-hidden rounded-xl border" style={{width:56,height:56,borderColor:'rgba(255,255,255,0.1)'}}>
                     <img src={u.selfie_signed} alt="Selfie" className="w-full h-full object-cover" onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex'}}/>
-                    <div style={{display:'none',position:'absolute',inset:0,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.3)',fontSize:9}}></div>
+                    <div style={{display:'none',position:'absolute',inset:0,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.55)',fontSize:9}}></div>
                     <div className="absolute bottom-0 left-0 right-0 text-center py-0.5 text-white" style={{fontSize:8,backgroundColor:'rgba(0,0,0,0.6)'}}>SELFIE</div>
                   </button>}
                   {!u.identity_photo_url&&!u.identity_selfie_url&&<div className="flex items-center justify-center rounded-xl text-xs" style={{width:80,height:56,backgroundColor:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.2)'}}>No docs</div>}
@@ -120,7 +120,7 @@ export function IdentityTab() {
                   <button disabled={!u.identity_nin_submitted_at} onClick={()=>setConfirm({title:'Approve identity?',body:`${u.full_name} will be fully verified and unlock all transactions.`,onConfirm:()=>approve(u.id,u.full_name||u.email)})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E',border:'1px solid rgba(122,158,126,0.3)'}}>
                     <Check size={13}/> Approve & Verify
                   </button>
-                  <button onClick={()=>setReject({id:u.id,name:u.full_name||u.email})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#C85F2D',border:'1px solid rgba(200,95,45,0.2)'}}>
+                  <button onClick={()=>setReject({id:u.id,name:u.full_name||u.email})} className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-all" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#B8511E',border:'1px solid rgba(200,95,45,0.2)'}}>
                     <X size={13}/> Reject
                   </button>
                 </div>
@@ -128,20 +128,20 @@ export function IdentityTab() {
               {u.identity_verification_status==='approved'&&<div className="mt-2 text-xs" style={{color:'#7A9E7E'}}> Verified {u.identity_verified_at?ago(u.identity_verified_at):''}</div>}
             </div>
           ))}
-          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No {filter==='all'?'submitted':filter} verifications</div>}
+          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No {filter==='all'?'submitted':filter} verifications</div>}
         </div>
       )}
       <AnimatePresence>
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(6px)'}}>
             <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} className="w-full max-w-sm rounded-3xl p-6" style={{backgroundColor:'#1E1510',border:'1px solid rgba(255,255,255,0.08)'}}>
-              <X size={22} style={{color:'#C85F2D'}} className="mb-3"/>
+              <X size={22} style={{color:'#B8511E'}} className="mb-3"/>
               <h3 className="text-white font-bold text-lg mb-1">Reject Identity</h3>
               <p className="text-sm mb-4" style={{color:'rgba(255,255,255,0.45)'}}>Tell <strong className="text-white">{reject.name}</strong> why their ID was rejected.</p>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="e.g. Photo is blurry. Please upload a clearer image." className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4" style={{backgroundColor:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}/>
               <div className="flex gap-3">
                 <button onClick={()=>{setReject(null);setReason('')}} className="flex-1 py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#C85F2D',color:'#17211B'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#B8511E',color:'#17211B'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>

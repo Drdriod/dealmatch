@@ -61,7 +61,7 @@ export default function AcceptStaffInvitePage() {
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#120D0B' }}>
         <div className="w-full max-w-sm rounded-3xl p-6 text-center space-y-2" style={{ backgroundColor: '#1E1510', border: '1px solid rgba(255,255,255,0.08)' }}>
           <h3 className="text-white font-bold">This invite link has expired</h3>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
             Ask the superadmin to send a new invite, then open the fresh link from your email.
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function AcceptStaffInvitePage() {
           </div>
           <div>
             <h3 className="text-white font-bold">Set your password</h3>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{email}</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{email}</p>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export default function AcceptStaffInvitePage() {
           {submitting ? 'Activating...' : 'Activate account'}
         </button>
 
-        <p className="text-[11px] text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <p className="text-[11px] text-center" style={{ color: 'rgba(255,255,255,0.55)' }}>
           You'll be asked to set up two-factor authentication next - that step is required before you can reach the dashboard.
         </p>
       </div>

@@ -24,7 +24,7 @@ export function MortgageTab() {
   const [loading,setLoading]=useState(true)
   const [filter,setFilter]=useState('all')
   const [confirm,setConfirm]=useState(null)
-  const SC={pending:'#D4A853',under_review:'#5B8DEF',approved:'#7A9E7E',rejected:'#C85F2D',disbursed:'#888'}
+  const SC={pending:'#D4A853',under_review:'#5B8DEF',approved:'#7A9E7E',rejected:'#B8511E',disbursed:'#888'}
 
   const load=useCallback(async()=>{
     setLoading(true)
@@ -44,7 +44,7 @@ export function MortgageTab() {
   return(
     <div className="space-y-4">
       <FilterBar value={filter} onChange={setFilter} options={[['all','All'],['pending','Pending'],['under_review','Under Review'],['approved','Approved'],['rejected','Rejected'],['disbursed','Disbursed']]}/>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{items.length} application{items.length!==1?'s':''}</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{items.length} application{items.length!==1?'s':''}</div>
       {loading?<Spinner/>:(
         <TableWrap cols={['Applicant','Loan Amount','Property','Income/mo','Status','Date','Actions']}>
           {items.map(m=>(
@@ -60,7 +60,7 @@ export function MortgageTab() {
                   {m.status==='pending'&&<ActionBtn icon={Eye} color="#5B8DEF" tip="Under review" onClick={()=>setStatus(m.id,'under_review',m.profiles?.full_name||'Applicant')}/>}
                   {['pending','under_review'].includes(m.status)&&<>
                     <ActionBtn icon={Check} color="#7A9E7E" tip="Approve" onClick={()=>setConfirm({title:'Approve mortgage?',body:`Approve ${m.profiles?.full_name}'s application?`,onConfirm:()=>setStatus(m.id,'approved',m.profiles?.full_name||'Applicant')})}/>
-                    <ActionBtn icon={X} color="#C85F2D" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${m.profiles?.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(m.id,'rejected',m.profiles?.full_name||'Applicant')})}/>
+                    <ActionBtn icon={X} color="#B8511E" tip="Reject" onClick={()=>setConfirm({title:'Reject?',body:`Reject ${m.profiles?.full_name}'s application?`,danger:true,onConfirm:()=>setStatus(m.id,'rejected',m.profiles?.full_name||'Applicant')})}/>
                   </>}
                   {m.status==='approved'&&<ActionBtn icon={CheckCircle} color="#7A9E7E" tip="Mark disbursed" onClick={()=>setStatus(m.id,'disbursed',m.profiles?.full_name||'Applicant')}/>}
                 </div>

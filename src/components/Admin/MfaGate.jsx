@@ -105,7 +105,7 @@ export default function MfaGate({ children }) {
           </div>
           <div>
             <h3 className="text-white font-bold">{isEnroll ? 'Set up two-factor authentication' : 'Enter your two-factor code'}</h3>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Required for every staff and admin account</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Required for every staff and admin account</p>
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default function MfaGate({ children }) {
         <button
           onClick={() => supabase.auth.signOut()}
           className="w-full py-2 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5"
-          style={{ color: 'rgba(255,255,255,0.4)' }}
+          style={{ color: 'rgba(255,255,255,0.6)' }}
         >
           <LogOut size={12} /> Sign out instead
         </button>

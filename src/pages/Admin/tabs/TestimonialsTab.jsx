@@ -68,7 +68,7 @@ export function TestimonialsTab() {
             <div key={t.id} className="rounded-2xl p-5" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)'}}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-white font-semibold text-sm">{t.name}</span>
-                {t.role_label && <span className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>· {t.role_label}</span>}
+                {t.role_label && <span className="text-xs" style={{color:'rgba(255,255,255,0.6)'}}>· {t.role_label}</span>}
                 <span className="flex items-center gap-0.5 ml-auto">
                   {[1,2,3,4,5].map(n=>(
                     <Star key={n} size={12} fill={n<=t.rating?'#D4A853':'transparent'} style={{color:'#D4A853'}}/>
@@ -93,7 +93,7 @@ export function TestimonialsTab() {
               )}
             </div>
           ))}
-          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.3)'}}>No {statusFilter} testimonials.</div>}
+          {items.length===0&&<div className="py-12 text-center text-sm" style={{color:'rgba(255,255,255,0.55)'}}>No {statusFilter} testimonials.</div>}
         </div>
       )}
     </div>

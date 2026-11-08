@@ -156,7 +156,7 @@ export default function MatchesPage() {
                   <div className="flex gap-2 px-3 pb-3">
                     <button onClick={() => navigate(`/property/${p?.id}`)}
                       className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{ backgroundColor: '#C85F2D', color: '#FFFFFF' }}>
+                      style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
                       View Details
                     </button>
                     <button onClick={() => contactSeller(p)}
@@ -166,7 +166,7 @@ export default function MatchesPage() {
                     </button>
                     <button onClick={() => removeMatch(match.id)}
                       className="w-9 h-9 rounded-xl flex items-center justify-center border"
-                      style={{ borderColor: 'rgba(200,95,45,0.2)', color: '#C85F2D', backgroundColor: 'rgba(200,95,45,0.05)' }}>
+                      style={{ borderColor: 'rgba(200,95,45,0.2)', color: '#B8511E', backgroundColor: 'rgba(200,95,45,0.05)' }}>
                       <Trash2 size={13} />
                     </button>
                   </div>

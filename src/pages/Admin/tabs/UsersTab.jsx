@@ -71,7 +71,7 @@ export function UsersTab() {
     }catch(e){toast.error(e.message)}
   }
 
-  const IDC={approved:'#7A9E7E',submitted:'#D4A853',rejected:'#C85F2D'}
+  const IDC={approved:'#7A9E7E',submitted:'#D4A853',rejected:'#B8511E'}
 
   return(
     <div className="space-y-4">
@@ -93,12 +93,12 @@ export function UsersTab() {
           {Object.entries(STATUS_LABELS).map(([k,v])=><option key={k} value={k} style={{backgroundColor:'#17211B'}}>{v}</option>)}
         </select>
       </div>
-      <div className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>{total} user{total!==1?'s':''} total</div>
+      <div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>{total} user{total!==1?'s':''} total</div>
       {apiError&&(
         <div className="rounded-2xl p-4" style={{backgroundColor:'rgba(200,95,45,0.08)',border:'1px solid rgba(200,95,45,0.2)'}}>
-          <p className="text-xs font-bold mb-1" style={{color:'#C85F2D'}}>Could not load users from database</p>
+          <p className="text-xs font-bold mb-1" style={{color:'#B8511E'}}>Could not load users from database</p>
           <p className="text-xs mb-2" style={{color:'rgba(255,255,255,0.5)'}}>Error: {apiError}</p>
-          <p className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>Fix: Run the SQL below in Supabase SQL Editor, then refresh this page.</p>
+          <p className="text-xs" style={{color:'rgba(255,255,255,0.6)'}}>Fix: Run the SQL below in Supabase SQL Editor, then refresh this page.</p>
           <pre className="text-xs mt-2 p-3 rounded-xl overflow-x-auto" style={{backgroundColor:'rgba(0,0,0,0.3)',color:'#7A9E7E',fontFamily:'monospace'}}>
 {`DROP POLICY IF EXISTS "profiles_select_policy" ON public.profiles;
 CREATE POLICY "profiles_select_policy" ON public.profiles FOR SELECT
@@ -128,14 +128,14 @@ USING (
                 <td className="px-4 py-3">
                   {u.identity_verification_status==='approved'&&<Badge label="Verified" color="#7A9E7E"/>}
                   {u.identity_verification_status==='submitted'&&<Badge label="Pending" color="#D4A853"/>}
-                  {u.identity_verification_status==='rejected'&&<Badge label="Rejected" color="#C85F2D"/>}
+                  {u.identity_verification_status==='rejected'&&<Badge label="Rejected" color="#B8511E"/>}
                   {(!u.identity_verification_status||u.identity_verification_status==='unverified')&&<span className="text-xs" style={{color:'rgba(255,255,255,0.2)'}}>None</span>}
                 </td>
                 <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(u.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <ActionBtn icon={UserCog} color="#D4A853" tip="Change role" onClick={()=>setRoleTarget({id:u.id,current:u.role,name:u.full_name||u.email})}/>
-                    {u.account_status!=='suspended'&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Ban} color="#C85F2D" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
+                    {u.account_status!=='suspended'&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Ban} color="#B8511E" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
                     {u.account_status==='suspended'&&<ActionBtn icon={Play} color="#7A9E7E" tip="Unsuspend" onClick={()=>action('unsuspend',u.id,u.full_name||u.email)}/>}
                     {!u.is_deactivated&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Trash2} color="#888" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate account?',body:`${u.full_name||'User'}'s account will be permanently deactivated.`,danger:true,onConfirm:()=>action('deactivate',u.id,u.full_name||u.email)})}/>}
                   </div>
