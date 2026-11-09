@@ -58,6 +58,7 @@ import {
 } from '../src/modules/forum/forumService.js'
 import { renderForumSSR } from '../src/modules/forum/ssrRenderer.js'
 import { buildSitemapXml } from '../src/modules/sitemap/sitemapService.js'
+import { log } from '../src/lib/logger.js'
 
 // ─── Bot-facing HTML / sitemap XML (no auth, no JSON) ──────────────────────
 //
@@ -937,7 +938,7 @@ const jsonResources = {
     try {
       const listing = await getListing(supabase, payload.entityId)
       const counterparts = await findCounterpartMatches(supabase, listing)
-      console.log(`[listing-webhook] ${eventName} for listing ${listing.id}: ${counterparts.length} potential counterpart match(es)`)
+      log.info('listing_webhook.matches', { eventName, listingId: listing.id, matches: counterparts.length })
       return res.status(200).json({ ok: true, counterpartCount: counterparts.length })
     } catch (err) {
       console.error('[listing-webhook] error:', err.message)
