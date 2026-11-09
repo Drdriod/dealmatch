@@ -42,13 +42,13 @@ export default function HowItWorksFlip() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {JOURNEYS.map(j => (
-            <div key={j.key} className="rounded-[22px] p-7 sm:p-9" style={{ backgroundColor: '#234C3A' }}>
+            <div key={j.key} className="rounded-[22px] p-7 sm:p-9" style={{ backgroundColor: 'var(--dm-forest)' }}>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] mb-2" style={{ color: '#F3C96A' }}>{j.kicker}</p>
               <h3 className="font-display text-2xl sm:text-3xl text-white mb-7">{j.title}</h3>
               <ol className="space-y-5 mb-8">
                 {j.steps.map((s, i) => (
                   <li key={s.title} className="flex gap-4">
-                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#B8511E' }}>
+                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--dm-terracotta)' }}>
                       <s.icon size={19} color="#FFFFFF" />
                     </span>
                     <div>

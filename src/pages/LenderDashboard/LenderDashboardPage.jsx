@@ -151,13 +151,13 @@ export default function LenderDashboardPage() {
   const pendingNote = pipelineLoading ? 'Loading...' : 'No applications yet'
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#17211B', color:'#FFFAF5' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-deep)', color:'#FFFAF5' }}>
       <div className="max-w-6xl mx-auto px-4">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color:'#D4A853' }}>Pipeline</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color:'var(--dm-gold)' }}>Pipeline</p>
             <h1 className="font-display text-3xl font-black" style={{ color:'#FFFAF5' }}>Lender Dashboard</h1>
             <p className="text-sm mt-1" style={{ color:'rgba(255,250,245,0.5)' }}>Manage mortgage applications and deals</p>
           </div>
@@ -238,9 +238,9 @@ export default function LenderDashboardPage() {
                           <button key={a.id} onClick={() => openFromBoard(a)}
                             className="text-left rounded-xl p-3 min-w-0 transition-colors hover:bg-white/10"
                             style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
-                            <p className="text-[10px] font-black tracking-widest truncate" style={{ color:'#D4A853' }}>{a.ticket_id}</p>
+                            <p className="text-[10px] font-black tracking-widest truncate" style={{ color:'var(--dm-gold)' }}>{a.ticket_id}</p>
                             <p className="text-xs font-semibold truncate mt-0.5" style={{ color:'#FFFAF5' }}>{a.full_name}</p>
-                            <p className="text-[11px] mt-1 truncate" style={{ color:'#7A9E7E' }}>{fmtNaira(loanOf(a))}</p>
+                            <p className="text-[11px] mt-1 truncate" style={{ color:'var(--dm-sage)' }}>{fmtNaira(loanOf(a))}</p>
                           </button>
                         ))}
                         {items.length > BOARD_CARD_LIMIT && (
@@ -307,13 +307,13 @@ export default function LenderDashboardPage() {
                             {STATUS_CONFIG[app.status]?.label}
                           </span>
                         </div>
-                        <h3 className="font-bold text-base" style={{ color:'#17211B' }}>{app.full_name}</h3>
-                        <p className="text-xs mt-0.5" style={{ color:'#647068' }}>
+                        <h3 className="font-bold text-base" style={{ color:'var(--dm-deep)' }}>{app.full_name}</h3>
+                        <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>
                           ₦{Number(app.property_value).toLocaleString()} Property · {app.property_state || 'Unknown State'}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-display font-black text-lg" style={{ color:'#B8511E' }}>
+                        <p className="font-display font-black text-lg" style={{ color:'var(--dm-terracotta)' }}>
                           ₦{(Number(app.property_value) - Number(app.down_payment)).toLocaleString()}
                         </p>
                         <p className="text-[10px] font-bold uppercase" style={{ color:'rgba(23,33,27,0.3)' }}>Loan Requested</p>
@@ -339,7 +339,7 @@ export default function LenderDashboardPage() {
                             ].map(d => (
                               <div key={d.label}>
                                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color:'rgba(23,33,27,0.4)' }}>{d.label}</p>
-                                <p className="text-sm font-semibold" style={{ color:'#17211B' }}>{d.value}</p>
+                                <p className="text-sm font-semibold" style={{ color:'var(--dm-deep)' }}>{d.value}</p>
                               </div>
                             ))}
                           </div>

@@ -182,15 +182,15 @@ export default function FindProviderPage() {
     : null
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: '#F7F4ED' }}>
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: '#F7F4ED', borderBottom: '1px solid #DEDDD6' }}>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--dm-cream)' }}>
+      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: 'var(--dm-cream)', borderBottom: '1px solid #DEDDD6' }}>
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FFF' }}>
-            <ArrowLeft size={16} style={{ color: '#17211B' }} />
+            <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
           </button>
           <div>
-            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} className="font-display text-lg font-black" style={{ color: '#17211B' }}>Find the right people.</motion.h1>
-            <p className="text-xs" style={{ color: '#647068' }}>Discover relevant people, explore available opportunities and make meaningful connections through DealMatch.</p>
+            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} className="font-display text-lg font-black" style={{ color: 'var(--dm-deep)' }}>Find the right people.</motion.h1>
+            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Discover relevant people, explore available opportunities and make meaningful connections through DealMatch.</p>
           </div>
         </div>
 
@@ -207,9 +207,9 @@ export default function FindProviderPage() {
         </div>
 
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-          <Search size={15} style={{ color: '#647068' }} />
+          <Search size={15} style={{ color: 'var(--dm-warm)' }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Who or what are you looking for?"
-            className="flex-1 bg-transparent outline-none text-sm" style={{ color: '#17211B' }} />
+            className="flex-1 bg-transparent outline-none text-sm" style={{ color: 'var(--dm-deep)' }} />
         </div>
 
         <div className="flex gap-2 mb-3">
@@ -276,7 +276,7 @@ export default function FindProviderPage() {
       </div>
 
       {origin && !loading && (
-        <div className="mx-4 mt-4 rounded-2xl flex items-center justify-center gap-2 text-xs px-4 py-3 text-center" style={{ backgroundColor: '#F0E5D8', color: '#647068' }}>
+        <div className="mx-4 mt-4 rounded-2xl flex items-center justify-center gap-2 text-xs px-4 py-3 text-center" style={{ backgroundColor: '#F0E5D8', color: 'var(--dm-warm)' }}>
           <MapPin size={14} />
           {filtered.length} provider{filtered.length === 1 ? '' : 's'} within {origin.precise ? (activeChips.includes('nearby') ? '5 km' : '25 km') : '50 km'} of {originText}
           {!origin.precise && <span> · showing approximate state distance</span>}
@@ -287,8 +287,8 @@ export default function FindProviderPage() {
         {!origin && !loading ? (
           <div className="col-span-full text-center py-16">
             <MapPin size={36} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Choose a state or use your location</p>
-            <p className="text-xs mt-1" style={{ color: '#647068' }}>We show the closest people first.</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Choose a state or use your location</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>We show the closest people first.</p>
           </div>
         ) : loading ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -297,8 +297,8 @@ export default function FindProviderPage() {
         ) : filtered.length === 0 ? (
           <div className="col-span-full text-center py-16">
             <ShieldCheck size={36} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>We couldn't find a match for your search.</p>
-            <p className="text-xs mt-1" style={{ color: '#647068' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>We couldn't find a match for your search.</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
               {tab === 'identity'
                 ? 'Identity verified people appear here. Try another state, or check the Skill verified tab.'
                 : 'Try different search terms, clear your filters, or tell us what you need and let people come to you.'}
@@ -314,7 +314,7 @@ export default function FindProviderPage() {
               {p.avatar
                 ? <img src={p.avatar} alt="" className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.15), rgba(122,158,126,0.15))' }}>
-                    <span className="font-display text-3xl font-black" style={{ color: '#B8511E' }}>{p.name?.[0] || '?'}</span>
+                    <span className="font-display text-3xl font-black" style={{ color: 'var(--dm-terracotta)' }}>{p.name?.[0] || '?'}</span>
                   </div>}
               <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
                 style={{ backgroundColor: '#3D7A45', color: '#FFFFFF' }}>
@@ -329,26 +329,26 @@ export default function FindProviderPage() {
             </div>
 
             <div className="p-5">
-              <p className="font-display font-black text-base mb-1" style={{ color: '#17211B' }}>{p.name}</p>
+              <p className="font-display font-black text-base mb-1" style={{ color: 'var(--dm-deep)' }}>{p.name}</p>
               {p.category && (
-                <p className="text-xs font-semibold mb-1" style={{ color: '#B8511E' }}>{p.category}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: 'var(--dm-terracotta)' }}>{p.category}</p>
               )}
-              <div className="flex items-center gap-1.5 text-xs mb-2 flex-wrap" style={{ color: '#647068' }}>
-                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: '#B8511E' }} /> {p.area || p.city || p.state}</span>}
+              <div className="flex items-center gap-1.5 text-xs mb-2 flex-wrap" style={{ color: 'var(--dm-warm)' }}>
+                {(p.area || p.city || p.state) && <span className="flex items-center gap-1"><MapPin size={11} style={{ color: 'var(--dm-terracotta)' }} /> {p.area || p.city || p.state}</span>}
                 {p.distanceKm != null && <span className="ml-1">{p.distanceKm} km</span>}
-                {p.rating != null && <span className="flex items-center gap-1 ml-1"><Star size={11} className="fill-current" style={{ color: '#D4A853' }} /> {p.rating} ({p.reviewCount})</span>}
+                {p.rating != null && <span className="flex items-center gap-1 ml-1"><Star size={11} className="fill-current" style={{ color: 'var(--dm-gold)' }} /> {p.rating} ({p.reviewCount})</span>}
               </div>
-              <p className="text-xs font-bold mb-3" style={{ color: '#17211B' }}>
+              <p className="text-xs font-bold mb-3" style={{ color: 'var(--dm-deep)' }}>
                 {p.openPrice || !p.priceCents ? 'Open price' : `From ₦${(p.priceCents / 100).toLocaleString()}`}
               </p>
 
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/request?mode=bid&provider=${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold" style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
                   Request a Bid
                 </button>
                 <button onClick={() => navigate(`/provider/${p.id}`)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: '#B8511E' }}>
+                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1" style={{ backgroundColor: 'var(--dm-terracotta)' }}>
                   View <ChevronRight size={12} />
                 </button>
               </div>

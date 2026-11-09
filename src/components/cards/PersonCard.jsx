@@ -44,7 +44,7 @@ export default function PersonCard({ person }) {
         ) : (
           <div className="w-full h-full flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.15), rgba(122,158,126,0.15))' }}>
-            <span className="font-display text-3xl font-black" style={{ color: '#B8511E' }}>{person.name?.[0] || '?'}</span>
+            <span className="font-display text-3xl font-black" style={{ color: 'var(--dm-terracotta)' }}>{person.name?.[0] || '?'}</span>
           </div>
         )}
         <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold"
@@ -54,23 +54,23 @@ export default function PersonCard({ person }) {
       </div>
 
       <div className="p-4">
-        <p className="font-display font-black text-sm mb-1 truncate" style={{ color: '#17211B' }}>{person.name}</p>
+        <p className="font-display font-black text-sm mb-1 truncate" style={{ color: 'var(--dm-deep)' }}>{person.name}</p>
         {person.category && (
-          <p className="text-xs font-semibold mb-1 truncate" style={{ color: '#B8511E' }}>{person.category}</p>
+          <p className="text-xs font-semibold mb-1 truncate" style={{ color: 'var(--dm-terracotta)' }}>{person.category}</p>
         )}
         {person.area && (
-          <div className="flex items-center gap-1 text-xs mb-2" style={{ color: '#647068' }}>
-            <MapPin size={11} style={{ color: '#B8511E' }} />
+          <div className="flex items-center gap-1 text-xs mb-2" style={{ color: 'var(--dm-warm)' }}>
+            <MapPin size={11} style={{ color: 'var(--dm-terracotta)' }} />
             <span className="truncate">{person.area}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
-          <p className="font-black text-sm" style={{ color: '#B8511E' }}>{price}</p>
-          <span className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: '#647068' }}>
+          <p className="font-black text-sm" style={{ color: 'var(--dm-terracotta)' }}>{price}</p>
+          <span className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: 'var(--dm-warm)' }}>
             <Lock size={10} /> Phone locked
           </span>
         </div>
-        <p className="mt-2 text-xs font-bold flex items-center gap-1" style={{ color: '#17211B' }}>
+        <p className="mt-2 text-xs font-bold flex items-center gap-1" style={{ color: 'var(--dm-deep)' }}>
           View profile <ArrowRight size={11} className="transition-transform group-hover:translate-x-0.5" />
         </p>
       </div>

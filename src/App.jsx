@@ -585,8 +585,8 @@ function AnimatedRoutes() {
             <PageTransition>
               <div className="min-h-screen flex items-center justify-center flex-col gap-5 pt-20">
                 <div className="text-6xl"><Home size={24} className="text-terracotta" /></div>
-                <h1 className="font-display text-3xl font-black" style={{ color:'#17211B' }}>Page not found</h1>
-                <p className="text-sm" style={{ color:'#647068' }}>Every match is a connection</p>
+                <h1 className="font-display text-3xl font-black" style={{ color:'var(--dm-deep)' }}>Page not found</h1>
+                <p className="text-sm" style={{ color:'var(--dm-warm)' }}>Every match is a connection</p>
                 <a href="/" className="btn-primary text-sm px-6 py-3">Go home</a>
               </div>
             </PageTransition>

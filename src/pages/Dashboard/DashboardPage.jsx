@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const nextIdx = steps.findIndex(s => !s.done)
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#17211B' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-deep)' }}>
       <div className="max-w-2xl mx-auto px-4">
 
         <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </div>
           </Link>
           <Link to="/find-provider" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: '#B8511E', minHeight: 140 }}>
+            style={{ backgroundColor: 'var(--dm-terracotta)', minHeight: 140 }}>
             <HardHat size={26} className="text-white" />
             <div>
               <p className="font-display text-lg leading-tight text-white">Explore People</p>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
 
           {loading ? (
             <div className="py-8 flex justify-center">
-              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#D4A853' }} />
+              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--dm-gold)' }} />
             </div>
           ) : activity.length === 0 ? (
             <div className="py-6 text-center">

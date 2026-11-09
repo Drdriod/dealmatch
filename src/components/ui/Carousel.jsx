@@ -100,7 +100,7 @@ export default function Carousel({ items, renderItem, perPage = 3, autoPlayMs = 
         <div className="flex items-center justify-center gap-4 mt-4">
           <button onClick={prev} aria-label="Previous"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}>
+            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
             <ChevronLeft size={15} />
           </button>
           <div className="flex items-center gap-1.5">
@@ -115,7 +115,7 @@ export default function Carousel({ items, renderItem, perPage = 3, autoPlayMs = 
           </div>
           <button onClick={next} aria-label="Next"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}>
+            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
             <ChevronRight size={15} />
           </button>
         </div>

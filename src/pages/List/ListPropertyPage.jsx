@@ -96,8 +96,8 @@ export default function ListPropertyPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>About the property</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Tell us what you're selling and how you'd like to list it.</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'var(--dm-deep)'}}>About the property</h2>
+            <p className="text-sm" style={{color:'var(--dm-warm)'}}>Tell us what you're selling and how you'd like to list it.</p>
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Property type *</label>
@@ -110,8 +110,8 @@ export default function ListPropertyPage() {
                     backgroundColor: form.property_type === t.id ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                   }}>
                   <span className="text-xl">{t.icon}</span>
-                  <span className="text-sm font-semibold" style={{color:'#17211B'}}>{t.label}</span>
-                  {form.property_type === t.id && <Check size={14} style={{color:'#B8511E', marginLeft:'auto', flexShrink:0}} />}
+                  <span className="text-sm font-semibold" style={{color:'var(--dm-deep)'}}>{t.label}</span>
+                  {form.property_type === t.id && <Check size={14} style={{color:'var(--dm-terracotta)', marginLeft:'auto', flexShrink:0}} />}
                 </button>
               ))}
             </div>
@@ -141,7 +141,7 @@ export default function ListPropertyPage() {
                   exists at all. */}
               <button type="button" onClick={() => navigate('/list-rental')}
                 className="py-3 rounded-xl border-2 text-sm font-semibold transition-all col-span-2"
-                style={{ borderColor: '#DEDDD6', color: '#647068', backgroundColor: '#FFFFFF' }}>
+                style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)', backgroundColor: '#FFFFFF' }}>
                 Renting it out instead? List it as a rental →
               </button>
             </div>
@@ -151,7 +151,7 @@ export default function ListPropertyPage() {
             <input className="input" type="text"
               placeholder="e.g. 700 sqm plot with bungalow, Uyo"
               value={form.title} onChange={setE('title')}
-              style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+              style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
           </div>
         </div>
       ),
@@ -164,12 +164,12 @@ export default function ListPropertyPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Location and price</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Where is it, and what are you asking for it?</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'var(--dm-deep)'}}>Location and price</h2>
+            <p className="text-sm" style={{color:'var(--dm-warm)'}}>Where is it, and what are you asking for it?</p>
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>State *</label>
-            <select className="select" value={form.state} onChange={setE('state')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}}>
+            <select className="select" value={form.state} onChange={setE('state')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}}>
               <option value="">Choose a state</option>
               {STATES.map(s => <option key={s}>{s}</option>)}
             </select>
@@ -177,22 +177,22 @@ export default function ListPropertyPage() {
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>City or area *</label>
             <input className="input" type="text" placeholder="e.g. Lekki Phase 1"
-              value={form.city} onChange={setE('city')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+              value={form.city} onChange={setE('city')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Street address (optional)</label>
             <input className="input" type="text" placeholder="Add it only if you want to share it with serious buyers"
-              value={form.address} onChange={setE('address')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+              value={form.address} onChange={setE('address')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Asking price (₦) *</label>
             <input className="input" type="number" min="0" placeholder="e.g. 38500000"
-              value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+              value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             {form.price && (() => {
               if (!saleEscrow) {
                 return (
                   <div className="mt-3 rounded-2xl p-3" style={{backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)'}}>
-                    <p className="text-xs" style={{color:'#647068'}}>Loading the current fee…</p>
+                    <p className="text-xs" style={{color:'var(--dm-warm)'}}>Loading the current fee…</p>
                   </div>
                 )
               }
@@ -205,12 +205,12 @@ export default function ListPropertyPage() {
                   <p className="text-xs font-bold mb-2" style={{color:'#4A7A4E'}}>What you would receive</p>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span style={{color:'#647068'}}>Listing price</span>
-                      <span style={{color:'#17211B', fontWeight:600}}>₦{gross.toLocaleString()}</span>
+                      <span style={{color:'var(--dm-warm)'}}>Listing price</span>
+                      <span style={{color:'var(--dm-deep)', fontWeight:600}}>₦{gross.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span style={{color:'#647068'}}>DealMatch fee ({formatPlatformFee({ kind: 'percent', value: saleEscrow.perSide })} per side)</span>
-                      <span style={{color:'#B8511E'}}>-₦{feeEach.toLocaleString()}</span>
+                      <span style={{color:'var(--dm-warm)'}}>DealMatch fee ({formatPlatformFee({ kind: 'percent', value: saleEscrow.perSide })} per side)</span>
+                      <span style={{color:'var(--dm-terracotta)'}}>-₦{feeEach.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-xs border-t pt-1 mt-1" style={{borderColor:'rgba(122,158,126,0.2)'}}>
                       <span className="font-bold" style={{color:'#4A7A4E'}}>You receive</span>
@@ -235,8 +235,8 @@ export default function ListPropertyPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Details and features</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Size, rooms and what comes with it.</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'var(--dm-deep)'}}>Details and features</h2>
+            <p className="text-sm" style={{color:'var(--dm-warm)'}}>Size, rooms and what comes with it.</p>
           </div>
           <div className={clsx('grid gap-3', isLandType ? 'grid-cols-1' : 'grid-cols-3')}>
             {!isLandType && (
@@ -244,19 +244,19 @@ export default function ListPropertyPage() {
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Beds</label>
                   <input className="input" type="number" min="0" placeholder="0"
-                    value={form.bedrooms} onChange={setE('bedrooms')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+                    value={form.bedrooms} onChange={setE('bedrooms')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Baths</label>
                   <input className="input" type="number" min="0" placeholder="0"
-                    value={form.bathrooms} onChange={setE('bathrooms')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+                    value={form.bathrooms} onChange={setE('bathrooms')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
                 </div>
               </>
             )}
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Size (sqm) *</label>
               <input className="input" type="number" min="0" placeholder="e.g. 400"
-                value={form.size_sqm} onChange={setE('size_sqm')} style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+                value={form.size_sqm} onChange={setE('size_sqm')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             </div>
           </div>
           <div>
@@ -303,8 +303,8 @@ export default function ListPropertyPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Photos and video</h2>
-            <p className="text-sm" style={{color:'#647068'}}>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'var(--dm-deep)'}}>Photos and video</h2>
+            <p className="text-sm" style={{color:'var(--dm-warm)'}}>
               Clear photos help buyers trust what they see. At least <strong>1 photo is required</strong>.
             </p>
           </div>
@@ -313,8 +313,8 @@ export default function ListPropertyPage() {
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>
               Photos {form.images.length > 0
-                ? <span style={{color:'#7A9E7E'}}>({form.images.length} added)</span>
-                : <span style={{color:'#B8511E'}}>* required</span>}
+                ? <span style={{color:'var(--dm-sage)'}}>({form.images.length} added)</span>
+                : <span style={{color:'var(--dm-terracotta)'}}>* required</span>}
             </label>
 
             {/* Red border hint when no photos yet */}
@@ -326,7 +326,7 @@ export default function ListPropertyPage() {
               }}
               onClick={() => document.getElementById('prop-photo-upload').click()}>
               <div className="flex justify-center mb-3">{form.images.length > 0 ? <CheckCircle size={40} className="text-green-600" /> : <Camera size={40} className="text-muted" />}</div>
-              <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
+              <p className="font-semibold text-sm mb-1" style={{color:'var(--dm-deep)'}}>
                 {form.images.length > 0 ? `${form.images.length} photo${form.images.length > 1 ? 's' : ''} added: tap to add more` : 'Tap to add photos'}
               </p>
               <p className="text-xs" style={{color: form.images.length === 0 ? '#B8511E' : '#647068'}}>
@@ -370,7 +370,7 @@ export default function ListPropertyPage() {
                             set('images', imgs)
                           }}
                           className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                          style={{backgroundColor:'#B8511E', color:'#FFFFFF'}}>
+                          style={{backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF'}}>
                           Main
                         </button>
                       )}
@@ -403,10 +403,10 @@ export default function ListPropertyPage() {
               }}
               onClick={() => !form.video_url && document.getElementById('prop-video-upload').click()}>
               <div className="flex justify-center mb-3">{form.video_url ? <CheckCircle size={40} className="text-green-600" /> : <Video size={40} className="text-muted" />}</div>
-              <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
+              <p className="font-semibold text-sm mb-1" style={{color:'var(--dm-deep)'}}>
                 {form.video_url ? 'Video added' : 'Record or add a video tour'}
               </p>
-              <p className="text-xs" style={{color:'#647068'}}>
+              <p className="text-xs" style={{color:'var(--dm-warm)'}}>
                 Walk through the property on camera. Up to 2 minutes, MP4 or MOV.
               </p>
               <input id="prop-video-upload" type="file" accept="video/*" className="hidden"
@@ -439,13 +439,13 @@ export default function ListPropertyPage() {
                 placeholder="https://youtube.com/watch?v=..."
                 value={form.video_url?.startsWith('blob') ? '' : form.video_url}
                 onChange={setE('video_url')}
-                style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+                style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             </div>
           </div>
 
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
             <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
-            <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+            <p className="text-xs leading-relaxed" style={{color:'var(--dm-warm)'}}>
               A short video tour shows buyers more than photos can. Walk through the property on your phone. No editing needed.
             </p>
           </div>
@@ -460,21 +460,21 @@ export default function ListPropertyPage() {
       content: (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{color:'#17211B'}}>Description</h2>
-            <p className="text-sm" style={{color:'#647068'}}>Tell buyers about the property in your own words.</p>
+            <h2 className="font-display text-2xl font-black mb-1" style={{color:'var(--dm-deep)'}}>Description</h2>
+            <p className="text-sm" style={{color:'var(--dm-warm)'}}>Tell buyers about the property in your own words.</p>
           </div>
           <div>
             <textarea className="input resize-none" rows={8}
               placeholder="Describe the property: where it is, its features, access roads, nearby landmarks and the title status. Write at least 50 characters."
               value={form.description} onChange={setE('description')}
-              style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
+              style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             <p className="text-xs mt-1.5" style={{color: form.description.length >= 50 ? '#7A9E7E' : '#647068'}}>
               {form.description.length} of 50 characters minimum
             </p>
           </div>
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
             <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
-            <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+            <p className="text-xs leading-relaxed" style={{color:'var(--dm-warm)'}}>
               Detailed descriptions help the right buyers find you. Mention nearby landmarks, road access and the title status.
             </p>
           </div>
@@ -611,12 +611,12 @@ export default function ListPropertyPage() {
       <div className="min-h-screen flex items-center justify-center px-6" style={{backgroundColor:'#FFFAF5'}}>
         <div className="w-full max-w-sm text-center">
           <div className="flex justify-center mb-5"><CheckCircle size={56} className="text-green-600" /></div>
-          <h1 className="font-display text-3xl font-black mb-2" style={{color:'#17211B'}}>
+          <h1 className="font-display text-3xl font-black mb-2" style={{color:'var(--dm-deep)'}}>
             Your listing has been submitted.
           </h1>
           <div className="rounded-2xl p-4 mb-6 text-left" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.25)'}}>
-            <p className="text-sm font-bold mb-1" style={{color:'#D4A853'}}>Under review</p>
-            <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+            <p className="text-sm font-bold mb-1" style={{color:'var(--dm-gold)'}}>Under review</p>
+            <p className="text-xs leading-relaxed" style={{color:'var(--dm-warm)'}}>
               Your listing is under review. It will not appear to buyers until our team has verified it, which includes an on-site visit. Check your dashboard for its status.
             </p>
           </div>
@@ -626,12 +626,12 @@ export default function ListPropertyPage() {
             </button>
             <button onClick={() => navigate('/list')}
               className="w-full py-4 rounded-2xl text-sm font-semibold border-2 transition-all"
-              style={{borderColor:'#DEDDD6', color:'#5C4A3A', backgroundColor:'#FFFFFF'}}>
+              style={{borderColor:'var(--dm-line)', color:'#5C4A3A', backgroundColor:'#FFFFFF'}}>
               List another property
             </button>
             <button onClick={() => navigate('/dashboard')}
               className="w-full py-4 rounded-2xl text-sm font-semibold transition-all"
-              style={{color:'#647068'}}>
+              style={{color:'var(--dm-warm)'}}>
               Go to Dashboard
             </button>
           </div>
@@ -646,8 +646,8 @@ export default function ListPropertyPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-black mb-1" style={{color:'#17211B'}}>List a property for sale</h1>
-          <p className="text-sm mb-5" style={{color:'#647068'}}>Step {step + 1} of {steps.length}: {current.title}</p>
+          <h1 className="font-display text-3xl font-black mb-1" style={{color:'var(--dm-deep)'}}>List a property for sale</h1>
+          <p className="text-sm mb-5" style={{color:'var(--dm-warm)'}}>Step {step + 1} of {steps.length}: {current.title}</p>
 
           <div className="space-y-2.5">
             {steps.map((s, i) => (
@@ -685,13 +685,13 @@ export default function ListPropertyPage() {
               {agreed && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>
                 I agree to the DealMatch Listing Terms
               </p>
-              <p className="text-xs mt-1 leading-relaxed" style={{ color: '#647068' }}>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--dm-warm)' }}>
                 I confirm this property is mine or I have authority to list it. I agree to DealMatch's{' '}
-                <a href="/terms" target="_blank" className="underline" style={{ color: '#B8511E' }}>Terms of Service</a> and{' '}
-                <a href="/privacy" target="_blank" className="underline" style={{ color: '#B8511E' }}>Privacy Policy</a>.
+                <a href="/terms" target="_blank" className="underline" style={{ color: 'var(--dm-terracotta)' }}>Terms of Service</a> and{' '}
+                <a href="/privacy" target="_blank" className="underline" style={{ color: 'var(--dm-terracotta)' }}>Privacy Policy</a>.
               </p>
             </div>
           </div>
@@ -708,7 +708,7 @@ export default function ListPropertyPage() {
               borderTop: '2px solid #B8511E',
               animation: 'spin 0.8s linear infinite',
             }} />
-            <p className="text-xs font-medium" style={{color:'#B8511E'}}>{uploadProgress}</p>
+            <p className="text-xs font-medium" style={{color:'var(--dm-terracotta)'}}>{uploadProgress}</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}

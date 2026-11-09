@@ -118,16 +118,16 @@ export default function AuthCallback() {
     <div className="min-h-screen flex items-center justify-center" style={{backgroundColor:'#FFFAF5'}}>
       <div className="flex flex-col items-center gap-4 text-center px-6">
         <div className="flex justify-center"><Home size={48} className="text-terracotta animate-bounce" /></div>
-        <p className="font-display text-xl font-black" style={{color:'#17211B'}}>
+        <p className="font-display text-xl font-black" style={{color:'var(--dm-deep)'}}>
           Setting up your account…
         </p>
-        <p className="text-sm" style={{color:'#647068'}}>
+        <p className="text-sm" style={{color:'var(--dm-warm)'}}>
           One moment while we get everything ready.
         </p>
         <div className="flex gap-1.5 mt-2">
           {[0,1,2].map(i => (
             <div key={i} className="w-2 h-2 rounded-full animate-pulse"
-              style={{backgroundColor:'#B8511E', animationDelay:`${i*0.15}s`}} />
+              style={{backgroundColor:'var(--dm-terracotta)', animationDelay:`${i*0.15}s`}} />
           ))}
         </div>
       </div>

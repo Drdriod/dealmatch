@@ -123,24 +123,24 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="font-display text-2xl font-black mb-1" style={{ color: '#17211B' }}>What are you looking for?</h1>
-        <p className="text-xs mb-5" style={{ color: '#647068' }}>
+        <h1 className="font-display text-2xl font-black mb-1" style={{ color: 'var(--dm-deep)' }}>What are you looking for?</h1>
+        <p className="text-xs mb-5" style={{ color: 'var(--dm-warm)' }}>
           Discover. Connect. Agree. One search across every place and person on DealMatch.
         </p>
 
         <form onSubmit={submit} className="flex gap-2 mb-3">
           <div className="relative flex-1">
-            <SearchIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#647068' }} />
+            <SearchIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--dm-warm)' }} />
             <input
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               placeholder="Find a shortlet, a plumber, house rent, a tutor..."
               className="w-full pl-11 pr-4 py-3.5 rounded-full text-sm outline-none"
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: '#17211B' }}
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
             />
           </div>
           <button type="submit" className="px-6 py-3.5 rounded-full text-sm font-bold flex-shrink-0"
-            style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
+            style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
             Search
           </button>
         </form>
@@ -153,7 +153,7 @@ export default function SearchPage() {
             {coords ? 'Using your location' : locStatus === 'requesting' ? 'Locating...' : 'Search near me'}
           </button>
           {coords && (
-            <label className="flex items-center gap-2 text-xs" style={{ color: '#647068' }}>
+            <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--dm-warm)' }}>
               <SlidersHorizontal size={12} /> Within
               <select value={radiusKm} onChange={e => setRadiusKm(Number(e.target.value))}
                 className="text-xs rounded-lg px-1.5 py-1" style={{ border: '1px solid #DEDDD6', background: '#fff' }}>
@@ -173,7 +173,7 @@ export default function SearchPage() {
               if (groups.length === 0) return null
               return (
                 <div key={pillar.slug}>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color: '#647068' }}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color: 'var(--dm-warm)' }}>
                     {pillar.name}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -189,18 +189,18 @@ export default function SearchPage() {
           </div>
         )}
 
-        {loading && <p className="text-sm" style={{ color: '#647068' }}>Searching...</p>}
+        {loading && <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Searching...</p>}
 
         {!loading && results !== null && aiResults.length === 0 && keywordOnly.length === 0 && (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
-            <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>We couldn't find a match for your search.</p>
-            <p className="text-xs" style={{ color: '#647068' }}>Try different search terms, or widen your search area.</p>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+            <p className="font-semibold text-sm mb-1" style={{ color: 'var(--dm-deep)' }}>We couldn't find a match for your search.</p>
+            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Try different search terms, or widen your search area.</p>
           </div>
         )}
 
         {aiResults.length > 0 && (
           <div className="mb-8">
-            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#B8511E' }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--dm-terracotta)' }}>
               Best matches {coords ? '(AI + location matched)' : '(AI matched)'}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -209,16 +209,16 @@ export default function SearchPage() {
                   className="block rounded-2xl p-4"
                   style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{r.title}</p>
+                    <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{r.title}</p>
                     {typeof r.score === 'number' && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
+                        style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
                         {Math.round(r.score * 100)}% match
                       </span>
                     )}
                   </div>
-                  {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
-                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#B8511E' }}>{formatPrice(r.price_cents)}</p>}
+                  {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--dm-warm)' }}><MapPin size={10} />{r.location_name}</p>}
+                  {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: 'var(--dm-terracotta)' }}>{formatPrice(r.price_cents)}</p>}
                 </Link>
               ))}
             </div>
@@ -227,7 +227,7 @@ export default function SearchPage() {
 
         {keywordOnly.length > 0 && (
           <div>
-            {aiResults.length > 0 && <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#647068' }}>More results</p>}
+            {aiResults.length > 0 && <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--dm-warm)' }}>More results</p>}
             <div className="grid gap-3 sm:grid-cols-2">
               {keywordOnly.map(r => (
                 <motion.div key={`${r.source}-${r.item_id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -239,9 +239,9 @@ export default function SearchPage() {
                         {SOURCE_LABEL[r.source] || r.category_name}
                       </span>
                     </div>
-                    <p className="font-semibold text-sm mb-1" style={{ color: '#17211B' }}>{r.title}</p>
-                    {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: '#647068' }}><MapPin size={10} />{r.location_name}</p>}
-                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: '#B8511E' }}>{formatPrice(r.price_cents)}</p>}
+                    <p className="font-semibold text-sm mb-1" style={{ color: 'var(--dm-deep)' }}>{r.title}</p>
+                    {r.location_name && <p className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--dm-warm)' }}><MapPin size={10} />{r.location_name}</p>}
+                    {formatPrice(r.price_cents) && <p className="text-sm font-bold" style={{ color: 'var(--dm-terracotta)' }}>{formatPrice(r.price_cents)}</p>}
                   </Link>
                 </motion.div>
               ))}

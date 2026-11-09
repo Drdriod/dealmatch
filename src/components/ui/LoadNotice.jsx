@@ -17,7 +17,7 @@ export default function LoadNotice({ error, issues = [], onRetry, what = 'this p
             type="button"
             onClick={() => onRetry()}
             className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold"
-            style={{ borderColor: 'rgba(23,33,27,0.2)', color: '#17211B' }}
+            style={{ borderColor: 'rgba(23,33,27,0.2)', color: 'var(--dm-deep)' }}
           >
             <RefreshCw size={13} /> Try again
           </button>

@@ -59,10 +59,10 @@ export default function MatchesPage() {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
+          <h1 className="font-display text-2xl font-black" style={{ color: 'var(--dm-deep)' }}>
             Saved Matches
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
             {matches.length} saved propert{matches.length === 1 ? 'y' : 'ies'}
           </p>
         </div>
@@ -83,16 +83,16 @@ export default function MatchesPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-20" style={{ color: '#647068' }}>Loading your saved matches…</div>
+          <div className="text-center py-20" style={{ color: 'var(--dm-warm)' }}>Loading your saved matches…</div>
         )}
 
         {!loading && filtered.length === 0 && (
           <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
             <div className="flex justify-center mb-4"><HeartCrack size={48} className="text-terracotta" /></div>
-            <h3 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
+            <h3 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>
               No saved matches yet
             </h3>
-            <p className="text-sm mb-6" style={{ color: '#647068' }}>
+            <p className="text-sm mb-6" style={{ color: 'var(--dm-warm)' }}>
               Save the places you like and they will appear here.
             </p>
             <Link to="/browse" className="btn-primary px-8 py-3 text-sm inline-flex">
@@ -112,7 +112,7 @@ export default function MatchesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   className="rounded-2xl overflow-hidden border"
-                  style={{ backgroundColor: '#FFFAF5', borderColor: '#DEDDD6' }}>
+                  style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
                   <div className="flex gap-0">
                     {/* Image */}
                     <div className="w-28 flex-shrink-0 relative" style={{ minHeight: 120 }}>
@@ -126,7 +126,7 @@ export default function MatchesPage() {
                       )}
                       {match.action === 'super' && (
                         <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                          style={{ backgroundColor: '#D4A853', color: '#FFFFFF' }}>
+                          style={{ backgroundColor: 'var(--dm-gold)', color: '#FFFFFF' }}>
                           ⭐ Super
                         </div>
                       )}
@@ -134,17 +134,17 @@ export default function MatchesPage() {
 
                     {/* Info */}
                     <div className="flex-1 p-3">
-                      <p className="font-display font-black text-base leading-tight mb-0.5" style={{ color: '#17211B' }}>
+                      <p className="font-display font-black text-base leading-tight mb-0.5" style={{ color: 'var(--dm-deep)' }}>
                         {formatPrice(p?.price)}
                       </p>
                       <p className="font-semibold text-sm truncate mb-1" style={{ color: '#5C4A3A' }}>
                         {p?.title}
                       </p>
-                      <div className="flex items-center gap-1 text-xs mb-2" style={{ color: '#647068' }}>
+                      <div className="flex items-center gap-1 text-xs mb-2" style={{ color: 'var(--dm-warm)' }}>
                         <MapPin size={11} />
                         <span className="truncate">{p?.city}, {p?.state}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-xs" style={{ color: '#647068' }}>
+                      <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--dm-warm)' }}>
                         {p?.bedrooms  && <span className="flex items-center gap-0.5"><Bed size={10} /> {p.bedrooms}bd</span>}
                         {p?.bathrooms && <span className="flex items-center gap-0.5"><Bath size={10} /> {p.bathrooms}ba</span>}
                         {p?.size_sqm  && <span className="flex items-center gap-0.5"><Maximize size={10} /> {p.size_sqm}sqm</span>}
@@ -156,17 +156,17 @@ export default function MatchesPage() {
                   <div className="flex gap-2 px-3 pb-3">
                     <button onClick={() => navigate(`/property/${p?.id}`)}
                       className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
+                      style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
                       View Details
                     </button>
                     <button onClick={() => contactSeller(p)}
                       className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border"
-                      style={{ borderColor: 'rgba(23,33,27,0.15)', color: '#17211B' }}>
+                      style={{ borderColor: 'rgba(23,33,27,0.15)', color: 'var(--dm-deep)' }}>
                       <MessageCircle size={12} /> Chat
                     </button>
                     <button onClick={() => removeMatch(match.id)}
                       className="w-9 h-9 rounded-xl flex items-center justify-center border"
-                      style={{ borderColor: 'rgba(200,95,45,0.2)', color: '#B8511E', backgroundColor: 'rgba(200,95,45,0.05)' }}>
+                      style={{ borderColor: 'rgba(200,95,45,0.2)', color: 'var(--dm-terracotta)', backgroundColor: 'rgba(200,95,45,0.05)' }}>
                       <Trash2 size={13} />
                     </button>
                   </div>

@@ -74,7 +74,7 @@ export default function AcceptStaffInvitePage() {
       <div className="w-full max-w-sm rounded-3xl p-6 space-y-4" style={{ backgroundColor: '#1E1510', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,168,83,0.12)' }}>
-            <Shield size={18} style={{ color: '#D4A853' }} />
+            <Shield size={18} style={{ color: 'var(--dm-gold)' }} />
           </div>
           <div>
             <h3 className="text-white font-bold">Set your password</h3>
@@ -103,7 +103,7 @@ export default function AcceptStaffInvitePage() {
         <button
           onClick={submit} disabled={submitting}
           className="w-full py-3 rounded-2xl text-sm font-bold disabled:opacity-50"
-          style={{ backgroundColor: '#D4A853', color: '#17211B' }}
+          style={{ backgroundColor: 'var(--dm-gold)', color: 'var(--dm-deep)' }}
         >
           {submitting ? 'Activating...' : 'Activate account'}
         </button>

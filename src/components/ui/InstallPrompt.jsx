@@ -40,7 +40,7 @@ export default function InstallPrompt() {
           className="fixed bottom-20 left-4 right-4 z-50 max-w-sm mx-auto"
         >
           <div className="rounded-2xl p-4 flex items-center gap-4 shadow-2xl"
-            style={{ backgroundColor: '#17211B', border: '1px solid rgba(255,255,255,0.1)' }}>
+            style={{ backgroundColor: 'var(--dm-deep)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
               style={{ backgroundColor: 'rgba(200,95,45,0.2)' }}>
               <Home size={24} className="text-terracotta" />
@@ -54,7 +54,7 @@ export default function InstallPrompt() {
             <div className="flex flex-col gap-1.5">
               <button onClick={handleInstall}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
+                style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
                 Install
               </button>
               <button onClick={handleDismiss}

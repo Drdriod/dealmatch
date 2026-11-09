@@ -109,7 +109,7 @@ export function PayoutsTab() {
           {items.map(a=>(
             <TR key={a.id}>
               <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{a.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{a.profiles?.email}</div></td>
-              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'#B8511E'}}>No bank code (pre-automation)</span>}</td>
+              <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'var(--dm-terracotta)'}}>No bank code (pre-automation)</span>}</td>
               <td className="px-4 py-3 text-xs text-white">{a.account_name}<div style={{color:'rgba(255,255,255,0.35)'}}>****{String(a.account_number).slice(-4)}</div></td>
               <td className="px-4 py-3"><Badge label={a.status} color={SC[a.status]}/></td>
               <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(a.created_at)}</td>
@@ -133,7 +133,7 @@ export function PayoutsTab() {
               <td className="px-4 py-3 font-semibold text-white text-sm">{money(q.amount_cents)}</td>
               <td className="px-4 py-3"><Badge label={q.status} color={SC[q.status]}/></td>
               <td className="px-4 py-3 text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{q.attempts}/5</td>
-              <td className="px-4 py-3 text-xs" style={{color:'#B8511E',maxWidth:220}}>{q.failure_reason||'-'}</td>
+              <td className="px-4 py-3 text-xs" style={{color:'var(--dm-terracotta)',maxWidth:220}}>{q.failure_reason||'-'}</td>
               <td className="px-4 py-3">
                 {q.status==='failed'&&<ActionBtn icon={RefreshCw} color="#D4A853" tip="Retry" onClick={()=>retryQueueRow(q.id)}/>}
               </td>
@@ -165,13 +165,13 @@ export function PayoutsTab() {
 
       {rejectTarget&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm" style={{backgroundColor:'#17211B'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm" style={{backgroundColor:'var(--dm-deep)'}}>
             <p className="text-sm font-bold text-white mb-3">Reject payout account</p>
             <textarea value={rejectReason} onChange={e=>setRejectReason(e.target.value)} rows={3} placeholder="Reason (shown to the provider)"
               className="w-full rounded-xl px-3 py-2.5 text-xs resize-none outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}/>
             <div className="flex gap-2">
               <button onClick={()=>{setRejectTarget(null);setRejectReason('')}} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#B8511E',color:'#fff'}}>Reject</button>
+              <button onClick={rejectAccount} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'var(--dm-terracotta)',color:'#fff'}}>Reject</button>
             </div>
           </div>
         </div>

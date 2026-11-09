@@ -18,10 +18,10 @@ export default function PeopleRail() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-end justify-between mb-5">
           <div>
-            <h2 className="font-display text-3xl" style={{ color: '#17211B' }}>People near you</h2>
-            <p className="text-sm mt-0.5" style={{ color: '#647068' }}>Skilled people ready to help.</p>
+            <h2 className="font-display text-3xl" style={{ color: 'var(--dm-deep)' }}>People near you</h2>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--dm-warm)' }}>Skilled people ready to help.</p>
           </div>
-          <Link to="/providers" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: '#B8511E' }}>
+          <Link to="/providers" className="hidden sm:flex items-center gap-1 text-sm font-semibold flex-shrink-0" style={{ color: 'var(--dm-terracotta)' }}>
             See all <ArrowRight size={13} />
           </Link>
         </div>

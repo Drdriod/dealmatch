@@ -59,13 +59,13 @@ function FlipCard({ card, photo, index }) {
           className="absolute inset-0 rounded-3xl p-5 flex flex-col justify-between overflow-hidden"
           style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}
         >
-          <card.icon size={26} style={{ color: '#17211B' }} strokeWidth={1.6} />
+          <card.icon size={26} style={{ color: 'var(--dm-deep)' }} strokeWidth={1.6} />
           <div>
-            <h3 className="font-display text-lg font-black leading-tight mb-1" style={{ color: '#17211B' }}>
+            <h3 className="font-display text-lg font-black leading-tight mb-1" style={{ color: 'var(--dm-deep)' }}>
               {card.title}
             </h3>
             <p className="text-xs max-w-[70%] mb-3" style={{ color: '#536058' }}>{card.desc}</p>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#17211B' }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--dm-deep)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
             </div>
           </div>
@@ -82,10 +82,10 @@ function FlipCard({ card, photo, index }) {
               <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(23,33,27,0.85) 0%, rgba(23,33,27,0.35) 60%, rgba(23,33,27,0.15) 100%)' }} />
             </>
           ) : (
-            <div className="absolute inset-0" style={{ backgroundColor: '#17211B' }} />
+            <div className="absolute inset-0" style={{ backgroundColor: 'var(--dm-deep)' }} />
           )}
           <div className="relative h-full p-5 flex flex-col justify-end">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1" style={{ color: '#DEDDD6' }}>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1" style={{ color: 'var(--dm-line)' }}>
               <ShieldCheck size={12} /> Verified
             </div>
             <p className="text-white text-sm font-semibold leading-snug">{card.backLabel}</p>
@@ -109,7 +109,7 @@ export default function WhatIsDealMatchCarousel({ properties = [] }) {
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#536058' }}>
           What's on DealMatch
         </p>
-        <h2 className="font-display text-2xl sm:text-3xl font-black" style={{ color: '#17211B' }}>
+        <h2 className="font-display text-2xl sm:text-3xl font-black" style={{ color: 'var(--dm-deep)' }}>
           One platform. Multi-category matching.
         </h2>
       </div>

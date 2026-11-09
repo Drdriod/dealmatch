@@ -145,7 +145,7 @@ export default function StudentVerifyPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#B8511E' }} />
+      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--dm-terracotta)' }} />
     </div>
   )
 
@@ -164,11 +164,11 @@ export default function StudentVerifyPage() {
           <button onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: '#F5EDE0' }}>
-            <ArrowLeft size={16} style={{ color: '#17211B' }} />
+            <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
           </button>
           <div>
-            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>Student verification</h1>
-            <p className="text-xs" style={{ color: '#647068' }}>100% free - required to view owner contacts</p>
+            <h1 className="font-display font-black text-xl" style={{ color: 'var(--dm-deep)' }}>Student verification</h1>
+            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>100% free - required to view owner contacts</p>
           </div>
         </div>
 
@@ -183,18 +183,18 @@ export default function StudentVerifyPage() {
                 Status: {statusMeta.label}
               </p>
               {existing.status === 'pending' && (
-                <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
                   We review within 24 hours. You'll be notified once approved.
                 </p>
               )}
               {existing.status === 'approved' && (
-                <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
                   You can now view owner contact details on all hostel listings.{' '}
-                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: '#B8511E' }}>Explore hostels →</Link>
+                  <Link to="/student-hostels" className="font-semibold underline" style={{ color: 'var(--dm-terracotta)' }}>Explore hostels →</Link>
                 </p>
               )}
               {existing.status === 'rejected' && (
-                <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
                   {existing.rejection_reason || 'Your ID could not be verified. Please resubmit with a clearer photo.'}
                 </p>
               )}
@@ -207,15 +207,15 @@ export default function StudentVerifyPage() {
           <div className="text-center py-8">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
               style={{ backgroundColor: 'rgba(122,158,126,0.12)', border: '2px solid rgba(122,158,126,0.3)' }}>
-              <GraduationCap size={36} style={{ color: '#7A9E7E' }} />
+              <GraduationCap size={36} style={{ color: 'var(--dm-sage)' }} />
             </div>
-            <h2 className="font-bold text-lg mb-2" style={{ color: '#17211B' }}>You're verified.</h2>
-            <p className="text-sm mb-6" style={{ color: '#647068' }}>
+            <h2 className="font-bold text-lg mb-2" style={{ color: 'var(--dm-deep)' }}>You're verified.</h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--dm-warm)' }}>
               You can now see direct contact details of hostel owners.
             </p>
             <Link to="/student-hostels"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm"
-              style={{ backgroundColor: '#17211B', color: '#FFFAF5' }}>
+              style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
               Browse Hostels <GraduationCap size={14} />
             </Link>
           </div>
@@ -224,16 +224,16 @@ export default function StudentVerifyPage() {
             {/* Why verify */}
             <div className="rounded-2xl p-4 flex items-start gap-3"
               style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <Info size={16} style={{ color: '#B8511E', flexShrink: 0, marginTop: 2 }} />
-              <div className="text-xs" style={{ color: '#647068' }}>
-                <strong style={{ color: '#17211B' }}>Why we verify:</strong> Hostel owners listed here are real. We verify students so that owners know genuine students are contacting them - this keeps scams out on both sides.
+              <Info size={16} style={{ color: 'var(--dm-terracotta)', flexShrink: 0, marginTop: 2 }} />
+              <div className="text-xs" style={{ color: 'var(--dm-warm)' }}>
+                <strong style={{ color: 'var(--dm-deep)' }}>Why we verify:</strong> Hostel owners listed here are real. We verify students so that owners know genuine students are contacting them - this keeps scams out on both sides.
               </div>
             </div>
 
             {/* Institution */}
             <div>
-              <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Your School <span style={{ color: '#B8511E' }}>*</span>
+              <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                Your School <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
               </label>
               <div className="relative">
                 <select value={form.institution_id} onChange={e => {
@@ -245,14 +245,14 @@ export default function StudentVerifyPage() {
                   <option value="">Select your institution</option>
                   {institutions.map(i => <option key={i.id} value={i.id}>{i.short_name ? `${i.name} (${i.short_name})` : i.name}</option>)}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#647068' }} />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--dm-warm)' }} />
               </div>
             </div>
 
             {/* ID type selector */}
             <div>
-              <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Student ID Type <span style={{ color: '#B8511E' }}>*</span>
+              <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                Student ID Type <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -270,7 +270,7 @@ export default function StudentVerifyPage() {
                     <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? '#B8511E' : '#17211B' }}>
                       {opt.label}
                     </div>
-                    <div className="text-xs mt-0.5 leading-tight" style={{ color: '#647068' }}>{opt.sub}</div>
+                    <div className="text-xs mt-0.5 leading-tight" style={{ color: 'var(--dm-warm)' }}>{opt.sub}</div>
                   </button>
                 ))}
               </div>
@@ -279,14 +279,14 @@ export default function StudentVerifyPage() {
             {/* Matric number */}
             {form.id_type === 'matric' && (
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  Matriculation Number <span style={{ color: '#B8511E' }}>*</span>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                  Matriculation Number <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <input value={form.matric_number} onChange={set('matric_number')}
                   placeholder="e.g. 190401045" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }} />
-                <p className="text-xs mt-1" style={{ color: '#647068' }}>
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number on your student ID card issued by your institution.
                 </p>
               </div>
@@ -295,14 +295,14 @@ export default function StudentVerifyPage() {
             {/* JAMB reg number */}
             {form.id_type === 'jamb' && (
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  JAMB Registration Number <span style={{ color: '#B8511E' }}>*</span>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                  JAMB Registration Number <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <input value={form.jamb_reg_number} onChange={set('jamb_reg_number')}
                   placeholder="e.g. 20376549AB" autoCapitalize="characters" maxLength={12}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }} />
-                <p className="text-xs mt-1" style={{ color: '#647068' }}>
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   Found on your JAMB result slip, admission letter, or JAMB profile.
                   You can update to your matric number once your school assigns one.
                 </p>
@@ -312,14 +312,14 @@ export default function StudentVerifyPage() {
             {/* Application number */}
             {form.id_type === 'application' && (
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  Application Number <span style={{ color: '#B8511E' }}>*</span>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                  Application Number <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <input value={form.application_number} onChange={set('application_number')}
                   placeholder="e.g. APP/2024/00123" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }} />
-                <p className="text-xs mt-1" style={{ color: '#647068' }}>
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number given to you when you purchased your admission form or registered on your school's portal.
                   Usually found on your acknowledgement slip or email.
                 </p>
@@ -328,19 +328,19 @@ export default function StudentVerifyPage() {
 
             {/* School email */}
             <div>
-              <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                School Email <span style={{ color: '#647068', fontWeight: 400 }}>(optional - speeds up approval)</span>
+              <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                School Email <span style={{ color: 'var(--dm-warm)', fontWeight: 400 }}>(optional - speeds up approval)</span>
               </label>
               <input value={form.school_email} onChange={set('school_email')}
                 type="email" placeholder="username@unilag.edu.ng"
                 className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }} />
+                style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
             </div>
 
             {/* Student ID upload */}
             <div>
-              <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                Student ID Card Photo <span style={{ color: '#B8511E' }}>*</span>
+              <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                Student ID Card Photo <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
               </label>
               <label className="block cursor-pointer">
                 {previewUrl ? (
@@ -354,21 +354,21 @@ export default function StudentVerifyPage() {
                 ) : form.id_image_url ? (
                   <div className="relative rounded-2xl overflow-hidden flex items-center justify-center"
                     style={{ height: 160, backgroundColor: '#F5EDE0' }}>
-                    <span className="text-xs font-semibold" style={{ color: '#647068' }}>ID photo already uploaded ✓ - click to replace</span>
+                    <span className="text-xs font-semibold" style={{ color: 'var(--dm-warm)' }}>ID photo already uploaded ✓ - click to replace</span>
                   </div>
                 ) : (
                   <div className="border-2 border-dashed rounded-2xl p-8 text-center"
-                    style={{ borderColor: '#DEDDD6', backgroundColor: '#F5EDE0' }}>
+                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#F5EDE0' }}>
                     {uploading ? (
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-sm" style={{ color: '#647068' }}>Uploading…</span>
+                        <span className="text-sm" style={{ color: 'var(--dm-warm)' }}>Uploading…</span>
                       </div>
                     ) : (
                       <>
-                        <Upload size={24} style={{ color: '#B8511E', margin: '0 auto 8px' }} />
-                        <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Upload your student ID</p>
-                        <p className="text-xs mt-1" style={{ color: '#647068' }}>
+                        <Upload size={24} style={{ color: 'var(--dm-terracotta)', margin: '0 auto 8px' }} />
+                        <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Upload your student ID</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                           NIN card, school ID card, or any valid student ID
                         </p>
                       </>
@@ -377,7 +377,7 @@ export default function StudentVerifyPage() {
                 )}
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
               </label>
-              <p className="text-xs mt-1.5" style={{ color: '#647068' }}>
+              <p className="text-xs mt-1.5" style={{ color: 'var(--dm-warm)' }}>
                 Your ID is stored securely and only used for verification. It's never shared publicly.
               </p>
             </div>
@@ -385,8 +385,8 @@ export default function StudentVerifyPage() {
             {/* Privacy note */}
             <div className="rounded-2xl p-3 flex items-start gap-2"
               style={{ backgroundColor: 'rgba(122,158,126,0.06)', border: '1px solid rgba(122,158,126,0.15)' }}>
-              <Shield size={14} style={{ color: '#7A9E7E', flexShrink: 0, marginTop: 1 }} />
-              <p className="text-xs" style={{ color: '#647068' }}>
+              <Shield size={14} style={{ color: 'var(--dm-sage)', flexShrink: 0, marginTop: 1 }} />
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>
                 Your student ID and personal details are kept private and never shown to hostel owners. Only your verified status is shared.
               </p>
             </div>
@@ -399,7 +399,7 @@ export default function StudentVerifyPage() {
                 (form.id_type === 'application' && !form.application_number.trim())
               }
               className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#17211B', color: '#FFFAF5' }}>
+              style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
               {saving
                 ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 : <><GraduationCap size={16} /> Submit for Verification - Free</>}

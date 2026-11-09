@@ -88,10 +88,10 @@ export default function VerificationPage() {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color:'#17211B' }}>
+            <h1 className="font-display text-2xl font-black" style={{ color:'var(--dm-deep)' }}>
               Property Verification
             </h1>
-            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>DealMatch Agent Dashboard</p>
+            <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>DealMatch Agent Dashboard</p>
           </div>
           <button onClick={loadListings}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -103,7 +103,7 @@ export default function VerificationPage() {
         {/* Workflow explainer */}
         <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor:'rgba(122,158,126,0.08)', borderColor:'rgba(122,158,126,0.25)' }}>
           <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Verification Workflow</p>
-          <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'#647068' }}>
+          <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'var(--dm-warm)' }}>
             {['Landlord Submits','→','Agent Visits Location','→','Agent Verifies / Rejects','→','Property Goes Live'].map((s,i) => (
               <span key={i} style={{ color: s === '→' ? '#B8511E' : undefined }}>{s}</span>
             ))}
@@ -129,11 +129,11 @@ export default function VerificationPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#647068' }}>Loading listings…</div>
+          <div className="text-center py-16" style={{ color:'var(--dm-warm)' }}>Loading listings…</div>
         ) : listings.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
             <div className="flex justify-center mb-3"><CheckCircle size={40} className="text-green-600" /></div>
-            <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No listings in this category</p>
+            <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>No listings in this category</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -160,18 +160,18 @@ export default function VerificationPage() {
                     {/* Info */}
                     <div className="flex-1 p-3">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <p className="font-semibold text-sm truncate" style={{ color:'#17211B' }}>{listing.title}</p>
+                        <p className="font-semibold text-sm truncate" style={{ color:'var(--dm-deep)' }}>{listing.title}</p>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
                           style={{ backgroundColor:s.bg, color:s.color }}>
                           {s.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs mb-1" style={{ color:'#647068' }}>
-                        <MapPin size={10} style={{ color:'#B8511E' }} />
+                      <div className="flex items-center gap-1 text-xs mb-1" style={{ color:'var(--dm-warm)' }}>
+                        <MapPin size={10} style={{ color:'var(--dm-terracotta)' }} />
                         <span className="truncate">{listing.address || listing.city}, {listing.state}</span>
                       </div>
-                      <div className="text-xs" style={{ color:'#647068' }}>
-                        Owner: <strong style={{ color:'#17211B' }}>{listing.profiles?.full_name || 'Unknown'}</strong>
+                      <div className="text-xs" style={{ color:'var(--dm-warm)' }}>
+                        Owner: <strong style={{ color:'var(--dm-deep)' }}>{listing.profiles?.full_name || 'Unknown'}</strong>
                         {listing.profiles?.phone && <span> · {listing.profiles.phone}</span>}
                       </div>
                       <div className="flex items-center gap-1 text-xs mt-1" style={{ color:'rgba(23,33,27,0.4)' }}>
@@ -183,7 +183,7 @@ export default function VerificationPage() {
 
                   {/* Expanded actions */}
                   {isSelected && (
-                    <div className="p-4 border-t" style={{ borderColor:'#DEDDD6', backgroundColor:'rgba(200,95,45,0.02)' }}>
+                    <div className="p-4 border-t" style={{ borderColor:'var(--dm-line)', backgroundColor:'rgba(200,95,45,0.02)' }}>
                       {/* Images */}
                       {listing.images?.length > 0 && (
                         <div className="flex gap-2 overflow-x-auto mb-3 pb-1" style={{ scrollbarWidth:'none' }}>
@@ -204,14 +204,14 @@ export default function VerificationPage() {
                           ['Video',    listing.video_url ? 'Provided' : 'None'],
                         ].map(([k,v]) => (
                           <div key={k} className="rounded-xl p-2" style={{ backgroundColor:'rgba(23,33,27,0.04)' }}>
-                            <span style={{ color:'#647068' }}>{k}: </span>
+                            <span style={{ color:'var(--dm-warm)' }}>{k}: </span>
                             <strong>{v}</strong>
                           </div>
                         ))}
                       </div>
 
                       {listing.description && (
-                        <p className="text-xs mb-4 leading-relaxed" style={{ color:'#647068' }}>{listing.description}</p>
+                        <p className="text-xs mb-4 leading-relaxed" style={{ color:'var(--dm-warm)' }}>{listing.description}</p>
                       )}
 
                       {/* Verification note */}
@@ -221,7 +221,7 @@ export default function VerificationPage() {
                         </label>
                         <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
                           placeholder="Add any notes from the site visit"
-                          className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                          className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                       </div>
 
                       {/* Action buttons */}
@@ -236,7 +236,7 @@ export default function VerificationPage() {
                         {listing.status !== 'rejected' && (
                           <button onClick={() => updateStatus(listing, 'rejected')} disabled={saving}
                             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                            style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'#B8511E', border:'2px solid rgba(200,95,45,0.2)' }}>
+                            style={{ backgroundColor:'rgba(200,95,45,0.08)', color:'var(--dm-terracotta)', border:'2px solid rgba(200,95,45,0.2)' }}>
                             <X size={14} /> Reject
                           </button>
                         )}

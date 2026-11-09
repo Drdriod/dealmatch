@@ -71,7 +71,7 @@ export function TestimonialsTab() {
                 {t.role_label && <span className="text-xs" style={{color:'rgba(255,255,255,0.6)'}}>· {t.role_label}</span>}
                 <span className="flex items-center gap-0.5 ml-auto">
                   {[1,2,3,4,5].map(n=>(
-                    <Star key={n} size={12} fill={n<=t.rating?'#D4A853':'transparent'} style={{color:'#D4A853'}}/>
+                    <Star key={n} size={12} fill={n<=t.rating?'#D4A853':'transparent'} style={{color:'var(--dm-gold)'}}/>
                   ))}
                 </span>
               </div>
@@ -86,7 +86,7 @@ export function TestimonialsTab() {
                   </button>
                   <button onClick={()=>act(t.id,'approve')} disabled={actingOn===t.id}
                     className="py-2 rounded-xl text-xs font-bold disabled:opacity-40"
-                    style={{backgroundColor:'rgba(122,158,126,0.12)',color:'#7A9E7E'}}>
+                    style={{backgroundColor:'rgba(122,158,126,0.12)',color:'var(--dm-sage)'}}>
                     <ThumbsUp size={12} className="inline mr-1"/> Approve
                   </button>
                 </div>

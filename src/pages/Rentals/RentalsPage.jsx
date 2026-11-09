@@ -99,10 +99,10 @@ function InterestModal({ rental, onClose }) {
         className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col"
         style={{ backgroundColor:'#FFFAF5', maxHeight:'90vh' }}>
 
-        <div className="p-5 border-b flex items-center justify-between" style={{ borderColor:'#DEDDD6' }}>
+        <div className="p-5 border-b flex items-center justify-between" style={{ borderColor:'var(--dm-line)' }}>
           <div>
-            <h3 className="font-display font-black text-lg" style={{ color:'#17211B' }}>Express Interest </h3>
-            <p className="text-xs mt-0.5 truncate" style={{ color:'#647068' }}>{rental.title}</p>
+            <h3 className="font-display font-black text-lg" style={{ color:'var(--dm-deep)' }}>Express Interest </h3>
+            <p className="text-xs mt-0.5 truncate" style={{ color:'var(--dm-warm)' }}>{rental.title}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
@@ -115,17 +115,17 @@ function InterestModal({ rental, onClose }) {
             <div className="flex justify-center mb-4">
               {contact?.phone
                 ? <CheckCircle size={48} className="text-green-600" />
-                : <Lock size={40} style={{ color: '#B8511E' }} />}
+                : <Lock size={40} style={{ color: 'var(--dm-terracotta)' }} />}
             </div>
-            <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>
+            <h3 className="font-display font-black text-xl mb-2" style={{ color:'var(--dm-deep)' }}>
               {contact?.phone ? 'Interest Recorded!' : 'One Step Left'}
             </h3>
-            <p className="text-sm mb-6" style={{ color:'#647068' }}>
+            <p className="text-sm mb-6" style={{ color:'var(--dm-warm)' }}>
               {contact?.phone
                 ? "You're already a party to a funded transaction on this listing - contact is unlocked."
                 : 'The landlord\'s contact stays protected until your reservation is secured through DealMatch escrow - this keeps the deposit and move-in date safe for both sides, no off-platform payment required.'}
             </p>
-            <div className="flex items-center gap-2 justify-center text-xs mb-6" style={{ color:'#7A9E7E' }}>
+            <div className="flex items-center gap-2 justify-center text-xs mb-6" style={{ color:'var(--dm-sage)' }}>
               <ShieldCheck size={14} /> Protected by DealMatch escrow
             </div>
             {contact?.phone ? (
@@ -147,17 +147,17 @@ function InterestModal({ rental, onClose }) {
                 </div>
               </div>
             )}
-            <button onClick={onClose} className="w-full py-3 mt-2 text-sm font-semibold" style={{ color:'#647068' }}>Not now</button>
+            <button onClick={onClose} className="w-full py-3 mt-2 text-sm font-semibold" style={{ color:'var(--dm-warm)' }}>Not now</button>
           </div>
         ) : (
           <div className="overflow-y-auto flex-1 p-5 space-y-4">
             {/* Property summary */}
             <div className="rounded-2xl p-3 flex gap-3" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.2)' }}>
               <div className="flex-1">
-                <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{rental.title}</p>
-                <p className="text-xs" style={{ color:'#647068' }}>{rental.city}, {rental.state}</p>
+                <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{rental.title}</p>
+                <p className="text-xs" style={{ color:'var(--dm-warm)' }}>{rental.city}, {rental.state}</p>
               </div>
-              <p className="font-black text-base" style={{ color:'#B8511E' }}>{formatPrice(rental.price)}/yr</p>
+              <p className="font-black text-base" style={{ color:'var(--dm-terracotta)' }}>{formatPrice(rental.price)}/yr</p>
             </div>
 
             {[
@@ -168,7 +168,7 @@ function InterestModal({ rental, onClose }) {
               <div key={f.key}>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
             ))}
 
@@ -176,12 +176,12 @@ function InterestModal({ rental, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Move-in Date</label>
                 <input type="date" value={form.moveIn} onChange={set('moveIn')} min={new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Duration</label>
                 <select value={form.duration} onChange={set('duration')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}>
+                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,3,6,12,24].map(n => <option key={n} value={n}>{n} month{n>1?'s':''}</option>)}
                 </select>
               </div>
@@ -191,7 +191,7 @@ function InterestModal({ rental, onClose }) {
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Message (optional)</label>
               <textarea value={form.message} onChange={set('message')} rows={3}
                 placeholder="Tell the landlord about yourself..."
-                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
 
             <button onClick={handleSend} disabled={sending || !form.name || !form.phone}
@@ -234,7 +234,7 @@ function RentalCard({ rental, onInterest }) {
         }
         {rental.hostVerified && (
           <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
-            style={{ backgroundColor: '#B8511E', color: '#FFFFFF' }}>
+            style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
             Verified Host
           </div>
         )}
@@ -244,23 +244,23 @@ function RentalCard({ rental, onInterest }) {
         </div>
       </div>
       <div className="p-5">
-        <h3 className="font-display font-black text-base mb-1" style={{ color:'#17211B' }}>{rental.title}</h3>
-        <div className="flex items-center gap-1 text-xs mb-3" style={{ color:'#647068' }}>
-          <MapPin size={11} style={{ color:'#B8511E' }} />
+        <h3 className="font-display font-black text-base mb-1" style={{ color:'var(--dm-deep)' }}>{rental.title}</h3>
+        <div className="flex items-center gap-1 text-xs mb-3" style={{ color:'var(--dm-warm)' }}>
+          <MapPin size={11} style={{ color:'var(--dm-terracotta)' }} />
           <span>{rental.city}, {rental.state}</span>
         </div>
         <div className="flex gap-2 mb-3 text-[10px] font-bold uppercase tracking-wide">
-          {rental.verified_at && <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(23,33,27,0.08)', color:'#17211B' }}>Verified</span>}
-          <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'#B8511E' }}>Available</span>
+          {rental.verified_at && <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(23,33,27,0.08)', color:'var(--dm-deep)' }}>Verified</span>}
+          <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'var(--dm-terracotta)' }}>Available</span>
         </div>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-black text-lg" style={{ color:'#B8511E' }}>
+          <p className="font-black text-lg" style={{ color:'var(--dm-terracotta)' }}>
             {formatPrice(rental.price)}
-            <span className="text-xs font-normal" style={{ color:'#647068' }}>
+            <span className="text-xs font-normal" style={{ color:'var(--dm-warm)' }}>
               {priceSuffix(rental)}
             </span>
           </p>
-          <div className="flex items-center gap-3 text-xs" style={{ color:'#647068' }}>
+          <div className="flex items-center gap-3 text-xs" style={{ color:'var(--dm-warm)' }}>
             {rental.property_type === 'land' && rental.size_sqm && <span>{Number(rental.size_sqm).toLocaleString()} sqm</span>}
             {rental.bedrooms  && <span className="flex items-center gap-0.5"><Bed size={10} /> {rental.bedrooms}bd</span>}
             {rental.bathrooms && <span className="flex items-center gap-0.5"><Bath size={10} /> {rental.bathrooms}ba</span>}
@@ -269,13 +269,13 @@ function RentalCard({ rental, onInterest }) {
         {isSaleListing(rental) ? (
           <Link to={`/property/${rental.id}`}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
             View details
           </Link>
         ) : (
           <button onClick={() => onInterest(rental)}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'#B8511E', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
             <MessageCircle size={14} /> I'm Interested
           </button>
         )}
@@ -364,11 +364,11 @@ export default function RentalsPage() {
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Find a place that fits.</motion.h1>
-            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Discover available places, explore your options and connect with the right match.</p>
+            <motion.h1 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.42, ease:[0.22,1,0.36,1] }} className="font-display text-2xl font-black" style={{ color:'var(--dm-deep)' }}>Find a place that fits.</motion.h1>
+            <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>Discover available places, explore your options and connect with the right match.</p>
           </div>
           {/* View toggle */}
-          <div className="flex rounded-xl overflow-hidden border" style={{ borderColor:'#DEDDD6' }}>
+          <div className="flex rounded-xl overflow-hidden border" style={{ borderColor:'var(--dm-line)' }}>
             {[['grid','Grid'],['swipe','Swipe']].map(([v,l]) => (
               <button key={v} onClick={() => setViewMode(v)}
                 className="px-3 py-2 text-xs font-semibold transition-all"
@@ -381,10 +381,10 @@ export default function RentalsPage() {
 
         {/* Search */}
         <div className="relative mb-3">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'#647068' }} />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'var(--dm-warm)' }} />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="What kind of place are you looking for?"
-            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
         </div>
 
         {/* Filters row 1 - kind of place (groups from the database, then subcategories) */}
@@ -431,14 +431,14 @@ export default function RentalsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#647068' }}>
+          <div className="text-center py-16" style={{ color:'var(--dm-warm)' }}>
             <div className="flex justify-center mb-3"><Key size={40} className="text-terracotta animate-bounce" /></div>
             <p className="text-sm">Finding places...</p>
           </div>
         ) : loadError ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
-            <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>We could not load places right now.</p>
-            <p className="text-xs mb-4" style={{ color:'#647068' }}>Check your connection and try again.</p>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+            <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-deep)' }}>We could not load places right now.</p>
+            <p className="text-xs mb-4" style={{ color:'var(--dm-warm)' }}>Check your connection and try again.</p>
             <button onClick={loadRentals} className="btn-primary inline-flex px-6 py-2.5 text-sm">Try again</button>
           </div>
         ) : (
@@ -463,11 +463,11 @@ export default function RentalsPage() {
               ) : (
                 <div className="rounded-3xl p-10 text-center" style={{ backgroundColor:'#FFFAF5' }}>
                   <div className="flex justify-center mb-4"><PartyPopper size={48} className="text-gold" /></div>
-                  <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>You've seen everything!</h3>
-                  <p className="text-xs mb-4" style={{ color:'#647068' }}>Got a place of your own to rent out? List it and reach verified seekers.</p>
+                  <h3 className="font-display font-black text-xl mb-2" style={{ color:'var(--dm-deep)' }}>You've seen everything!</h3>
+                  <p className="text-xs mb-4" style={{ color:'var(--dm-warm)' }}>Got a place of your own to rent out? List it and reach verified seekers.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button onClick={loadRentals} className="btn-primary px-8 py-3 text-sm">Refresh</button>
-                    <Link to={emptyListPath(type)} className="text-sm font-bold px-8 py-3 rounded-full border" style={{ borderColor:'#B8511E', color:'#B8511E' }}>List a place</Link>
+                    <Link to={emptyListPath(type)} className="text-sm font-bold px-8 py-3 rounded-full border" style={{ borderColor:'var(--dm-terracotta)', color:'var(--dm-terracotta)' }}>List a place</Link>
                   </div>
                 </div>
               )
@@ -476,12 +476,12 @@ export default function RentalsPage() {
             {/* ── Grid mode ── */}
             {viewMode === 'grid' && (
               filtered.length === 0 ? (
-                <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+                <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
                   <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                  <p className="font-semibold text-sm mb-1" style={{ color:'#17211B' }}>No matching places found yet. Try adjusting your search.</p>
+                  <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-deep)' }}>No matching places found yet. Try adjusting your search.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
                     <button onClick={() => { setSearch(''); setType('All'); setStateF('All States'); setKindGroup(''); setKindLeaf('') }} className="btn-primary inline-flex px-6 py-2.5 text-sm">Update Search</button>
-                    <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'#B8511E', color:'#B8511E' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
+                    <Link to={emptyListPath(type)} className="text-sm font-bold px-6 py-2.5 rounded-full border" style={{ borderColor:'var(--dm-terracotta)', color:'var(--dm-terracotta)' }}>{type === 'Buy' || type === 'Land' ? 'List a property for sale' : 'List a place'}</Link>
                   </div>
                 </div>
               ) : (

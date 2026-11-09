@@ -135,10 +135,10 @@ function BookingModal({ hotel, onClose }) {
         style={{ backgroundColor:'#FFFAF5', maxHeight:'92vh' }}>
 
         {/* Header */}
-        <div className="p-5 border-b flex items-start justify-between" style={{ borderColor:'#DEDDD6' }}>
+        <div className="p-5 border-b flex items-start justify-between" style={{ borderColor:'var(--dm-line)' }}>
           <div>
-            <h3 className="font-display font-black text-lg" style={{ color:'#17211B' }}>Book: {hotel.title}</h3>
-            <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{hotel.city}, {hotel.state}</p>
+            <h3 className="font-display font-black text-lg" style={{ color:'var(--dm-deep)' }}>Book: {hotel.title}</h3>
+            <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>{hotel.city}, {hotel.state}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
@@ -149,12 +149,12 @@ function BookingModal({ hotel, onClose }) {
         {booked ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><PartyPopper size={48} className="text-gold" /></div>
-            <h3 className="font-display font-black text-xl mb-2" style={{ color:'#17211B' }}>Your booking is confirmed.</h3>
-            <p className="text-sm mb-2" style={{ color:'#647068' }}>
+            <h3 className="font-display font-black text-xl mb-2" style={{ color:'var(--dm-deep)' }}>Your booking is confirmed.</h3>
+            <p className="text-sm mb-2" style={{ color:'var(--dm-warm)' }}>
               {hotel.title} has been notified. They'll contact you at <strong>{form.guest_phone}</strong> to confirm.
             </p>
             {totalDue && (
-              <p className="text-base font-black mb-6" style={{ color:'#B8511E' }}>
+              <p className="text-base font-black mb-6" style={{ color:'var(--dm-terracotta)' }}>
                 Total: ₦{totalDue.toLocaleString()}
               </p>
             )}
@@ -174,9 +174,9 @@ function BookingModal({ hotel, onClose }) {
                         borderColor:     form.room_type === c.name ? '#B8511E' : '#DEDDD6',
                         backgroundColor: form.room_type === c.name ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                       }}>
-                      <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{c.name}</p>
+                      <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{c.name}</p>
                       {c.price_per_night && (
-                        <p className="text-xs mt-0.5" style={{ color:'#B8511E' }}>₦{Number(c.price_per_night).toLocaleString()}/night</p>
+                        <p className="text-xs mt-0.5" style={{ color:'var(--dm-terracotta)' }}>₦{Number(c.price_per_night).toLocaleString()}/night</p>
                       )}
                       <p className="text-[10px] mt-0.5" style={{ color: c.available_rooms > 0 ? '#7A9E7E' : '#B8511E' }}>
                         {c.available_rooms > 0 ? `${c.available_rooms} available` : 'Fully booked'}
@@ -192,12 +192,12 @@ function BookingModal({ hotel, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Check-in *</label>
                 <input type="date" value={form.checkin} onChange={set('checkin')} min={new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Check-out *</label>
                 <input type="date" value={form.checkout} onChange={set('checkout')} min={form.checkin || new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
             </div>
 
@@ -206,14 +206,14 @@ function BookingModal({ hotel, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Guests</label>
                 <select value={form.guests} onChange={setN('guests')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}>
+                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} guest{n>1?'s':''}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Rooms</label>
                 <select value={form.rooms} onChange={setN('rooms')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}>
+                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} room{n>1?'s':''}</option>)}
                 </select>
               </div>
@@ -228,32 +228,32 @@ function BookingModal({ hotel, onClose }) {
               <div key={f.key}>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
             ))}
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Special requests</label>
               <textarea value={form.special} onChange={set('special')} rows={2} placeholder="Anything the hotel should know?"
-                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
 
             {/* Price calculator */}
             {nights > 0 && pricePerNight && (
               <div className="rounded-2xl p-4" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.2)' }}>
-                <p className="text-xs font-bold mb-2" style={{ color:'#B8511E' }}>Price breakdown</p>
+                <p className="text-xs font-bold mb-2" style={{ color:'var(--dm-terracotta)' }}>Price breakdown</p>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span style={{ color:'#647068' }}>₦{Number(pricePerNight).toLocaleString()} × {form.rooms} room{form.rooms>1?'s':''} × {nights} night{nights>1?'s':''}</span>
-                    <strong style={{ color:'#17211B' }}>₦{subtotal?.toLocaleString()}</strong>
+                    <span style={{ color:'var(--dm-warm)' }}>₦{Number(pricePerNight).toLocaleString()} × {form.rooms} room{form.rooms>1?'s':''} × {nights} night{nights>1?'s':''}</span>
+                    <strong style={{ color:'var(--dm-deep)' }}>₦{subtotal?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color:'#647068' }}>{hotelFeeLabel ? `Platform fee (${hotelFeeLabel})` : 'Platform fee (loading)'}</span>
-                    <strong style={{ color:'#B8511E' }}>₦{platform_fee?.toLocaleString()}</strong>
+                    <span style={{ color:'var(--dm-warm)' }}>{hotelFeeLabel ? `Platform fee (${hotelFeeLabel})` : 'Platform fee (loading)'}</span>
+                    <strong style={{ color:'var(--dm-terracotta)' }}>₦{platform_fee?.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between border-t pt-1.5 font-black" style={{ borderColor:'rgba(200,95,45,0.2)', fontSize:'1rem' }}>
-                    <span style={{ color:'#17211B' }}>Total</span>
-                    <span style={{ color:'#B8511E' }}>₦{totalDue?.toLocaleString()}</span>
+                    <span style={{ color:'var(--dm-deep)' }}>Total</span>
+                    <span style={{ color:'var(--dm-terracotta)' }}>₦{totalDue?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -279,7 +279,7 @@ function HotelCard({ hotel, onBook }) {
 
   return (
     <div className="rounded-2xl overflow-hidden border"
-      style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6', boxShadow:'0 2px 12px rgba(23,33,27,0.05)' }}>
+      style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)', boxShadow:'0 2px 12px rgba(23,33,27,0.05)' }}>
       <div className="relative h-48">
         {img
           ? <img src={img} alt={hotel.title} className="w-full h-full object-cover" />
@@ -295,9 +295,9 @@ function HotelCard({ hotel, onBook }) {
         )}
       </div>
       <div className="p-4">
-        <h3 className="font-display font-black text-base mb-1" style={{ color:'#17211B' }}>{hotel.title}</h3>
-        <div className="flex items-center gap-1 text-xs mb-2" style={{ color:'#647068' }}>
-          <MapPin size={11} style={{ color:'#B8511E' }} />
+        <h3 className="font-display font-black text-base mb-1" style={{ color:'var(--dm-deep)' }}>{hotel.title}</h3>
+        <div className="flex items-center gap-1 text-xs mb-2" style={{ color:'var(--dm-warm)' }}>
+          <MapPin size={11} style={{ color:'var(--dm-terracotta)' }} />
           <span>{hotel.city}, {hotel.state}</span>
         </div>
         {hotel.features?.length > 0 && (
@@ -311,11 +311,11 @@ function HotelCard({ hotel, onBook }) {
         <div className="flex items-center justify-between mb-3">
           <div>
             {minPrice && minPrice < Infinity ? (
-              <p className="font-black text-base" style={{ color:'#B8511E' }}>
-                ₦{Number(minPrice).toLocaleString()}<span className="text-xs font-normal" style={{ color:'#647068' }}>/night</span>
+              <p className="font-black text-base" style={{ color:'var(--dm-terracotta)' }}>
+                ₦{Number(minPrice).toLocaleString()}<span className="text-xs font-normal" style={{ color:'var(--dm-warm)' }}>/night</span>
               </p>
             ) : (
-              <p className="text-xs" style={{ color:'#647068' }}>Contact for price</p>
+              <p className="text-xs" style={{ color:'var(--dm-warm)' }}>Contact for price</p>
             )}
           </div>
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -326,7 +326,7 @@ function HotelCard({ hotel, onBook }) {
         <div className="flex gap-2">
           <Link to={`/property/${hotel.id}`}
             className="flex-1 py-2.5 rounded-xl text-xs font-semibold border text-center transition-all"
-            style={{ borderColor:'#DEDDD6', color:'#5C4A3A', backgroundColor:'#FFFFFF' }}>
+            style={{ borderColor:'var(--dm-line)', color:'#5C4A3A', backgroundColor:'#FFFFFF' }}>
             View Details
           </Link>
           <button onClick={() => onBook(hotel)} disabled={!available}
@@ -369,16 +369,16 @@ export default function HotelsPage() {
       <div className="max-w-2xl mx-auto px-4">
 
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-black" style={{ color:'#17211B' }}>Stay Somewhere Real.</h1>
-          <p className="text-xs mt-0.5" style={{ color:'#647068' }}>Short stays with honest photos and hosts who confirm before you pay.</p>
+          <h1 className="font-display text-2xl font-black" style={{ color:'var(--dm-deep)' }}>Stay Somewhere Real.</h1>
+          <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>Short stays with honest photos and hosts who confirm before you pay.</p>
         </div>
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'#647068' }} />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'var(--dm-warm)' }} />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search hotels, cities..."
-            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
         </div>
 
         {/* State filter */}
@@ -408,15 +408,15 @@ export default function HotelsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color:'#647068' }}>
+          <div className="text-center py-16" style={{ color:'var(--dm-warm)' }}>
             <div className="flex justify-center mb-3"><Hotel size={40} className="text-terracotta animate-bounce" /></div>
             <p className="text-sm">Loading hotels…</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
             <div className="flex justify-center mb-3"><Hotel size={40} className="text-terracotta" /></div>
-            <p className="font-semibold text-sm" style={{ color:'#17211B' }}>No matching hotels found yet. Try adjusting your search.</p>
-            <p className="text-xs mt-1" style={{ color:'#647068' }}>Try a different location or type of stay.</p>
+            <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>No matching hotels found yet. Try adjusting your search.</p>
+            <p className="text-xs mt-1" style={{ color:'var(--dm-warm)' }}>Try a different location or type of stay.</p>
           </div>
         ) : (
           <div className="grid gap-5">
