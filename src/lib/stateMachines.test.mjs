@@ -13,7 +13,7 @@ test('every machine names its table, column, a known initial state and a known e
   for (const [name, m] of entries) {
     assert.ok(m.table && m.column, `${name}: table and column`)
     assert.ok(isKnownState(name, m.initial), `${name}: initial "${m.initial}" is not a listed state`)
-    assert.ok(Object.keys(m.states).length >= 2, `${name}: at least two states`)
+    assert.ok(Object.keys(m.states).length >= 1, `${name}: at least one state`)
     assert.ok(m.enforcedBy.length > 0 && m.enforcedBy.every((e) => ENFORCERS.has(e)), `${name}: enforcedBy`)
   }
 })

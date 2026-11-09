@@ -27,8 +27,10 @@ export function renderStateMachineDocs() {
   for (const [name, m] of catalogued) {
     out.push(`| ${name} | ${code(m.table + '.' + m.column)} | ${code(m.initial)} | ${Object.keys(m.states).join(', ')} | ${m.enforcedBy.join(', ')} | ${(m.notes || '').replace(/\|/g, '/')} |`)
   }
-  out.push('', '## Not catalogued yet', '', 'These columns accept any text. List their values from the code that writes them before relying on them:', '')
-  for (const c of UNCATALOGUED) out.push(`- ${code(c)}`)
+  if (UNCATALOGUED.length) {
+    out.push('', '## Not catalogued yet', '', 'These columns accept any text. List their values from the code that writes them before relying on them:', '')
+    for (const c of UNCATALOGUED) out.push(`- ${code(c)}`)
+  }
   out.push('', '## Also implicit: screens', '',
     'Many screens hold a flow in several booleans (`loading`, `saving`, `sent`, `error`). The busiest are `Messages`, `Availability` and the admin `Settings` tab. Prefer one `status` value (`idle | saving | done | error`) in new code so impossible combinations cannot exist.', '')
   out.push('## Check the registry against the database', '',

@@ -36,9 +36,9 @@ export const MACHINES = {
     table: 'escrow_transactions', column: 'status', initial: 'awaiting_payment',
     states: s('awaiting_payment', 'funded', 'released', 'refunded'),
     transitions: { awaiting_payment: ['funded'], funded: ['released', 'refunded'], released: [], refunded: [] },
-    enforcedBy: ['conditional-update'],
+    enforcedBy: ['check-constraint', 'conditional-update'],
     owner: 'src/data/escrowRepository.js',
-    notes: 'The column default in the database is "pending", but the code starts rows at "awaiting_payment". No CHECK constraint exists, so any text is accepted.',
+    notes: 'Migration 20261109000000 (PR #65) sets the database default to awaiting_payment and adds a CHECK on these values plus legacy "pending", which account_deletion_blockers still reads.',
   },
   property: {
     table: 'properties', column: 'status', initial: 'pending_review',
@@ -108,13 +108,15 @@ export const MACHINES = {
   subscription: { table: 'subscriptions', column: 'status', initial: 'active', states: s('active', 'cancelled', 'expired'), transitions: null, enforcedBy: ['check-constraint'], notes: 'Postgres enum subscription_status.' },
   transaction: { table: 'transactions', column: 'status', initial: 'OPEN', states: s('OPEN', 'PENDING', 'FUNDED', 'COMPLETED', 'DISPUTED', 'CANCELLED'), transitions: null, enforcedBy: ['check-constraint'], notes: 'Postgres enum transaction_status. Triggers log every change and block commission edits.' },
   withdrawal_request: { table: 'withdrawal_requests', column: 'status', initial: 'pending', states: s('pending', 'paid', 'rejected'), transitions: null, enforcedBy: ['check-constraint'], notes: 'Postgres enum withdrawal_status.' },
+  payment_log: { table: 'payments', column: 'status', initial: 'success', states: s('success', 'unapplied'), transitions: null, enforcedBy: ['none'], owner: 'src/lib/chargePipeline.js', notes: 'A log of charges, written once per reference (upsert, duplicates ignored). "unapplied" = money arrived but nothing was done with it. Revenue totals count "success" only. The database default is "pending" but no code writes it. No CHECK on purpose: a rejected log row could break the payment webhook.' },
+  rental_enquiry: { table: 'rental_enquiries', column: 'status', initial: 'pending', states: s('pending'), transitions: null, enforcedBy: ['none'], notes: 'Only "pending" is ever written. No CHECK, because no other value is defined yet.' },
+  pro_activation_request: { table: 'pro_activation_requests', column: 'status', initial: 'pending', states: s('pending'), transitions: null, enforcedBy: ['none'], notes: 'Legacy table from db/archive/pro-activation-schema.sql. No code in src or api uses it; production has no rows.' },
+  outbound_message: { table: 'outbound_message_log', column: 'status', initial: 'sent', states: s('sent', 'provider_error'), transitions: null, enforcedBy: ['none'], owner: 'src/data/outboundMessageRepository.js', notes: 'Written by api/send-email.js and api/send-whatsapp.js after each send attempt.' },
 }
 
 // Status columns that exist but accept any text and whose values nobody has listed yet.
 // Read the code that writes them before adding an entry above.
-export const UNCATALOGUED = [
-  'payments.status', 'rental_enquiries.status', 'pro_activation_requests.status', 'outbound_message_log.status',
-]
+export const UNCATALOGUED = []
 
 export const isModelled = (name) => !!MACHINES[name]?.transitions
 

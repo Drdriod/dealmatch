@@ -5,7 +5,7 @@ Every status column in the app, the values it may hold, and who enforces them. T
 
 **Before you add or change a status:** find its entry here, read its `notes`, change the database CHECK/enum and the code that writes it together, then update the registry and run `npm run docs:states`. If the machine is only catalogued, write its transition table from the code and flip it to modelled.
 
-Modelled: 4. Catalogued (values only): 40.
+Modelled: 4. Catalogued (values only): 44.
 
 Enforcement: `transition-trigger` = the database rejects illegal moves; `conditional-update` = code writes `.eq(status, from)`; `check-constraint` = only the value is checked; `none` = nothing.
 
@@ -28,7 +28,7 @@ stateDiagram-v2
 
 ### escrow
 
-`escrow_transactions.status` · starts at `awaiting_payment` · enforced by conditional-update · owner `src/data/escrowRepository.js`
+`escrow_transactions.status` · starts at `awaiting_payment` · enforced by check-constraint, conditional-update · owner `src/data/escrowRepository.js`
 
 ```mermaid
 stateDiagram-v2
@@ -40,7 +40,7 @@ stateDiagram-v2
   refunded --> [*]
 ```
 
-> The column default in the database is "pending", but the code starts rows at "awaiting_payment". No CHECK constraint exists, so any text is accepted.
+> Migration 20261109000000 (PR #65) sets the database default to awaiting_payment and adds a CHECK on these values plus legacy "pending", which account_deletion_blockers still reads.
 
 ### property
 
@@ -128,15 +128,10 @@ stateDiagram-v2
 | subscription | `subscriptions.status` | `active` | active, cancelled, expired | check-constraint | Postgres enum subscription_status. |
 | transaction | `transactions.status` | `OPEN` | OPEN, PENDING, FUNDED, COMPLETED, DISPUTED, CANCELLED | check-constraint | Postgres enum transaction_status. Triggers log every change and block commission edits. |
 | withdrawal_request | `withdrawal_requests.status` | `pending` | pending, paid, rejected | check-constraint | Postgres enum withdrawal_status. |
-
-## Not catalogued yet
-
-These columns accept any text. List their values from the code that writes them before relying on them:
-
-- `payments.status`
-- `rental_enquiries.status`
-- `pro_activation_requests.status`
-- `outbound_message_log.status`
+| payment_log | `payments.status` | `success` | success, unapplied | none | A log of charges, written once per reference (upsert, duplicates ignored). "unapplied" = money arrived but nothing was done with it. Revenue totals count "success" only. The database default is "pending" but no code writes it. No CHECK on purpose: a rejected log row could break the payment webhook. |
+| rental_enquiry | `rental_enquiries.status` | `pending` | pending | none | Only "pending" is ever written. No CHECK, because no other value is defined yet. |
+| pro_activation_request | `pro_activation_requests.status` | `pending` | pending | none | Legacy table from db/archive/pro-activation-schema.sql. No code in src or api uses it; production has no rows. |
+| outbound_message | `outbound_message_log.status` | `sent` | sent, provider_error | none | Written by api/send-email.js and api/send-whatsapp.js after each send attempt. |
 
 ## Also implicit: screens
 
