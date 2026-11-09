@@ -16,6 +16,7 @@ const TOKEN_URL = 'https://idp.flutterwave.com/realms/flutterwave/protocol/openi
 let cachedToken = null // { value, expiresAt }
 
 export class FlutterwaveError extends Error {
+  /** @param {string} message @param {{ status?: number, body?: any }} [details] */
   constructor(message, { status, body } = {}) {
     super(message)
     this.name = 'FlutterwaveError'
@@ -62,6 +63,7 @@ export function isFlutterwaveSandbox() {
   return /sandbox/i.test(process.env.FLUTTERWAVE_BASE_URL || '')
 }
 
+/** @param {string} method @param {string} path @param {{ body?: any, idempotencyKey?: string, extraHeaders?: Record<string, string> }} [options] */
 export async function flw(method, path, { body, idempotencyKey, extraHeaders } = {}) {
   const token = await getAccessToken()
   const headers = {

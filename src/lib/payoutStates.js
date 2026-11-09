@@ -40,6 +40,7 @@ export function sourcesFor(to) {
 // Move one payout row to `to`. `from` narrows the legal sources to the ones the
 // caller is handling (for example, a transfer result only applies to a row that
 // is processing). Returns true only if this call made the change.
+/** @param {any} svc @param {string} rowId @param {string} to @param {Record<string, any>} [patch] @param {{ from?: string[] }} [opts] */
 export async function movePayout(svc, rowId, to, patch = {}, { from } = {}) {
   const sources = from ?? sourcesFor(to)
   for (const f of sources) {

@@ -389,6 +389,7 @@ export const CHARGE_PURPOSES = Object.freeze({
 // Runs the handler for a confirmed charge's purpose. Returns the handler's
 // result, or {} when no handler applies. The own-property check stops a
 // metadata.type such as "constructor" from reaching Object.prototype.
+/** @param {any} svc @param {{ reference: string, amount: number, customer: any, metadata?: Record<string, any> }} charge */
 export async function runChargePurpose(svc, { reference, amount, customer, metadata = {} }) {
   const amountNgn = amount / 100
   const type = metadata?.type
