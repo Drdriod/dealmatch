@@ -17,7 +17,8 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { isSuperadmin } from '@/lib/adminAccess'
 
 // ── STAFF ──────────────────────────────────────────────────────────────────────
 export function StaffTab({isSuperAdmin}) {
@@ -125,13 +126,13 @@ export function StaffTab({isSuperAdmin}) {
               </div>
               <div className="flex items-center gap-3">
                 <Badge label={ROLE_LABELS[s.role]||s.role} color={ROLE_COLORS[s.role]||'#888'}/>
-                {isSuperAdmin&&!SUPERADMIN_EMAILS.includes(s.email)&&<>
+                {isSuperAdmin&&!isSuperadmin(s.role)&&<>
                   <select value={s.role} onChange={e=>changeRole(s.id,e.target.value,s.full_name)} className="text-xs rounded-xl px-2 py-1.5 outline-none" style={{backgroundColor:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}>
                     {['agent','verifier','admin'].map(r=><option key={r} value={r} style={{backgroundColor:'#17211B'}}>{ROLE_LABELS[r]}</option>)}
                   </select>
                   <ActionBtn icon={UserX} color="#B8511E" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate staff?',body:`${s.full_name}'s access will be revoked immediately.`,danger:true,onConfirm:()=>deactivate(s.id,s.full_name)})}/>
                 </>}
-                {SUPERADMIN_EMAILS.includes(s.email)&&<span className="text-xs px-2 py-1 rounded-lg" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}> Owner</span>}
+                {isSuperadmin(s.role)&&<span className="text-xs px-2 py-1 rounded-lg" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}> Owner</span>}
               </div>
             </div>
           ))}

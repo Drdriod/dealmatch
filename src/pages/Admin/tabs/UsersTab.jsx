@@ -15,7 +15,8 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { isSuperadmin } from '@/lib/adminAccess'
 
 // ── USERS ──────────────────────────────────────────────────────────────────────
 export function UsersTab() {
@@ -135,9 +136,9 @@ USING (
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <ActionBtn icon={UserCog} color="#D4A853" tip="Change role" onClick={()=>setRoleTarget({id:u.id,current:u.role,name:u.full_name||u.email})}/>
-                    {u.account_status!=='suspended'&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Ban} color="#B8511E" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
+                    {u.account_status!=='suspended'&&!isSuperadmin(u.role)&&<ActionBtn icon={Ban} color="#B8511E" tip="Suspend" onClick={()=>setConfirm({title:'Suspend user?',body:`${u.full_name||'User'} will lose access immediately. Their role is not affected and is restored automatically on unsuspend.`,danger:true,onConfirm:()=>action('suspend',u.id,u.full_name||u.email)})}/>}
                     {u.account_status==='suspended'&&<ActionBtn icon={Play} color="#7A9E7E" tip="Unsuspend" onClick={()=>action('unsuspend',u.id,u.full_name||u.email)}/>}
-                    {!u.is_deactivated&&!SUPERADMIN_EMAILS.includes(u.email)&&<ActionBtn icon={Trash2} color="#888" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate account?',body:`${u.full_name||'User'}'s account will be permanently deactivated.`,danger:true,onConfirm:()=>action('deactivate',u.id,u.full_name||u.email)})}/>}
+                    {!u.is_deactivated&&!isSuperadmin(u.role)&&<ActionBtn icon={Trash2} color="#888" tip="Deactivate" onClick={()=>setConfirm({title:'Deactivate account?',body:`${u.full_name||'User'}'s account will be permanently deactivated.`,danger:true,onConfirm:()=>action('deactivate',u.id,u.full_name||u.email)})}/>}
                   </div>
                 </td>
               </TR>
