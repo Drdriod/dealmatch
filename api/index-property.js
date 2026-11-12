@@ -3,7 +3,7 @@
 
 import { redisRateLimit } from '../src/lib/redis.js'
 import { getEmbedding, getPineconeIndex, EmbeddingUnavailableError } from '../src/lib/ai.js'
-import { findPropertySellerId } from '../src/data/propertyRepository.js'
+import { findPropertyForIndex } from '../src/data/propertyRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 
@@ -26,8 +26,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Authentication required' })
   }
 
-  const { property } = req.body || {}
-  if (!property?.id || typeof property.id !== 'string') {
+  const { property: requested } = req.body || {}
+  if (!requested?.id || typeof requested.id !== 'string') {
     return res.status(400).json({ error: 'property.id (string) required' })
   }
 
@@ -44,10 +44,13 @@ export default async function handler(req, res) {
   if (authError || !user) return res.status(401).json({ error: 'Invalid session' })
 
   // ✅ Ownership check: only owner can index their property
-  const { data: existing, error: fetchErr } = await findPropertySellerId(supabase, property.id)
+  const { data: existing, error: fetchErr } = await findPropertyForIndex(supabase, requested.id)
 
   if (fetchErr || !existing) return res.status(404).json({ error: 'Property not found' })
   if (existing.seller_id !== user.id) return res.status(403).json({ error: 'Forbidden' })
+
+  // Index what is saved in the database, never the figures in the request body.
+  const property = existing
 
   if (!process.env.PINECONE_API_KEY) {
     return res.status(200).json({ success: true, skipped: 'no Pinecone key' })
