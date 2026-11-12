@@ -74,7 +74,7 @@ export function SkillVerifyTab() {
   return(
     <div className="space-y-4">
       <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(212,168,83,0.06)',border:'1px solid rgba(212,168,83,0.15)'}}>
-        <Award size={14} style={{color:'#D4A853',flexShrink:0,marginTop:2}}/>
+        <Award size={14} style={{color:'var(--dm-gold)',flexShrink:0,marginTop:2}}/>
         <p className="text-xs" style={{color:'rgba(255,255,255,0.45)'}}>Portfolio-first review, per the handoff spec: photos of real work matter more than certificates. Approving moves the provider to Level 2 and they start appearing in Find a Provider search.</p>
       </div>
       <FilterBar value={filter} onChange={setFilter} options={[['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['all','All']]}/>
@@ -105,10 +105,10 @@ export function SkillVerifyTab() {
               {s.status==='pending'&&(
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={()=>setReject(s)} disabled={busyId===s.id} className="py-2.5 rounded-2xl text-xs font-bold disabled:opacity-40" style={{backgroundColor:'rgba(201,74,58,0.12)',color:'#C94A3A'}}>Reject</button>
-                  <button onClick={()=>approve(s)} disabled={busyId===s.id} className="py-2.5 rounded-2xl text-xs font-bold disabled:opacity-40" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>{busyId===s.id?'Processing...':'Approve - Skill Verified'}</button>
+                  <button onClick={()=>approve(s)} disabled={busyId===s.id} className="py-2.5 rounded-2xl text-xs font-bold disabled:opacity-40" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'var(--dm-sage)'}}>{busyId===s.id?'Processing...':'Approve - Skill Verified'}</button>
                 </div>
               )}
-              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'#B8511E'}}>Reason: {s.admin_note}</div>}
+              {s.status==='rejected'&&s.admin_note&&<div className="text-xs px-3 py-2 rounded-xl" style={{backgroundColor:'rgba(200,95,45,0.08)',color:'var(--dm-terracotta)'}}>Reason: {s.admin_note}</div>}
             </div>
           ))}
         </div>
@@ -116,13 +116,13 @@ export function SkillVerifyTab() {
       <AnimatePresence>
         {reject&&(
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="w-full sm:max-w-sm rounded-2xl p-5" style={{backgroundColor:'#17211B'}}>
+            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="w-full sm:max-w-sm rounded-2xl p-5" style={{backgroundColor:'var(--dm-deep)'}}>
               <h3 className="text-white font-bold text-sm mb-3">Reject submission</h3>
               <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} placeholder="Reason (shown to the provider)"
                 className="w-full px-3 py-2.5 rounded-xl text-sm outline-none mb-3" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'#fff'}}/>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={()=>{setReject(null);setReason('')}} className="py-3 rounded-2xl text-sm font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)'}}>Cancel</button>
-                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'#B8511E',color:'#17211B'}}>Send Rejection</button>
+                <button onClick={doReject} disabled={!reason.trim()} className="py-3 rounded-2xl text-sm font-bold disabled:opacity-50" style={{backgroundColor:'var(--dm-terracotta)',color:'var(--dm-deep)'}}>Send Rejection</button>
               </div>
             </motion.div>
           </div>

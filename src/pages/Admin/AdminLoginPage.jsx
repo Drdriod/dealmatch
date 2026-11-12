@@ -53,7 +53,7 @@ function ForgotPassword({ onBack }) {
     <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} className="text-center">
       <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
         style={{ backgroundColor:'rgba(122,158,126,0.15)', border:'1px solid rgba(122,158,126,0.3)' }}>
-        <CheckCircle size={28} style={{ color:'#7A9E7E' }} />
+        <CheckCircle size={28} style={{ color:'var(--dm-sage)' }} />
       </div>
       <h2 className="font-display text-xl font-black text-white mb-2">Check your email</h2>
       <p className="text-sm mb-6" style={{ color:'rgba(255,255,255,0.5)' }}>
@@ -78,7 +78,7 @@ function ForgotPassword({ onBack }) {
       <div className="text-center mb-6">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
           style={{ backgroundColor:'rgba(212,168,83,0.12)', border:'1px solid rgba(212,168,83,0.25)' }}>
-          <Mail size={24} style={{ color:'#D4A853' }} />
+          <Mail size={24} style={{ color:'var(--dm-gold)' }} />
         </div>
         <h2 className="font-display text-xl font-black text-white">Reset your password</h2>
         <p className="text-sm mt-1" style={{ color:'rgba(255,255,255,0.45)' }}>
@@ -194,7 +194,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ backgroundColor:'#17211B' }}>
+      style={{ backgroundColor:'var(--dm-deep)' }}>
       <motion.div
         initial={{ opacity:0, y:20 }}
         animate={{ opacity:1, y:0 }}
@@ -210,7 +210,7 @@ export default function AdminLoginPage() {
               <div className="text-center mb-8">
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
                   style={{ backgroundColor:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)' }}>
-                  <Shield size={28} style={{ color:'#D4A853' }} />
+                  <Shield size={28} style={{ color:'var(--dm-gold)' }} />
                 </div>
                 <h1 className="font-display text-2xl font-black text-white">DealMatch Admin</h1>
                 <p className="text-sm mt-1" style={{ color:'rgba(255,255,255,0.45)' }}>Control Panel</p>
@@ -220,15 +220,15 @@ export default function AdminLoginPage() {
               {isLocked && (
                 <div className="rounded-2xl p-4 mb-5 flex items-start gap-3"
                   style={{ backgroundColor:'rgba(200,95,45,0.15)', border:'1px solid rgba(200,95,45,0.3)' }}>
-                  <AlertTriangle size={16} style={{ color:'#B8511E', flexShrink:0, marginTop:1 }} />
+                  <AlertTriangle size={16} style={{ color:'var(--dm-terracotta)', flexShrink:0, marginTop:1 }} />
                   <div>
-                    <p className="text-sm font-semibold" style={{ color:'#B8511E' }}>Too many failed attempts</p>
+                    <p className="text-sm font-semibold" style={{ color:'var(--dm-terracotta)' }}>Too many failed attempts</p>
                     <p className="text-xs mt-0.5" style={{ color:'rgba(200,95,45,0.8)' }}>
                       {lockedMsg}
                     </p>
                     <button onClick={() => setShowForgot(true)}
                       className="text-xs font-bold mt-2 underline"
-                      style={{ color:'#D4A853' }}>
+                      style={{ color:'var(--dm-gold)' }}>
                       Reset your password instead →
                     </button>
                   </div>
@@ -266,7 +266,7 @@ export default function AdminLoginPage() {
                     {showForgotHint && (
                       <button type="button" onClick={() => setShowForgot(true)}
                         className="text-xs font-semibold"
-                        style={{ color:'#D4A853' }}>
+                        style={{ color:'var(--dm-gold)' }}>
                         Forgot password?
                       </button>
                     )}

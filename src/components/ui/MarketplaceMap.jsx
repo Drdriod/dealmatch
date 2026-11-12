@@ -32,21 +32,21 @@ export function MarketplaceMap({ listings = [], height = '320px', zoom = 12 }) {
   if (!apiKey) {
     return (
       <div className="rounded-2xl border flex flex-col items-center justify-center gap-2 text-xs text-gray-400"
-        style={{ height, borderColor: '#DEDDD6', backgroundColor: '#F7F4ED' }}>
+        style={{ height, borderColor: 'var(--dm-line)', backgroundColor: 'var(--dm-cream)' }}>
         <MapIcon size={20} />
         <p>Add VITE_GOOGLE_MAPS_API_KEY to enable the map</p>
       </div>
     )
   }
   if (loadError) {
-    return <div className="rounded-2xl border flex items-center justify-center text-xs text-gray-400" style={{ height, borderColor: '#DEDDD6' }}>Map failed to load</div>
+    return <div className="rounded-2xl border flex items-center justify-center text-xs text-gray-400" style={{ height, borderColor: 'var(--dm-line)' }}>Map failed to load</div>
   }
   if (!isLoaded) {
-    return <div className="rounded-2xl border animate-pulse" style={{ height, borderColor: '#DEDDD6', backgroundColor: '#F7F4ED' }} />
+    return <div className="rounded-2xl border animate-pulse" style={{ height, borderColor: 'var(--dm-line)', backgroundColor: 'var(--dm-cream)' }} />
   }
   if (pins.length === 0) {
     return (
-      <div className="rounded-2xl border flex items-center justify-center text-xs text-gray-400" style={{ height, borderColor: '#DEDDD6', backgroundColor: '#F7F4ED' }}>
+      <div className="rounded-2xl border flex items-center justify-center text-xs text-gray-400" style={{ height, borderColor: 'var(--dm-line)', backgroundColor: 'var(--dm-cream)' }}>
         No location data for these listings yet
       </div>
     )
@@ -55,7 +55,7 @@ export function MarketplaceMap({ listings = [], height = '320px', zoom = 12 }) {
   const center = { lat: pins[0].lat, lng: pins[0].lng }
 
   return (
-    <div className="rounded-2xl overflow-hidden border" style={{ height, borderColor: '#DEDDD6' }}>
+    <div className="rounded-2xl overflow-hidden border" style={{ height, borderColor: 'var(--dm-line)' }}>
       <GoogleMap
         mapContainerStyle={{ width: '100%', height: '100%' }}
         center={center}
@@ -69,7 +69,7 @@ export function MarketplaceMap({ listings = [], height = '320px', zoom = 12 }) {
           <InfoWindow position={{ lat: selected.lat, lng: selected.lng }} onCloseClick={() => setSelected(null)}>
             <div style={{ fontSize: 12, maxWidth: 160 }}>
               <p style={{ fontWeight: 600, marginBottom: 2 }}>{selected.title}</p>
-              {selected.price_cents != null && <p style={{ color: '#B8511E' }}>₦{(selected.price_cents / 100).toLocaleString()}</p>}
+              {selected.price_cents != null && <p style={{ color: 'var(--dm-terracotta)' }}>₦{(selected.price_cents / 100).toLocaleString()}</p>}
             </div>
           </InfoWindow>
         )}

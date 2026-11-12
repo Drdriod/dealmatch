@@ -70,7 +70,7 @@ function Skeleton() {
 
 function Page({ children }) {
   return (
-    <main className="mx-auto w-full max-w-[1240px] px-4 py-8 md:px-7 md:py-12" style={{ backgroundColor: '#F7F4ED', minHeight: '60vh' }}>
+    <main className="mx-auto w-full max-w-[1240px] px-4 py-8 md:px-7 md:py-12" style={{ backgroundColor: 'var(--dm-cream)', minHeight: '60vh' }}>
       {children}
     </main>
   )
@@ -168,7 +168,7 @@ export default function CategoryPage() {
           <span aria-current="page" className="text-[#17211B]">{category.name}</span>
         </nav>
 
-        <h1 className="font-display text-3xl sm:text-4xl" style={{ color: '#17211B' }}>{category.name}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl" style={{ color: 'var(--dm-deep)' }}>{category.name}</h1>
       </motion.div>
 
       {isRoot && category.children?.length > 0 && (

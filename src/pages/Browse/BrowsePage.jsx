@@ -82,10 +82,10 @@ export default function BrowsePage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
+              <h1 className="font-display text-2xl font-black" style={{ color: 'var(--dm-deep)' }}>
                 Explore Places
               </h1>
-              <p className="text-xs mt-0.5" style={{ color: '#647068' }}>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
                 {queue.length} propert{queue.length === 1 ? 'y' : 'ies'} matching what you're looking for
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function BrowsePage() {
             <div className="flex items-center justify-center h-80">
               <div className="text-center">
                 <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta animate-bounce" /></div>
-                <p className="text-sm" style={{ color: '#647068' }}>Finding your matches...</p>
+                <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Finding your matches...</p>
               </div>
             </div>
           )}
@@ -125,10 +125,10 @@ export default function BrowsePage() {
           {!loading && empty && (
             <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
               <div className="flex justify-center mb-4">{queue.length === 0 && !hasSeenAny ? <Home size={48} className="text-terracotta" /> : <PartyPopper size={48} className="text-gold" />}</div>
-              <h3 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
+              <h3 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>
                 {hasSeenAny ? "You've seen everything." : 'No listings yet'}
               </h3>
-              <p className="text-sm mb-6" style={{ color: '#647068' }}>
+              <p className="text-sm mb-6" style={{ color: 'var(--dm-warm)' }}>
                 {hasSeenAny
                   ? 'Check your saved matches or refresh for new listings.'
                   : 'New listings are added regularly. Check back soon, or create an offer of your own.'}
@@ -173,20 +173,20 @@ export default function BrowsePage() {
 
           {/* Swipe hint */}
           {!loading && !empty && queue.length > 0 && (
-            <div className="flex items-center justify-center gap-8 mt-6 text-xs" style={{ color: '#647068' }}>
+            <div className="flex items-center justify-center gap-8 mt-6 text-xs" style={{ color: 'var(--dm-warm)' }}>
               <div className="flex items-center gap-1.5">
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
-                  style={{ borderColor: '#B8511E', color: '#B8511E' }}><X size={18} /></div>
+                  style={{ borderColor: 'var(--dm-terracotta)', color: 'var(--dm-terracotta)' }}><X size={18} /></div>
                 <span>Pass</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
-                  style={{ borderColor: '#D4A853', color: '#D4A853' }}><Star size={18} /></div>
+                  style={{ borderColor: 'var(--dm-gold)', color: 'var(--dm-gold)' }}><Star size={18} /></div>
                 <span>Super</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
-                  style={{ borderColor: '#7A9E7E', color: '#7A9E7E' }}><Heart size={18} /></div>
+                  style={{ borderColor: 'var(--dm-sage)', color: 'var(--dm-sage)' }}><Heart size={18} /></div>
                 <span>Match</span>
               </div>
             </div>

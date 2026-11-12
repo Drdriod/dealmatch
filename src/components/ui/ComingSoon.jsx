@@ -8,10 +8,10 @@ export default function ComingSoon({ title = 'Coming Soon', message }) {
       style={{ backgroundColor:'#FFFAF5' }}>
       <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
         style={{ backgroundColor:'rgba(212,168,83,0.1)' }}>
-        <Clock size={32} style={{ color:'#D4A853' }} />
+        <Clock size={32} style={{ color:'var(--dm-gold)' }} />
       </div>
-      <h1 className="font-display text-3xl font-black mb-2" style={{ color:'#17211B' }}>{title}</h1>
-      <p className="text-sm leading-relaxed mb-2 max-w-xs" style={{ color:'#647068' }}>
+      <h1 className="font-display text-3xl font-black mb-2" style={{ color:'var(--dm-deep)' }}>{title}</h1>
+      <p className="text-sm leading-relaxed mb-2 max-w-xs" style={{ color:'var(--dm-warm)' }}>
         {message || 'We are working on something exciting. This feature will unlock soon on DealMatch.'}
       </p>
       <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-8"
@@ -19,7 +19,7 @@ export default function ComingSoon({ title = 'Coming Soon', message }) {
         Unlocking Soon - Stay Tuned
       </div>
       <Link to="/dashboard" className="flex items-center gap-2 text-sm font-semibold"
-        style={{ color:'#B8511E' }}>
+        style={{ color:'var(--dm-terracotta)' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
     </div>

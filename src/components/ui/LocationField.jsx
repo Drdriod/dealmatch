@@ -57,9 +57,9 @@ export default function LocationField({
                 onMouseDown={e => e.preventDefault()}
                 onClick={() => { onChange(o.label, o); setOpen(false) }}
                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#F7F4ED]"
-                style={{ color: '#17211B' }}>
+                style={{ color: 'var(--dm-deep)' }}>
                 {o.label}
-                {o.postcode && <span className="ml-2 text-xs" style={{ color: '#647068' }}>{o.postcode}</span>}
+                {o.postcode && <span className="ml-2 text-xs" style={{ color: 'var(--dm-warm)' }}>{o.postcode}</span>}
               </button>
             </li>
           ))}

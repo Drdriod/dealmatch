@@ -12,7 +12,7 @@ What the app does globally (so pages do not each have to):
 
 - **Pale gold and sage text**: `fixLowContrast` (in `A11yEffects`) darkens gold/sage text only where the real background is light, and leaves it alone on dark screens. For new work, still prefer dark text colours on light backgrounds.
 - **Form field errors**: the shared sign-up `Field` sets `aria-invalid`, `aria-required`, `aria-describedby` and announces errors with `role="alert"`. Other screens report errors with toasts, which screen readers already announce.
-- **Colours in code**: `index.css` defines `--dm-*` CSS variables for the brand palette. `src/lib/colorBudget.test.mjs` stops hard-coded hex colours in `.jsx` files from growing (about 2,978 today). Migrate page by page to Tailwind tokens or `var(--dm-*)`, comparing before and after screenshots, then lower the baseline in that test.
+- **Colours in code**: `index.css` defines `--dm-*` CSS variables for the brand palette. `src/lib/colorBudget.test.mjs` stops hard-coded hex colours in `.jsx` files from growing (1,926 today, down from 2,978). Migrate page by page to Tailwind tokens or `var(--dm-*)`, comparing before and after screenshots, then lower the baseline in that test.
 - **Dark mode**: not offered. `ThemeContext` and some `.dark` rules exist, but no toggle is shown anywhere, and most screens use fixed light colours, so enabling it would look broken. Treat it as a future feature, not a bug.
 
 Known gaps: about 150 labels use text of 11px or smaller; most inline styles still bypass the tokens (see above).

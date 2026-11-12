@@ -100,12 +100,12 @@ function StepBar({ current, total }) {
 function Input({ label, name, value, onChange, type = 'text', placeholder, required, hint, prefix }) {
   return (
     <div>
-      <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-        {label}{required && <span style={{ color: '#B8511E' }}> *</span>}
+      <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+        {label}{required && <span style={{ color: 'var(--dm-terracotta)' }}> *</span>}
       </label>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold" style={{ color: '#647068' }}>{prefix}</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold" style={{ color: 'var(--dm-warm)' }}>{prefix}</span>
         )}
         <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
           className="w-full rounded-xl px-4 py-3 text-sm outline-none"
@@ -114,7 +114,7 @@ function Input({ label, name, value, onChange, type = 'text', placeholder, requi
             paddingLeft: prefix ? '2.5rem' : '1rem',
           }} />
       </div>
-      {hint && <p className="text-xs mt-1" style={{ color: '#647068' }}>{hint}</p>}
+      {hint && <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>{hint}</p>}
     </div>
   )
 }
@@ -277,24 +277,24 @@ export default function ListHostelPage() {
       <div className="text-center max-w-sm">
         <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ backgroundColor: 'rgba(122,158,126,0.12)', border: '2px solid rgba(122,158,126,0.4)' }}>
-          <Check size={36} style={{ color: '#7A9E7E' }} />
+          <Check size={36} style={{ color: 'var(--dm-sage)' }} />
         </div>
-        <h1 className="font-display font-black text-2xl mb-3" style={{ color: '#17211B' }}>
+        <h1 className="font-display font-black text-2xl mb-3" style={{ color: 'var(--dm-deep)' }}>
           Listing Submitted!
         </h1>
-        <p className="text-sm mb-2" style={{ color: '#647068' }}>
+        <p className="text-sm mb-2" style={{ color: 'var(--dm-warm)' }}>
           Your hostel listing is under review. Once the details are verified, it will go live and you can check its status on your dashboard.
         </p>
-        <p className="text-xs mb-6" style={{ color: '#647068' }}>
+        <p className="text-xs mb-6" style={{ color: 'var(--dm-warm)' }}>
           Students will start seeing your hostel as soon as it's approved.
         </p>
         <div className="flex flex-col gap-3">
           <Link to="/student-hostels" className="w-full py-3.5 rounded-2xl font-bold text-sm text-center transition-all hover:opacity-90"
-            style={{ backgroundColor: '#17211B', color: '#FFFAF5' }}>
+            style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
             Browse Hostels
           </Link>
           <Link to="/dashboard" className="w-full py-3.5 rounded-2xl font-bold text-sm text-center"
-            style={{ backgroundColor: '#F5EDE0', color: '#17211B' }}>
+            style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-deep)' }}>
             Go to Dashboard
           </Link>
         </div>
@@ -310,11 +310,11 @@ export default function ListHostelPage() {
           <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate('/student-hostels')}
             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-black/5"
             style={{ backgroundColor: '#F5EDE0' }}>
-            <ArrowLeft size={16} style={{ color: '#17211B' }} />
+            <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
           </button>
           <div>
-            <h1 className="font-display font-black text-xl" style={{ color: '#17211B' }}>List your hostel</h1>
-            <p className="text-xs" style={{ color: '#647068' }}>Reach students looking near your campus</p>
+            <h1 className="font-display font-black text-xl" style={{ color: 'var(--dm-deep)' }}>List your hostel</h1>
+            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Reach students looking near your campus</p>
           </div>
         </div>
 
@@ -328,8 +328,8 @@ export default function ListHostelPage() {
                 placeholder="e.g. Grace Court Hostel, Peace Villa" required />
 
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
-                  Room Type <span style={{ color: '#B8511E' }}>*</span>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
+                  Room Type <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {ROOM_TYPES.map(r => (
@@ -340,14 +340,14 @@ export default function ListHostelPage() {
                         border: `1.5px solid ${form.room_type === r.id ? '#B8511E' : 'transparent'}`,
                       }}>
                       <div className="text-xs font-bold" style={{ color: form.room_type === r.id ? '#B8511E' : '#17211B' }}>{r.label}</div>
-                      <div className="text-xs mt-0.5" style={{ color: '#647068' }}>{r.desc}</div>
+                      <div className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{r.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>Gender policy <span style={{ color: '#B8511E' }}>*</span></label>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>Gender policy <span style={{ color: 'var(--dm-terracotta)' }}>*</span></label>
                 <div className="flex gap-2">
                   {GENDER_OPTIONS.map(g => (
                     <button key={g.id} onClick={() => setVal('gender_policy', g.id)}
@@ -382,11 +382,11 @@ export default function ListHostelPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>Description</label>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>Description</label>
                 <textarea value={form.description} onChange={set('description')} rows={4}
                   placeholder="Describe your hostel - rules, environment, what makes it great for students…"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }} />
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
               </div>
             </motion.div>
           )}
@@ -399,7 +399,7 @@ export default function ListHostelPage() {
               <div className="grid grid-cols-2 gap-3">
                 <Input label="City" name="city" value={form.city} onChange={set('city')} placeholder="e.g. Yaba" required />
                 <div>
-                  <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>State <span style={{ color: '#B8511E' }}>*</span></label>
+                  <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>State <span style={{ color: 'var(--dm-terracotta)' }}>*</span></label>
                   <select value={form.state} onChange={set('state')}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                     style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.state ? '#17211B' : '#647068' }}>
@@ -410,7 +410,7 @@ export default function ListHostelPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: '#647068' }}>
+                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
                   Nearest University / Polytechnic / College *
                 </label>
                 <input
@@ -418,9 +418,9 @@ export default function ListHostelPage() {
                   onChange={e => setForm(f => ({ ...f, institution_name: e.target.value, institution_id: '' }))}
                   placeholder="e.g. University of Lagos, University of Ibadan..."
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B' }}
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
                 />
-                <p className="text-xs mt-1" style={{ color: '#647068' }}>
+                <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   Type your school name exactly as students would search for it.
                 </p>
               </div>
@@ -436,8 +436,8 @@ export default function ListHostelPage() {
 
               <div className="rounded-2xl p-4 flex items-start gap-3"
                 style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-                <Info size={16} style={{ color: '#B8511E', flexShrink: 0, marginTop: 2 }} />
-                <p className="text-xs" style={{ color: '#647068' }}>
+                <Info size={16} style={{ color: 'var(--dm-terracotta)', flexShrink: 0, marginTop: 2 }} />
+                <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>
                   A DealMatch verifier may visit the address before activating your listing to protect students from fake hostels.
                 </p>
               </div>
@@ -448,8 +448,8 @@ export default function ListHostelPage() {
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>What does your hostel offer?</h2>
-                <p className="text-sm mb-4" style={{ color: '#647068' }}>Select all that apply. More amenities = more enquiries.</p>
+                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>What does your hostel offer?</h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>Select all that apply. More amenities = more enquiries.</p>
                 <div className="grid grid-cols-2 gap-2">
                   {AMENITIES.map(a => (
                     <button key={a.id} onClick={() => toggleAmenity(a.id)}
@@ -462,7 +462,7 @@ export default function ListHostelPage() {
                       <div className="flex-1">
                         <div className="text-xs font-semibold" style={{ color: form.amenities.includes(a.id) ? '#B8511E' : '#17211B' }}>{a.label}</div>
                       </div>
-                      {form.amenities.includes(a.id) && <Check size={12} style={{ color: '#B8511E' }} />}
+                      {form.amenities.includes(a.id) && <Check size={12} style={{ color: 'var(--dm-terracotta)' }} />}
                     </button>
                   ))}
                 </div>
@@ -474,24 +474,24 @@ export default function ListHostelPage() {
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Add photos</h2>
-                <p className="text-sm mb-4" style={{ color: '#647068' }}>
+                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>Add photos</h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>
                   Clear photos help students trust what they see. Up to 8 photos, 5MB each.
                 </p>
 
                 <label className="block cursor-pointer">
                   <div className="border-2 border-dashed rounded-2xl p-8 text-center transition-all hover:border-orange-300"
-                    style={{ borderColor: '#DEDDD6', backgroundColor: '#F5EDE0' }}>
+                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#F5EDE0' }}>
                     {imageUploading ? (
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-sm" style={{ color: '#647068' }}>Uploading…</span>
+                        <span className="text-sm" style={{ color: 'var(--dm-warm)' }}>Uploading…</span>
                       </div>
                     ) : (
                       <>
-                        <Upload size={24} style={{ color: '#B8511E', margin: '0 auto 8px' }} />
-                        <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Click to add photos</p>
-                        <p className="text-xs mt-1" style={{ color: '#647068' }}>JPG, PNG · Max 5MB each</p>
+                        <Upload size={24} style={{ color: 'var(--dm-terracotta)', margin: '0 auto 8px' }} />
+                        <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Click to add photos</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>JPG, PNG · Max 5MB each</p>
                       </>
                     )}
                   </div>
@@ -524,8 +524,8 @@ export default function ListHostelPage() {
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: '#17211B' }}>Choose your listing plan</h2>
-                <p className="text-sm mb-4" style={{ color: '#647068' }}>
+                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>Choose your listing plan</h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>
                   Students browse for free - you pay a small fee to list your hostel.
                 </p>
 
@@ -540,7 +540,7 @@ export default function ListHostelPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm" style={{ color: '#17211B' }}>{p.name}</span>
+                            <span className="font-bold text-sm" style={{ color: 'var(--dm-deep)' }}>{p.name}</span>
                             {p.badge && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-bold"
                                 style={{ backgroundColor: plan === key ? '#B8511E' : '#DEDDD6', color: plan === key ? '#fff' : '#647068' }}>
@@ -548,14 +548,14 @@ export default function ListHostelPage() {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs mt-0.5" style={{ color: '#647068' }}>{p.duration}</div>
-                          {p.saving && <div className="text-xs mt-0.5 font-semibold" style={{ color: '#7A9E7E' }}>{p.saving}</div>}
+                          <div className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{p.duration}</div>
+                          {p.saving && <div className="text-xs mt-0.5 font-semibold" style={{ color: 'var(--dm-sage)' }}>{p.saving}</div>}
                         </div>
                         <div className="text-right">
                           <div className="font-black text-lg" style={{ color: plan === key ? '#B8511E' : '#17211B' }}>
                             {p.price ? `₦${p.price.toLocaleString()}` : '...'}
                           </div>
-                          {plan === key && <Check size={14} style={{ color: '#B8511E', marginLeft: 'auto' }} />}
+                          {plan === key && <Check size={14} style={{ color: 'var(--dm-terracotta)', marginLeft: 'auto' }} />}
                         </div>
                       </div>
                     </button>
@@ -564,7 +564,7 @@ export default function ListHostelPage() {
 
                 {/* What's included */}
                 <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6' }}>
-                  <h4 className="font-bold text-sm mb-3" style={{ color: '#17211B' }}>What's included</h4>
+                  <h4 className="font-bold text-sm mb-3" style={{ color: 'var(--dm-deep)' }}>What's included</h4>
                   {[
                     'Listed on the student hostels page',
                     'Visible to all verified students near your school',
@@ -573,22 +573,22 @@ export default function ListHostelPage() {
                     'Edit or pause your listing anytime',
                   ].map(f => (
                     <div key={f} className="flex items-center gap-2 mb-2">
-                      <Check size={12} style={{ color: '#7A9E7E', flexShrink: 0 }} />
-                      <span className="text-xs" style={{ color: '#17211B' }}>{f}</span>
+                      <Check size={12} style={{ color: 'var(--dm-sage)', flexShrink: 0 }} />
+                      <span className="text-xs" style={{ color: 'var(--dm-deep)' }}>{f}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="rounded-2xl p-3 flex items-start gap-2" style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-                  <Shield size={14} style={{ color: '#7A9E7E', flexShrink: 0, marginTop: 1 }} />
-                  <p className="text-xs" style={{ color: '#647068' }}>
+                  <Shield size={14} style={{ color: 'var(--dm-sage)', flexShrink: 0, marginTop: 1 }} />
+                  <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>
                     Payment is secured by Flutterwave. Your listing goes live once your payment is confirmed and the details are verified.
                   </p>
                 </div>
 
                 <button onClick={handlePayment} disabled={saving || !plansReady}
                   className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
-                  style={{ backgroundColor: '#B8511E', color: '#fff' }}>
+                  style={{ backgroundColor: 'var(--dm-terracotta)', color: '#fff' }}>
                   {saving
                     ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : !plansReady
@@ -596,7 +596,7 @@ export default function ListHostelPage() {
                       : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
                 </button>
 
-                <p className="text-xs text-center mt-3" style={{ color: '#647068' }}>
+                <p className="text-xs text-center mt-3" style={{ color: 'var(--dm-warm)' }}>
                   Your listing is saved as a draft. Pay anytime to activate it.
                 </p>
               </div>
@@ -610,7 +610,7 @@ export default function ListHostelPage() {
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)}
                 className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-                style={{ backgroundColor: '#F5EDE0', color: '#17211B' }}>
+                style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-deep)' }}>
                 Back
               </button>
             )}

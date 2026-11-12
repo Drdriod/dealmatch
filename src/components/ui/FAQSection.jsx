@@ -65,14 +65,14 @@ function FAQItem({ item, isOpen, onToggle }) {
         className="w-full py-4 px-4 sm:px-5 flex items-center gap-3.5 text-left"
       >
         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-          <Icon size={16} style={{ color: '#B8511E' }} />
+          <Icon size={16} style={{ color: 'var(--dm-terracotta)' }} />
         </div>
-        <span className="font-display font-bold text-[15px] sm:text-base flex-1" style={{ color: '#17211B' }}>
+        <span className="font-display font-bold text-[15px] sm:text-base flex-1" style={{ color: 'var(--dm-deep)' }}>
           {item.q}
         </span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}
           className="flex-shrink-0">
-          <ChevronDown size={18} style={{ color: '#B8511E' }} />
+          <ChevronDown size={18} style={{ color: 'var(--dm-terracotta)' }} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -84,7 +84,7 @@ function FAQItem({ item, isOpen, onToggle }) {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <p className="pb-5 px-4 sm:px-5 text-sm leading-relaxed" style={{ color: '#647068', marginLeft: '2.85rem' }}>
+            <p className="pb-5 px-4 sm:px-5 text-sm leading-relaxed" style={{ color: 'var(--dm-warm)', marginLeft: '2.85rem' }}>
               {item.a}
             </p>
           </motion.div>
@@ -102,9 +102,9 @@ export default function FAQSection() {
       <div className="max-w-3xl mx-auto">
         <FadeUp>
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#B8511E' }}>Questions</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-black mb-4" style={{ color: '#17211B' }}>Frequently Asked Questions</h2>
-            <p className="text-sm sm:text-base" style={{ color: '#647068' }}>Everything you need to know before you get started.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--dm-terracotta)' }}>Questions</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-black mb-4" style={{ color: 'var(--dm-deep)' }}>Frequently Asked Questions</h2>
+            <p className="text-sm sm:text-base" style={{ color: 'var(--dm-warm)' }}>Everything you need to know before you get started.</p>
           </div>
         </FadeUp>
         <StaggerChildren className="space-y-2.5" stagger={0.06}>

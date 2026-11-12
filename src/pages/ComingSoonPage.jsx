@@ -12,12 +12,12 @@ export default function ComingSoonPage({
       <div className="max-w-sm mx-auto px-4 text-center">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
           style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-          <Icon size={28} style={{ color: '#B8511E' }} />
+          <Icon size={28} style={{ color: 'var(--dm-terracotta)' }} />
         </div>
-        <h1 className="font-display text-2xl font-black mb-2" style={{ color: '#17211B' }}>
+        <h1 className="font-display text-2xl font-black mb-2" style={{ color: 'var(--dm-deep)' }}>
           {title}
         </h1>
-        <p className="text-sm mb-8" style={{ color: '#647068' }}>
+        <p className="text-sm mb-8" style={{ color: 'var(--dm-warm)' }}>
           {message}
         </p>
         <Link to="/" className="btn-primary px-6 py-3 text-sm inline-flex items-center gap-2">

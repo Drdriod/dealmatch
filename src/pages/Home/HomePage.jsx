@@ -194,7 +194,7 @@ export default function HomePage() {
       <section className="pt-20 pb-6 px-5 sm:px-7">
         <div className="max-w-4xl mx-auto">
           <FadeUp>
-            <p className="text-center font-display text-3xl sm:text-4xl mb-8" style={{ color: '#17211B' }}>
+            <p className="text-center font-display text-3xl sm:text-4xl mb-8" style={{ color: 'var(--dm-deep)' }}>
               Whatever brings you here, there's a place to start.
             </p>
           </FadeUp>

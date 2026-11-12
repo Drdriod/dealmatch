@@ -38,20 +38,20 @@ function ActiveEscrowSection() {
   if (!escrows.length) return null
   return (
     <div className="mt-8 px-4 max-w-lg mx-auto">
-      <h3 className="font-display text-lg font-black mb-4" style={{color:'#17211B'}}>Active Protection</h3>
+      <h3 className="font-display text-lg font-black mb-4" style={{color:'var(--dm-deep)'}}>Active Protection</h3>
       {escrows.map(e => (
         <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid #DEDDD6'}}>
-          <p className="font-bold text-sm" style={{color:'#17211B'}}>{e.properties?.title}</p>
-          <p className="text-xs mb-3" style={{color:'#647068'}}>{e.properties?.city} · ₦{Number(e.gross_amount).toLocaleString()}</p>
+          <p className="font-bold text-sm" style={{color:'var(--dm-deep)'}}>{e.properties?.title}</p>
+          <p className="text-xs mb-3" style={{color:'var(--dm-warm)'}}>{e.properties?.city} · ₦{Number(e.gross_amount).toLocaleString()}</p>
           {e.move_in_date && (
-            <p className="text-xs mb-2" style={{color:'#647068'}}>
+            <p className="text-xs mb-2" style={{color:'var(--dm-warm)'}}>
               Move-in date: {new Date(e.move_in_date).toLocaleDateString()}
               {' · '}Auto-releases 72h after if no dispute filed
             </p>
           )}
           <button onClick={() => confirmMoveIn(e.id)} disabled={!!confirming}
             className="w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40"
-            style={{backgroundColor:'#7A9E7E',color:'white'}}>
+            style={{backgroundColor:'var(--dm-sage)',color:'white'}}>
             <CheckCircle size={16} /> {confirming === e.id ? 'Confirming…' : 'Confirm Move-In & Release Funds'}
           </button>
           <p className="text-xs text-center mt-2" style={{color:'rgba(23,33,27,0.35)'}}>
@@ -76,13 +76,13 @@ export default function EscrowPage() {
       <div className="max-w-2xl mx-auto px-4">
 
         {/* Hero */}
-        <div className="rounded-3xl p-8 mb-6 text-center relative overflow-hidden" style={{ backgroundColor:'#17211B' }}>
+        <div className="rounded-3xl p-8 mb-6 text-center relative overflow-hidden" style={{ backgroundColor:'var(--dm-deep)' }}>
           <div className="absolute inset-0 pointer-events-none"
             style={{ background:'radial-gradient(ellipse 60% 60% at 50% 0%, rgba(122,158,126,0.2) 0%, transparent 70%)' }} />
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
               style={{ backgroundColor:'rgba(122,158,126,0.2)' }}>
-              <Shield size={32} style={{ color:'#7A9E7E' }} />
+              <Shield size={32} style={{ color:'var(--dm-sage)' }} />
             </div>
             <h1 className="font-display font-black text-3xl mb-3" style={{ color:'#FFFFFF' }}>
               DealMatch Protection
@@ -102,8 +102,8 @@ export default function EscrowPage() {
         <ActiveEscrowSection />
 
         {/* How it works */}
-        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
-          <h2 className="font-display font-black text-xl mb-5" style={{ color:'#17211B' }}>How it works</h2>
+        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+          <h2 className="font-display font-black text-xl mb-5" style={{ color:'var(--dm-deep)' }}>How it works</h2>
           <div className="space-y-4">
             {HOW_IT_WORKS.map((s, i) => (
               <div key={i} className="flex gap-4">
@@ -112,8 +112,8 @@ export default function EscrowPage() {
                   {s.icon}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{s.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{s.fee ? feeLine : s.desc}</p>
+                  <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{s.title}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'var(--dm-warm)' }}>{s.fee ? feeLine : s.desc}</p>
                 </div>
               </div>
             ))}
@@ -128,11 +128,11 @@ export default function EscrowPage() {
           { icon: <Zap size={22} className="text-terracotta" />, title:'Release on move-in',        desc:'Once you confirm move-in, the funds are released to the landlord.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
-            style={{ backgroundColor:'#FFFAF5', borderColor:'#DEDDD6' }}>
+            style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
             <span className="flex-shrink-0">{b.icon}</span>
             <div>
-              <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{b.title}</p>
-              <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'#647068' }}>{b.desc}</p>
+              <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{b.title}</p>
+              <p className="text-xs mt-0.5 leading-relaxed" style={{ color:'var(--dm-warm)' }}>{b.desc}</p>
             </div>
           </div>
         ))}

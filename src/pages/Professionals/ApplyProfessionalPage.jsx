@@ -210,12 +210,12 @@ export default function ApplyProfessionalPage() {
         <div className="mb-6">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
             style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-            <Briefcase size={22} style={{ color: '#B8511E' }} />
+            <Briefcase size={22} style={{ color: 'var(--dm-terracotta)' }} />
           </div>
-          <h1 className="font-display text-2xl font-black" style={{ color: '#17211B' }}>
+          <h1 className="font-display text-2xl font-black" style={{ color: 'var(--dm-deep)' }}>
             Join as a Professional
           </h1>
-          <p className="text-xs mt-1" style={{ color: '#647068' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
             Get matched with clients actively looking for your services on DealMatch.
           </p>
         </div>
@@ -233,10 +233,10 @@ export default function ApplyProfessionalPage() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="space-y-4">
             <div>
-              <p className="text-sm font-bold mb-1" style={{ color: '#17211B' }}>
+              <p className="text-sm font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>
                 What is your profession?
               </p>
-              <p className="text-xs mb-4" style={{ color: '#647068' }}>
+              <p className="text-xs mb-4" style={{ color: 'var(--dm-warm)' }}>
                 Select from the list below, or choose "Other" to type your own.
               </p>
 
@@ -266,7 +266,7 @@ export default function ApplyProfessionalPage() {
                     {PROFESSION_GROUPS.map(group => (
                       <div key={group.group}>
                         <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider"
-                          style={{ backgroundColor: '#F5EDE0', color: '#647068' }}>
+                          style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-warm)' }}>
                           {group.group}
                         </div>
                         {group.options.map(opt => (
@@ -290,7 +290,7 @@ export default function ApplyProfessionalPage() {
                     {/* Other option */}
                     <div>
                       <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider"
-                        style={{ backgroundColor: '#F5EDE0', color: '#647068' }}>
+                        style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-warm)' }}>
                         Not listed?
                       </div>
                       <button type="button"
@@ -323,7 +323,7 @@ export default function ApplyProfessionalPage() {
                     onChange={set('custom_profession')}
                     placeholder="e.g. Environmental Consultant, Geotechnical Engineer..."
                     className="w-full px-4 py-3 rounded-xl border text-sm"
-                    style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }}
+                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }}
                     autoFocus
                   />
                 </motion.div>
@@ -334,7 +334,7 @@ export default function ApplyProfessionalPage() {
             {form.profession_id && form.profession_id !== 'other' && (
               <div className="flex items-center gap-2 p-3 rounded-xl"
                 style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-                <Check size={14} style={{ color: '#7A9E7E', flexShrink: 0 }} />
+                <Check size={14} style={{ color: 'var(--dm-sage)', flexShrink: 0 }} />
                 <p className="text-xs" style={{ color: '#5C4A3A' }}>
                   <strong>{selectedLabel}</strong> selected. {monthlyText ? `All types are listed at ${monthlyText}/month.` : 'All types are listed at the same monthly rate.'}
                 </p>
@@ -350,7 +350,7 @@ export default function ApplyProfessionalPage() {
 
             <div className="p-3 rounded-xl mb-2"
               style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <p className="text-xs" style={{ color: '#B8511E' }}>
+              <p className="text-xs" style={{ color: 'var(--dm-terracotta)' }}>
                 Listing as: <strong>{professionForDB}</strong>
               </p>
             </div>
@@ -362,7 +362,7 @@ export default function ApplyProfessionalPage() {
               <input value={form.full_name} onChange={set('full_name')}
                 placeholder="Your legal full name"
                 className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
             </div>
 
             <div>
@@ -372,7 +372,7 @@ export default function ApplyProfessionalPage() {
               <input value={form.company} onChange={set('company')}
                 placeholder="e.g. ABC Surveyors Ltd"
                 className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -383,7 +383,7 @@ export default function ApplyProfessionalPage() {
                 <input value={form.phone} onChange={set('phone')}
                   placeholder="08012345678"
                   className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
@@ -391,7 +391,7 @@ export default function ApplyProfessionalPage() {
                 </label>
                 <input value={form.email} onChange={set('email')}
                   className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
               </div>
             </div>
 
@@ -403,7 +403,7 @@ export default function ApplyProfessionalPage() {
                 <input value={form.license_no} onChange={set('license_no')}
                   placeholder="NIS/2024/001"
                   className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
@@ -413,7 +413,7 @@ export default function ApplyProfessionalPage() {
                   value={form.years_exp} onChange={set('years_exp')}
                   placeholder="5"
                   className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
               </div>
             </div>
 
@@ -424,7 +424,7 @@ export default function ApplyProfessionalPage() {
               <input value={form.coverage_areas} onChange={set('coverage_areas')}
                 placeholder="e.g. Lagos, Abuja, Port Harcourt"
                 className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
             </div>
 
             <div>
@@ -434,7 +434,7 @@ export default function ApplyProfessionalPage() {
               <textarea value={form.bio} onChange={set('bio')} rows={3}
                 placeholder="Tell clients about your experience and specialisation..."
                 className="w-full px-4 py-3 rounded-xl border text-sm resize-none"
-                style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5', color: '#17211B' }} />
+                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
             </div>
           </motion.div>
         )}
@@ -443,13 +443,13 @@ export default function ApplyProfessionalPage() {
         {step === 2 && plan && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <div className="rounded-2xl border p-5 mb-4"
-              style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFAF5' }}>
-              <p className="text-sm font-bold mb-3" style={{ color: '#17211B' }}>
+              style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5' }}>
+              <p className="text-sm font-bold mb-3" style={{ color: 'var(--dm-deep)' }}>
                 {professionForDB} - What you get
               </p>
               {plan.features.map((f, i) => (
                 <div key={i} className="flex items-start gap-2 mb-2">
-                  <Check size={14} style={{ color: '#7A9E7E', marginTop: 2, flexShrink: 0 }} />
+                  <Check size={14} style={{ color: 'var(--dm-sage)', marginTop: 2, flexShrink: 0 }} />
                   <p className="text-xs" style={{ color: '#5C4A3A' }}>{f}</p>
                 </div>
               ))}
@@ -466,8 +466,8 @@ export default function ApplyProfessionalPage() {
                     borderColor: planType === p.id ? '#B8511E' : '#DEDDD6',
                     backgroundColor: planType === p.id ? 'rgba(200,95,45,0.05)' : '#FFFAF5',
                   }}>
-                  <p className="text-xs font-semibold" style={{ color: '#647068' }}>{p.label}</p>
-                  <p className="font-display font-black text-lg" style={{ color: '#17211B' }}>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--dm-warm)' }}>{p.label}</p>
+                  <p className="font-display font-black text-lg" style={{ color: 'var(--dm-deep)' }}>
                     {p.price ? `N${p.price.toLocaleString()}` : '...'}
                   </p>
                 </button>
@@ -488,7 +488,7 @@ export default function ApplyProfessionalPage() {
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)}
                 className="px-5 py-3.5 rounded-2xl text-sm font-semibold border flex items-center gap-2"
-                style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
+                style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
                 <ArrowLeft size={14} /> Back
               </button>
             )}
@@ -501,7 +501,7 @@ export default function ApplyProfessionalPage() {
         {step === 2 && (
           <button onClick={() => setStep(1)} disabled={saving}
             className="mt-3 w-full py-3 rounded-2xl text-xs font-semibold border flex items-center justify-center gap-2"
-            style={{ borderColor: '#DEDDD6', color: '#647068' }}>
+            style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)' }}>
             <ArrowLeft size={12} /> Back to details
           </button>
         )}

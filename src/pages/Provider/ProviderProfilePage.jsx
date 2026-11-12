@@ -104,15 +104,15 @@ export default function ProviderProfilePage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <p className="text-sm" style={{ color: '#647068' }}>Loading profile…</p>
+      <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading profile…</p>
     </div>
   )
 
   if (!profile) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
-        <div className="flex justify-center mb-4"><Frown size={40} style={{ color: '#647068' }} /></div>
-        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>We couldn't find this profile</h2>
+        <div className="flex justify-center mb-4"><Frown size={40} style={{ color: 'var(--dm-warm)' }} /></div>
+        <h2 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>We couldn't find this profile</h2>
       </div>
     </div>
   )
@@ -124,7 +124,7 @@ export default function ProviderProfilePage() {
       <div className="max-w-2xl mx-auto px-4 pt-6">
 
         {/* Header: avatar, name, category, badges */}
-        <div className="rounded-2xl mb-4 border overflow-hidden" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+        <div className="rounded-2xl mb-4 border overflow-hidden" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
           {businessPage?.banner_url && (
             <div className="w-full h-24" style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
               <img src={businessPage.banner_url} alt="" className="w-full h-full object-cover" />
@@ -136,20 +136,20 @@ export default function ProviderProfilePage() {
               style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
               {profile.avatar_url
                 ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                : <User size={26} style={{ color: '#B8511E' }} />
+                : <User size={26} style={{ color: 'var(--dm-terracotta)' }} />
               }
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="font-display font-black text-lg" style={{ color: '#17211B' }}>{profile.full_name}</h1>
+              <h1 className="font-display font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{profile.full_name}</h1>
               {/* levelData.category is the real, populated field (set by
                   SkillVerificationPage's onboarding submission) - profile's
                   own category_label column exists but nothing writes to it
                   yet, so read from level_data to actually show the skill. */}
               {levelData?.category && (
-                <p className="text-xs font-semibold" style={{ color: '#B8511E' }}>{levelData.category}</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--dm-terracotta)' }}>{levelData.category}</p>
               )}
               {levelData?.area && (
-                <p className="text-xs" style={{ color: '#647068' }}>{levelData.area}</p>
+                <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{levelData.area}</p>
               )}
               {lastActiveLabel && (
                 <p className="text-[11px] mt-0.5" style={{ color: '#B5A99C' }}>Active {lastActiveLabel}</p>
@@ -208,14 +208,14 @@ export default function ProviderProfilePage() {
             acceptBid() in JobPostingPage also checks server-side. */}
         {user?.id === id && payoutStatus !== 'verified' && (
           <div className="rounded-2xl p-4 mb-4 border flex items-center gap-3" style={{ backgroundColor: 'rgba(200,95,45,0.06)', borderColor: '#E8C4A8' }}>
-            <ShieldCheck size={20} style={{ color: '#B8511E' }} className="flex-shrink-0" />
+            <ShieldCheck size={20} style={{ color: 'var(--dm-terracotta)' }} className="flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>
                 {payoutStatus === 'failed' ? 'Payout setup needs another try' : 'Set up payouts to get booked'}
               </p>
-              <p className="text-xs" style={{ color: '#647068' }}>Add your bank account so customers can pay you.</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Add your bank account so customers can pay you.</p>
             </div>
-            <button onClick={() => navigate('/payout-setup')} className="text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#B8511E', color: '#FFF' }}>
+            <button onClick={() => navigate('/payout-setup')} className="text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }}>
               Set up
             </button>
           </div>
@@ -226,31 +226,31 @@ export default function ProviderProfilePage() {
             biggest fear on a services marketplace) */}
         <div className={`grid gap-3 mb-4 ${businessPage ? 'grid-cols-4' : 'grid-cols-3'}`}>
           {businessPage && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
               <CheckCircle2 size={14} className="mx-auto mb-0.5" style={{ color: '#5C8060' }} />
-              <p className="font-black text-lg" style={{ color: '#17211B' }}>{stats?.completed_count ?? 0}</p>
-              <p className="text-[11px]" style={{ color: '#647068' }}>Deals done</p>
+              <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{stats?.completed_count ?? 0}</p>
+              <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Deals done</p>
             </div>
           )}
-          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <p className="font-black text-lg" style={{ color: '#17211B' }}>
+          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>
               {stats?.completion_rate != null ? `${Math.round(stats.completion_rate * 100)}%` : ' - '}
             </p>
-            <p className="text-[11px]" style={{ color: '#647068' }}>Completion</p>
+            <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Completion</p>
           </div>
-          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <Clock size={14} className="mx-auto mb-0.5" style={{ color: '#B8511E' }} />
-            <p className="font-black text-lg" style={{ color: '#17211B' }}>
+          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <Clock size={14} className="mx-auto mb-0.5" style={{ color: 'var(--dm-terracotta)' }} />
+            <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>
               {profile.avg_reply_minutes != null ? `${profile.avg_reply_minutes}m` : ' - '}
             </p>
-            <p className="text-[11px]" style={{ color: '#647068' }}>Avg reply</p>
+            <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Avg reply</p>
           </div>
-          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <Star size={14} className="mx-auto mb-0.5" fill="#D4A853" style={{ color: '#D4A853' }} />
-            <p className="font-black text-lg" style={{ color: '#17211B' }}>
+          <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <Star size={14} className="mx-auto mb-0.5" fill="#D4A853" style={{ color: 'var(--dm-gold)' }} />
+            <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>
               {stats?.avg_rating ?? ' - '}
             </p>
-            <p className="text-[11px]" style={{ color: '#647068' }}>{stats?.review_count || 0} reviews</p>
+            <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>{stats?.review_count || 0} reviews</p>
           </div>
         </div>
 
@@ -260,15 +260,15 @@ export default function ProviderProfilePage() {
             spend a small prepaid credit to get the number without
             committing to a job yet. Both paths converge on the same
             get_provider_contact() check, so whichever happens first wins. */}
-        <div className="flex items-center justify-between p-3 rounded-2xl mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+        <div className="flex items-center justify-between p-3 rounded-2xl mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
           <div>
-            <p className="text-[11px] mb-0.5" style={{ color: '#647068' }}>Price</p>
-            <p className="font-black text-base" style={{ color: '#B8511E' }}>
+            <p className="text-[11px] mb-0.5" style={{ color: 'var(--dm-warm)' }}>Price</p>
+            <p className="font-black text-base" style={{ color: 'var(--dm-terracotta)' }}>
               {levelData?.open_price === false && levelData?.price_cents ? `From ₦${(levelData.price_cents / 100).toLocaleString()}` : 'Open price'}
             </p>
           </div>
           {user?.id === id ? (
-            <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: '#647068' }}>
+            <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: 'var(--dm-warm)' }}>
               <Lock size={11} /> This is your profile
             </span>
           ) : (
@@ -279,8 +279,8 @@ export default function ProviderProfilePage() {
         {/* Portfolio -- for providers without formal certificates, this
             carries more evidentiary weight than any credential field */}
         {portfolioUrls.length > 0 && (
-          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Portfolio</h3>
+          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>Portfolio</h3>
             <div className="grid grid-cols-3 gap-2">
               {portfolioUrls.slice(0, 6).map((url, i) => (
                 <div key={i} className="aspect-square rounded-xl overflow-hidden" style={{ backgroundColor: 'rgba(23,33,27,0.04)' }}>
@@ -291,7 +291,7 @@ export default function ProviderProfilePage() {
           </div>
         )}
         {level === 2 && portfolioUrls.length === 0 && (
-          <div className="rounded-2xl p-4 mb-4 border flex items-center gap-2" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+          <div className="rounded-2xl p-4 mb-4 border flex items-center gap-2" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
             <Camera size={14} style={{ color: '#B5A99C' }} />
             <p className="text-xs" style={{ color: '#B5A99C' }}>No portfolio photos yet</p>
           </div>
@@ -301,8 +301,8 @@ export default function ProviderProfilePage() {
             it's the description the owner is actively curating for the
             page, profile.bio is the fallback for everyone else. */}
         {(businessPage?.bio || profile.bio) && (
-          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-2" style={{ color: '#17211B' }}>About</h3>
+          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-2" style={{ color: 'var(--dm-deep)' }}>About</h3>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{businessPage?.bio || profile.bio}</p>
           </div>
         )}
@@ -311,15 +311,15 @@ export default function ProviderProfilePage() {
             not stored on business_pages, so this always reflects what's
             actually postable/bookable right now. */}
         {businessPage && pageListings.length > 0 && (
-          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>
+          <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>
               Active listings ({pageListings.length})
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {pageListings.map((l) => (
                 <div key={l.id} className="rounded-xl p-2.5 border" style={{ borderColor: '#F0E8DC' }}>
-                  <p className="text-xs font-semibold truncate" style={{ color: '#17211B' }}>{l.title}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: '#B8511E' }}>
+                  <p className="text-xs font-semibold truncate" style={{ color: 'var(--dm-deep)' }}>{l.title}</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: 'var(--dm-terracotta)' }}>
                     {l.price_cents ? `₦${(l.price_cents / 100).toLocaleString()}` : 'Open price'}
                   </p>
                 </div>
@@ -331,19 +331,19 @@ export default function ProviderProfilePage() {
         {/* Reviews -- every one tagged "Completed on DealMatch"; the
             reviews table itself refuses to exist without a completed
             transaction behind it, this label is just surfacing that. */}
-        <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-          <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>
+        <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+          <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>
             Reviews {stats?.avg_rating ? `· ${stats.avg_rating} average` : ''}
           </h3>
           {reviews.length === 0 ? (
-            <p className="text-xs" style={{ color: '#647068' }}>No reviews yet. They appear here after completed deals.</p>
+            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>No reviews yet. They appear here after completed deals.</p>
           ) : (
             <div className="space-y-3">
               {reviews.map(r => (
                 <div key={r.id} className="pb-3 border-b last:border-0" style={{ borderColor: '#F0E8DC' }}>
                   <div className="flex items-center gap-1 mb-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={11} fill={i < r.rating ? '#D4A853' : 'none'} style={{ color: '#D4A853' }} />
+                      <Star key={i} size={11} fill={i < r.rating ? '#D4A853' : 'none'} style={{ color: 'var(--dm-gold)' }} />
                     ))}
                   </div>
                   <p className="text-xs" style={{ color: '#5C4A3A' }}>"{r.comment}"</p>
@@ -371,12 +371,12 @@ export default function ProviderProfilePage() {
         style={{ backgroundColor: 'rgba(255,250,245,0.97)', backdropFilter: 'blur(10px)', borderTop: '1px solid #DEDDD6' }}>
         <button onClick={() => startBooking('bid')}
           className="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2"
-          style={{ borderColor: '#B8511E', color: '#B8511E', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: 'var(--dm-terracotta)', color: 'var(--dm-terracotta)', backgroundColor: '#FFFFFF' }}>
           Request Bid
         </button>
         <button onClick={() => startBooking('book')}
           className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white"
-          style={{ backgroundColor: '#B8511E' }}>
+          style={{ backgroundColor: 'var(--dm-terracotta)' }}>
           Book Now
         </button>
       </div>

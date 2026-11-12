@@ -21,7 +21,7 @@ export default function MatchToast({ property, onClose }) {
       style={{ padding: '0 16px' }}
     >
       <div className="rounded-2xl overflow-hidden shadow-2xl flex items-center gap-3 p-3"
-        style={{ backgroundColor: '#17211B', border: '1px solid rgba(200,95,45,0.4)' }}>
+        style={{ backgroundColor: 'var(--dm-deep)', border: '1px solid rgba(200,95,45,0.4)' }}>
         {img ? (
           <img src={img} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
         ) : (
@@ -30,8 +30,8 @@ export default function MatchToast({ property, onClose }) {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Heart size={11} fill="#B8511E" style={{ color: '#B8511E' }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#B8511E' }}>
+            <Heart size={11} fill="#B8511E" style={{ color: 'var(--dm-terracotta)' }} />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--dm-terracotta)' }}>
               New Match!
             </span>
           </div>

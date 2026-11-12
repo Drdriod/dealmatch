@@ -6,7 +6,7 @@ import { join } from 'node:path'
 // A ratchet, not a target: hard-coded hex colours in pages and components must not grow. New work uses the
 // Tailwind tokens (bg-terracotta, text-deep, ...) or the CSS variables in index.css (var(--dm-terracotta)).
 // When you remove hex colours, lower BASELINE to the new count so the gain is locked in.
-const BASELINE = 2978
+const BASELINE = 1926
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {

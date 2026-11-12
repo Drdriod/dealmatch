@@ -85,13 +85,13 @@ export default function ReportModal({ entityType, entityId, listingSource = null
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10" style={{ backgroundColor: '#FFFAF5', maxHeight: '85vh', overflowY: 'auto' }}>
-        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor: '#DEDDD6' }} />
-        <h3 className="font-display text-lg font-black mb-1" style={{ color: '#17211B' }}>Report a Problem</h3>
-        <p className="text-xs mb-4" style={{ color: '#647068' }}>
+        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor: 'var(--dm-line)' }} />
+        <h3 className="font-display text-lg font-black mb-1" style={{ color: 'var(--dm-deep)' }}>Report a Problem</h3>
+        <p className="text-xs mb-4" style={{ color: 'var(--dm-warm)' }}>
           Your report goes directly to our team.
         </p>
 
-        <p className="text-xs font-bold mb-2" style={{ color: '#17211B' }}>What's the issue? *</p>
+        <p className="text-xs font-bold mb-2" style={{ color: 'var(--dm-deep)' }}>What's the issue? *</p>
         <div className="space-y-2 mb-4">
           {categories.map(cat => (
             <button key={cat.id}
@@ -105,19 +105,19 @@ export default function ReportModal({ entityType, entityId, listingSource = null
                 style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : '#DEDDD6'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
                 {form.category === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <span className="text-xs" style={{ color: '#17211B' }}>{cat.label}</span>
+              <span className="text-xs" style={{ color: 'var(--dm-deep)' }}>{cat.label}</span>
             </button>
           ))}
         </div>
 
-        <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>Describe what happened *</p>
+        <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>Describe what happened *</p>
         <textarea
           value={form.description}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="Provide as much detail as possible - dates, what you were told vs reality, any money lost..."
           rows={4}
           className="w-full rounded-2xl px-4 py-3 text-xs resize-none outline-none mb-4"
-          style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: '#17211B' }}
+          style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: 'var(--dm-deep)' }}
         />
 
         <button onClick={submit} disabled={filing || !form.category || !form.description.trim()}
@@ -126,7 +126,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
           <Flag size={16} />
           {filing ? 'Submitting...' : 'Submit Report'}
         </button>
-        <button onClick={onClose} className="w-full mt-2 py-2.5 text-xs" style={{ color: '#647068' }}>
+        <button onClick={onClose} className="w-full mt-2 py-2.5 text-xs" style={{ color: 'var(--dm-warm)' }}>
           Cancel
         </button>
       </div>
