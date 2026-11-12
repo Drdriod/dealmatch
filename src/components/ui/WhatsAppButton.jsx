@@ -63,6 +63,8 @@ export default function WhatsAppButton() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen(o => !o)}
+        aria-label={open ? 'Close WhatsApp chat options' : 'Chat with DealMatch on WhatsApp'}
+        aria-expanded={open}
         className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl relative"
         style={{ backgroundColor: '#25D366' }}
       >

@@ -37,7 +37,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/45 mb-5">Explore</h4>
+            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/60 mb-5">Explore</h4>
             <ul className="space-y-3">
               {[
                 { label: 'Places',    to: '/places' },
@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/45 mb-5">Place &amp; People</h4>
+            <h4 className="font-body text-xs font-extrabold tracking-[0.14em] uppercase text-white/60 mb-5">Place &amp; People</h4>
             <ul className="space-y-3">
               {[
                 ...PILLARS.map(p => ({ label: p.name, to: pillarHref(p) })),
@@ -67,7 +67,7 @@ export default function Footer() {
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/50">
           <div>
             <p>© {new Date().getFullYear()} DealMatch Technology Limited. All rights reserved.</p>
-            <p className="mt-1 text-white/40">Every deal starts with a match.</p>
+            <p className="mt-1 text-white/60">Every deal starts with a match.</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
