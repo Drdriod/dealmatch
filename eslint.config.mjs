@@ -21,4 +21,11 @@ export default [
       'react-hooks/exhaustive-deps': 'off',
     },
   },
+  // Server code logs through src/lib/logger.js (one JSON line per event) so Vercel's log search can
+  // filter by field. console.warn and console.error stay allowed for failures.
+  {
+    files: ['api/**/*.js', 'src/lib/**/*.js', 'src/data/**/*.js', 'src/modules/**/*.js'],
+    ignores: ['src/lib/logger.js', '**/*.test.mjs'],
+    rules: { 'no-console': ['error', { allow: ['warn', 'error'] }] },
+  },
 ]
