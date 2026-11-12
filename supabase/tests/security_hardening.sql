@@ -113,6 +113,18 @@ DO $c$ BEGIN
 END $c$;
 RESET ROLE;
 
+
+-- ── 1c. Role lookups must not hand out staff powers to a password-only session (audit F-006)
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000a007","role":"authenticated","aal":"aal1"}', false);
+DO $c$ BEGIN
+  IF public.get_my_role() IN ('admin','superadmin','agent','verifier') OR public.has_mfa_role(ARRAY['admin','superadmin']) THEN
+    RAISE NOTICE 'FAIL: get_my_role / has_mfa_role gave staff power to an aal1 session';
+  ELSE RAISE NOTICE 'PASS: get_my_role and has_mfa_role refuse an aal1 staff session';
+  END IF;
+END $c$;
+RESET ROLE;
+
 -- ── 2. Founder and staff roles still work ─────────────────────────────────
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000a007","role":"authenticated","aal":"aal2"}', false);
