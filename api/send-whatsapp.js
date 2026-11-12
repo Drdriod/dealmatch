@@ -39,7 +39,7 @@ import { redisRateLimit } from '../src/lib/redis.js'
 import { createCloud, verifySignature } from '../src/modules/whatsapp/cloud.js'
 import { createStore } from '../src/modules/whatsapp/store.js'
 import { createEngine } from '../src/modules/whatsapp/engine.js'
-import { findRecipientPhone, logOutboundMessage } from '../src/data/outboundMessageRepository.js'
+import { findRecipientPhone, logOutboundMessage, mayMessage } from '../src/data/outboundMessageRepository.js'
 
 export const config = { api: { bodyParser: false } }
 
@@ -218,6 +218,9 @@ async function handleOutbound(req, res, raw) {
   }
 
   const svc = getServiceClient()
+  if (!(await mayMessage(svc, user.id, userId))) {
+    return res.status(403).json({ error: 'You can only notify people you have a deal with' })
+  }
   const { data: recipient } = await findRecipientPhone(svc, userId)
   if (!recipient?.phone) {
     return res.status(200).json({ sent: false, reason: 'recipient_has_no_phone' })

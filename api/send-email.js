@@ -19,7 +19,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { redisRateLimit } from '../src/lib/redis.js'
-import { findRecipientEmail, logOutboundMessage } from '../src/data/outboundMessageRepository.js'
+import { findRecipientEmail, logOutboundMessage, mayMessage } from '../src/data/outboundMessageRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
 
@@ -77,6 +77,11 @@ export default async function handler(req, res) {
   }
 
   const svc = getServiceClient()
+
+  // Only yourself, staff, or someone you share a real dealing with (see mayMessage).
+  if (!(await mayMessage(svc, user.id, userId))) {
+    return res.status(403).json({ error: 'You can only notify people you have a deal with' })
+  }
 
   // Recipient is always resolved server-side from userId - a client can
   // never direct this endpoint to email an arbitrary raw address. This
