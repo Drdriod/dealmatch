@@ -321,6 +321,11 @@ export default async function handler(req, res) {
     const anonClient = getAnonClient(token)
     const { data: { user }, error: authErr } = await anonClient.auth.getUser()
     if (authErr || !user) return res.status(401).json({ error: 'Invalid session' })
+    // MFA is checked here too, not only in the browser: the token's aal claim says whether the
+    // session passed the second step. (The token was just verified by getUser above.)
+    let aal = ''
+    try { aal = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8')).aal || '' } catch { /* stays '' */ }
+    if (aal !== 'aal2') return res.status(403).json({ error: 'Two-step verification required' })
     const { data: callerProfile } = await findCallerRole(anonClient, user.id)
     const ctx = { user, callerProfile }
 
