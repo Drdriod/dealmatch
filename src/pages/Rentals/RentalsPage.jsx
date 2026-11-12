@@ -372,7 +372,7 @@ export default function RentalsPage() {
             {[['grid','Grid'],['swipe','Swipe']].map(([v,l]) => (
               <button key={v} onClick={() => setViewMode(v)}
                 className="px-3 py-2 text-xs font-semibold transition-all"
-                style={{ backgroundColor: viewMode === v ? '#17211B' : '#FFFFFF', color: viewMode === v ? '#FFFFFF' : '#647068' }}>
+                style={{ backgroundColor: viewMode === v ? '#17211B' : '#FFFFFF', color: viewMode === v ? '#FFFFFF' : '#5C665F' }}>
                 {l}
               </button>
             ))}

@@ -125,7 +125,7 @@ export default function SkillVerificationPage() {
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: '#EEE9DE' }}>
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
         <div>

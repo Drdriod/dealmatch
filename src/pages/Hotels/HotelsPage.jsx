@@ -331,7 +331,7 @@ function HotelCard({ hotel, onBook }) {
           </Link>
           <button onClick={() => onBook(hotel)} disabled={!available}
             className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
-            style={{ backgroundColor: available ? '#B8511E' : 'rgba(23,33,27,0.06)', color: available ? '#FFFFFF' : '#647068' }}>
+            style={{ backgroundColor: available ? '#B8511E' : 'rgba(23,33,27,0.06)', color: available ? '#FFFFFF' : '#5C665F' }}>
             {available ? 'Book Now' : 'Fully Booked'}
           </button>
         </div>

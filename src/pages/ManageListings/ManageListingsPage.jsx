@@ -26,18 +26,18 @@ const PROPERTY_STATUS_META = {
   pending: { label: 'Pending review', color: '#D4A853' },
   pending_review: { label: 'Pending review', color: '#D4A853' },
   under_verification: { label: 'Under verification', color: '#D4A853' },
-  paused:  { label: 'Paused',  color: '#647068' },
-  inactive: { label: 'Paused', color: '#647068' },
+  paused:  { label: 'Paused',  color: '#5C665F' },
+  inactive: { label: 'Paused', color: '#5C665F' },
   rejected: { label: 'Not approved', color: '#C94A3A' },
   rented:  { label: 'Rented', color: '#5B8DEF' },
   sold:    { label: 'Sold', color: '#5B8DEF' },
-  removed: { label: 'Paused',  color: '#647068' },
+  removed: { label: 'Paused',  color: '#5C665F' },
 }
 const LISTING_STATUS_META = {
   ACTIVE:    { label: 'Active',    color: '#7A9E7E' },
   MATCHED:   { label: 'Matched',   color: '#5B8DEF' },
   SUSPENDED: { label: 'Suspended', color: '#C94A3A' },
-  CLOSED:    { label: 'Closed',    color: '#647068' },
+  CLOSED:    { label: 'Closed',    color: '#5C665F' },
 }
 
 export default function ManageListingsPage() {
@@ -67,7 +67,7 @@ export default function ManageListingsPage() {
     const a = properties.map(p => ({
       kind: 'property', id: p.id, title: p.title, price: p.price,
       subtitle: [p.category?.name, [p.city, p.state].filter(Boolean).join(', '), p.listing_type || 'For Sale'].filter(Boolean).join(' · '),
-      status: p.status, meta: PROPERTY_STATUS_META[p.status] || { label: p.status, color: '#647068' },
+      status: p.status, meta: PROPERTY_STATUS_META[p.status] || { label: p.status, color: '#5C665F' },
       views: p.view_count, likes: p.like_count, createdAt: p.created_at,
       isPaused: p.status === 'removed' || p.status === 'paused',
       // Pausing writes 'paused'. 'removed' is what the Remove button writes; rows paused before
@@ -78,7 +78,7 @@ export default function ManageListingsPage() {
     const b = listings.map(l => ({
       kind: 'listing', id: l.id, title: l.title, price: l.price_cents ? l.price_cents / 100 : null,
       subtitle: `${l.categories?.name || 'Offer'} · ${l.type}`,
-      status: l.status, meta: LISTING_STATUS_META[l.status] || { label: l.status, color: '#647068' },
+      status: l.status, meta: LISTING_STATUS_META[l.status] || { label: l.status, color: '#5C665F' },
       views: null, likes: null, createdAt: l.created_at,
       isPaused: l.status === 'SUSPENDED',
       togglePausedTo: l.status === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED',
@@ -126,17 +126,17 @@ export default function ManageListingsPage() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: '#F7F4ED' }}>
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
+          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
             <ArrowLeft size={16} style={{ color: '#17211B' }} />
           </button>
           <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>My Offers</h1>
         </div>
-        <button onClick={() => navigate('/list')} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#B8511E' }}>
+        <button onClick={() => navigate('/list')} aria-label="List a new place" className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#B8511E' }}>
           <Plus size={16} className="text-white" />
         </button>
       </div>
 
-      <p className="px-4 -mt-1 mb-3 text-xs" style={{ color: '#647068' }}>Manage your offers. Track your deals.</p>
+      <p className="px-4 -mt-1 mb-3 text-xs" style={{ color: '#5C665F' }}>Manage your offers. Track your deals.</p>
 
       <div className="px-4 flex gap-2 mb-4">
         {[['all', 'All'], ['active', 'Active'], ['paused', 'Paused']].map(([id, label]) => (
@@ -155,7 +155,7 @@ export default function ManageListingsPage() {
           <div className="text-center py-16">
             <Package size={32} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
             <p className="text-sm font-semibold" style={{ color: '#17211B' }}>You haven't published an offer yet.</p>
-            <p className="text-xs mt-1 mb-4" style={{ color: '#647068' }}>Offer a place or a service and get matched with people looking for it.</p>
+            <p className="text-xs mt-1 mb-4" style={{ color: '#5C665F' }}>Offer a place or a service and get matched with people looking for it.</p>
             <button onClick={() => navigate('/list')} className="btn-primary px-6 py-2.5 text-sm">Create Your First Offer</button>
           </div>
         ) : items.map(item => (
@@ -164,7 +164,7 @@ export default function ManageListingsPage() {
               <button onClick={() => item.link && navigate(item.link)} disabled={!item.link}
                 className="flex-1 min-w-0 text-left disabled:cursor-default">
                 <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>
-                <p className="text-xs mt-0.5" style={{ color: '#647068' }}>{item.subtitle}</p>
+                <p className="text-xs mt-0.5" style={{ color: '#5C665F' }}>{item.subtitle}</p>
               </button>
               <span className="text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0" style={{ backgroundColor: item.meta.color + '22', color: item.meta.color }}>
                 {item.meta.label}
@@ -172,7 +172,7 @@ export default function ManageListingsPage() {
             </div>
 
             <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center gap-3 text-xs" style={{ color: '#647068' }}>
+              <div className="flex items-center gap-3 text-xs" style={{ color: '#5C665F' }}>
                 {item.price != null && <span className="font-bold" style={{ color: '#17211B' }}>₦{Number(item.price).toLocaleString()}</span>}
                 {item.views != null && <span className="flex items-center gap-1"><Eye size={12} /> {item.views}</span>}
                 {item.likes != null && <span className="flex items-center gap-1"><Heart size={12} /> {item.likes}</span>}

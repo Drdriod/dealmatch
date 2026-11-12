@@ -782,6 +782,7 @@ export default function AuthPage() {
                     autoComplete="current-password"
                     style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                   <button type="button" onClick={() => setShowPass(!showPass)}
+                    aria-label={showPass ? 'Hide password' : 'Show password'}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>

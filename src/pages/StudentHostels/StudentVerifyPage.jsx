@@ -241,7 +241,7 @@ export default function StudentVerifyPage() {
                   setForm(f => ({ ...f, institution_id: e.target.value, institution_name: inst?.name || '' }))
                 }}
                   className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none pr-9"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.institution_id ? '#17211B' : '#647068' }}>
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.institution_id ? '#17211B' : '#5C665F' }}>
                   <option value="">Select your institution</option>
                   {institutions.map(i => <option key={i.id} value={i.id}>{i.short_name ? `${i.name} (${i.short_name})` : i.name}</option>)}
                 </select>

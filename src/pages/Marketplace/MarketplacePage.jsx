@@ -229,13 +229,13 @@ function CategoryBrowseView({ categorySlug }) {
           {!category?.source_table && ['SUPPLY', 'DEMAND'].map(t => (
             <button key={t} onClick={() => setType(t)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
+              style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#5C665F' }}>
               {t === 'SUPPLY' ? 'Available now' : 'Looking for'}
             </button>
           ))}
           <button onClick={() => setShowMobileMap(m => !m)}
             className="lg:hidden flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: showMobileMap ? '#B8511E' : '#F7F4ED', color: showMobileMap ? '#fff' : '#647068' }}>
+            style={{ background: showMobileMap ? '#B8511E' : '#F7F4ED', color: showMobileMap ? '#fff' : '#5C665F' }}>
             <MapIcon size={12} /> Map
           </button>
         </div>
@@ -354,7 +354,7 @@ function NewListingView({ categorySlug }) {
         {['SUPPLY', 'DEMAND'].map(t => (
           <button key={t} onClick={() => setType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#647068' }}>
+            style={{ background: type === t ? '#B8511E' : '#F7F4ED', color: type === t ? '#fff' : '#5C665F' }}>
             {t === 'SUPPLY' ? 'I have this to offer' : 'I need this'}
           </button>
         ))}

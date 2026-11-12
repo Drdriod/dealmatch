@@ -157,13 +157,13 @@ export default function NotificationBell() {
             </div>
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-xs" style={{ color: '#647068' }}>No notifications yet</p>
+                <p className="text-xs" style={{ color: '#5C665F' }}>No notifications yet</p>
               </div>
             ) : (
               <div>
                 {notifications.map(n => {
                   const Icon  = ICONS[n.type] || Bell
-                  const color = COLORS[n.type] || '#647068'
+                  const color = COLORS[n.type] || '#5C665F'
                   return (
                     <Link key={n.id} to={n.link || '#'} onClick={() => { markOneRead(n.id); setOpen(false) }}
                       className="flex items-start gap-3 p-4 border-b transition-colors"
@@ -177,7 +177,7 @@ export default function NotificationBell() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{n.title}</p>
-                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#647068' }}>{n.message}</p>
+                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#5C665F' }}>{n.message}</p>
                         <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>{ago(n.created_at)}</p>
                       </div>
                       {!n.read && (
@@ -201,7 +201,7 @@ export default function NotificationBell() {
             className="fixed top-20 right-4 left-4 sm:left-auto sm:w-80 rounded-2xl shadow-2xl z-[60] p-4 flex items-start gap-3"
             style={{ backgroundColor: '#17211B' }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: (COLORS[toast.type] || '#647068') + '20' }}>
+              style={{ backgroundColor: (COLORS[toast.type] || '#5C665F') + '20' }}>
               {React.createElement(ICONS[toast.type] || Bell, { size: 16, style: { color: COLORS[toast.type] || '#fff' } })}
             </div>
             <div className="flex-1 min-w-0">

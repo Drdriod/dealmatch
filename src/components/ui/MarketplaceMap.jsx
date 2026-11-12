@@ -8,7 +8,7 @@ const MAP_STYLES = [
   { elementType: 'geometry', stylers: [{ color: '#F7F4ED' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F4ED' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#647068' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C5D8E8' }] },
 ]

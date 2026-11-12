@@ -271,7 +271,7 @@ export default function VerifyIdentityPage() {
             <Shield size={36} style={{ color:'#7A9E7E' }} />
           </div>
           <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>You're Verified</h1>
-          <p className="text-sm mb-8" style={{ color:'#647068' }}>
+          <p className="text-sm mb-8" style={{ color:'#5C665F' }}>
             Your identity has been verified. You have full access to all DealMatch features.
           </p>
           <button onClick={handleDone}
@@ -294,13 +294,13 @@ export default function VerifyIdentityPage() {
             <Shield size={36} style={{ color:'#D4A853' }} />
           </div>
           <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Under Review</h1>
-          <p className="text-sm mb-4" style={{ color:'#647068' }}>
+          <p className="text-sm mb-4" style={{ color:'#5C665F' }}>
             Your identity documents were submitted and are being reviewed. This usually takes under 24 hours.
           </p>
           <div className="rounded-2xl p-4 mb-8 text-left"
             style={{ backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)' }}>
             <p className="text-xs font-semibold" style={{ color:'#D4A853' }}>What you can do while waiting:</p>
-            <ul className="text-xs mt-2 space-y-1" style={{ color:'#647068' }}>
+            <ul className="text-xs mt-2 space-y-1" style={{ color:'#5C665F' }}>
               <li>• Browse and swipe properties</li>
               <li>• Book hotels and short-lets</li>
               <li>• Message matched contacts</li>
@@ -326,10 +326,10 @@ export default function VerifyIdentityPage() {
             <Check size={36} style={{ color:'#7A9E7E' }} />
           </div>
           <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Submitted!</h1>
-          <p className="text-sm mb-4" style={{ color:'#647068' }}>
+          <p className="text-sm mb-4" style={{ color:'#5C665F' }}>
             Your ID and selfie have been uploaded. Our team will verify you within 24 hours.
           </p>
-          <p className="text-xs mb-8 p-3 rounded-xl" style={{ color:'#647068', backgroundColor:'rgba(23,33,27,0.04)' }}>
+          <p className="text-xs mb-8 p-3 rounded-xl" style={{ color:'#5C665F', backgroundColor:'rgba(23,33,27,0.04)' }}>
             You'll be able to {roleLabel} as soon as your verification is approved.
           </p>
           <button onClick={handleDone}
@@ -361,7 +361,7 @@ export default function VerifyIdentityPage() {
               <Shield size={36} style={{ color:'#B8511E' }} />
             </div>
             <h1 className="font-display font-black text-3xl mb-2" style={{ color:'#17211B' }}>Verify Your Identity</h1>
-            <p className="text-sm" style={{ color:'#647068' }}>
+            <p className="text-sm" style={{ color:'#5C665F' }}>
               Required to {roleLabel}. Takes about 2 minutes.
             </p>
           </div>
@@ -378,7 +378,7 @@ export default function VerifyIdentityPage() {
                 <span className="flex-shrink-0">{item.icon}</span>
                 <div>
                   <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{item.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{item.desc}</p>
+                  <p className="text-xs mt-0.5" style={{ color:'#5C665F' }}>{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -388,7 +388,7 @@ export default function VerifyIdentityPage() {
           <div className="flex items-start gap-2 p-3 rounded-xl mb-6"
             style={{ backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)' }}>
             <Lock size={13} style={{ color:'#7A9E7E', flexShrink:0, marginTop:2 }} />
-            <p className="text-xs" style={{ color:'#647068' }}>
+            <p className="text-xs" style={{ color:'#5C665F' }}>
               Your ID is stored encrypted and never shared publicly. Only used to confirm you are a real person.
             </p>
           </div>
@@ -399,7 +399,7 @@ export default function VerifyIdentityPage() {
             <p className="text-xs font-bold mb-2" style={{ color:'#B8511E' }}>
               <Lock size={11} className="inline mr-1" />Requires verification
             </p>
-            <ul className="text-xs space-y-1" style={{ color:'#647068' }}>
+            <ul className="text-xs space-y-1" style={{ color:'#5C665F' }}>
               <li>• Expressing interest in buying a property</li>
               <li>• Listing a property for sale or rent</li>
               <li>• Signing tenancy agreements</li>
@@ -408,7 +408,7 @@ export default function VerifyIdentityPage() {
             <p className="text-xs font-bold mt-3 mb-1" style={{ color:'#7A9E7E' }}>
               <Eye size={11} className="inline mr-1" />Free without verification
             </p>
-            <ul className="text-xs space-y-1" style={{ color:'#647068' }}>
+            <ul className="text-xs space-y-1" style={{ color:'#5C665F' }}>
               <li>• Browse and swipe all listings</li>
               <li>• Book hotels and short-lets</li>
               <li>• View professionals directory</li>
@@ -471,7 +471,7 @@ export default function VerifyIdentityPage() {
           </div>
 
           <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Upload your ID</h2>
-          <p className="text-sm mb-6" style={{ color:'#647068' }}>Choose the type and upload a clear photo.</p>
+          <p className="text-sm mb-6" style={{ color:'#5C665F' }}>Choose the type and upload a clear photo.</p>
 
           {/* ID type selection - a single-select list rather than a grid of
               tiles: one clean container, hairline dividers between rows, a
@@ -521,21 +521,21 @@ export default function VerifyIdentityPage() {
                   <Upload size={20} style={{ color:'#B8511E' }} />
                 </div>
                 <p className="font-semibold text-sm" style={{ color:'#17211B' }}>Upload ID Photo</p>
-                <p className="text-xs mt-1" style={{ color:'#647068' }}>JPG, PNG or WEBP - max 5MB</p>
+                <p className="text-xs mt-1" style={{ color:'#5C665F' }}>JPG, PNG or WEBP - max 5MB</p>
               </div>
             )}
             <input ref={idFileRef} type="file" accept="image/*" className="hidden" onChange={handleIdUpload} />
           </label>
 
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color:'#647068' }} htmlFor="nin-input">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color:'#5C665F' }} htmlFor="nin-input">
               Your NIN or BVN (11 digits)
             </label>
             <input id="nin-input" inputMode="numeric" autoComplete="off" maxLength={11}
               value={nin}
               onChange={e => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
               placeholder="e.g. 12345678901" className="input" />
-            <p className="text-[11px] mt-1.5" style={{ color:'#647068' }}>
+            <p className="text-[11px] mt-1.5" style={{ color:'#5C665F' }}>
               Used only to stop duplicate accounts. Stored as a secure hash, never in plain text.
             </p>
           </div>
@@ -586,7 +586,7 @@ export default function VerifyIdentityPage() {
         </div>
 
         <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Take a selfie</h2>
-        <p className="text-sm mb-6" style={{ color:'#647068' }}>
+        <p className="text-sm mb-6" style={{ color:'#5C665F' }}>
           Look straight at the camera. Good lighting helps.
         </p>
 

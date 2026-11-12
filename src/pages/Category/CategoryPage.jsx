@@ -152,7 +152,7 @@ export default function CategoryPage() {
   return (
     <Page>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease }}>
-        <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-xs font-semibold text-[#647068]">
+        <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-xs font-semibold text-[#5C665F]">
           {pillar && (
             <>
               <Link to={pillar.route} className="hover:text-[#B8511E]">{pillar.name}</Link>
