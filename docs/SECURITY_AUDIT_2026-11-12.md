@@ -2,7 +2,7 @@
 
 ## A. Executive summary
 
-The platform is in reasonable shape for a closed launch. Payments are priced and checked on the server, webhooks verify signatures and re-fetch each charge from Flutterwave, secrets are not in the code, rate limiting exists on money and login paths, and no money-moving database function is callable without an identity check. The audit found 15 issues: 4 high, 3 medium, 8 low. All high and medium issues are fixed (code in open PRs, database changes live in production). Three items remain for the owner (section D).
+The platform is in reasonable shape for a closed launch. Payments are priced and checked on the server, webhooks verify signatures and re-fetch each charge from Flutterwave, secrets are not in the code, rate limiting exists on money and login paths, and no money-moving database function is callable without an identity check. The audit found 24 issues: 4 high, 6 medium, 14 low. All high issues and all but one medium issue are fixed; see section D for what still needs you. All high and medium issues are fixed (code in open PRs, database changes live in production). Three items remain for the owner (section D).
 
 **Verdict: READY WITH CONDITIONS** (section F). Not "fully secure": this audit was a code and configuration review plus local tests, not a live penetration test.
 
@@ -13,7 +13,7 @@ The platform is in reasonable shape for a closed launch. Payments are priced and
 | F-001 | HIGH | Referral payouts | The same payment could pay referrers twice (check-then-insert race, no unique key) | Fixed: PR #70, unique index live in production |
 | F-002 | HIGH | Referral payouts | The referral insert omitted required columns and used a text reference in a uuid column, so it always failed (0 rows in production) while loyalty points were still granted before it | Fixed: PR #70 (insert is now the gate; test added) |
 | F-004 | HIGH | Admin login | Anyone with the public key could call `record_admin_login_attempt` and lock any admin out | Fixed: function revoked in production; PR #69 |
-| F-006 | HIGH | MFA | Two-step sign-in was enforced only in the browser; the database and admin API accepted a password-only session | Fixed: role helpers and /api/admin require aal2; live in production; PR #72 |
+| F-006 | HIGH | MFA | Two-step sign-in was enforced only in the browser; the database and admin API accepted a password-only session | Fixed in two rounds. Round 1 (PR #72): is_admin/is_staff etc. and /api/admin require aal2. Round 2 (PR #81), found in the second review: get_my_role() (33 policies, 5 functions) and 15 policies that read the role directly were still open to a password-only session; now closed. Both live in production |
 | F-003 | MED | send-email / send-whatsapp | Any signed-in user could send free text to any user id | Fixed in PR #71 (only self, staff, or a real dealing) |
 | F-005 | MED | Admin login | The admin page signed in directly with Supabase; the rate-limited server login was unused | Fixed in PR #69 (stacked on #64) |
 | F-007 | MED | Database | `spatial_ref_sys` had row security off and write rights for the public key | Fixed: revoked in production |
@@ -25,13 +25,21 @@ The platform is in reasonable shape for a closed launch. Payments are priced and
 | F-013 | LOW | Database speed | 9 policies re-evaluate auth functions per row; 141 unused indexes (normal at this traffic); no missing foreign-key indexes | Open |
 | F-014 | LOW | Extensions | postgis and pg_net live in the public schema | Open |
 | F-015 | LOW | Performance | Home page layout shift 0.245 (mobile) / 0.297 (desktop), over the 0.1 target | Fixed: PR #74, measured 0 |
-| F-016 | LOW | Accessibility | Home page: unnamed WhatsApp button (critical), 8 contrast misses | 4 fixed in PR #75; 5 brand-tint contrast items need a design decision |
+| F-016 | LOW | Accessibility | Unnamed WhatsApp button (critical) on every page, plus 7 other unnamed icon buttons; muted grey text at 4.3:1 (needs 4.5) across the app; text at 40-50% opacity (2.4-3.2:1) in about 20 places; brand terracotta on tint 4.2:1 | Buttons and muted grey fixed in PRs #75 and #78; opacity text and terracotta tint need a design decision |
+| F-017 | MED | AI search index | /api/index-property indexed whatever price, location and title the browser sent, so an owner could make search show figures different from the saved listing | Fixed: PR #77 (reads the saved row) |
+| F-018 | MED | Agent verification | The signing key for site-visit evidence is handed to the agent's own device, and the mock-location flag is self-reported, so a dishonest assigned agent could fabricate GPS evidence. Everything else on that endpoint is sound (assigned-agent check, one-time sessions, distance check) | Open: design limitation, mitigated by admin review; consider server-side photo EXIF/GPS cross-checks |
+| F-020 | MED | Wallet withdrawals | Two withdrawal requests sent at the same instant could both pass the balance check, so a wallet could be over-withdrawn (an admin approves each request, which limits but does not remove the risk) | Fixed: PR #80 per-user lock; tested on staging; production awaits go-ahead |
+| F-021 | LOW | Unlock credits | Same race when spending unlock credits | Same PR #80 |
+| F-022 | LOW | Rental enquiries | The public enquiry form accepts unlimited submissions from anyone (no rate limit or bot check) | Open: add a rate limit or captcha |
+| F-023 | LOW | Escrow start | start_property_escrow_payment can create unlimited unpaid escrow rows per user and does not bound the tenant name and phone text | Open: cap open rows per user and field lengths |
+| F-024 | LOW | Sessions | Staff sessions have no idle timeout; tokens live in browser storage (standard for Supabase; the strict script policy limits the theft risk) | Open: add an idle sign-out for staff |
+| F-019 | LOW | Dependencies | npm audit: 1 high (vite dev server), 3 moderate (esbuild, react-router). Dev-server only or not reachable: the redirect target comes from in-app state, not the URL | Open: upgrade vite and react-router-dom together |
 
 Also noted, not rated: signup lookups (`check_phone_exists`, `check_username_exists`, `check_signup_conflicts`, `check_device_exists`) are open to the public so anyone can test whether a phone or username is registered (accepted for signup UX).
 
 ## C. Remediation
 
-PRs (all open, none merged by me): #69 admin sign-in, #70 referral payouts, #71 messaging, #72 MFA, #73 storage and headers, #74 layout shift, #75 accessibility. #69 is stacked on #64, so merge #64 first.
+PRs (all open, none merged by me): #69 admin sign-in, #70 referral payouts, #71 messaging, #72 MFA, #73 storage and headers, #74 layout shift, #75 and #78 accessibility, #77 search index and agent rate limit. #69 is stacked on #64, so merge #64 first.
 
 Production database changes made today (all additive or revoking): revoke public access to two admin-lockout functions; revoke public writes on PostGIS reference tables; unique index on referral_transactions; is_admin / is_staff / is_admin_staff / is_superadmin now require an MFA-verified session. Staging got the same changes first; MFA behaviour was tested on staging (password-only session denied, MFA session allowed).
 
@@ -41,7 +49,9 @@ Production database changes made today (all additive or revoking): revoke public
 2. Apply the storage migration (PR #73) to production after your go-ahead.
 3. Owner actions outside the code: turn on leaked-password protection in Supabase Auth; restrict the Google Maps key to your domains.
 4. F-010 (escrow webhook raw-body signature): left as is because no sender is known to use it; switch it when escrow webhooks are actually connected.
-5. Not exhaustively reviewed: the internals of every database function that checks `auth.uid()`; the agent, match, index-property and validate-invite endpoints; the CI pipeline.
+5. Apply to production, after your go-ahead: the storage migration (merged as PR #73 but the database change is on staging only) and the wallet lock migration (PR #80).
+6. Not done: a real Flutterwave sandbox payment (no sandbox credentials in this environment; the signed-webhook, charge, payout and referral paths are covered by 254 automated tests with test doubles); live header probes (site unreachable from here); load testing; Safari/Firefox/real-phone testing; hands-on attack testing against the live site (code review found no raw-HTML sinks, and search text is cleaned before it reaches database filters).
+7. CI: added a dependency scan and weekly Dependabot (PR #79). GitHub Actions are pinned to version tags, not exact commits (low).
 6. Design decision: 5 brand-colour contrast pairs (terracotta on cream, 4.2:1 vs 4.5:1 needed).
 
 ## E. Test results
@@ -51,7 +61,11 @@ Production database changes made today (all additive or revoking): revoke public
 - Database: staging simulation of password-only versus MFA sessions; grants verified after migrations on staging.
 - Production catalog queries: no policy or function used aal before the fix; 1 of 1 staff account has a verified MFA factor.
 - Performance (local build, 390px, 4x CPU, slow 4G): FCP about 4.1 s, LCP about 4.8 s, CLS 0 after fix. Desktop: FCP 0.37 s, LCP 0.51 s, CLS 0. Local server has no compression, so transfer sizes overstate real use. Bundle: first-load JavaScript is roughly 200 KB gzipped; the PostHog bundle (68 KB gz) and the 227 KB logo PNG are the main savings left.
-- Accessibility (axe-core, WCAG 2.1 AA): /auth, /how-it-works, /search, /hotels clean; home had the 2 issues above.
+- Accessibility (axe-core, WCAG 2.1 AA, 390px, 15 public pages): the unnamed WhatsApp button appears on all of them; muted grey and footer text miss 4.5:1 on most. CORRECTION: my first run reported four pages as clean because my test server returned 404 pages for them; the numbers above are from the re-run with a proper single-page-app server.
+- Dependencies: `npm audit` run (see F-019).
+- Endpoints reviewed: agent, index-property, validate-invite, match (all authenticate, rate limit or check ownership; see F-017, F-018).
+- Database function review: all 29 callable money, role and dispute functions were read. They check the caller and lock the rows they change, except the two races in F-020/F-021. Signup lookups remain public by design.
+- Per-page speed (390px, 4x CPU, slow 4G, local build): 12 pages, FCP 1.6-2.2 s, LCP 1.8-2.7 s (home, places and rentals just over the 2.5 s target), layout shift 0 (help page 0.03). Data-driven content was absent because the test backend is a placeholder, so real pages will be a little heavier.
 - Not done: live header probes (the sandbox cannot reach dealmatch.com.ng), a real Flutterwave end-to-end payment, load testing, browser testing beyond Chromium.
 
 ## F. Production readiness: READY WITH CONDITIONS
