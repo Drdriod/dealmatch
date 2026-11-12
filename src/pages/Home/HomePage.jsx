@@ -130,6 +130,8 @@ export default function HomePage() {
               <div className="relative rounded-[28px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3' }}>
                 {HERO_SLIDES.map((slide, i) => (
                   <img key={slide.src} src={slide.src} alt={i === heroIdx ? slide.alt : ''} aria-hidden={i !== heroIdx}
+                    width="800" height="280" decoding="async"
+                    loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'auto'}
                     className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
                     style={{ opacity: i === heroIdx ? 1 : 0 }} />
                 ))}

@@ -17,7 +17,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 font-display text-3xl font-black mb-4">
-              <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-9 w-auto" />
+              <img src="/brand/dealmatch-icon-transparent.png" width="440" height="440" alt="" className="h-9 w-auto" />
               Deal<span className="text-terracotta">Match</span>
             </div>
             <p className="text-white/55 text-sm leading-relaxed max-w-xs">

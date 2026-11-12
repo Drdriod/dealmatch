@@ -111,7 +111,8 @@ export const LoadingScreen = () => (
 // ─── Lightweight page skeleton (shown during route transitions) ────────────────
 export const PageSkeleton = () => (
   <div style={{
-    minHeight:'60vh', display:'flex', alignItems:'center',
+    minHeight:'100vh', display:'flex', alignItems:'center', // full height: the footer stays below the fold until the page arrives, so it cannot jump (layout shift)
+   
     justifyContent:'center', background:'#FFFAF5',
   }}>
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>

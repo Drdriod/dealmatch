@@ -56,7 +56,7 @@ export default function Navbar() {
     <header className="w-full bg-[#F7F4ED]/95 backdrop-blur-md border-b border-deep/10 sticky top-0 z-50">
       <div className="max-w-[1240px] mx-auto px-5 md:px-7 h-[68px] md:h-[78px] flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-xl font-bold text-[#1A1210]">
-          <img src="/brand/dealmatch-icon-transparent.png" alt="DealMatch" className="h-7 w-auto" />
+          <img src="/brand/dealmatch-icon-transparent.png" width="440" height="440" alt="DealMatch" className="h-7 w-auto" />
           Deal<span className="text-[#C96A3A]">Match</span>
         </Link>
 
