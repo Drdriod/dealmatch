@@ -66,7 +66,7 @@ export default function ListRentalPage() {
                 {[['hotel','Hotel'],['shortlet','Short-let']].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setForm(f => ({ ...f, category:v, category_id:null }))}
                     className="py-3 rounded-xl text-sm font-semibold border-2 transition-all"
-                    style={{ borderColor: form.category === v ? '#B8511E' : '#DEDDD6', color: form.category === v ? '#B8511E' : '#647068', backgroundColor: form.category === v ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
+                    style={{ borderColor: form.category === v ? '#B8511E' : '#DEDDD6', color: form.category === v ? '#B8511E' : '#5C665F', backgroundColor: form.category === v ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     {l}
                   </button>
                 ))}

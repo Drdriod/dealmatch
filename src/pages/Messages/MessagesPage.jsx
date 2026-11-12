@@ -245,7 +245,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
                 }}>
                 {!isMe && <p className="text-[10px] font-semibold mb-0.5" style={{ color:'var(--dm-terracotta)' }}>{msg.sender_name}</p>}
                 <p className="leading-relaxed">{msg.content}</p>
-                <p className="text-[10px] mt-1 text-right" style={{ color: isMe ? 'rgba(255,255,255,0.6)' : '#647068' }}>
+                <p className="text-[10px] mt-1 text-right" style={{ color: isMe ? 'rgba(255,255,255,0.6)' : '#5C665F' }}>
                   {new Date(msg.created_at).toLocaleTimeString('en-NG',{ hour:'2-digit', minute:'2-digit' })}
                 </p>
               </div>
@@ -264,7 +264,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
           style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)', borderColor:'var(--dm-line)' }} />
         <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
           className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all"
-          style={{ backgroundColor: newMsg.trim() ? '#B8511E' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? '#FFFFFF' : '#647068' }}>
+          style={{ backgroundColor: newMsg.trim() ? '#B8511E' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? '#FFFFFF' : '#5C665F' }}>
           <Send size={16} />
         </button>
       </div>
@@ -403,7 +403,7 @@ export default function MessagesPage() {
                     </p>
                   </div>
                   <p className="text-xs truncate" style={{ color:'var(--dm-warm)' }}>{t.property_title}</p>
-                  <p className="text-xs truncate mt-0.5" style={{ color: t.unread ? '#17211B' : '#647068', fontWeight: t.unread ? 600 : 400 }}>
+                  <p className="text-xs truncate mt-0.5" style={{ color: t.unread ? '#17211B' : '#5C665F', fontWeight: t.unread ? 600 : 400 }}>
                     {t.last_message}
                   </p>
                 </div>

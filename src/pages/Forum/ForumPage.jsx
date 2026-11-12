@@ -72,7 +72,7 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{
               background: threadType === t ? '#B8511E' : '#F7F4ED',
-              color: threadType === t ? '#fff' : '#647068',
+              color: threadType === t ? '#fff' : '#5C665F',
             }}>
             {t === 'QUESTION' ? 'Ask a question' : 'Start a discussion'}
           </button>

@@ -11,7 +11,7 @@ import toast from 'react-hot-toast'
 const STATUS_STYLES = {
   active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
   pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20',  label: 'Under Review' },
-  paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#647068',  label: 'Paused' },
+  paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F',  label: 'Paused' },
   rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#B8511E',  label: 'Rejected' },
   sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
 }
@@ -21,7 +21,7 @@ const TONES = {
   good:  { bg: 'rgba(122,158,126,0.12)', color: '#5C8060' },
   warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20' },
   bad:   { bg: 'rgba(200,95,45,0.12)',   color: '#B8511E' },
-  muted: { bg: 'rgba(23,33,27,0.08)',    color: '#647068' },
+  muted: { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F' },
 }
 
 const RENT_MONTHS = 6

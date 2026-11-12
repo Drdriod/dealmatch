@@ -157,7 +157,7 @@ export default function ResetPasswordPage() {
   const bgColor = isAdmin ? '#17211B' : '#FFFAF5'
   const accent  = isAdmin ? '#D4A853' : '#B8511E'
   const textPri = isAdmin ? '#FFFFFF' : '#17211B'
-  const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#647068'
+  const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#5C665F'
   const inputBg = isAdmin ? 'rgba(255,255,255,0.07)' : '#FFFFFF'
   const inputBd = isAdmin ? 'rgba(255,255,255,0.12)' : '#DEDDD6'
 

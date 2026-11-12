@@ -62,7 +62,7 @@ export default function MobileTabBar() {
           const Icon = pillar.slug === 'place' ? Building2 : User
           return (
             <Link key={pillar.slug} to={pillar.route} className={linkClass}
-              style={{ color: active ? '#B8511E' : '#647068' }}>
+              style={{ color: active ? '#B8511E' : '#5C665F' }}>
               {active && <TabPill />}
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">{pillar.name}</span>
@@ -89,13 +89,13 @@ export default function MobileTabBar() {
         {isAuthenticated ? (
           <>
             <Link to="/messages" className={linkClass}
-              style={{ color: isActivePath('/messages') ? '#B8511E' : '#647068' }}>
+              style={{ color: isActivePath('/messages') ? '#B8511E' : '#5C665F' }}>
               {isActivePath('/messages') && <TabPill />}
               <Inbox size={20} strokeWidth={isActivePath('/messages') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Inbox</span>
             </Link>
             <Link to="/profile" className={linkClass}
-              style={{ color: isActivePath('/profile') ? '#B8511E' : '#647068' }}>
+              style={{ color: isActivePath('/profile') ? '#B8511E' : '#5C665F' }}>
               {isActivePath('/profile') && <TabPill />}
               <User size={20} strokeWidth={isActivePath('/profile') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Profile</span>
@@ -103,7 +103,7 @@ export default function MobileTabBar() {
           </>
         ) : (
           <Link to="/auth" className={linkClass}
-            style={{ color: isActivePath('/auth') ? '#B8511E' : '#647068' }}>
+            style={{ color: isActivePath('/auth') ? '#B8511E' : '#5C665F' }}>
             {isActivePath('/auth') && <TabPill />}
             <User size={20} strokeWidth={isActivePath('/auth') ? 2.5 : 2} />
             <span className="text-[10px] font-semibold">Sign In</span>

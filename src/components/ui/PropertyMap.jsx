@@ -17,7 +17,7 @@ const MAP_STYLES = [
   { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F4ED' }] },
   { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#B8511E' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#647068' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
   { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#E8F0E9' }] },
   { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7A9E7E' }] },
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
@@ -26,7 +26,7 @@ const MAP_STYLES = [
   { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#E8C4A0' }] },
   { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#F5EFE8' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C5D8E8' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#647068' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
 ]
 
 const AMENITY_TYPES = [

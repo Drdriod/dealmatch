@@ -16,7 +16,7 @@ const STATUS_CONFIG = {
   approved:   { label: 'Approved',    color: '#7A9E7E', bg: 'rgba(122,158,126,0.1)' },
   declined:   { label: 'Declined',    color: '#E31E25', bg: 'rgba(227,30,37,0.1)' },
   finished:   { label: 'Finished',    color: '#17211B', bg: 'rgba(23,33,27,0.1)' },
-  on_hold:    { label: 'On Hold',     color: '#647068', bg: 'rgba(138,126,120,0.1)' },
+  on_hold:    { label: 'On Hold',     color: '#5C665F', bg: 'rgba(138,126,120,0.1)' },
 }
 
 // Pipeline order for the funnel and the board

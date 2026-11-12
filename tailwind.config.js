@@ -13,7 +13,7 @@ export default {
         sage:       '#7A9E7E',
         gold:       '#D4A853',
         charcoal:   '#1F2B24',
-        warm:       '#647068',
+        warm:       '#5C665F',
         forest:     '#234C3A',
         'forest-dark': '#173428',
         'forest-pale': '#E6EEE9',

@@ -126,7 +126,7 @@ export default function ListPropertyPage() {
                   className="py-3 rounded-xl border-2 text-sm font-semibold transition-all"
                   style={{
                     borderColor: form.listing_type === lt ? '#B8511E' : '#DEDDD6',
-                    color: form.listing_type === lt ? '#B8511E' : '#647068',
+                    color: form.listing_type === lt ? '#B8511E' : '#5C665F',
                     backgroundColor: form.listing_type === lt ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
                   }}>
                   {lt}
@@ -329,7 +329,7 @@ export default function ListPropertyPage() {
               <p className="font-semibold text-sm mb-1" style={{color:'var(--dm-deep)'}}>
                 {form.images.length > 0 ? `${form.images.length} photo${form.images.length > 1 ? 's' : ''} added: tap to add more` : 'Tap to add photos'}
               </p>
-              <p className="text-xs" style={{color: form.images.length === 0 ? '#B8511E' : '#647068'}}>
+              <p className="text-xs" style={{color: form.images.length === 0 ? '#B8511E' : '#5C665F'}}>
                 {form.images.length === 0
                   ? 'Add at least 1 photo to continue'
                   : 'JPG or PNG, up to 10MB each. Show the front, the rooms, the compound and the surroundings.'}
@@ -468,7 +468,7 @@ export default function ListPropertyPage() {
               placeholder="Describe the property: where it is, its features, access roads, nearby landmarks and the title status. Write at least 50 characters."
               value={form.description} onChange={setE('description')}
               style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
-            <p className="text-xs mt-1.5" style={{color: form.description.length >= 50 ? '#7A9E7E' : '#647068'}}>
+            <p className="text-xs mt-1.5" style={{color: form.description.length >= 50 ? '#7A9E7E' : '#5C665F'}}>
               {form.description.length} of 50 characters minimum
             </p>
           </div>
@@ -661,7 +661,7 @@ export default function ListPropertyPage() {
                   {i < step ? '✓' : i + 1}
                 </div>
                 <span className="text-sm" style={{
-                  color: i === step ? '#17211B' : i < step ? '#647068' : '#B5A99C',
+                  color: i === step ? '#17211B' : i < step ? '#5C665F' : '#B5A99C',
                   fontWeight: i === step ? 700 : 500,
                 }}>
                   {s.title}

@@ -249,11 +249,11 @@ export default function ApplyProfessionalPage() {
                   style={{
                     borderColor: form.profession_id ? '#B8511E' : '#DEDDD6',
                     backgroundColor: '#FFFAF5',
-                    color: form.profession_id ? '#17211B' : '#647068',
+                    color: form.profession_id ? '#17211B' : '#5C665F',
                   }}>
                   <span>{form.profession_id ? selectedLabel : 'Select your profession'}</span>
                   <ChevronDown size={16} style={{
-                    color: '#647068',
+                    color: '#5C665F',
                     transform: showDropdown ? 'rotate(180deg)' : 'none',
                     transition: 'transform 0.2s',
                   }} />

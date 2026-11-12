@@ -35,7 +35,7 @@ function groupsFor(pillarSlug, tree) {
 function MenuStatus({ tree, error, groups, retry }) {
   if (error) {
     return (
-      <p role="status" className="text-sm text-[#647068]">
+      <p role="status" className="text-sm text-[#5C665F]">
         We couldn't load the categories. Check your connection and{' '}
         <button type="button" onClick={retry} className="font-semibold text-[#B8511E] underline">try again</button>.
       </p>
@@ -54,7 +54,7 @@ function MenuStatus({ tree, error, groups, retry }) {
     )
   }
   if (groups.length === 0) {
-    return <p role="status" className="text-sm text-[#647068]">Groups for this section are being set up. Check back soon.</p>
+    return <p role="status" className="text-sm text-[#5C665F]">Groups for this section are being set up. Check back soon.</p>
   }
   return null
 }
@@ -177,7 +177,7 @@ function DesktopPillar({ pillar, active }) {
               className="w-[min(1240px,96vw)] max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
             >
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#647068]">{pillar.name}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#5C665F]">{pillar.name}</p>
                 <Link to={pillar.route} onClick={hideNow}
                   className="text-xs font-semibold text-[#B8511E] hover:text-[#A8441D]">
                   {VIEW_ALL[pillar.slug]} →
