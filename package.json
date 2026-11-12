@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "check:fitness": "node scripts/check-architecture-fitness.mjs",
     "test": "node --experimental-test-module-mocks --test src/lib/*.test.mjs",
+    "docs:states": "node scripts/generate-state-docs.mjs",
     "check": "npm run lint && npm run check:fitness && npm test",
     "lint": "eslint src api scripts",
     "test:e2e": "node --test e2e/*.test.mjs"
