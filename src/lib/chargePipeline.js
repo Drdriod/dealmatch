@@ -71,7 +71,7 @@ const TYPE_MAP = {
  * Walk the referral chain for a user and pay out cash + points
  * automatically, creating a notification for every earner along the way.
  */
-async function processReferralChain(supabase, buyerUserId, dmCommission, transactionId, txnType) {
+export async function processReferralChain(supabase, buyerUserId, dmCommission, paymentRef, txnType, dealAmount) {
   if (!buyerUserId || !dmCommission || dmCommission <= 0) return
 
   const chain = []
@@ -94,46 +94,57 @@ async function processReferralChain(supabase, buyerUserId, dmCommission, transac
 
   const tier = getReferralTier(dmCommission)
 
+  // The row we insert is the gate. referral_transactions has a unique index on
+  // (payment_id, referrer_id, referral_level), so a repeated or racing run for the same payment
+  // gets error 23505 on its insert and stops there: points and notifications go out only for the
+  // run whose insert succeeded, never twice.
+  const base = {
+    buyer_id:         buyerUserId,
+    referee_id:       buyerUserId,
+    payment_id:       String(paymentRef),
+    transaction_type: txnType,
+    deal_amount:      Number(dealAmount) || dmCommission,
+    platform_fee:     dmCommission,
+    dm_commission:    dmCommission,
+  }
+
   for (const { userId, level: lvl } of chain) {
     if (lvl <= 3 && tier !== 'points_only') {
       const amount = calcCashReferral(dmCommission, lvl)
       if (amount <= 0) continue
 
       const { error } = await insertReferralTransaction(supabase, {
+        ...base,
         referrer_id:      userId,
-        buyer_id:         buyerUserId,
-        transaction_id:   transactionId,
-        transaction_type: txnType,
-        dm_commission:    dmCommission,
         referral_level:   lvl,
+        referral_rate:    amount / dmCommission,
         payout_type:      'cash',
         referral_earning: amount,
         status:           'pending',
-        created_at:       new Date().toISOString(),
       })
-
-      if (!error) {
-        await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
+      if (error) {
+        if (error.code !== '23505') console.error('Referral cash insert failed:', error.message)
+        continue
       }
+      await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
     } else {
       const points = calcPoints(lvl)
 
-      await addLoyaltyPoints(supabase, userId, points)
-
-      await insertReferralTransaction(supabase, {
+      const { error } = await insertReferralTransaction(supabase, {
+        ...base,
         referrer_id:      userId,
-        buyer_id:         buyerUserId,
-        transaction_id:   transactionId,
-        transaction_type: txnType,
-        dm_commission:    dmCommission,
         referral_level:   lvl,
+        referral_rate:    0,
         payout_type:      'points',
         points_awarded:   points,
         referral_earning: 0,
         status:           'confirmed',
-        created_at:       new Date().toISOString(),
       })
-
+      if (error) {
+        if (error.code !== '23505') console.error('Referral points insert failed:', error.message)
+        continue
+      }
+      await addLoyaltyPoints(supabase, userId, points)
       await insertNotification(supabase, 'referral_points', userId, { points, level: lvl })
     }
   }
@@ -276,7 +287,7 @@ export async function applyChargeSuccess(supabase, { reference, amount, customer
           : amountNgn * mapping.feeRate      // percentage products: commission is a cut of the deal
 
       if (dmCommission > 0) {
-        await processReferralChain(supabase, referralUserId, dmCommission, reference, mapping.txnType)
+        await processReferralChain(supabase, referralUserId, dmCommission, reference, mapping.txnType, amountNgn)
       }
     }
     // transaction_escrow is intentionally absent from TYPE_MAP (see the comment above it).
