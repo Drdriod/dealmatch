@@ -35,6 +35,11 @@ jobs:
       - name: Fitness checks and tests
         run: npm run check
 
+      # Known vulnerabilities in the packages that ship to users. Fails on high or critical only;
+      # build tools (dev dependencies) are not checked here because they never reach the live site.
+      - name: Dependency vulnerability scan
+        run: npm audit --omit=dev --audit-level=high
+
       # The app must still build. The values are placeholders: the build only needs
       # them to exist, and nothing here talks to a real project.
       - name: Build
