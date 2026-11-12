@@ -129,6 +129,15 @@ export default function AdminLoginPage() {
   const [showPass,    setShowPass]    = useState(false)
   const [loading,     setLoading]     = useState(false)
   const [attempts,    setAttempts]    = useState(0)
+  // Shown once after the idle sign-out (src/components/Admin/IdleSignOut.jsx) sent staff here.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('dm-idle-signout')) {
+        sessionStorage.removeItem('dm-idle-signout')
+        toast('You were signed out after 20 minutes of inactivity.', { icon: '🔒' })
+      }
+    } catch { /* storage unavailable */ }
+  }, [])
   const [lockedMsg,   setLockedMsg]   = useState(null)
   const [showForgot,  setShowForgot]  = useState(false)
 

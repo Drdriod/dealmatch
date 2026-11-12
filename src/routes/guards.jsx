@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { isStaff } from '@/lib/adminAccess'
 import { useAuth } from '@/context/AuthContext'
 import MfaGate from '@/components/Admin/MfaGate'
+import IdleSignOut from '@/components/Admin/IdleSignOut'
 import { PageSkeleton } from '@/routes/shell'
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ export const AdminRoute = ({ children }) => {
   // Every path that reaches this point is a staff or admin account -
   // gate all of them behind a second factor, enrolling on first arrival
   // if none exists yet. Ordinary users never render this component at all.
-  return <MfaGate>{children}</MfaGate>
+  return <MfaGate><IdleSignOut />{children}</MfaGate>
 }
 
 export const PublicOnlyRoute = ({ children }) => {
