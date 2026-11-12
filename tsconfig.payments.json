@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/lib/paymentGateway.js",
+    "src/lib/chargePipeline.js",
+    "src/lib/chargePurposes.js",
+    "src/lib/paymentPurposes.js",
+    "src/lib/payoutSettlement.js",
+    "src/lib/payoutStates.js",
+    "src/lib/flutterwave.js",
+    "src/lib/flutterwaveServer.js",
+    "src/lib/money.js",
+    "src/lib/platformFees.js",
+    "api/flutterwave-webhook.js",
+    "api/escrow-webhook.js"
+  ]
+}

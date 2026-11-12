@@ -160,6 +160,7 @@ const authHeaders = async () => {
 
 // Builds the transfer screen with DOM nodes (no innerHTML, so server values
 // are never parsed as markup). Calls onPaid once the server reports paid.
+/** @param {{ account?: any, error?: string, onPaid?: (...args: any[]) => any, onClose?: (...args: any[]) => any }} opts */
 function openTransferModal({ account, error, onPaid, onClose }) {
   const overlay = document.createElement('div')
   overlay.setAttribute('role', 'dialog')
@@ -329,6 +330,7 @@ function openTransferModal({ account, error, onPaid, onClose }) {
 // The browser says WHAT it is paying for (purpose) and WHICH record (subject).
 // It never sends an amount or metadata: the server prices the payment from the
 // database and the platform fee registry (api/platform.js, resolvePayment).
+/** @param {{ purpose?: string, subject?: Record<string, any>, onSuccess?: (...args: any[]) => any, onClose?: (...args: any[]) => any, reference?: string }} options */
 export const initializeFlutterwavePayment = async ({
   purpose,
   subject = {},
@@ -483,7 +485,8 @@ export const fundTransactionEscrow = async ({
 
 // ─── Check payment status on the server ────────────────────
 // Read-only: returns whether the payment row is paid. Only the webhook sets paid.
-export const verifyPayment = async (reference) => {
+/** @param {string} reference @param {any} [_transactionId] ignored; older callers still pass it */
+export const verifyPayment = async (reference, _transactionId) => {
   try {
     const res = await fetch(`/api/payments/status?reference=${encodeURIComponent(reference)}`, {
       headers: await authHeaders(),

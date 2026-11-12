@@ -234,6 +234,7 @@ function buildEvent(row, expectedKobo) {
 // What a confirmed payment does: run the purpose handler, log the payment, pay the referral chain.
 // Returns { outcome }: 'applied' | 'unapplied' | 'stopped' | 'repeat'. Throws when a write fails,
 // so the caller can answer 500 (webhook) or try again later (job).
+/** @param {any} supabase @param {{ reference: string, amount: number, customer: any, metadata?: Record<string, any> }} charge */
 export async function applyChargeSuccess(supabase, { reference, amount, customer, metadata = {} }) {
   const amountNgn = amount / 100
 
