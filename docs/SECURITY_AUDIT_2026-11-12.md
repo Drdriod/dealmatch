@@ -13,7 +13,7 @@ The platform is in reasonable shape for a closed launch. Payments are priced and
 | F-001 | HIGH | Referral payouts | The same payment could pay referrers twice (check-then-insert race, no unique key) | Fixed: PR #70, unique index live in production |
 | F-002 | HIGH | Referral payouts | The referral insert omitted required columns and used a text reference in a uuid column, so it always failed (0 rows in production) while loyalty points were still granted before it | Fixed: PR #70 (insert is now the gate; test added) |
 | F-004 | HIGH | Admin login | Anyone with the public key could call `record_admin_login_attempt` and lock any admin out | Fixed: function revoked in production; PR #69 |
-| F-006 | HIGH | MFA | Two-step sign-in was enforced only in the browser; the database and admin API accepted a password-only session | Fixed: role helpers and /api/admin require aal2; live in production; PR #72 |
+| F-006 | HIGH | MFA | Two-step sign-in was enforced only in the browser; the database and admin API accepted a password-only session | Fixed in two rounds. Round 1 (PR #72): is_admin/is_staff etc. and /api/admin require aal2. Round 2 (PR #81), found in the second review: get_my_role() (33 policies, 5 functions) and 15 policies that read the role directly were still open to a password-only session; now closed. Both live in production |
 | F-003 | MED | send-email / send-whatsapp | Any signed-in user could send free text to any user id | Fixed in PR #71 (only self, staff, or a real dealing) |
 | F-005 | MED | Admin login | The admin page signed in directly with Supabase; the rate-limited server login was unused | Fixed in PR #69 (stacked on #64) |
 | F-007 | MED | Database | `spatial_ref_sys` had row security off and write rights for the public key | Fixed: revoked in production |
@@ -52,6 +52,8 @@ Production database changes made today (all additive or revoking): revoke public
 - Production catalog queries: no policy or function used aal before the fix; 1 of 1 staff account has a verified MFA factor.
 - Performance (local build, 390px, 4x CPU, slow 4G): FCP about 4.1 s, LCP about 4.8 s, CLS 0 after fix. Desktop: FCP 0.37 s, LCP 0.51 s, CLS 0. Local server has no compression, so transfer sizes overstate real use. Bundle: first-load JavaScript is roughly 200 KB gzipped; the PostHog bundle (68 KB gz) and the 227 KB logo PNG are the main savings left.
 - Accessibility (axe-core, WCAG 2.1 AA): /auth, /how-it-works, /search, /hotels clean; home had the 2 issues above.
+- Database function review: all 29 callable money, role and dispute functions were read. They check the caller and lock the rows they change, except the two races in F-020/F-021. Signup lookups remain public by design.
+- Per-page speed (390px, 4x CPU, slow 4G, local build): 12 pages, FCP 1.6-2.2 s, LCP 1.8-2.7 s (home, places and rentals just over the 2.5 s target), layout shift 0 (help page 0.03). Data-driven content was absent because the test backend is a placeholder, so real pages will be a little heavier.
 - Not done: live header probes (the sandbox cannot reach dealmatch.com.ng), a real Flutterwave end-to-end payment, load testing, browser testing beyond Chromium.
 
 ## F. Production readiness: READY WITH CONDITIONS
