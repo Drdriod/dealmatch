@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { redisRateLimit } from '../../src/lib/redis.js'
 import {
   findPropertyForStart, insertVerificationSession, findSession, setSessionStatus, claimSessionAttempt,
   consumeActiveSession, findPropertyForSubmit, upsertAgentVerification, markPropertyUnderVerification,
@@ -191,6 +192,9 @@ export default async function handler(req, res) {
   const anon = getAnonClient(token)
   const { data: { user }, error: authErr } = await anon.auth.getUser()
   if (authErr || !user) return res.status(401).json({ error: 'Invalid session' })
+
+  const rl = await redisRateLimit(req, `agent_${req.query.action}:${user.id}`, 30, 60, false)
+  if (!rl.allowed) return res.status(429).json({ error: 'Too many requests. Please wait a minute.' })
 
   const { action } = req.query
   if (action === 'start')  return handleStart(req, res, user)
