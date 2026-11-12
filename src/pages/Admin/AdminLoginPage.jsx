@@ -15,8 +15,6 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Check, CheckCircle, Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { isAdminLoginLocked, recordAdminLoginAttempt, fetchStaffProfile } from '@/data/adminLoginRepository'
-import { canSignInToAdmin } from '@/lib/adminAccess'
 import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
@@ -142,40 +140,36 @@ export default function AdminLoginPage() {
     try {
       const cleanEmail = email.trim().toLowerCase()
 
-      // Server-side lockout, backed by admin_login_attempts (see
-      // supabase/migrations/20260905000000_admin_login_lockout.sql).
-      // The sessionStorage counter below is still useful UX (shows
-      // "Forgot password?" earlier) but is not itself a real lock - a new
-      // tab or private window resets it. This check is the real one.
-      const { data: locked } = await isAdminLoginLocked(cleanEmail)
-      if (locked) {
-        setLockedMsg('Too many failed attempts. Wait 15 minutes or reset your password.')
+      // The server does the real work (api/admin/[resource].js, /api/admin/login): it checks the
+      // password, counts failed attempts per network and per account (Redis) and refuses a user
+      // who is not staff. The browser never records attempts itself, so nobody can lock an
+      // admin out by calling a database function. The attempts counter below is only a hint.
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      })
+      const body = await res.json().catch(() => ({}))
+
+      if (res.status === 429) {
+        setLockedMsg(body.error || 'Too many failed attempts. Wait 15 minutes or reset your password.')
         setLoading(false)
         return
       }
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
-
-      if (error) {
-        await recordAdminLoginAttempt(cleanEmail, false)
+      if (!res.ok || !body.session) {
         setAttempts(a => a + 1)
-        toast.error(error.message?.includes('Invalid login credentials')
-          ? 'Incorrect email or password.'
-          : (error.message || 'Login failed. Please try again.'))
+        toast.error(body.error || 'Login failed. Please try again.')
         setLoading(false)
         return
       }
 
-      await recordAdminLoginAttempt(cleanEmail, true)
-
-      const { data: profile } = await fetchStaffProfile(data.user.id)
-
-      if (!canSignInToAdmin(profile?.role)) {
-        await supabase.auth.signOut()
-        toast.error('Access denied. You do not have admin privileges.')
-        setLoading(false)
-        return
-      }
+      // Hand the server's session to the browser client so the rest of the app sees the sign-in.
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: body.session.access_token,
+        refresh_token: body.session.refresh_token,
+      })
+      if (sessionError) throw sessionError
+      const profile = { role: body.role, full_name: body.full_name }
 
       setAttempts(0)
       setLockedMsg(null)

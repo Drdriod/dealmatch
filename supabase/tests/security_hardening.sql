@@ -137,7 +137,9 @@ SELECT pg_temp.expect_blocked('anon calls wa_add_strike', $q$SELECT public.wa_ad
 SELECT pg_temp.expect_blocked('anon calls erase_account_data', $q$SELECT public.erase_account_data('00000000-0000-0000-0000-00000000a001')$q$);
 SELECT pg_temp.expect_ok('anon signup username check still works', $q$SELECT public.check_username_exists('someone')$q$);
 SELECT pg_temp.expect_ok('anon signup phone check still works', $q$SELECT public.check_phone_exists('+2340000000')$q$);
-SELECT pg_temp.expect_ok('anon admin login lockout check still works', $q$SELECT public.is_admin_login_locked('x@y.com')$q$);
+SELECT pg_temp.expect_blocked('anon cannot read admin lockout state', $q$SELECT public.is_admin_login_locked('x@y.com')$q$);
+SELECT pg_temp.expect_blocked('anon cannot record admin login attempts (lockout DoS)', $q$SELECT public.record_admin_login_attempt('x@y.com', false)$q$);
+SELECT pg_temp.expect_blocked('anon cannot edit PostGIS reference data', $q$DELETE FROM public.spatial_ref_sys WHERE srid = -1$q$);
 RESET ROLE;
 
 -- ── 5. Column guards: escrow ──────────────────────────────────────────────
