@@ -44,7 +44,7 @@ export default function WhatsAppButton() {
             </div>
             <div className="p-4">
               <div className="rounded-2xl rounded-tl-none p-3 mb-3 text-sm"
-                style={{ backgroundColor: 'rgba(37,211,102,0.1)', color: '#17211B' }}>
+                style={{ backgroundColor: 'rgba(37,211,102,0.1)', color: 'var(--dm-deep)' }}>
                 Hi! How can we help you today?
               </div>
               <button onClick={openChat}

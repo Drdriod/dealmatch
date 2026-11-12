@@ -17,6 +17,7 @@
 // Every money write is either conditional on the current status or deduplicated
 // by a key, so a repeated webhook cannot grant or record twice.
 import { insertNotification } from './notificationFactory.js'
+import { log } from './logger.js'
 
 // Records money DealMatch holds and must return: an overpayment (after the item
 // is granted) or an underpayment (held until topped up or refunded). One row per
@@ -106,8 +107,7 @@ async function professionalSubscription(svc, { reference, amount, customer, meta
     console.error('Professional payment matched no application:', reference)
     return returnUnapplied(svc, { reference, amount, customer }, null, 'no professional application matched this payment')
   }
-  console.log(identityApproved
-    ? 'Professional activated:' : 'Professional paid, awaiting identity verification:', customer.email)
+  log.info(identityApproved ? 'professional.activated' : 'professional.paid_awaiting_identity', { reference })
 }
 
 // Hotel or short-let booking: the room was held as 'pending' when the
@@ -121,7 +121,7 @@ async function hotelBooking(svc, { reference, amount, customer, metadata }) {
     .eq('status', 'pending')
     .select('id')
   if (confirmedBooking?.length) {
-    console.log('Hotel booking confirmed:', metadata.booking_id)
+    log.info('booking.confirmed', { reference, bookingId: metadata.booking_id })
     return
   }
   // Not pending any more. A confirmed or completed booking with this payment_ref is a repeat
@@ -169,7 +169,7 @@ async function hostelListingFee(svc, { reference, amount, amountNgn, customer })
     return returnUnapplied(svc, { reference, amount, customer }, null, 'no hostel payment is waiting on this reference')
   }
   if (payRow.status === 'success') {
-    console.log('Hostel listing already unlocked, skipping:', reference)
+    log.info('hostel.unlock_skipped', { reference })
     return {}
   }
   if (Number(payRow.amount) !== amountNgn) {
@@ -195,7 +195,7 @@ async function hostelListingFee(svc, { reference, amount, amountNgn, customer })
   await svc.from('student_hostels')
     .update({ listing_paid: true, listing_paid_at: paidAt, payment_ref: reference })
     .eq('id', payRow.hostel_id)
-  console.log('Hostel listing unlocked:', reference)
+  log.info('hostel.unlocked', { reference })
   return {}
 }
 
@@ -235,7 +235,7 @@ async function contactUnlockCredits(svc, { reference, amount, customer, metadata
         price_cents: amount,
         payment_ref: reference,
       })
-      console.log(`Granted ${credits} unlock credit(s) to`, buyerId)
+      log.info('unlock_credits.granted', { reference, credits, buyerId })
     }
     return {}
   }
@@ -282,7 +282,7 @@ async function escrowPayment(svc, { reference, amount, amountNgn, customer }) {
     .eq('id', matchedEscrow.id)
     .eq('status', 'awaiting_payment')
     .select('id')
-  if (funded?.length) console.log('Escrow payment confirmed:', reference, 'amount:', amountNgn)
+  if (funded?.length) log.info('escrow.payment_confirmed', { reference, amountNgn })
   else console.warn('Escrow not funded (no longer awaiting payment):', reference)
   return { escrowRow: matchedEscrow }
 }
@@ -366,7 +366,7 @@ async function transactionEscrow(svc, { reference, amount, amountNgn, customer }
     console.warn('Transaction not funded (no longer PENDING):', matchedTx.id)
     return { stop: true }
   }
-  console.log('Transaction escrow funded:', matchedTx.id, 'amount:', amountNgn)
+  log.info('transaction_escrow.funded', { transactionId: matchedTx.id, amountNgn })
 
   if (matchedTx.provider_id) {
     await notify(svc, 'escrow_funded', matchedTx.provider_id,

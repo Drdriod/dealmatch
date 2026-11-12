@@ -110,14 +110,14 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
       style={{ backgroundColor: 'rgba(23,33,27,0.6)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col" style={{ backgroundColor: '#FFFAF5', maxHeight: '92vh' }}>
-        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: '#DEDDD6' }}>
+        <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: 'var(--dm-line)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(122,158,126,0.15)' }}>
-              <Shield size={18} style={{ color: '#7A9E7E' }} />
+              <Shield size={18} style={{ color: 'var(--dm-sage)' }} />
             </div>
             <div>
-              <h3 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Reserve with DealMatch Protection</h3>
-              <p className="text-xs" style={{ color: '#647068' }}>Your payment is held under DealMatch Protection</p>
+              <h3 className="font-display text-lg font-black" style={{ color: 'var(--dm-deep)' }}>Reserve with DealMatch Protection</h3>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Your payment is held under DealMatch Protection</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
@@ -128,23 +128,23 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
         {done ? (
           <div className="p-8 text-center">
             <div className="flex justify-center mb-4"><ShieldCheck size={48} className="text-terracotta" /></div>
-            <h4 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>Protection funded.</h4>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: '#647068' }}>
+            <h4 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>Protection funded.</h4>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--dm-warm)' }}>
               Your payment is held safely. The owner's contact details are now unlocked below.
             </p>
             <button onClick={onClose} className="btn-primary w-full py-3">Done</button>
           </div>
         ) : (
           <div className="overflow-y-auto flex-1 p-5 space-y-4">
-            <div className="rounded-2xl p-3 border" style={{ backgroundColor: '#FFF', borderColor: '#DEDDD6' }}>
-              <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{property?.title}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>{property?.city}, {property?.state}</p>
+            <div className="rounded-2xl p-3 border" style={{ backgroundColor: '#FFF', borderColor: 'var(--dm-line)' }}>
+              <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{property?.title}</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{property?.city}, {property?.state}</p>
             </div>
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Amount (₦)</label>
               {/* The amount is the listed price. The database refuses any other amount. */}
-              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6', color: '#17211B' }}>
+              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
                 {property?.price ? formatNaira(Number(property.price)) : '—'}
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.5)' }}>Preferred move-in date</label>
                 <input type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: '#17211B' }} />
+                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
               </div>
             )}
 
@@ -164,7 +164,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
 
             <button onClick={handleReserve} disabled={submitting || confirming || !escrow}
               className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
-              style={{ backgroundColor: '#B8511E' }}>
+              style={{ backgroundColor: 'var(--dm-terracotta)' }}>
               {submitting || confirming
                 ? <><Loader2 size={16} className="animate-spin" /> {confirming ? 'Confirming payment…' : 'Starting…'}</>
                 : !escrow

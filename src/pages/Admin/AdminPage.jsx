@@ -16,7 +16,8 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from './shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from './shared'
+import { isSuperadmin } from '@/lib/adminAccess'
 import { OverviewTab } from './tabs/OverviewTab'
 import { PropertiesTab } from './tabs/PropertiesTab'
 import { UsersTab } from './tabs/UsersTab'
@@ -48,7 +49,7 @@ export default function AdminPage() {
   const [sidebarOpen,setSidebarOpen]=useState(false)
   const [badges,setBadges]=useState({})
 
-  const isSuperAdmin=SUPERADMIN_EMAILS.includes(user?.email)
+  const isSuperAdmin=isSuperadmin(profile?.role)
   const adminName=profile?.full_name||user?.email?.split('@')[0]||'Admin'
   const activeTab=location.pathname.replace('/admin','').replace(/^\//,'')
 
@@ -72,9 +73,9 @@ export default function AdminPage() {
 
       {/* Sidebar */}
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 flex flex-col w-64 transition-transform duration-300 ${sidebarOpen?'translate-x-0':'-translate-x-full lg:translate-x-0'}`}
-        style={{backgroundColor:'#17211B',borderRight:'1px solid rgba(255,255,255,0.06)'}}>
+        style={{backgroundColor:'var(--dm-deep)',borderRight:'1px solid rgba(255,255,255,0.06)'}}>
         <div className="px-5 py-4 flex items-center gap-2.5" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{backgroundColor:'rgba(212,168,83,0.15)'}}><Shield size={16} style={{color:'#D4A853'}}/></div>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{backgroundColor:'rgba(212,168,83,0.15)'}}><Shield size={16} style={{color:'var(--dm-gold)'}}/></div>
           <div><div className="font-black text-white text-sm leading-tight">DealMatch</div><div className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>Control Panel</div></div>
         </div>
         <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
@@ -87,7 +88,7 @@ export default function AdminPage() {
                 style={{backgroundColor:isActive?'rgba(212,168,83,0.12)':'transparent',color:isActive?'#D4A853':'rgba(255,255,255,0.45)'}}>
                 <item.icon size={16} style={{flexShrink:0}}/>
                 <span className="flex-1">{item.label}</span>
-                {badge>0&&<span className="text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center" style={{backgroundColor:'#B8511E',color:'#fff',fontSize:10}}>{badge>99?'99+':badge}</span>}
+                {badge>0&&<span className="text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center" style={{backgroundColor:'var(--dm-terracotta)',color:'#fff',fontSize:10}}>{badge>99?'99+':badge}</span>}
               </NavLink>
             )
           })}
@@ -102,7 +103,7 @@ export default function AdminPage() {
               <div className="text-xs truncate" style={{color:'rgba(255,255,255,0.55)'}}>{isSuperAdmin?' Superadmin':ROLE_LABELS[profile?.role]||'Staff'}</div>
             </div>
           </div>
-          <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#B8511E'}}>
+          <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'var(--dm-terracotta)'}}>
             <LogOut size={13}/> Sign Out
           </button>
         </div>
@@ -113,7 +114,7 @@ export default function AdminPage() {
         <div className="sticky top-0 z-20 flex items-center gap-4 px-5 py-3" style={{backgroundColor:'rgba(18,13,10,0.95)',borderBottom:'1px solid rgba(255,255,255,0.06)',backdropFilter:'blur(8px)'}}>
           <button onClick={()=>setSidebarOpen(v=>!v)} className="lg:hidden p-2 rounded-xl hover:bg-white/5 transition-all" style={{color:'rgba(255,255,255,0.5)'}}><Menu size={20}/></button>
           <h1 className="text-white font-bold text-base flex-1">{NAV_ITEMS.find(n=>n.path===activeTab)?.label||'Overview'}</h1>
-          {isSuperAdmin&&<span className="text-xs px-2.5 py-1 rounded-lg font-bold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}> Superadmin</span>}
+          {isSuperAdmin&&<span className="text-xs px-2.5 py-1 rounded-lg font-bold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'var(--dm-gold)'}}> Superadmin</span>}
         </div>
         <div className="flex-1 overflow-y-auto p-5">
           <Routes>

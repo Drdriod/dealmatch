@@ -21,7 +21,7 @@ export default function VerifyReminder({ returnTo, className = '' }) {
       <div className={`flex items-start gap-3 rounded-2xl p-4 text-left ${className}`}
         style={{ backgroundColor: 'rgba(212,168,83,0.1)', border: '1px solid rgba(212,168,83,0.35)' }}>
         <Clock size={18} className="flex-shrink-0 mt-0.5" style={{ color: '#B8892B' }} />
-        <p className="text-xs leading-relaxed" style={{ color: '#17211B' }}>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--dm-deep)' }}>
           <span className="font-bold">Identity under review.</span> This usually takes up to 24 hours.
         </p>
       </div>
@@ -31,13 +31,13 @@ export default function VerifyReminder({ returnTo, className = '' }) {
   return (
     <div className={`flex items-start gap-3 rounded-2xl p-4 text-left ${className}`}
       style={{ backgroundColor: 'rgba(35,76,58,0.07)', border: '1px solid rgba(35,76,58,0.2)' }}>
-      <ShieldCheck size={18} className="flex-shrink-0 mt-0.5" style={{ color: '#234C3A' }} />
+      <ShieldCheck size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--dm-forest)' }} />
       <div className="flex-1">
-        <p className="text-xs leading-relaxed" style={{ color: '#17211B' }}>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--dm-deep)' }}>
           <span className="font-bold">Verify your identity (about 2 minutes).</span> It is optional for now, and required before any booking, payment or agreement.
         </p>
         <Link to="/verify-identity" state={returnTo ? { returnTo } : undefined}
-          className="inline-block mt-2 text-xs font-bold underline" style={{ color: '#B8511E' }}>
+          className="inline-block mt-2 text-xs font-bold underline" style={{ color: 'var(--dm-terracotta)' }}>
           Verify now
         </Link>
       </div>

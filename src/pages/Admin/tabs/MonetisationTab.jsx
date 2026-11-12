@@ -15,7 +15,7 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
 
 export function MonetisationTab() {
   const {fees,error,reload}=usePlatformFees()
@@ -85,16 +85,16 @@ export function MonetisationTab() {
         <p className="text-xs max-w-xl" style={{color:'rgba(255,255,255,0.45)'}}>
           Every fee the site charges is listed here. The site reads these values from the database, so a change here applies everywhere and is announced to all users. Adding a channel registers it; code must still charge it before any money is taken.
         </p>
-        <button onClick={()=>setAdding({...EMPTY_NEW_FEE})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'#D4A853',color:'#17211B'}}>
+        <button onClick={()=>setAdding({...EMPTY_NEW_FEE})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>
           <Plus size={14}/> Add Channel
         </button>
       </div>
 
-      {error&&<p className="text-xs" style={{color:'#B8511E'}}>Could not load fees: {error.message}</p>}
+      {error&&<p className="text-xs" style={{color:'var(--dm-terracotta)'}}>Could not load fees: {error.message}</p>}
 
       <p className="text-xs" style={{color:'rgba(255,255,255,0.45)'}}>
         Marketplace job commission is not listed here. Set it in{' '}
-        <a href="/admin/fees" className="underline" style={{color:'#D4A853'}}>Commission Schedules</a>.
+        <a href="/admin/fees" className="underline" style={{color:'var(--dm-gold)'}}>Commission Schedules</a>.
       </p>
 
       <TableWrap cols={['Channel','Area','Rate or fee','Status','Last changed','Actions']}>
@@ -110,7 +110,7 @@ export function MonetisationTab() {
             <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(r.updated_at)}</td>
             <td className="px-4 py-3">
               <button onClick={()=>setEditing({key:r.key,label:r.label,kind:r.kind,value:String(r.value),is_active:r.is_active,note:''})}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.15)',color:'#D4A853'}}>
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.15)',color:'var(--dm-gold)'}}>
                 Edit
               </button>
             </td>
@@ -152,7 +152,7 @@ export function MonetisationTab() {
                 {r.note&&<span className="block text-[11px]" style={{color:'rgba(255,255,255,0.6)'}}>{r.note}</span>}
               </span>
               <button onClick={()=>markRefunded(r)} disabled={refundBusy===r.id}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'#7A9E7E'}}>
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50" style={{backgroundColor:'rgba(122,158,126,0.15)',color:'var(--dm-sage)'}}>
                 {refundBusy===r.id?'Saving...':'Mark returned'}
               </button>
             </div>
@@ -162,7 +162,7 @@ export function MonetisationTab() {
 
       {editing&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3" style={{backgroundColor:'#17211B'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3" style={{backgroundColor:'var(--dm-deep)'}}>
             <p className="text-sm font-bold text-white">Edit {editing.label}</p>
             <div>
               <label className="text-xs block mb-1" style={FEE_LABEL_STYLE}>{editing.kind==='percent'?'Rate (%)':'Amount (naira)'}</label>
@@ -181,7 +181,7 @@ export function MonetisationTab() {
             <p className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>Saving notifies every active user. It applies to new payments only; deals already in progress keep their rate.</p>
             <div className="flex gap-2 pt-1">
               <button onClick={()=>setEditing(null)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={saveEdit} disabled={busy} className="flex-1 py-2.5 rounded-xl text-xs font-bold disabled:opacity-50" style={{backgroundColor:'#D4A853',color:'#17211B'}}>{busy?'Saving...':'Save'}</button>
+              <button onClick={saveEdit} disabled={busy} className="flex-1 py-2.5 rounded-xl text-xs font-bold disabled:opacity-50" style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>{busy?'Saving...':'Save'}</button>
             </div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export function MonetisationTab() {
 
       {adding&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'#17211B'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'var(--dm-deep)'}}>
             <p className="text-sm font-bold text-white">Add a monetisation channel</p>
             <div>
               <label className="text-xs block mb-1" style={FEE_LABEL_STYLE}>Name shown to users</label>
@@ -206,17 +206,17 @@ export function MonetisationTab() {
                 <label className="text-xs block mb-1" style={FEE_LABEL_STYLE}>Area</label>
                 <select value={adding.area} onChange={e=>setAdding(f=>({...f,area:e.target.value}))}
                   className="w-full rounded-xl px-3 py-2.5 text-xs outline-none" style={FEE_INPUT_STYLE}>
-                  <option value="place" style={{backgroundColor:'#17211B'}}>Places</option>
-                  <option value="people" style={{backgroundColor:'#17211B'}}>People</option>
-                  <option value="other" style={{backgroundColor:'#17211B'}}>Other</option>
+                  <option value="place" style={{backgroundColor:'var(--dm-deep)'}}>Places</option>
+                  <option value="people" style={{backgroundColor:'var(--dm-deep)'}}>People</option>
+                  <option value="other" style={{backgroundColor:'var(--dm-deep)'}}>Other</option>
                 </select>
               </div>
               <div>
                 <label className="text-xs block mb-1" style={FEE_LABEL_STYLE}>Type</label>
                 <select value={adding.kind} onChange={e=>setAdding(f=>({...f,kind:e.target.value}))}
                   className="w-full rounded-xl px-3 py-2.5 text-xs outline-none" style={FEE_INPUT_STYLE}>
-                  <option value="percent" style={{backgroundColor:'#17211B'}}>Percent</option>
-                  <option value="flat_ngn" style={{backgroundColor:'#17211B'}}>Flat (naira)</option>
+                  <option value="percent" style={{backgroundColor:'var(--dm-deep)'}}>Percent</option>
+                  <option value="flat_ngn" style={{backgroundColor:'var(--dm-deep)'}}>Flat (naira)</option>
                 </select>
               </div>
             </div>
@@ -233,7 +233,7 @@ export function MonetisationTab() {
             <p className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>Adding a channel notifies every active user. It does not charge anything by itself: the code that takes this payment must read this fee before it goes live.</p>
             <div className="flex gap-2 pt-1">
               <button onClick={()=>setAdding(null)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={saveNew} disabled={busy} className="flex-1 py-2.5 rounded-xl text-xs font-bold disabled:opacity-50" style={{backgroundColor:'#D4A853',color:'#17211B'}}>{busy?'Adding...':'Add channel'}</button>
+              <button onClick={saveNew} disabled={busy} className="flex-1 py-2.5 rounded-xl text-xs font-bold disabled:opacity-50" style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>{busy?'Adding...':'Add channel'}</button>
             </div>
           </div>
         </div>

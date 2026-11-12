@@ -15,7 +15,7 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
 
 // ── PROFESSIONALS ──────────────────────────────────────────────────────────────
 export function ProfessionalsTab() {
@@ -58,7 +58,7 @@ export function ProfessionalsTab() {
               <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{p.full_name}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{p.company_name||maskEmail(p.email)}</div></td>
               <td className="px-4 py-3 text-xs capitalize" style={{color:'rgba(255,255,255,0.6)'}}>{(p.professional_type||'N/A').replace(/_/g,' ')}</td>
               <td className="px-4 py-3 text-xs text-white">{p.plan_type||'monthly'}</td>
-              <td className="px-4 py-3 text-xs" style={{color:'#D4A853'}}>{p.rating?`${p.rating}`:'N/A'}</td>
+              <td className="px-4 py-3 text-xs" style={{color:'var(--dm-gold)'}}>{p.rating?`${p.rating}`:'N/A'}</td>
               <td className="px-4 py-3"><Badge label={(p.status||'N/A').replace('_',' ')} color={SC[p.status]||'#888'}/></td>
               <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(p.created_at)}</td>
               <td className="px-4 py-3">

@@ -10,10 +10,18 @@ const EXTENSION_SCHEME = /^(chrome|moz|safari|ms-browser)-extension:/i
 // into pages it proxies. We use PostHog, so the policy leaves it out.
 const EXPECTED_BLOCKED_HOSTS = new Set(['static.cloudflareinsights.com'])
 
+function isOwnSource(source) {
+  if (!source) return false
+  try { return /\/assets\//.test(new URL(source).pathname) } catch { return false }
+}
+
 export function shouldReportCsp(violation) {
   const blocked = violation?.blockedURI || ''
   const source = violation?.sourceFile || ''
   if (EXTENSION_SCHEME.test(blocked) || EXTENSION_SCHEME.test(source)) return false
+  // A blocked eval() with no source file of ours is code injected by an in-app browser or an
+  // extension. The bundle has no eval (checked Nov 2026), so there is nothing to fix on our side.
+  if (blocked === 'eval' && !isOwnSource(source)) return false
   try {
     if (EXPECTED_BLOCKED_HOSTS.has(new URL(blocked).hostname)) return false
   } catch { /* "inline", "eval" and "" are not URLs. They are still worth reporting. */ }

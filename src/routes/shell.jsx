@@ -30,12 +30,12 @@ export class ErrorBoundary extends Component {
         background:'#FFFAF5', padding:'24px', textAlign:'center', gap:'16px',
       }}>
         <div style={{ fontSize:56 }}><Home size={24} className="text-terracotta" /></div>
-        <h1 style={{ fontWeight:900, fontSize:26, color:'#17211B', margin:0 }}>
+        <h1 style={{ fontWeight:900, fontSize:26, color:'var(--dm-deep)', margin:0 }}>
           Something went wrong
         </h1>
-        <p style={{ color:'#647068', fontSize:14, maxWidth:320, lineHeight:1.6, margin:0 }}>
+        <p style={{ color:'var(--dm-warm)', fontSize:14, maxWidth:320, lineHeight:1.6, margin:0 }}>
           DealMatch hit an unexpected error. Our team has been notified. Please try refreshing or{' '}
-          <a href="/" style={{ color:'#B8511E', fontWeight:600 }}>return home</a>.
+          <a href="/" style={{ color:'var(--dm-terracotta)', fontWeight:600 }}>return home</a>.
         </p>
         <button
           onClick={() => { this.setState({ hasError:false, error:null }); window.location.href = '/' }}
@@ -90,7 +90,7 @@ export const LoadingScreen = () => (
       .dm-logo-mark{width:34px;height:auto;position:absolute;animation:dm-logo-breathe 1.8s ease-in-out infinite,dm-fade-up 0.5s ease 0.3s both}
     `}</style>
     <div className="dm-glow" style={{ width:300,height:300,background:'#c9a96e',top:'-80px',right:'-80px' }} />
-    <div className="dm-glow" style={{ width:250,height:250,background:'#7A9E7E',bottom:'-60px',left:'-60px',animationDelay:'1.5s' }} />
+    <div className="dm-glow" style={{ width:250,height:250,background:'var(--dm-sage)',bottom:'-60px',left:'-60px',animationDelay:'1.5s' }} />
     <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:28,zIndex:1 }}>
       <div style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center' }}>
         <div className="dm-pulse" /><div className="dm-ring" />
@@ -127,7 +127,7 @@ export const PageSkeleton = () => (
         @keyframes dm-spin{to{transform:rotate(360deg)}}
         @keyframes dm-skel-breathe{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
       `}</style>
-      <p style={{ fontSize:13, color:'#647068', fontWeight:500 }}>Loading…</p>
+      <p style={{ fontSize:13, color:'var(--dm-warm)', fontWeight:500 }}>Loading…</p>
     </div>
   </div>
 )

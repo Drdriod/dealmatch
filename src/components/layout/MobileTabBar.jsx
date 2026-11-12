@@ -29,7 +29,7 @@ function TabPill() {
     <motion.span
       layoutId="tab-pill"
       className="absolute top-0 left-3 right-3 h-0.5 rounded-full"
-      style={{ backgroundColor: '#B8511E' }}
+      style={{ backgroundColor: 'var(--dm-terracotta)' }}
       transition={{ type: 'spring', stiffness: 420, damping: 34 }}
     />
   )
@@ -83,7 +83,7 @@ export default function MobileTabBar() {
             }}>
             <Plus size={24} strokeWidth={2.5} />
           </button>
-          <span className="text-[10px] font-semibold mt-7" style={{ color: '#647068' }}>Post</span>
+          <span className="text-[10px] font-semibold mt-7" style={{ color: 'var(--dm-warm)' }}>Post</span>
         </div>
 
         {isAuthenticated ? (
@@ -128,9 +128,9 @@ export default function MobileTabBar() {
                 paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
               }}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-display font-black text-base" style={{ color: '#17211B' }}>What do you want to post?</span>
+                <span className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>What do you want to post?</span>
                 <button onClick={() => setShowChooser(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F0E5D8' }}>
-                  <X size={15} style={{ color: '#17211B' }} />
+                  <X size={15} style={{ color: 'var(--dm-deep)' }} />
                 </button>
               </div>
               <div className="space-y-2.5">
@@ -139,13 +139,13 @@ export default function MobileTabBar() {
                   return (
                     <button key={choice.to} onClick={() => goTo(choice.to)}
                       className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left"
-                      style={{ backgroundColor: '#F7F4ED', border: '1px solid #DEDDD6' }}>
+                      style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                        <Icon size={18} style={{ color: '#B8511E' }} />
+                        <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold" style={{ color: '#17211B' }}>{choice.label}</p>
-                        <p className="text-xs" style={{ color: '#647068' }}>{choice.desc}</p>
+                        <p className="text-sm font-bold" style={{ color: 'var(--dm-deep)' }}>{choice.label}</p>
+                        <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{choice.desc}</p>
                       </div>
                     </button>
                   )

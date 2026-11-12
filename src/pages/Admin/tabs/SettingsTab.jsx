@@ -19,7 +19,7 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
 
 // ── SETTINGS (superadmin-editable platform settings) ────────────────────────────
 export function SettingsTab({isSuperAdmin}) {
@@ -35,7 +35,7 @@ export function SettingsTab({isSuperAdmin}) {
 
       {!isSuperAdmin&&(
         <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(212,168,83,0.06)',border:'1px solid rgba(212,168,83,0.15)'}}>
-          <Shield size={14} style={{color:'#D4A853',flexShrink:0,marginTop:2}}/>
+          <Shield size={14} style={{color:'var(--dm-gold)',flexShrink:0,marginTop:2}}/>
           <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>You can view current settings, but only the superadmin account can save changes.</p>
         </div>
       )}
@@ -120,7 +120,7 @@ function GeneralSettingsSection({isSuperAdmin}) {
                   {isSuperAdmin&&(
                     <button onClick={()=>saveField(f.key)} disabled={saving[f.key]}
                       className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all"
-                      style={{backgroundColor:'#D4A853',color:'#17211B'}}>
+                      style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>
                       <Save size={12}/> {saving[f.key]?'Saving…':'Save'}
                     </button>
                   )}
@@ -218,7 +218,7 @@ function BankDetailsSection({isSuperAdmin}) {
   return(
     <div className="space-y-4">
       <div className="rounded-2xl p-3 flex items-start gap-2.5" style={{backgroundColor:'rgba(200,95,45,0.06)',border:'1px solid rgba(200,95,45,0.15)'}}>
-        <Shield size={14} style={{color:'#B8511E',flexShrink:0,marginTop:2}}/>
+        <Shield size={14} style={{color:'var(--dm-terracotta)',flexShrink:0,marginTop:2}}/>
         <p className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>
           These are DealMatch's own business accounts for receiving large or manually-confirmed payments.
           This is separate from a user's personal bank account used for referral payouts.
@@ -228,14 +228,14 @@ function BankDetailsSection({isSuperAdmin}) {
       {isSuperAdmin&&editing!=='new'&&(
         <button onClick={startNew}
           className="w-full py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
-          style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853',border:'1px dashed rgba(212,168,83,0.3)'}}>
+          style={{backgroundColor:'rgba(212,168,83,0.1)',color:'var(--dm-gold)',border:'1px dashed rgba(212,168,83,0.3)'}}>
           <Plus size={14}/> Add Bank Account
         </button>
       )}
 
       {editing&&(
         <div className="rounded-2xl p-5 space-y-3" style={{backgroundColor:'rgba(255,255,255,0.04)',border:'1px solid rgba(212,168,83,0.25)'}}>
-          <p className="text-xs font-bold uppercase tracking-wide" style={{color:'#D4A853'}}>
+          <p className="text-xs font-bold uppercase tracking-wide" style={{color:'var(--dm-gold)'}}>
             {editing==='new'?'New Bank Account':'Edit Bank Account'}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -287,7 +287,7 @@ function BankDetailsSection({isSuperAdmin}) {
           <div className="flex gap-2 pt-1">
             <button onClick={save} disabled={saving}
               className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 disabled:opacity-50 transition-all"
-              style={{backgroundColor:'#D4A853',color:'#17211B'}}>
+              style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>
               <Save size={12}/> {saving?'Saving…':'Save Account'}
             </button>
             <button onClick={()=>setEditing(null)}
@@ -311,7 +311,7 @@ function BankDetailsSection({isSuperAdmin}) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-white">{acc.bank_name}</p>
-                {acc.is_primary&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(212,168,83,0.15)',color:'#D4A853'}}>PRIMARY</span>}
+                {acc.is_primary&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(212,168,83,0.15)',color:'var(--dm-gold)'}}>PRIMARY</span>}
                 {!acc.is_active&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.6)'}}>INACTIVE</span>}
               </div>
               <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.5)'}}>{acc.account_name}</p>
@@ -322,9 +322,9 @@ function BankDetailsSection({isSuperAdmin}) {
           {isSuperAdmin&&(
             <div className="flex gap-2 mt-3">
               <button onClick={()=>startEdit(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Edit</button>
-              {!acc.is_primary&&<button onClick={()=>setPrimary(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'#D4A853'}}>Set Primary</button>}
+              {!acc.is_primary&&<button onClick={()=>setPrimary(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(212,168,83,0.1)',color:'var(--dm-gold)'}}>Set Primary</button>}
               <button onClick={()=>toggleActive(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>{acc.is_active?'Deactivate':'Activate'}</button>
-              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'#B8511E'}}>Delete</button>
+              <button onClick={()=>remove(acc)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto" style={{backgroundColor:'rgba(200,95,45,0.1)',color:'var(--dm-terracotta)'}}>Delete</button>
             </div>
           )}
         </div>

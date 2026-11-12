@@ -34,9 +34,9 @@ const GoogleIcon = () => (
 // type between renders. Defining it inside caused React to unmount + remount
 // the input on every keystroke, dismissing the Android keyboard immediately.
 function FieldStatus({ status }) {
-  if (status === 'checking') return <Loader size={14} className="animate-spin" style={{ color:'#647068' }} />
-  if (status === 'taken')    return <XCircle size={14} style={{ color:'#B8511E' }} />
-  if (status === 'free')     return <CheckCircle size={14} style={{ color:'#7A9E7E' }} />
+  if (status === 'checking') return <Loader size={14} className="animate-spin" style={{ color:'var(--dm-warm)' }} />
+  if (status === 'taken')    return <XCircle size={14} style={{ color:'var(--dm-terracotta)' }} />
+  if (status === 'free')     return <CheckCircle size={14} style={{ color:'var(--dm-sage)' }} />
   return null
 }
 
@@ -62,7 +62,7 @@ function Field({
         htmlFor={inputId}
         className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
         style={{ color:'rgba(23,33,27,0.5)' }}>
-        {label}{required && <span style={{ color:'#B8511E' }}> *</span>}
+        {label}{required && <span style={{ color:'var(--dm-terracotta)' }}> *</span>}
       </label>
       <div className="relative">
         <input
@@ -81,7 +81,7 @@ function Field({
           autoCapitalize={type === 'email' ? 'none' : 'words'}
           spellCheck={false}
           className="input w-full pr-9"
-          style={{ borderColor, backgroundColor:'#FFFFFF', color:'#17211B' }}
+          style={{ borderColor, backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
         />
         {status && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -90,17 +90,17 @@ function Field({
         )}
       </div>
       {error && (
-        <p id={noteId} role="alert" className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#B8511E' }}>
+        <p id={noteId} role="alert" className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'var(--dm-terracotta)' }}>
           <XCircle size={11} /> {error}
         </p>
       )}
       {!error && status === 'free' && (
-        <p id={noteId} className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'#7A9E7E' }}>
+        <p id={noteId} className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'var(--dm-sage)' }}>
           <CheckCircle size={11} /> Available
         </p>
       )}
       {hint && !error && status !== 'free' && (
-        <p id={noteId} className="text-xs mt-1" style={{ color:'#647068' }}>{hint}</p>
+        <p id={noteId} className="text-xs mt-1" style={{ color:'var(--dm-warm)' }}>{hint}</p>
       )}
     </div>
   )
@@ -478,9 +478,9 @@ export default function AuthPage() {
               <polyline points="22,6 12,13 2,6"/>
             </svg>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-black mb-2" style={{ color:'#17211B' }}>Check your email</h1>
-          <p className="text-sm mb-1" style={{ color:'#647068' }}>We sent a 6-digit code to</p>
-          <p className="font-semibold text-sm mb-8" style={{ color:'#B8511E' }}>{signupEmail}</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-black mb-2" style={{ color:'var(--dm-deep)' }}>Check your email</h1>
+          <p className="text-sm mb-1" style={{ color:'var(--dm-warm)' }}>We sent a 6-digit code to</p>
+          <p className="font-semibold text-sm mb-8" style={{ color:'var(--dm-terracotta)' }}>{signupEmail}</p>
           <div className="flex gap-2.5 sm:gap-3 justify-center mb-8" onPaste={handleOtpPaste}>
             {otp.map((digit, i) => (
               <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
@@ -498,16 +498,16 @@ export default function AuthPage() {
           </div>
           <button onClick={handleVerifyOtp} disabled={verifying || otp.join('').length < 6}
             className="w-full py-4 rounded-2xl font-bold text-white mb-4 transition-all hover:opacity-90 disabled:opacity-40"
-            style={{ backgroundColor:'#B8511E', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
+            style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
             {verifying ? 'Verifying...' : 'Confirm Email'}
           </button>
-          <p style={{ color:'#647068' }} className="text-sm">
+          <p style={{ color:'var(--dm-warm)' }} className="text-sm">
             Didn't receive it?{' '}
-            <button onClick={handleResendOtp} style={{ color:'#B8511E' }}
+            <button onClick={handleResendOtp} style={{ color:'var(--dm-terracotta)' }}
               className="font-semibold hover:underline">Resend code</button>
           </p>
           <button onClick={() => { setVerificationSent(false); setOtp(['','','','','','']) }}
-            className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'#647068' }}>
+            className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'var(--dm-warm)' }}>
             <ArrowLeft size={14} /> Back to Create Account
           </button>
         </div>
@@ -535,7 +535,7 @@ export default function AuthPage() {
             {callbackErrorMessage && (
               <div
                 className="flex items-start gap-3 p-4 rounded-2xl mb-6 text-sm"
-                style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.25)', color:'#B8511E' }}
+                style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.25)', color:'var(--dm-terracotta)' }}
                 role="alert"
               >
                 <XCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -544,7 +544,7 @@ export default function AuthPage() {
             )}
 
             {/* Tabs */}
-            <div className="flex rounded-2xl p-1 mb-6" style={{ backgroundColor:'#F7F4ED' }}>
+            <div className="flex rounded-2xl p-1 mb-6" style={{ backgroundColor:'var(--dm-cream)' }}>
               {[['signin','Sign In'],['signup','Create Account']].map(([t,l]) => (
                 <button key={t} onClick={() => { setTab(t); resetTabState() }}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
@@ -561,13 +561,13 @@ export default function AuthPage() {
               <>
                 <button onClick={handleGoogle} type="button"
                   className="w-full py-3 px-4 rounded-2xl border-2 flex items-center justify-center gap-3 font-semibold transition-all hover:bg-gray-50 mb-5"
-                  style={{ borderColor:'#DEDDD6', color:'#17211B' }}>
+                  style={{ borderColor:'var(--dm-line)', color:'var(--dm-deep)' }}>
                   <GoogleIcon /> Continue with Google
                 </button>
 
                 <div className="relative mb-5">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t" style={{ borderColor:'#DEDDD6' }} />
+                    <div className="w-full border-t" style={{ borderColor:'var(--dm-line)' }} />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(23,33,27,0.4)' }}>or with email</span>
@@ -580,7 +580,7 @@ export default function AuthPage() {
           {tab === 'signup' ? (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Your next deal starts here.</h1>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Your next deal starts here.</h1>
                 <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
               </div>
 
@@ -588,7 +588,7 @@ export default function AuthPage() {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
                   style={{ color:'rgba(23,33,27,0.5)' }}>
-                  Full Name <span style={{ color:'#B8511E' }}>*</span>
+                  Full Name <span style={{ color:'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -597,7 +597,7 @@ export default function AuthPage() {
                   value={form.fullName}
                   onChange={setField('fullName')}
                   autoComplete="name"
-                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}
+                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
                 />
               </div>
 
@@ -718,7 +718,7 @@ export default function AuthPage() {
               >
                 <label htmlFor="signup-password" className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
                   style={{ color:'rgba(23,33,27,0.5)' }}>
-                  Password <span style={{ color:'#B8511E' }}>*</span>
+                  Password <span style={{ color:'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -730,7 +730,7 @@ export default function AuthPage() {
                     onChange={setField('password')}
                     autoComplete="new-password"
                     aria-describedby="password-rules"
-                    style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}
+                    style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     aria-label={showPass ? 'Hide password' : 'Show password'}
@@ -749,7 +749,7 @@ export default function AuthPage() {
                 Object.values(fieldStatus).includes('checking')
               }
                 className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'#B8511E', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
+                style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
                 {loading ? 'Creating account...' :
                  Object.values(fieldStatus).includes('checking') ? 'Checking availability...' :
                  'Create Account'}
@@ -761,7 +761,7 @@ export default function AuthPage() {
             /* ── Sign In ── */
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'#17211B' }}>Welcome back.</h1>
+                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Welcome back.</h1>
                 <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Sign in to continue where you left off.</p>
               </div>
               <div>
@@ -770,7 +770,7 @@ export default function AuthPage() {
                 <input className="input w-full" type="email" placeholder="your@email.com"
                   value={form.email} onChange={setField('email')}
                   autoComplete="email"
-                  style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
@@ -780,7 +780,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={form.password} onChange={setField('password')}
                     autoComplete="current-password"
-                    style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                    style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -789,11 +789,11 @@ export default function AuthPage() {
               </div>
               <button type="submit" disabled={loading}
                 className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'#B8511E', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
+                style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
               <button type="button" onClick={handleForgotPassword}
-                className="w-full py-2 text-sm font-semibold" style={{ color:'#B8511E' }}>
+                className="w-full py-2 text-sm font-semibold" style={{ color:'var(--dm-terracotta)' }}>
                 Forgot password?
               </button>
             </form>

@@ -19,14 +19,14 @@ export default function BookingReceipt({ booking, onClose }) {
         style={{ backgroundColor: '#FFFAF5' }}>
 
         {/* Header */}
-        <div className="p-5 text-center relative" style={{ backgroundColor: '#17211B' }}>
+        <div className="p-5 text-center relative" style={{ backgroundColor: 'var(--dm-deep)' }}>
           <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
             <X size={14} color="white" />
           </button>
           <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
             style={{ backgroundColor: 'rgba(122,158,126,0.2)' }}>
-            <Check size={24} style={{ color: '#7A9E7E' }} />
+            <Check size={24} style={{ color: 'var(--dm-sage)' }} />
           </div>
           <h3 className="font-display font-black text-xl text-white">Booking Confirmed!</h3>
           <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -46,8 +46,8 @@ export default function BookingReceipt({ booking, onClose }) {
           ].map(({ label, value }) => value && (
             <div key={label} className="flex justify-between items-center py-2 border-b"
               style={{ borderColor: '#F0E8DC' }}>
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#647068' }}>{label}</span>
-              <span className="text-sm font-semibold" style={{ color: '#17211B' }}>{value}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--dm-warm)' }}>{label}</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>{value}</span>
             </div>
           ))}
         </div>
@@ -56,7 +56,7 @@ export default function BookingReceipt({ booking, onClose }) {
         <div className="flex gap-3 px-5 pb-5">
           <button onClick={handleShare}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold border"
-            style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
+            style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
             <Share2 size={14} /> Share
           </button>
           <button onClick={onClose} className="btn-primary flex-1 py-3 text-sm">Done</button>

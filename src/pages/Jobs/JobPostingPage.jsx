@@ -69,12 +69,12 @@ function LeaveReview({ transactionId, providerId, reviewerId }) {
 
   if (existing === undefined) return null
   if (existing) {
-    return <p className="text-xs text-center py-4" style={{ color: '#647068' }}>You rated this job {existing.rating}/5. Thank you.</p>
+    return <p className="text-xs text-center py-4" style={{ color: 'var(--dm-warm)' }}>You rated this job {existing.rating}/5. Thank you.</p>
   }
 
   return (
     <div className="mt-6 rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
-      <p className="text-sm font-semibold mb-3" style={{ color: '#17211B' }}>How did it go?</p>
+      <p className="text-sm font-semibold mb-3" style={{ color: 'var(--dm-deep)' }}>How did it go?</p>
       <div className="flex gap-1 mb-3" role="radiogroup" aria-label="Rating">
         {[1, 2, 3, 4, 5].map(n => (
           <button key={n} type="button" role="radio" aria-checked={rating === n} onClick={() => setRating(n)}
@@ -86,7 +86,7 @@ function LeaveReview({ transactionId, providerId, reviewerId }) {
         placeholder="Optional: tell others about the work" className="input mb-3" />
       <button onClick={submit} disabled={saving || rating < 1}
         className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50"
-        style={{ backgroundColor: '#B8511E' }}>
+        style={{ backgroundColor: 'var(--dm-terracotta)' }}>
         {saving ? 'Saving…' : 'Submit review'}
       </button>
     </div>
@@ -322,7 +322,7 @@ export default function JobPostingPage() {
 
   if (loadingExisting) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
-      <p className="text-sm" style={{ color: '#647068' }}>Loading job...</p>
+      <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading job...</p>
     </div>
   )
 
@@ -334,13 +334,13 @@ export default function JobPostingPage() {
         style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
         <button onClick={() => navigate(-1)}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFFFF' }}>
-          <ArrowLeft size={16} style={{ color: '#17211B' }} />
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
-        <span className="font-display font-black text-base" style={{ color: '#17211B' }}>Post a Request</span>
+        <span className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>Post a Request</span>
         {transaction && (
           <span className="ml-auto text-[11px] font-bold px-2.5 py-1 rounded-full"
-            style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
+            style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
             {STATUS_LABEL[transaction.status] || transaction.status}
           </span>
         )}
@@ -351,7 +351,7 @@ export default function JobPostingPage() {
         {!transaction && (
           <div className="md:grid md:grid-cols-[1fr,340px] md:gap-8 md:items-start">
           <div>
-            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
               <button onClick={() => setToggle('book')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
@@ -370,41 +370,41 @@ export default function JobPostingPage() {
               </button>
             </div>
 
-            <p className="text-xs mb-4 px-1" style={{ color: '#647068' }}>
+            <p className="text-xs mb-4 px-1" style={{ color: 'var(--dm-warm)' }}>
               {toggle === 'book'
                 ? 'We notify the nearest available provider right away at your fixed budget. They can accept or decline - no back-and-forth.'
                 : 'Your job stays open and providers send in price offers. You compare and pick whichever works best for you.'}
             </p>
 
-            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
               <div>
-                <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>What do you need? *</p>
+                <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>What do you need? *</p>
                 <input value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="I need a plumber to fix a leaking pipe"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: '#17211B' }} />
+                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: 'var(--dm-deep)' }} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>Location *</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>Location *</p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
                     style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
-                    <MapPin size={13} style={{ color: '#B8511E' }} />
+                    <MapPin size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
                       placeholder="e.g. Lekki, Lagos"
-                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
+                      className="w-full text-sm outline-none bg-transparent" style={{ color: 'var(--dm-deep)' }} />
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>
                     {toggle === 'book' ? 'Your fixed budget' : 'Starting budget (optional)'}
                   </p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
                     style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
-                    <Wallet size={13} style={{ color: '#B8511E' }} />
+                    <Wallet size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={budget} onChange={e => setBudget(e.target.value)}
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
-                      className="w-full text-sm outline-none bg-transparent" style={{ color: '#17211B' }} />
+                      className="w-full text-sm outline-none bg-transparent" style={{ color: 'var(--dm-deep)' }} />
                   </div>
                   <p className="text-[11px] mt-1" style={{ color: '#B5A99C' }}>
                     {toggle === 'book'
@@ -417,7 +417,7 @@ export default function JobPostingPage() {
 
             <button onClick={submit} disabled={posting}
               className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50"
-              style={{ backgroundColor: '#B8511E' }}>
+              style={{ backgroundColor: 'var(--dm-terracotta)' }}>
               {posting ? 'Posting...' : toggle === 'book' ? 'Send Request' : 'Post Job'}
             </button>
           </div>
@@ -456,18 +456,18 @@ export default function JobPostingPage() {
 
         {transaction && (
           <>
-            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <p className="text-sm font-semibold" style={{ color: '#17211B' }}>{transaction.attributes?.description}</p>
-              <p className="text-xs mt-1" style={{ color: '#647068' }}>{transaction.attributes?.location}</p>
+            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>{transaction.attributes?.description}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>{transaction.attributes?.location}</p>
             </div>
 
             {/* OPEN + reverse-bid: bids list */}
             {transaction.status === 'OPEN' && transaction.model === 'MULTI_ATTRIBUTE_REVERSE' && (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-black text-base" style={{ color: '#17211B' }}>Bids coming in</h3>
+                  <h3 className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>Bids coming in</h3>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
+                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
                     {bids.length} {bids.length === 1 ? 'bid' : 'bids'}
                   </span>
                 </div>
@@ -483,15 +483,15 @@ export default function JobPostingPage() {
                           style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                           {b.providerProfile?.avatar_url
                             ? <img src={b.providerProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                            : <User size={16} style={{ color: '#B8511E' }} />}
+                            : <User size={16} style={{ color: 'var(--dm-terracotta)' }} />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{b.providerProfile?.full_name || 'Provider'}</p>
+                          <p className="text-xs font-semibold" style={{ color: 'var(--dm-deep)' }}>{b.providerProfile?.full_name || 'Provider'}</p>
                           {b.attributes?.eta_minutes && (
-                            <p className="text-[11px]" style={{ color: '#647068' }}>Can start today · {b.attributes.eta_minutes}m ETA</p>
+                            <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Can start today · {b.attributes.eta_minutes}m ETA</p>
                           )}
                         </div>
-                        <p className="font-black text-sm flex-shrink-0" style={{ color: '#17211B' }}>
+                        <p className="font-black text-sm flex-shrink-0" style={{ color: 'var(--dm-deep)' }}>
                           ₦{(b.amount_cents / 100).toLocaleString()}
                         </p>
                         {b.status === 'ACCEPTED' ? (
@@ -504,12 +504,12 @@ export default function JobPostingPage() {
                           <div className="flex gap-1.5 flex-shrink-0">
                             <button onClick={() => acceptBid(b)}
                               className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-white"
-                              style={{ backgroundColor: '#7A9E7E' }}>
+                              style={{ backgroundColor: 'var(--dm-sage)' }}>
                               Accept
                             </button>
                             <button onClick={() => counterBid(b)}
                               className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border"
-                              style={{ borderColor: '#DEDDD6', color: '#5C4A3A' }}>
+                              style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
                               Counter
                             </button>
                           </div>
@@ -538,14 +538,14 @@ export default function JobPostingPage() {
 
             {/* PENDING: bid/request accepted, awaiting escrow */}
             {transaction.status === 'PENDING' && isRequester && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-                <p className="text-sm font-semibold mb-1" style={{ color: '#17211B' }}>Accepted - pay for protection to proceed</p>
-                <p className="text-xs mb-3" style={{ color: '#647068' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+                <p className="text-sm font-semibold mb-1" style={{ color: 'var(--dm-deep)' }}>Accepted - pay for protection to proceed</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--dm-warm)' }}>
                   {formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)} will be held until you confirm the job is done.
                 </p>
                 <button onClick={fundEscrow} disabled={fundingEscrow}
                   className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: '#B8511E' }}>
+                  style={{ backgroundColor: 'var(--dm-terracotta)' }}>
                   <Lock size={14} /> {fundingEscrow ? 'Opening payment...' : `Pay for Protection - ${formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)}`}
                 </button>
               </div>
@@ -560,7 +560,7 @@ export default function JobPostingPage() {
             {isRequester && (transaction.status === 'OPEN' || transaction.status === 'PENDING') && (
               <button onClick={cancelJob} disabled={cancelling}
                 className="w-full py-3 rounded-2xl text-sm font-bold border disabled:opacity-50 mt-3"
-                style={{ borderColor: '#DEDDD6', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
+                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
                 {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
@@ -568,24 +568,24 @@ export default function JobPostingPage() {
             {/* FUNDED: work in progress, both sides confirm independently,
                 the transaction only reaches COMPLETED once both have. */}
             {transaction.status === 'FUNDED' && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Lock size={14} style={{ color: '#5C8060' }} />
-                  <p className="text-sm font-semibold" style={{ color: '#17211B' }}>Protection funded</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Protection funded</p>
                 </div>
 
-                <div className="flex items-center gap-2 mb-3 text-xs" style={{ color: '#647068' }}>
+                <div className="flex items-center gap-2 mb-3 text-xs" style={{ color: 'var(--dm-warm)' }}>
                   <span>{transaction.buyer_confirmed_at ? '✓' : '○'} Requester confirmed</span>
                   <span>·</span>
                   <span>{transaction.provider_confirmed_at ? '✓' : '○'} Provider confirmed</span>
                 </div>
 
                 {(isRequester && transaction.buyer_confirmed_at) || (!isRequester && transaction.provider_confirmed_at) ? (
-                  <p className="text-xs" style={{ color: '#647068' }}>You've confirmed. Waiting on the other side before this releases.</p>
+                  <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>You've confirmed. Waiting on the other side before this releases.</p>
                 ) : (
                   <button onClick={markComplete} disabled={completing}
                     className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50"
-                    style={{ backgroundColor: '#7A9E7E' }}>
+                    style={{ backgroundColor: 'var(--dm-sage)' }}>
                     {completing ? 'Confirming...' : 'Confirm Job Done'}
                   </button>
                 )}
@@ -594,7 +594,7 @@ export default function JobPostingPage() {
 
             {transaction.status === 'COMPLETED' && (
               <>
-                <p className="text-xs text-center py-8" style={{ color: '#7A9E7E' }}>
+                <p className="text-xs text-center py-8" style={{ color: 'var(--dm-sage)' }}>
                   Job complete. Payout processed per the protection terms.
                 </p>
                 {isRequester && transaction.provider_id && (

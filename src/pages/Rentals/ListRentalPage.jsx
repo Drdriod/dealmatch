@@ -52,10 +52,10 @@ export default function ListRentalPage() {
       content: (
         <div className="space-y-4">
           <div>
-            <h2 className="font-display text-2xl font-black mb-1" style={{ color:'#17211B' }}>
+            <h2 className="font-display text-2xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>
               {isHotel ? 'List your hotel or short-let' : 'List your rental'}
             </h2>
-            <p className="text-sm" style={{ color:'#647068' }}>A DealMatch agent will verify the property before it appears to renters.</p>
+            <p className="text-sm" style={{ color:'var(--dm-warm)' }}>A DealMatch agent will verify the property before it appears to renters.</p>
           </div>
 
           {/* Category selector for hotel types */}
@@ -86,12 +86,12 @@ export default function ListRentalPage() {
             <div key={f.key}>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
               <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
           ))}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>State *</label>
-            <select className="select" value={form.state} onChange={set('state')} style={{ backgroundColor:'#FFFFFF', color:'#17211B' }}>
+            <select className="select" value={form.state} onChange={set('state')} style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
               <option value="">Choose a state</option>
               {STATES.map(s => <option key={s}>{s}</option>)}
             </select>
@@ -105,7 +105,7 @@ export default function ListRentalPage() {
       valid: () => !!form.size_sqm && form.images.length > 0,
       content: (
         <div className="space-y-4">
-          <h2 className="font-display text-2xl font-black mb-1" style={{ color:'#17211B' }}>Details and photos</h2>
+          <h2 className="font-display text-2xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Details and photos</h2>
 
           <div className="grid grid-cols-2 gap-3">
             {!isHotel && (
@@ -113,25 +113,25 @@ export default function ListRentalPage() {
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Bedrooms</label>
                   <input type="number" min="0" value={form.bedrooms} onChange={set('bedrooms')} placeholder="0"
-                    className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                    className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Bathrooms</label>
                   <input type="number" min="0" value={form.bathrooms} onChange={set('bathrooms')} placeholder="0"
-                    className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                    className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                 </div>
               </>
             )}
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Size (sqm) *</label>
               <input type="number" min="0" value={form.size_sqm} onChange={set('size_sqm')} placeholder="e.g. 120"
-                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
             {isHotel && (
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Maximum guests</label>
                 <input type="number" min="1" value={form.max_guests} onChange={set('max_guests')} placeholder="e.g. 4"
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
             )}
           </div>
@@ -153,16 +153,16 @@ export default function ListRentalPage() {
           {/* Photos: multiple upload */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>
-              Photos * {form.images.length > 0 ? <span style={{ color:'#7A9E7E' }}>({form.images.length} added)</span> : <span style={{ color:'#B8511E' }}>required</span>}
+              Photos * {form.images.length > 0 ? <span style={{ color:'var(--dm-sage)' }}>({form.images.length} added)</span> : <span style={{ color:'var(--dm-terracotta)' }}>required</span>}
             </label>
             <div className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all"
               style={{ borderColor: form.images.length > 0 ? '#7A9E7E' : '#B8511E', backgroundColor: form.images.length > 0 ? 'rgba(122,158,126,0.04)' : 'rgba(200,95,45,0.03)' }}
               onClick={() => document.getElementById('rental-img-input').click()}>
               <div className="flex justify-center mb-2">{form.images.length > 0 ? <CheckCircle size={36} className="text-green-600" /> : <Camera size={36} className="text-muted" />}</div>
-              <p className="text-sm font-semibold" style={{ color:'#17211B' }}>
+              <p className="text-sm font-semibold" style={{ color:'var(--dm-deep)' }}>
                 {form.images.length > 0 ? `${form.images.length} photos added: tap to add more` : 'Tap to add photos'}
               </p>
-              <p className="text-xs mt-1" style={{ color:'#647068' }}>JPG or PNG, up to 10MB each. Add as many as you can.</p>
+              <p className="text-xs mt-1" style={{ color:'var(--dm-warm)' }}>JPG or PNG, up to 10MB each. Add as many as you can.</p>
               <input id="rental-img-input" type="file" accept="image/*" multiple className="hidden"
                 onChange={e => {
                   const files = Array.from(e.target.files || [])
@@ -201,12 +201,12 @@ export default function ListRentalPage() {
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Video tour (optional, but it helps)</label>
             <input type="url" value={form.video_url} onChange={set('video_url')}
               placeholder="Paste a YouTube or Loom link, or add a video below"
-              className="input text-sm mb-2" style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+              className="input text-sm mb-2" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             {!form.video_url && (
               <div className="border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer"
-                style={{ borderColor:'#DEDDD6' }}
+                style={{ borderColor:'var(--dm-line)' }}
                 onClick={() => document.getElementById('rental-video-input').click()}>
-                <p className="text-xs" style={{ color:'#647068' }}>Or tap to upload a video file (MP4, MOV)</p>
+                <p className="text-xs" style={{ color:'var(--dm-warm)' }}>Or tap to upload a video file (MP4, MOV)</p>
                 <input id="rental-video-input" type="file" accept="video/*" className="hidden"
                   onChange={e => { if (e.target.files[0]) { setForm(f => ({ ...f, video_url: URL.createObjectURL(e.target.files[0]) })); toast.success('Video added.') } }} />
               </div>
@@ -218,7 +218,7 @@ export default function ListRentalPage() {
             <textarea className="input resize-none" rows={4}
               placeholder={`Describe the ${isHotel ? 'hotel or short-let' : 'property'}: where it is, how to get there, nearby landmarks and what makes it special.`}
               value={form.description} onChange={set('description')}
-              style={{ backgroundColor:'#FFFFFF', color:'#17211B' }} />
+              style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
           </div>
         </div>
       ),
@@ -303,17 +303,17 @@ export default function ListRentalPage() {
     <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor:'#FFFAF5' }}>
       <div className="w-full max-w-sm text-center">
         <div className="flex justify-center mb-5"><PartyPopper size={56} className="text-gold" /></div>
-        <h1 className="font-display text-3xl font-black mb-2" style={{ color:'#17211B' }}>Your listing has been submitted.</h1>
-        <p className="text-sm leading-relaxed mb-3" style={{ color:'#647068' }}>
+        <h1 className="font-display text-3xl font-black mb-2" style={{ color:'var(--dm-deep)' }}>Your listing has been submitted.</h1>
+        <p className="text-sm leading-relaxed mb-3" style={{ color:'var(--dm-warm)' }}>
           Your {isHotel ? 'hotel or short-let' : 'rental'} has been submitted. A DealMatch agent will verify the property before it appears to renters.
         </p>
-        {listingId && <p className="text-sm font-semibold mb-2" style={{ color:'#7A9E7E' }}>Reference: {listingId}</p>}
-        <p className="text-xs mb-5" style={{ color:'#B8511E' }}>Check your dashboard for its status.</p>
+        {listingId && <p className="text-sm font-semibold mb-2" style={{ color:'var(--dm-sage)' }}>Reference: {listingId}</p>}
+        <p className="text-xs mb-5" style={{ color:'var(--dm-terracotta)' }}>Check your dashboard for its status.</p>
         <VerifyReminder returnTo="/landlord" className="mb-6" />
         <div className="space-y-3">
           <button onClick={() => navigate('/landlord')} className="btn-primary w-full py-4">Go to Dashboard →</button>
           <button onClick={() => { setSaved(false); setListingId(null); setSubmitError(''); setStep(0); setForm({ title:'', state:'', city:'', address:'', price:'', description:'', features:[], images:[], video_url:'', bedrooms:'', bathrooms:'', size_sqm:'', max_guests:'', category: type, category_id: null }) }}
-            className="w-full py-3 rounded-2xl text-sm border" style={{ borderColor:'#DEDDD6', color:'#5C4A3A' }}>
+            className="w-full py-3 rounded-2xl text-sm border" style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>
             List Another Property
           </button>
         </div>
@@ -325,9 +325,9 @@ export default function ListRentalPage() {
     <div className="min-h-screen pt-24 pb-16" style={{ backgroundColor:'#FFFAF5' }}>
       <div className="max-w-lg mx-auto px-4">
         <div className="mb-8">
-          <p className="text-sm mb-4" style={{ color:'#647068' }}>Step {step + 1} of {steps.length}: {current.title}</p>
+          <p className="text-sm mb-4" style={{ color:'var(--dm-warm)' }}>Step {step + 1} of {steps.length}: {current.title}</p>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
-            <div className="h-full rounded-full transition-all" style={{ width:`${((step+1)/steps.length)*100}%`, backgroundColor:'#B8511E' }} />
+            <div className="h-full rounded-full transition-all" style={{ width:`${((step+1)/steps.length)*100}%`, backgroundColor:'var(--dm-terracotta)' }} />
           </div>
         </div>
         <div>{current.content}</div>
@@ -343,10 +343,10 @@ export default function ListRentalPage() {
                   {agreed && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: '#17211B' }}>I agree to the DealMatch Listing Terms</p>
-                  <p className="text-xs mt-1 leading-relaxed" style={{ color: '#647068' }}>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>I agree to the DealMatch Listing Terms</p>
+                  <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--dm-warm)' }}>
                     I confirm this property is mine or I have authority to list it. I agree to DealMatch\'s{' '}
-                    <a href="/terms" target="_blank" className="underline" style={{ color: '#B8511E' }}>Terms of Service</a>.
+                    <a href="/terms" target="_blank" className="underline" style={{ color: 'var(--dm-terracotta)' }}>Terms of Service</a>.
                   </p>
                 </div>
               </div>
@@ -356,12 +356,12 @@ export default function ListRentalPage() {
         {saving && progress && (
           <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.2)' }}>
             <div style={{ width:14, height:14, borderRadius:'50%', flexShrink:0, border:'2px solid rgba(200,95,45,0.2)', borderTop:'2px solid #B8511E', animation:'spin 0.8s linear infinite' }} />
-            <p className="text-xs font-medium" style={{ color:'#B8511E' }}>{progress}</p>
+            <p className="text-xs font-medium" style={{ color:'var(--dm-terracotta)' }}>{progress}</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
         <div className="flex gap-3 mt-8">
-          {step > 0 && <button onClick={() => setStep(s => s-1)} disabled={saving} className="px-5 py-4 rounded-2xl text-sm font-semibold border" style={{ borderColor:'#DEDDD6', color:'#647068', backgroundColor:'#FFFFFF' }}>←</button>}
+          {step > 0 && <button onClick={() => setStep(s => s-1)} disabled={saving} className="px-5 py-4 rounded-2xl text-sm font-semibold border" style={{ borderColor:'var(--dm-line)', color:'var(--dm-warm)', backgroundColor:'#FFFFFF' }}>←</button>}
           <button
             onClick={() => { if (!current.valid()) { toast.error('Complete the required fields to continue.'); return } if (isLast) handleSubmit(); else setStep(s => s+1) }}
             disabled={saving || !current.valid()}

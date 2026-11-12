@@ -107,7 +107,7 @@ export default function PropertyPage() {
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
         <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta animate-bounce" /></div>
-        <p className="text-sm" style={{ color: '#647068' }}>Loading the details…</p>
+        <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading the details…</p>
       </div>
     </div>
   )
@@ -116,7 +116,7 @@ export default function PropertyPage() {
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="text-center">
         <div className="flex justify-center mb-4"><Frown size={40} className="text-muted" /></div>
-        <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>We couldn't find this listing</h2>
+        <h2 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>We couldn't find this listing</h2>
         <button onClick={() => navigate('/browse')} className="btn-primary px-6 py-3 text-sm">Explore Places</button>
       </div>
     </div>
@@ -130,16 +130,16 @@ export default function PropertyPage() {
         style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
         <button onClick={() => navigate(-1)}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFFFF' }}>
-          <ArrowLeft size={16} style={{ color: '#17211B' }} />
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
-        <span className="font-display font-black text-base capitalize" style={{ color: '#17211B' }}>
+        <span className="font-display font-black text-base capitalize" style={{ color: 'var(--dm-deep)' }}>
           {property.property_type || 'Property'}
         </span>
         <button onClick={handleShare}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: '#DEDDD6', backgroundColor: '#FFFFFF' }}>
-          <Share2 size={16} style={{ color: '#17211B' }} />
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          <Share2 size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
       </div>
 
@@ -153,62 +153,62 @@ export default function PropertyPage() {
         {/* Price & title */}
         <div className="mb-4">
           <div className="flex items-start justify-between gap-3 mb-1">
-            <h1 className="font-display font-black text-3xl" style={{ color: '#B8511E' }}>
+            <h1 className="font-display font-black text-3xl" style={{ color: 'var(--dm-terracotta)' }}>
               {formatPrice(property.price)}
             </h1>
             <span className="px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0"
-              style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
+              style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
               {property.listing_type}
             </span>
           </div>
-          <h2 className="font-display font-black text-xl mb-2" style={{ color: '#17211B' }}>
+          <h2 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>
             {property.title}
           </h2>
-          <div className="flex items-center gap-1.5 text-sm" style={{ color: '#647068' }}>
-            <MapPin size={14} style={{ color: '#B8511E' }} />
+          <div className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--dm-warm)' }}>
+            <MapPin size={14} style={{ color: 'var(--dm-terracotta)' }} />
             <span>{property.city}, {property.state}</span>
           </div>
         </div>
 
-        <h2 className="font-display font-black text-xl mb-3" style={{ color: '#17211B' }}>Explore the details before you decide.</h2>
+        <h2 className="font-display font-black text-xl mb-3" style={{ color: 'var(--dm-deep)' }}>Explore the details before you decide.</h2>
 
         {/* Key stats */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {property.bedrooms  && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Bed size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
-              <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.bedrooms}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>Bedrooms</p>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <Bed size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
+              <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.bedrooms}</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Bedrooms</p>
             </div>
           )}
           {property.bathrooms && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Bath size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
-              <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.bathrooms}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>Bathrooms</p>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <Bath size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
+              <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.bathrooms}</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Bathrooms</p>
             </div>
           )}
           {property.size_sqm  && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-              <Maximize size={18} className="mx-auto mb-1" style={{ color: '#B8511E' }} />
-              <p className="font-black text-lg" style={{ color: '#17211B' }}>{property.size_sqm}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>sqm</p>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <Maximize size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
+              <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.size_sqm}</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>sqm</p>
             </div>
           )}
         </div>
 
         {/* Description */}
         {property.description && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-2" style={{ color: '#17211B' }}>Overview</h3>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-2" style={{ color: 'var(--dm-deep)' }}>Overview</h3>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{property.description}</p>
           </div>
         )}
 
         {/* Features */}
         {property.features?.length > 0 && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Details</h3>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>Details</h3>
             <div className="flex flex-wrap gap-2">
               {property.features.map(f => (
                 <span key={f} className="px-3 py-1.5 rounded-full text-xs font-semibold"
@@ -222,12 +222,12 @@ export default function PropertyPage() {
 
         {/* Documents */}
         {property.documents?.length > 0 && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
-            <h3 className="font-display font-black text-base mb-3" style={{ color: '#17211B' }}>Documents available</h3>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>Documents available</h3>
             <div className="space-y-2">
               {property.documents.map(d => (
                 <div key={d} className="flex items-center gap-2 text-sm">
-                  <Shield size={13} style={{ color: '#7A9E7E' }} />
+                  <Shield size={13} style={{ color: 'var(--dm-sage)' }} />
                   <span style={{ color: '#5C4A3A' }}>{d}</span>
                 </div>
               ))}
@@ -243,7 +243,7 @@ export default function PropertyPage() {
         {/* Seller */}
         {property.profiles && (
           <div className="rounded-2xl p-4 mb-5 border flex items-center gap-3"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#DEDDD6' }}>
+            style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
               {property.profiles.avatar_url
@@ -252,8 +252,8 @@ export default function PropertyPage() {
               }
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color: '#17211B' }}>{property.profiles.full_name}</p>
-              <p className="text-xs" style={{ color: '#647068' }}>Listed by</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{property.profiles.full_name}</p>
+              <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Listed by</p>
             </div>
           </div>
         )}
@@ -279,7 +279,7 @@ export default function PropertyPage() {
           </button>
         </div>
         {!contact?.phone && contactChecked && (
-          <p className="text-center text-[11px] mt-2" style={{ color: '#647068' }}>
+          <p className="text-center text-[11px] mt-2" style={{ color: 'var(--dm-warm)' }}>
             Phone locked. Contact details unlock once your payment is placed under DealMatch Protection. Review the details, understand the terms and know what you're agreeing to before proceeding.
           </p>
         )}

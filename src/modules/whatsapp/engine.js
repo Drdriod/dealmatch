@@ -18,6 +18,7 @@
  * The engine only talks to `store` and `cloud` (see store.js / cloud.js).
  */
 import { screenText, cleanText, parseNaira, formatNaira, normalizeWaId, isAllowedCountry } from './guard.js'
+import { log } from '../../lib/logger.js'
 
 export const CONSENT_VERSION = '2026-10-v1'
 
@@ -100,7 +101,7 @@ function parseInput(msg) {
 }
 
 // One-line operational diagnostics. Shown in Vercel logs as level "info"; never logs message text or full numbers.
-function diag(msg) { console.log(`[wa] ${msg}`) }
+function diag(msg) { log.info('whatsapp.diag', { msg }) }
 
 export function createEngine({ store, cloud, appUrl, allowedCountryCodes = ['234'], phoneNumberId = null }) {
   const url = path => `${appUrl}${path}`

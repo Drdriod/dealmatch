@@ -24,6 +24,7 @@ import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
 import { creditToEvent, fulfilEvent } from '../src/lib/chargePipeline.js'
 import { findPayoutByGatewayRef } from '../src/data/webhookRepository.js'
+import { log } from '../src/lib/logger.js'
 
 // ✅ SECURITY: timing-safe check of the flutterwave-signature header
 // (HMAC-SHA256 base64 over the raw body, keyed with the secret hash)
@@ -186,7 +187,7 @@ export default async function handler(req, res) {
 
         // ✅ SECURITY: idempotency: skip already-processed references
         if (processedRefs.has(reference)) {
-          console.log('Duplicate webhook, skipping:', reference)
+          log.info('webhook.duplicate_skipped', { reference })
           break
         }
         processedRefs.add(reference)

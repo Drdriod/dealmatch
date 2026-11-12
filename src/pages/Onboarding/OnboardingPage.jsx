@@ -227,12 +227,12 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FFFAF5' }}>
       <header className="max-w-md mx-auto flex items-center justify-between px-4 pt-5">
-        <Link to="/" className="flex items-center gap-2 font-display text-xl font-black" style={{ color: '#17211B' }}>
+        <Link to="/" className="flex items-center gap-2 font-display text-xl font-black" style={{ color: 'var(--dm-deep)' }}>
           <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />
           Deal<span style={{ color: '#C96A3A' }}>Match</span>
         </Link>
         <button type="button" onClick={() => finish({ skip: true })} disabled={saving}
-          className="text-sm font-semibold px-2 py-1" style={{ color: '#647068' }}>
+          className="text-sm font-semibold px-2 py-1" style={{ color: 'var(--dm-warm)' }}>
           Skip for now
         </button>
       </header>
@@ -240,12 +240,12 @@ export default function OnboardingPage() {
       <main className="max-w-md mx-auto px-4 pt-8 pb-10">
         {totalSteps > 1 && (
           <div className="mb-7">
-            <div className="flex items-center justify-between text-xs mb-2.5" style={{ color: '#647068' }}>
+            <div className="flex items-center justify-between text-xs mb-2.5" style={{ color: 'var(--dm-warm)' }}>
               <span>Step {stepNo} of {totalSteps}</span>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
               <div className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${(stepNo / totalSteps) * 100}%`, backgroundColor: '#B8511E' }} />
+                style={{ width: `${(stepNo / totalSteps) * 100}%`, backgroundColor: 'var(--dm-terracotta)' }} />
             </div>
           </div>
         )}
@@ -253,8 +253,8 @@ export default function OnboardingPage() {
         {stage === 'intent' && (
           <section>
             <div className="mb-6">
-              <h1 className="font-display text-3xl" style={{ color: '#17211B' }}>Welcome to DealMatch.</h1>
-              <p className="text-sm mt-1.5" style={{ color: '#647068' }}>What are you here to do?</p>
+              <h1 className="font-display text-3xl" style={{ color: 'var(--dm-deep)' }}>Welcome to DealMatch.</h1>
+              <p className="text-sm mt-1.5" style={{ color: 'var(--dm-warm)' }}>What are you here to do?</p>
             </div>
             <div className="space-y-3">
               {INTENT_CARDS.map(c => {
@@ -265,13 +265,13 @@ export default function OnboardingPage() {
                     className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
                     style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     <span className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={20} style={{ color: '#B8511E' }} />
+                      <Icon size={20} style={{ color: 'var(--dm-terracotta)' }} />
                     </span>
                     <span className="flex-1">
-                      <span className="block font-semibold text-sm" style={{ color: '#17211B' }}>{c.title}</span>
-                      <span className="block text-xs mt-0.5" style={{ color: '#647068' }}>{c.desc}</span>
+                      <span className="block font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{c.title}</span>
+                      <span className="block text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{c.desc}</span>
                     </span>
-                    <ArrowRight size={16} style={{ color: '#647068' }} />
+                    <ArrowRight size={16} style={{ color: 'var(--dm-warm)' }} />
                   </button>
                 )
               })}
@@ -282,8 +282,8 @@ export default function OnboardingPage() {
         {stage === 'details' && cfg && (
           <section>
             <div className="mb-6">
-              <h1 className="font-display text-3xl" style={{ color: '#17211B' }}>{cfg.title}</h1>
-              <p className="text-sm mt-1.5" style={{ color: '#647068' }}>{cfg.sub}</p>
+              <h1 className="font-display text-3xl" style={{ color: 'var(--dm-deep)' }}>{cfg.title}</h1>
+              <p className="text-sm mt-1.5" style={{ color: 'var(--dm-warm)' }}>{cfg.sub}</p>
             </div>
 
             <div className="space-y-2.5">
@@ -295,20 +295,20 @@ export default function OnboardingPage() {
                     className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border-2 text-left transition-all"
                     style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
                     <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={18} style={{ color: '#B8511E' }} />
+                      <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
                     </span>
                     <span className="flex-1">
-                      <span className="block font-semibold text-sm" style={{ color: '#17211B' }}>{o.label}</span>
-                      <span className="block text-xs mt-0.5" style={{ color: '#647068' }}>{o.desc}</span>
+                      <span className="block font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{o.label}</span>
+                      <span className="block text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{o.desc}</span>
                     </span>
-                    {active && <Check size={16} style={{ color: '#B8511E' }} />}
+                    {active && <Check size={16} style={{ color: 'var(--dm-terracotta)' }} />}
                   </button>
                 )
               })}
             </div>
 
             <label className="block mt-6">
-              <span className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#17211B' }}>{cfg.whereLabel}</span>
+              <span className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--dm-deep)' }}>{cfg.whereLabel}</span>
               <LocationField value={where} onChange={setWhere} placeholder={cfg.wherePlaceholder}
                 className="input w-full text-sm" ariaLabel={cfg.whereLabel} />
             </label>
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
             <div className="flex gap-3 mt-7">
               {usedChooser ? (
                 <button type="button" onClick={() => setStage('intent')} disabled={saving} aria-label="Back"
-                  className="px-5 py-4 rounded-2xl border" style={{ borderColor: '#DEDDD6', color: '#647068', backgroundColor: '#FFFFFF' }}>
+                  className="px-5 py-4 rounded-2xl border" style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)', backgroundColor: '#FFFFFF' }}>
                   <ArrowLeft size={16} />
                 </button>
               ) : null}
@@ -329,13 +329,13 @@ export default function OnboardingPage() {
 
             {!usedChooser && (
               <button type="button" onClick={() => { setUsedChooser(true); setStage('intent') }}
-                className="block mx-auto mt-4 text-xs font-semibold underline" style={{ color: '#647068' }}>
+                className="block mx-auto mt-4 text-xs font-semibold underline" style={{ color: 'var(--dm-warm)' }}>
                 Not what you are after? Change
               </button>
             )}
 
-            <p className="flex items-start gap-2 mt-6 text-xs leading-relaxed" style={{ color: '#647068' }}>
-              <ShieldCheck size={15} className="flex-shrink-0 mt-px" style={{ color: '#234C3A' }} />
+            <p className="flex items-start gap-2 mt-6 text-xs leading-relaxed" style={{ color: 'var(--dm-warm)' }}>
+              <ShieldCheck size={15} className="flex-shrink-0 mt-px" style={{ color: 'var(--dm-forest)' }} />
               <span>Verifying your identity is optional for now. You will only need it before a booking, payment or agreement.</span>
             </p>
           </section>

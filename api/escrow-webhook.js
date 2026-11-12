@@ -5,6 +5,7 @@
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { markEscrowFunded, markEscrowReleased, markEscrowRefunded } from '../src/data/escrowRepository.js'
+import { log } from '../src/lib/logger.js'
 
 function getSupabase() {
   return createClient(
@@ -65,7 +66,7 @@ export default async function handler(req, res) {
         if (!reference) break
         const { error } = await markEscrowFunded(supabase, reference, now)
         if (error) throw error
-        console.log('Escrow funded:', reference)
+        log.info('escrow.funded', { reference })
         break
       }
 
@@ -75,7 +76,7 @@ export default async function handler(req, res) {
         const { data: changed, error } = await markEscrowReleased(supabase, reference, now)
         if (error) throw error
         // Only a funded escrow is released. Anything else is logged, not applied.
-        if (changed?.length) console.log('Escrow released:', reference)
+        if (changed?.length) log.info('escrow.released', { reference })
         else console.warn('Escrow release ignored (not funded, or unknown reference):', reference)
         break
       }
@@ -85,7 +86,7 @@ export default async function handler(req, res) {
         if (!reference) break
         const { data: changed, error } = await markEscrowRefunded(supabase, reference)
         if (error) throw error
-        if (changed?.length) console.log('Escrow refunded:', reference)
+        if (changed?.length) log.info('escrow.refunded', { reference })
         else console.warn('Escrow refund ignored (not funded, or unknown reference):', reference)
         break
       }

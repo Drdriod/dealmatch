@@ -14,7 +14,7 @@ import { friendlyDbError } from '@/lib/dbErrors'
 import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from '../shared'
 
 // ── PLATFORM FEES (item 8) ──────────────────────────────────────────────
 // CRUD over the `commissions` table - get_active_commission()/
@@ -85,7 +85,7 @@ export function PlatformFeesTab() {
   return(
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={()=>setForm({})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'#D4A853',color:'#17211B'}}>
+        <button onClick={()=>setForm({})} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5" style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>
           <Plus size={14}/> New Fee Schedule
         </button>
       </div>
@@ -111,7 +111,7 @@ export function PlatformFeesTab() {
 
       {form&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:'rgba(0,0,0,0.6)'}}>
-          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'#17211B'}}>
+          <div className="rounded-2xl p-5 w-full max-w-sm space-y-3 max-h-[90vh] overflow-y-auto" style={{backgroundColor:'var(--dm-deep)'}}>
             <p className="text-sm font-bold text-white">New Fee Schedule</p>
             <div>
               <label className="text-xs block mb-1" style={{color:'rgba(255,255,255,0.5)'}}>Name</label>
@@ -123,7 +123,7 @@ export function PlatformFeesTab() {
               <select value={form.target_category_id||''} onChange={e=>setForm(f=>({...f,target_category_id:e.target.value||null}))}
                 className="w-full rounded-xl px-3 py-2.5 text-xs outline-none" style={{backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'white'}}>
                 <option value="">All categories</option>
-                {categories.map(c=><option key={c.id} value={c.id} style={{backgroundColor:'#17211B'}}>{c.name}</option>)}
+                {categories.map(c=><option key={c.id} value={c.id} style={{backgroundColor:'var(--dm-deep)'}}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -144,7 +144,7 @@ export function PlatformFeesTab() {
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={()=>setForm(null)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{backgroundColor:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.6)'}}>Cancel</button>
-              <button onClick={save} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'#D4A853',color:'#17211B'}}>Save</button>
+              <button onClick={save} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{backgroundColor:'var(--dm-gold)',color:'var(--dm-deep)'}}>Save</button>
             </div>
           </div>
         </div>
