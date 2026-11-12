@@ -102,9 +102,20 @@ DO $c$ BEGIN
 END $c$;
 RESET ROLE;
 
+-- ── 1b. A password-only session (aal1) must not act as staff (audit F-006)
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000a007","role":"authenticated","aal":"aal1"}', false);
+DO $c$ BEGIN
+  IF public.is_admin() OR public.is_staff() OR public.is_admin_staff() OR public.is_superadmin() THEN
+    RAISE NOTICE 'FAIL: password-only session acted as staff';
+  ELSE RAISE NOTICE 'PASS: password-only (aal1) session grants no staff access';
+  END IF;
+END $c$;
+RESET ROLE;
+
 -- ── 2. Founder and staff roles still work ─────────────────────────────────
 SET ROLE authenticated;
-SELECT set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000a007","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000a007","role":"authenticated","aal":"aal2"}', false);
 DO $c$ BEGIN
   RAISE NOTICE 'diag: is_admin=% is_staff=% is_admin_staff=% is_superadmin=% role=%', public.is_admin(), public.is_staff(), public.is_admin_staff(), public.is_superadmin(), public.get_my_role();
   IF public.is_admin() AND public.is_staff() AND public.is_admin_staff() AND public.is_superadmin() THEN
