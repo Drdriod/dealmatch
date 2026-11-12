@@ -16,11 +16,10 @@ import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Check, CheckCircle, Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { isAdminLoginLocked, recordAdminLoginAttempt, fetchStaffProfile } from '@/data/adminLoginRepository'
+import { canSignInToAdmin } from '@/lib/adminAccess'
 import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
 
-const ADMIN_EMAILS  = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
-const ALLOWED_ROLES = ['admin', 'superadmin', 'agent']
 
 // ─── Forgot Password View ────────────────────────────────────────────────────
 function ForgotPassword({ onBack }) {
@@ -171,10 +170,7 @@ export default function AdminLoginPage() {
 
       const { data: profile } = await fetchStaffProfile(data.user.id)
 
-      const isAdminEmail = ADMIN_EMAILS.includes(data.user.email)
-      const isAdminRole  = ALLOWED_ROLES.includes(profile?.role)
-
-      if (!isAdminEmail && !isAdminRole) {
+      if (!canSignInToAdmin(profile?.role)) {
         await supabase.auth.signOut()
         toast.error('Access denied. You do not have admin privileges.')
         setLoading(false)

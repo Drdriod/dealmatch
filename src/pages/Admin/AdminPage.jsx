@@ -16,7 +16,8 @@ import { usePlatformFees, formatPlatformFee } from '@/lib/platformFees'
 import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
-import { SUPERADMIN_EMAILS, STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from './shared'
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS, STATUS_LABELS, STATUS_COLORS, fmt, fmtNum, ago, maskEmail, maskPhone, adminFetch, auditLog, useReauthGate, Spinner, Badge, ActionBtn, SearchBar, StatCard, ConfirmModal, ImageLightbox, FilterBar, TH, TableWrap, TR, EmptyRow, PIPELINE_STAGES, FEE_INPUT_STYLE, FEE_LABEL_STYLE, AREA_LABEL, EMPTY_NEW_FEE, NAV_ITEMS } from './shared'
+import { isSuperadmin } from '@/lib/adminAccess'
 import { OverviewTab } from './tabs/OverviewTab'
 import { PropertiesTab } from './tabs/PropertiesTab'
 import { UsersTab } from './tabs/UsersTab'
@@ -48,7 +49,7 @@ export default function AdminPage() {
   const [sidebarOpen,setSidebarOpen]=useState(false)
   const [badges,setBadges]=useState({})
 
-  const isSuperAdmin=SUPERADMIN_EMAILS.includes(user?.email)
+  const isSuperAdmin=isSuperadmin(profile?.role)
   const adminName=profile?.full_name||user?.email?.split('@')[0]||'Admin'
   const activeTab=location.pathname.replace('/admin','').replace(/^\//,'')
 

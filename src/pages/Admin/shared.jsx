@@ -16,7 +16,6 @@ import { listCategories } from '@/modules/catalog/catalogService'
 import { fetchFeeHistory, fetchPendingRefunds, markRefundReturned, setPlatformFee, createPlatformFee } from '@/data/monetisationRepository'
 import { Sparkline, AreaChart, Donut, Panel, fmtNum as compactNum } from '@/components/charts/ChartKit'
 
-export const SUPERADMIN_EMAILS = ['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com']
 export const STAFF_ROLES       = ['agent', 'verifier', 'admin']
 // FIX: role and account_status used to be conflated (moderation status
 // living inside the same column as role) - see

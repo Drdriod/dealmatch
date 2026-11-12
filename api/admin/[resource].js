@@ -15,6 +15,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { redisRateLimit } from '../../src/lib/redis.js'
+import { isStaff, isSuperadmin, canSignInToAdmin, canMutateAdmin } from '../../src/lib/adminAccess.js'
 import {
   findCallerRole, findProfileRoleAndName, fetchStatsQueries, listUsers, findProfileForModeration,
   updateProfileById, insertAdminAudit, listTestimonials, updateTestimonialReview,
@@ -22,7 +23,6 @@ import {
 } from '../../src/data/adminApiRepository.js'
 
 const ALLOWED_ORIGIN = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
-const ADMIN_EMAILS   = new Set(['divineandbassey@gmail.com', 'prosperwithbassey@gmail.com'])
 
 function getServiceClient() {
   return createClient(
@@ -66,10 +66,7 @@ async function handleLogin(req, res) {
 
     const svc = getServiceClient()
     const { data: profile } = await findProfileRoleAndName(svc, data.user.id)
-    const isAdminEmail = ADMIN_EMAILS.has(data.user.email)
-    const isAdminRole  = new Set(['admin', 'agent']).has(profile?.role)
-
-    if (!isAdminEmail && !isAdminRole) {
+    if (!canSignInToAdmin(profile?.role)) {
       await anon.auth.signOut()
       return res.status(403).json({ error: 'Access denied. You do not have admin privileges.' })
     }
@@ -83,7 +80,7 @@ async function handleLogin(req, res) {
 // ─── /api/admin/stats ───────────────────────────────────────────────────
 async function handleStats(req, res, { user, callerProfile }) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  if (!ADMIN_EMAILS.has(user.email) && !new Set(['admin','agent','verifier']).has(callerProfile?.role)) {
+  if (!isStaff(callerProfile?.role)) {
     return res.status(403).json({ error: 'Forbidden' })
   }
   const rl = await redisRateLimit(req, 'admin_stats', 30, 60)
@@ -131,9 +128,9 @@ async function handleStats(req, res, { user, callerProfile }) {
 
 // ─── /api/admin/users ───────────────────────────────────────────────────
 async function handleUsers(req, res, { user, callerProfile }) {
-  const isSuperAdmin = ADMIN_EMAILS.has(user.email)
-  const canRead   = isSuperAdmin || new Set(['admin','agent','verifier']).has(callerProfile?.role)
-  const canMutate = isSuperAdmin || new Set(['admin']).has(callerProfile?.role)
+  const isSuperAdmin = isSuperadmin(callerProfile?.role)
+  const canRead   = isStaff(callerProfile?.role)
+  const canMutate = canMutateAdmin(callerProfile?.role)
   if (!canRead) return res.status(403).json({ error: 'Forbidden' })
   if (req.method === 'POST' && !canMutate) return res.status(403).json({ error: 'Forbidden' })
 
@@ -163,7 +160,7 @@ async function handleUsers(req, res, { user, callerProfile }) {
     if (!userId || typeof userId !== 'string') return res.status(400).json({ error: 'userId required' })
 
     const { data: target } = await findProfileForModeration(svc, userId)
-    if (ADMIN_EMAILS.has(target?.email)) return res.status(403).json({ error: 'Cannot modify superadmin' })
+    if (isSuperadmin(target?.role)) return res.status(403).json({ error: 'Cannot modify superadmin' })
 
     const ALLOWED_ACTIONS = new Set(['set_role','suspend','unsuspend','deactivate'])
     if (!ALLOWED_ACTIONS.has(action)) return res.status(400).json({ error: 'Invalid action' })
@@ -210,9 +207,8 @@ async function handleUsers(req, res, { user, callerProfile }) {
 
 // ─── /api/admin/testimonials ────────────────────────────────────────────
 async function handleTestimonials(req, res, { user, callerProfile }) {
-  const isSuperAdmin = ADMIN_EMAILS.has(user.email)
-  const canRead   = isSuperAdmin || new Set(['admin','agent','verifier']).has(callerProfile?.role)
-  const canMutate = isSuperAdmin || new Set(['admin']).has(callerProfile?.role)
+  const canRead   = isStaff(callerProfile?.role)
+  const canMutate = canMutateAdmin(callerProfile?.role)
   if (!canRead) return res.status(403).json({ error: 'Forbidden' })
   if (req.method === 'POST' && !canMutate) return res.status(403).json({ error: 'Forbidden' })
 
@@ -245,9 +241,8 @@ async function handleTestimonials(req, res, { user, callerProfile }) {
 // is recorded server-side in staff_invites and only ever applied by
 // accept_staff_invite() (see 20260828000004_staff_invite_flow.sql), so
 // nothing the invitee's browser sends can change which role they receive.
-async function handleStaffInvite(req, res, { user }) {
-  const isSuperAdmin = ADMIN_EMAILS.has(user.email)
-  if (!isSuperAdmin) return res.status(403).json({ error: 'Only the superadmin can invite staff' })
+async function handleStaffInvite(req, res, { user, callerProfile }) {
+  if (!isSuperadmin(callerProfile?.role)) return res.status(403).json({ error: 'Only the superadmin can invite staff' })
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const rl = await redisRateLimit(req, 'admin_staff_invite', 10, 60)
