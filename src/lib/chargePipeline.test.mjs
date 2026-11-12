@@ -8,7 +8,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { fakeSupabase } from './testing/fakeSupabase.mjs'
 import {
-  creditToEvent, fulfilEvent, processCharge, reconcileVirtualAccounts, verifyOwnPayment,
+  creditToEvent, fulfilEvent, processCharge, reconcileVirtualAccounts, verifyOwnPayment, processReferralChain,
 } from './chargePipeline.js'
 
 const quiet = () => {
@@ -222,5 +222,61 @@ test('fulfilEvent gives the lease back and rethrows when the handler fails', asy
     await assert.rejects(fulfilEvent(svc, event), /database down/)
     svc.from = fakeSupabase(svc.tables).from // restore
     assert.equal(row().status, 'paid')
+  } finally { restore() }
+})
+
+// ── Referral chain (audit F-001 / F-002) ──────────────────────────────────────
+// referral_transactions has a unique index on (payment_id, referrer_id, referral_level) and NOT NULL
+// referee_id / deal_amount / platform_fee. The fake below enforces both, so a missing column or a
+// second run for the same payment fails the way the real database does.
+function referralFake(inviters) {
+  const rows = []
+  const points = []
+  const notes = []
+  const svc = {
+    rows, points, notes,
+    from(table) {
+      const q = { table, filters: {} }
+      const chain = {
+        select() { return chain },
+        eq(col, val) { q.filters[col] = val; return chain },
+        single() {
+          if (table === 'profiles') return Promise.resolve({ data: { id: q.filters.id, invited_by: inviters[q.filters.id] || null } })
+          if (table === 'loyalty_points') return Promise.resolve({ data: null })
+          return Promise.resolve({ data: null })
+        },
+        insert(row) {
+          if (table === 'referral_transactions') {
+            for (const c of ['referrer_id', 'referee_id', 'deal_amount', 'platform_fee', 'transaction_type']) {
+              if (row[c] == null) return Promise.resolve({ error: { code: '23502', message: c + ' null' } })
+            }
+            if (rows.some(r => r.payment_id === row.payment_id && r.referrer_id === row.referrer_id && r.referral_level === row.referral_level)) {
+              return Promise.resolve({ error: { code: '23505', message: 'duplicate' } })
+            }
+            rows.push(row)
+          } else if (table === 'loyalty_points') points.push(row)
+          else if (table === 'notifications') notes.push(row)
+          return Promise.resolve({ error: null })
+        },
+      }
+      return chain
+    },
+  }
+  return svc
+}
+
+test('referral chain: rows carry the required columns and a second run for the same payment pays nobody twice', async () => {
+  const restore = quiet()
+  try {
+    const svc = referralFake({ buyer: 'ref1', ref1: 'ref2' })
+    await processReferralChain(svc, 'buyer', 100000, 'pay-1', 'property_sale', 6000000)
+    assert.equal(svc.rows.length, 2)
+    assert.equal(svc.rows[0].payment_id, 'pay-1')
+    assert.equal(svc.rows[0].referee_id, 'buyer')
+    assert.equal(svc.rows[0].deal_amount, 6000000)
+    const notesAfterFirst = svc.notes.length
+    await processReferralChain(svc, 'buyer', 100000, 'pay-1', 'property_sale', 6000000)
+    assert.equal(svc.rows.length, 2, 'the retry inserted nothing')
+    assert.equal(svc.notes.length, notesAfterFirst, 'the retry notified nobody')
   } finally { restore() }
 })
