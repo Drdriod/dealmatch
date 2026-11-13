@@ -332,7 +332,7 @@ export default function JobPostingPage() {
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
         style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
-        <button onClick={() => navigate(-1)}
+        <button onClick={() => navigate(-1)} aria-label="Go back"
           className="w-9 h-9 rounded-full flex items-center justify-center border"
           style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
@@ -356,7 +356,7 @@ export default function JobPostingPage() {
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
                   backgroundColor: toggle === 'book' ? '#B8511E' : 'transparent',
-                  color: toggle === 'book' ? '#FFFFFF' : '#647068',
+                  color: toggle === 'book' ? '#FFFFFF' : '#5C665F',
                 }}>
                 <Zap size={14} /> I need someone now
               </button>
@@ -364,7 +364,7 @@ export default function JobPostingPage() {
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
                   backgroundColor: toggle === 'bid' ? '#B8511E' : 'transparent',
-                  color: toggle === 'bid' ? '#FFFFFF' : '#647068',
+                  color: toggle === 'bid' ? '#FFFFFF' : '#5C665F',
                 }}>
                 <Gavel size={14} /> Let providers bid
               </button>

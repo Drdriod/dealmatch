@@ -22,7 +22,7 @@ export default function PlaceSubtypePicker({ category, propertyType, value, onCh
               className="px-3.5 py-2 rounded-full text-xs font-semibold border-2 transition-all"
               style={{
                 borderColor: selected ? '#B8511E' : '#DEDDD6',
-                color: selected ? '#B8511E' : '#647068',
+                color: selected ? '#B8511E' : '#5C665F',
                 backgroundColor: selected ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
               }}>
               {c.name}

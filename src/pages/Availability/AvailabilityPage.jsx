@@ -77,7 +77,7 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
                   style={{
                     borderColor: form.name === p ? '#B8511E' : '#DEDDD6',
                     backgroundColor: form.name === p ? 'rgba(200,95,45,0.08)' : '#FFFFFF',
-                    color: form.name === p ? '#B8511E' : '#647068',
+                    color: form.name === p ? '#B8511E' : '#5C665F',
                   }}>
                   {p}
                 </button>
@@ -176,7 +176,7 @@ function CategoryCard({ cat, onUpdate }) {
         <div>
           <h3 className="font-display font-black text-lg" style={{color:'#17211B'}}>{cat.name}</h3>
           {cat.price_per_night && (
-            <p className="text-xs mt-0.5" style={{color:'#647068'}}>
+            <p className="text-xs mt-0.5" style={{color:'#5C665F'}}>
               ₦{Number(cat.price_per_night).toLocaleString()}/night
             </p>
           )}
@@ -189,7 +189,7 @@ function CategoryCard({ cat, onUpdate }) {
 
       {/* Progress bar */}
       <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1.5" style={{color:'#647068'}}>
+        <div className="flex justify-between text-xs mb-1.5" style={{color:'#5C665F'}}>
           <span>{available} available</span>
           <span>{total} total</span>
         </div>
@@ -201,7 +201,7 @@ function CategoryCard({ cat, onUpdate }) {
 
       {/* Counter */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold" style={{color:'#647068'}}>
+        <p className="text-xs font-semibold" style={{color:'#5C665F'}}>
           Adjust available rooms:
         </p>
         <div className="flex items-center gap-3">
@@ -209,7 +209,7 @@ function CategoryCard({ cat, onUpdate }) {
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-all"
             style={{
               backgroundColor: available === 0 ? 'rgba(23,33,27,0.04)' : 'rgba(200,95,45,0.1)',
-              color: available === 0 ? '#647068' : '#B8511E',
+              color: available === 0 ? '#5C665F' : '#B8511E',
             }}>
             <Minus size={16} />
           </button>
@@ -221,7 +221,7 @@ function CategoryCard({ cat, onUpdate }) {
             className="w-9 h-9 rounded-xl flex items-center justify-center font-bold transition-all"
             style={{
               backgroundColor: available === total ? 'rgba(23,33,27,0.04)' : 'rgba(122,158,126,0.15)',
-              color: available === total ? '#647068' : '#7A9E7E',
+              color: available === total ? '#5C665F' : '#7A9E7E',
             }}>
             <Plus size={16} />
           </button>
@@ -234,7 +234,7 @@ function CategoryCard({ cat, onUpdate }) {
           className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
           style={{
             borderColor: 'rgba(200,95,45,0.3)',
-            color: available === 0 ? '#647068' : '#B8511E',
+            color: available === 0 ? '#5C665F' : '#B8511E',
             backgroundColor: available === 0 ? 'rgba(23,33,27,0.03)' : 'rgba(200,95,45,0.04)',
           }}>
           Mark All Booked
@@ -243,7 +243,7 @@ function CategoryCard({ cat, onUpdate }) {
           className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
           style={{
             borderColor: 'rgba(122,158,126,0.3)',
-            color: available === total ? '#647068' : '#7A9E7E',
+            color: available === total ? '#5C665F' : '#7A9E7E',
             backgroundColor: available === total ? 'rgba(23,33,27,0.03)' : 'rgba(122,158,126,0.06)',
           }}>
           All Available
@@ -251,7 +251,7 @@ function CategoryCard({ cat, onUpdate }) {
       </div>
 
       {cat.description && (
-        <p className="text-xs mt-3 pt-3 border-t" style={{color:'#647068', borderColor:'#DEDDD6'}}>
+        <p className="text-xs mt-3 pt-3 border-t" style={{color:'#5C665F', borderColor:'#DEDDD6'}}>
           {cat.description}
         </p>
       )}
@@ -320,7 +320,7 @@ export default function AvailabilityPage() {
           <h1 className="font-display text-2xl font-black" style={{color:'#17211B'}}>
             Listings Manager
           </h1>
-          <p className="text-xs mt-0.5" style={{color:'#647068'}}>
+          <p className="text-xs mt-0.5" style={{color:'#5C665F'}}>
             One place to manage every property type and prevent double bookings between onsite and online activity.
           </p>
         </div>
@@ -360,7 +360,7 @@ export default function AvailabilityPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20" style={{color:'#647068'}}>Loading...</div>
+          <div className="text-center py-20" style={{color:'#5C665F'}}>Loading...</div>
         ) : properties.length === 0 ? (
           <div className="rounded-2xl border p-8 text-center"
             style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
@@ -368,7 +368,7 @@ export default function AvailabilityPage() {
             <h3 className="font-display font-black text-xl mb-2" style={{color:'#17211B'}}>
               No hotels or short-lets listed
             </h3>
-            <p className="text-sm mb-5" style={{color:'#647068'}}>
+            <p className="text-sm mb-5" style={{color:'#5C665F'}}>
               List your hotel or short-let first to manage availability.
             </p>
             <a href="/list-rental?type=hotel" className="btn-primary px-6 py-3 text-sm inline-flex">
@@ -433,7 +433,7 @@ export default function AvailabilityPage() {
                 <p className="text-xs font-bold mb-1" style={{color:'#5C8060'}}>
                   How to prevent double bookings
                 </p>
-                <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+                <p className="text-xs leading-relaxed" style={{color:'#5C665F'}}>
                   When a room is booked offline, tap <strong>−</strong> to reduce available count. 
                   DealMatch automatically blocks online bookings when count reaches 0. 
                   When guest checks out, tap <strong>+</strong> to restore availability.
@@ -449,7 +449,7 @@ export default function AvailabilityPage() {
                 <p className="font-semibold text-sm mb-1" style={{color:'#17211B'}}>
                   No room categories yet
                 </p>
-                <p className="text-xs mb-4" style={{color:'#647068'}}>
+                <p className="text-xs mb-4" style={{color:'#5C665F'}}>
                   Add your room categories to start managing availability
                 </p>
               </div>
@@ -527,7 +527,7 @@ function RentalManagerPanel({ user }) {
     load()
   }
 
-  if (loading) return <div className="text-center py-20" style={{color:'#647068'}}>Loading...</div>
+  if (loading) return <div className="text-center py-20" style={{color:'#5C665F'}}>Loading...</div>
 
   if (rentals.length === 0) {
     return (
@@ -535,7 +535,7 @@ function RentalManagerPanel({ user }) {
         style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
         <div className="flex justify-center mb-4"><Home size={48} className="text-terracotta" /></div>
         <h3 className="font-display font-black text-xl mb-2" style={{color:'#17211B'}}>No rental units listed</h3>
-        <p className="text-sm mb-5" style={{color:'#647068'}}>List a rental property first to manage occupancy here.</p>
+        <p className="text-sm mb-5" style={{color:'#5C665F'}}>List a rental property first to manage occupancy here.</p>
         <a href="/list-rental" className="btn-primary px-6 py-3 text-sm inline-flex">List a Rental →</a>
       </div>
     )
@@ -546,7 +546,7 @@ function RentalManagerPanel({ user }) {
       <div className="rounded-2xl p-4 mb-5 flex gap-3"
         style={{backgroundColor:'rgba(122,158,126,0.08)', border:'1px solid rgba(122,158,126,0.2)'}}>
         <Lightbulb size={20} className="text-gold flex-shrink-0" />
-        <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+        <p className="text-xs leading-relaxed" style={{color:'#5C665F'}}>
           If a tenant signs the tenancy agreement in person, tap <strong>Mark Occupied</strong> right away.
           DealMatch instantly hides the listing from new enquiries so no one else books the same unit online.
         </p>
@@ -561,7 +561,7 @@ function RentalManagerPanel({ user }) {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="font-semibold text-sm" style={{color:'#17211B'}}>{r.title}</p>
-                  <p className="text-xs mt-0.5" style={{color:'#647068'}}>{r.city}, {r.state} · ₦{Number(r.price || 0).toLocaleString()}/yr</p>
+                  <p className="text-xs mt-0.5" style={{color:'#5C665F'}}>{r.city}, {r.state} · ₦{Number(r.price || 0).toLocaleString()}/yr</p>
                 </div>
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold"
                   style={{
@@ -639,7 +639,7 @@ function HostelManagerPanel({ user }) {
     load()
   }
 
-  if (loading) return <div className="text-center py-20" style={{color:'#647068'}}>Loading...</div>
+  if (loading) return <div className="text-center py-20" style={{color:'#5C665F'}}>Loading...</div>
 
   if (hostels.length === 0) {
     return (
@@ -647,7 +647,7 @@ function HostelManagerPanel({ user }) {
         style={{backgroundColor:'#FFFAF5', borderColor:'#DEDDD6'}}>
         <div className="flex justify-center mb-4"><GraduationCap size={48} className="text-purple-600" /></div>
         <h3 className="font-display font-black text-xl mb-2" style={{color:'#17211B'}}>No hostel rooms listed</h3>
-        <p className="text-sm mb-5" style={{color:'#647068'}}>List your student hostel rooms first to manage availability here.</p>
+        <p className="text-sm mb-5" style={{color:'#5C665F'}}>List your student hostel rooms first to manage availability here.</p>
         <a href="/list-hostel" className="btn-primary px-6 py-3 text-sm inline-flex">List a Hostel →</a>
       </div>
     )
@@ -658,7 +658,7 @@ function HostelManagerPanel({ user }) {
       <div className="rounded-2xl p-4 mb-5 flex gap-3"
         style={{backgroundColor:'rgba(122,158,126,0.08)', border:'1px solid rgba(122,158,126,0.2)'}}>
         <Lightbulb size={20} className="text-gold flex-shrink-0" />
-        <p className="text-xs leading-relaxed" style={{color:'#647068'}}>
+        <p className="text-xs leading-relaxed" style={{color:'#5C665F'}}>
           When a student pays and moves in offline, tap <strong>−</strong> to reduce available rooms.
           This keeps your hostel listing accurate so no two students are assigned the same bed.
         </p>
@@ -674,7 +674,7 @@ function HostelManagerPanel({ user }) {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="font-display font-black text-base" style={{color:'#17211B'}}>{h.title}</p>
-                  <p className="text-xs mt-0.5" style={{color:'#647068'}}>{h.city}, {h.state} · {h.room_type?.replace('_', ' ')}</p>
+                  <p className="text-xs mt-0.5" style={{color:'#5C665F'}}>{h.city}, {h.state} · {h.room_type?.replace('_', ' ')}</p>
                 </div>
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold"
                   style={{backgroundColor: statusColor + '15', color: statusColor}}>
@@ -683,7 +683,7 @@ function HostelManagerPanel({ user }) {
               </div>
 
               <div className="mb-4">
-                <div className="flex justify-between text-xs mb-1.5" style={{color:'#647068'}}>
+                <div className="flex justify-between text-xs mb-1.5" style={{color:'#5C665F'}}>
                   <span>{h.rooms_available} available</span>
                   <span>{h.total_rooms} total</span>
                 </div>
@@ -694,13 +694,13 @@ function HostelManagerPanel({ user }) {
               </div>
 
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold" style={{color:'#647068'}}>Adjust available rooms:</p>
+                <p className="text-xs font-semibold" style={{color:'#5C665F'}}>Adjust available rooms:</p>
                 <div className="flex items-center gap-3">
                   <button onClick={() => adjust(h, -1)} disabled={updating === h.id || h.rooms_available === 0}
                     className="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
                     style={{
                       backgroundColor: h.rooms_available === 0 ? 'rgba(23,33,27,0.04)' : 'rgba(200,95,45,0.1)',
-                      color: h.rooms_available === 0 ? '#647068' : '#B8511E',
+                      color: h.rooms_available === 0 ? '#5C665F' : '#B8511E',
                     }}>
                     <Minus size={16} />
                   </button>
@@ -711,7 +711,7 @@ function HostelManagerPanel({ user }) {
                     className="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
                     style={{
                       backgroundColor: h.rooms_available === h.total_rooms ? 'rgba(23,33,27,0.04)' : 'rgba(122,158,126,0.15)',
-                      color: h.rooms_available === h.total_rooms ? '#647068' : '#7A9E7E',
+                      color: h.rooms_available === h.total_rooms ? '#5C665F' : '#7A9E7E',
                     }}>
                     <Plus size={16} />
                   </button>
@@ -723,7 +723,7 @@ function HostelManagerPanel({ user }) {
                   className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
                   style={{
                     borderColor: 'rgba(200,95,45,0.3)',
-                    color: h.rooms_available === 0 ? '#647068' : '#B8511E',
+                    color: h.rooms_available === 0 ? '#5C665F' : '#B8511E',
                     backgroundColor: h.rooms_available === 0 ? 'rgba(23,33,27,0.03)' : 'rgba(200,95,45,0.04)',
                   }}>
                   Mark Full
@@ -732,7 +732,7 @@ function HostelManagerPanel({ user }) {
                   className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
                   style={{
                     borderColor: 'rgba(122,158,126,0.3)',
-                    color: h.rooms_available === h.total_rooms ? '#647068' : '#7A9E7E',
+                    color: h.rooms_available === h.total_rooms ? '#5C665F' : '#7A9E7E',
                     backgroundColor: h.rooms_available === h.total_rooms ? 'rgba(23,33,27,0.03)' : 'rgba(122,158,126,0.06)',
                   }}>
                   All Available

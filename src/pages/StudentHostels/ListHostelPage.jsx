@@ -81,12 +81,12 @@ function StepBar({ current, total }) {
             <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all')}
               style={{
                 backgroundColor: i < current ? '#7A9E7E' : i === current ? '#B8511E' : '#F5EDE0',
-                color: i <= current ? '#fff' : '#647068',
+                color: i <= current ? '#fff' : '#5C665F',
               }}>
               {i < current ? <Check size={14} /> : i + 1}
             </div>
             <span className="text-xs hidden sm:block font-medium"
-              style={{ color: i === current ? '#B8511E' : '#647068' }}>{label}</span>
+              style={{ color: i === current ? '#B8511E' : '#5C665F' }}>{label}</span>
           </div>
           {i < STEPS.length - 1 && (
             <div className="flex-1 h-0.5 mb-5" style={{ backgroundColor: i < current ? '#7A9E7E' : '#DEDDD6' }} />
@@ -402,7 +402,7 @@ export default function ListHostelPage() {
                   <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>State <span style={{ color: 'var(--dm-terracotta)' }}>*</span></label>
                   <select value={form.state} onChange={set('state')}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                    style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.state ? '#17211B' : '#647068' }}>
+                    style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.state ? '#17211B' : '#5C665F' }}>
                     <option value="">Select state</option>
                     {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -543,7 +543,7 @@ export default function ListHostelPage() {
                             <span className="font-bold text-sm" style={{ color: 'var(--dm-deep)' }}>{p.name}</span>
                             {p.badge && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                                style={{ backgroundColor: plan === key ? '#B8511E' : '#DEDDD6', color: plan === key ? '#fff' : '#647068' }}>
+                                style={{ backgroundColor: plan === key ? '#B8511E' : '#DEDDD6', color: plan === key ? '#fff' : '#5C665F' }}>
                                 {p.badge}
                               </span>
                             )}
@@ -616,7 +616,7 @@ export default function ListHostelPage() {
             )}
             <button onClick={handleNext} disabled={saving || !canProceed()}
               className="flex-1 py-3.5 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ backgroundColor: canProceed() ? '#17211B' : '#DEDDD6', color: canProceed() ? '#FFFAF5' : '#647068' }}>
+              style={{ backgroundColor: canProceed() ? '#17211B' : '#DEDDD6', color: canProceed() ? '#FFFAF5' : '#5C665F' }}>
               {saving
                 ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 : <>{step === 3 ? 'Save & Continue' : 'Continue'} <ArrowRight size={14} /></>}

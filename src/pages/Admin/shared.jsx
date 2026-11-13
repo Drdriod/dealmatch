@@ -231,7 +231,7 @@ export const ImageLightbox = ({ src, label, onClose }) => (
             title="Open original in new tab">
             <ExternalLink size={16} style={{ color:'#fff' }}/>
           </a>
-          <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor:'rgba(255,255,255,0.1)' }}>
+          <button onClick={onClose} aria-label="Close" className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor:'rgba(255,255,255,0.1)' }}>
             <X size={18} style={{ color:'#fff' }}/>
           </button>
         </div>
@@ -286,7 +286,7 @@ export const EmptyRow = ({ cols, msg='No records found' }) => (
 
 // ── Constants that used to sit between tabs ──
 export const PIPELINE_STAGES=[
-  {id:'enquiry',    label:'Enquiry',      color:'#647068'},
+  {id:'enquiry',    label:'Enquiry',      color:'#5C665F'},
   {id:'negotiation',label:'Negotiation',  color:'#D4A853'},
   {id:'paid_escrow',label:'Paid (Escrow)',color:'#5B8DEF'},
   {id:'completed',  label:'Completed',    color:'#7A9E7E'},

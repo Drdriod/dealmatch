@@ -54,8 +54,8 @@ const ESCROW_STATUS_META = {
   confirmed:        { label: 'Payment Confirmed', color: '#7A9E7E' },
   completed:        { label: 'Completed',        color: '#5B8DEF' },
   disputed:         { label: 'Disputed',         color: '#C94A3A' },
-  cancelled:        { label: 'Cancelled',        color: '#647068' },
-  refunded:         { label: 'Refunded',         color: '#647068' },
+  cancelled:        { label: 'Cancelled',        color: '#5C665F' },
+  refunded:         { label: 'Refunded',         color: '#5C665F' },
 }
 const TX_STATUS_META = {
   OPEN:      { label: 'Open',            color: '#D4A853' },
@@ -63,7 +63,7 @@ const TX_STATUS_META = {
   FUNDED:    { label: 'Payment Confirmed',          color: '#7A9E7E' },
   COMPLETED: { label: 'Completed',       color: '#5B8DEF' },
   DISPUTED:  { label: 'Disputed',        color: '#C94A3A' },
-  CANCELLED: { label: 'Cancelled',       color: '#647068' },
+  CANCELLED: { label: 'Cancelled',       color: '#5C665F' },
 }
 // commission_wallet_ledger.entry_type -> feed/section styling. 'released' and
 // 'withdrawn' don't fire in production yet (release_held_payment() is
@@ -153,14 +153,14 @@ export default function WalletPage() {
       kind: 'escrow', id: e.id, at: e.confirmed_at,
       title: e.transaction_type === 'sale' ? 'Property sale protection' : e.transaction_type === 'hotel' ? 'Shortlet booking protection' : 'Rental protection',
       amount: e.gross_amount, direction: e.seller_id === user?.id ? 'in' : 'out',
-      status: ESCROW_STATUS_META[e.status] || { label: e.status, color: '#647068' },
+      status: ESCROW_STATUS_META[e.status] || { label: e.status, color: '#5C665F' },
       link: '/escrow',
     }))
     const b = jobTxns.map(t => ({
       kind: 'job', id: t.id, at: t.created_at,
       title: t.model === 'MULTI_ATTRIBUTE_REVERSE' ? 'Job bid' : 'Service request',
       amount: t.amount_cents ? t.amount_cents / 100 : null, direction: t.provider_id === user?.id ? 'in' : 'out',
-      status: TX_STATUS_META[t.status] || { label: t.status, color: '#647068' },
+      status: TX_STATUS_META[t.status] || { label: t.status, color: '#5C665F' },
       link: `/jobs/${t.id}`,
     }))
     const c = ledger.map(e => {
@@ -206,11 +206,11 @@ export default function WalletPage() {
           <p className="font-display text-xl font-black text-white">{loading ? ' - ' : fmt(summary.heldInEscrow)}</p>
         </div>
         <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-          <div className="flex items-center gap-2 mb-2"><ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /><p className="text-[11px] font-semibold" style={{ color: '#647068' }}>You're receiving</p></div>
+          <div className="flex items-center gap-2 mb-2"><ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>You're receiving</p></div>
           <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(summary.iAmReceiving)}</p>
         </div>
         <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-          <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={14} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#647068' }}>Jobs earned</p></div>
+          <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={14} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Jobs earned</p></div>
           <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(summary.jobsEarned)}</p>
         </div>
         <button onClick={() => navigate('/referral')} className="rounded-2xl p-4 text-left" style={{ backgroundColor: '#F0D4BE' }}>
@@ -226,7 +226,7 @@ export default function WalletPage() {
           <Star size={15} style={{ color: '#D4A853' }} className="fill-current" />
           <span className="text-sm font-semibold" style={{ color: '#17211B' }}>{points?.balance || 0} loyalty points</span>
         </div>
-        <ChevronRight size={15} style={{ color: '#647068' }} />
+        <ChevronRight size={15} style={{ color: '#5C665F' }} />
       </button>
 
       {/* Always visible, not gated on ledger activity -- a provider needs
@@ -249,7 +249,7 @@ export default function WalletPage() {
             </span>
           )}
         </div>
-        <ChevronRight size={15} style={{ color: '#647068' }} />
+        <ChevronRight size={15} style={{ color: '#5C665F' }} />
       </button>
 
       {/* Provider earnings: held / available / withdrawn from commission_wallet_ledger.
@@ -257,7 +257,7 @@ export default function WalletPage() {
           with no provider history isn't shown an empty payouts section. */}
       {!loading && walletTotals.hasActivity && (
         <div className="px-4 mb-5">
-          <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#647068' }}>Provider earnings</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#5C665F' }}>Provider earnings</h2>
 
           <div className="rounded-2xl p-4 mb-3" style={{ backgroundColor: '#17211B' }}>
             <div className="flex items-center gap-2 mb-1">
@@ -267,7 +267,7 @@ export default function WalletPage() {
             <p className="font-display text-2xl font-black text-white">{fmt(walletTotals.availableBalance)}</p>
 
             {walletTotals.availableBalance === 0 && walletTotals.heldBalance > 0 && !pendingWithdrawal && (
-              <p className="text-xs mt-2" style={{ color: '#647068' }}>
+              <p className="text-xs mt-2" style={{ color: '#5C665F' }}>
                 Payouts aren't switched on yet. Your confirmed earnings sit in "Held" below until they are.
               </p>
             )}
@@ -291,12 +291,12 @@ export default function WalletPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-              <div className="flex items-center gap-2 mb-2"><Clock size={13} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: '#647068' }}>Held</p></div>
+              <div className="flex items-center gap-2 mb-2"><Clock size={13} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Held</p></div>
               <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.heldBalance)}</p>
               <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>Confirmed, release pending</p>
             </div>
             <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-              <div className="flex items-center gap-2 mb-2"><Banknote size={13} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#647068' }}>Withdrawn</p></div>
+              <div className="flex items-center gap-2 mb-2"><Banknote size={13} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Withdrawn</p></div>
               <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.withdrawn)}</p>
               <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>Paid to your bank, lifetime</p>
             </div>
@@ -306,14 +306,14 @@ export default function WalletPage() {
 
       {/* Activity feed, grouped by month */}
       <div className="px-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#647068' }}>Transaction history</h2>
+        <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#5C665F' }}>Transaction history</h2>
         {loading ? (
           <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ backgroundColor: '#F0E5D8' }} />)}</div>
         ) : feedByMonth.length === 0 ? (
           <div className="text-center py-12">
             <WalletIcon size={32} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
             <p className="text-sm font-semibold" style={{ color: '#17211B' }}>You don't have any transactions yet.</p>
-            <p className="text-xs mt-1" style={{ color: '#647068' }}>Find a match to see your payments and activity here.</p>
+            <p className="text-xs mt-1" style={{ color: '#5C665F' }}>Find a match to see your payments and activity here.</p>
           </div>
         ) : (
           feedByMonth.map(([month, items]) => (

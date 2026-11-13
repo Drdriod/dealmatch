@@ -131,7 +131,7 @@ export default function PayoutSetupPage() {
       </div>
 
       <div className="px-4">
-        <p className="text-sm mb-5" style={{ color: '#647068' }}>
+        <p className="text-sm mb-5" style={{ color: '#5C665F' }}>
           Add the bank account you want to be paid into. You'll need a verified account before you can accept paid jobs or request a withdrawal.
         </p>
 
@@ -143,12 +143,12 @@ export default function PayoutSetupPage() {
                 {StatusIcon && <StatusIcon size={11} />} {statusMeta.label}
               </span>
             </div>
-            <p className="text-xs" style={{ color: '#647068' }}>{current.account_name} · ****{current.account_number.slice(-4)}</p>
+            <p className="text-xs" style={{ color: '#5C665F' }}>{current.account_name} · ****{current.account_number.slice(-4)}</p>
             {current.status === 'rejected' && current.rejected_reason && (
               <p className="text-xs mt-2" style={{ color: '#C94A3A' }}>{current.rejected_reason}</p>
             )}
             {current.status === 'pending' && (
-              <p className="text-xs mt-2" style={{ color: '#647068' }}>Submitting a new form below replaces this pending request.</p>
+              <p className="text-xs mt-2" style={{ color: '#5C665F' }}>Submitting a new form below replaces this pending request.</p>
             )}
           </div>
         )}
@@ -162,7 +162,7 @@ export default function PayoutSetupPage() {
               </p>
             </div>
             <div>
-              <label className="text-xs font-semibold block mb-1" style={{ color: '#647068' }}>Bank</label>
+              <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Bank</label>
               <select value={bankCode} onChange={(e) => { setBankCode(e.target.value); setResolved(false) }}
                 className="w-full rounded-lg px-3 py-2.5 text-sm bg-white" style={{ border: '1px solid #DEDDD6' }}>
                 <option value="">Select your bank</option>
@@ -170,7 +170,7 @@ export default function PayoutSetupPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold block mb-1" style={{ color: '#647068' }}>Account number</label>
+              <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Account number</label>
               <div className="flex gap-2">
                 <input value={accountNumber} onChange={(e) => { setAccountNumber(e.target.value); setResolved(false) }}
                   className="flex-1 rounded-lg px-3 py-2.5 text-sm" style={{ border: '1px solid #DEDDD6' }}
@@ -183,7 +183,7 @@ export default function PayoutSetupPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold block mb-1" style={{ color: '#647068' }}>Account name</label>
+              <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Account name</label>
               <input value={accountName} readOnly
                 className="w-full rounded-lg px-3 py-2.5 text-sm" style={{ border: '1px solid #DEDDD6', backgroundColor: resolved ? '#F3F8F3' : '#F5F0EA' }}
                 placeholder="Tap Confirm above to fetch this automatically" />

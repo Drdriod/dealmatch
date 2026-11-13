@@ -1,0 +1,11 @@
+# Weekly pull requests for out-of-date packages and GitHub Actions, so security fixes
+# do not wait for someone to remember. Each one runs the normal checks before merging.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

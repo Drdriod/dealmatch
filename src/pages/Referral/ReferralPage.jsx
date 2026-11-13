@@ -146,7 +146,7 @@ export default function ReferralPage() {
           <h1 className="font-display font-black text-2xl mb-1" style={{ color: '#17211B' }}>
             Earn with DealMatch
           </h1>
-          <p className="text-sm" style={{ color: '#647068' }}>
+          <p className="text-sm" style={{ color: '#5C665F' }}>
             Share your link. Earn cash and points when your network closes deals.
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function ReferralPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-xs font-bold" style={{ color: '#17211B' }}>{cfg.label}</p>
-                      <p className="text-xs" style={{ color: '#647068' }}>
+                      <p className="text-xs" style={{ color: '#5C665F' }}>
                         {cfg.type === 'cash'
                           ? cfg.rate + ' of DealMatch commission - paid as cash'
                           : 'Loyalty points - convert to cash anytime'}
@@ -246,7 +246,7 @@ export default function ReferralPage() {
               <p className="text-xs font-bold mb-3" style={{ color: '#17211B' }}>
                 EXAMPLE: One N60M Property Sale
               </p>
-              <p className="text-xs mb-3" style={{ color: '#647068' }}>
+              <p className="text-xs mb-3" style={{ color: '#5C665F' }}>
                 DealMatch earns N900,000 commission. Here is what your chain earns:
               </p>
               {[
@@ -287,7 +287,7 @@ export default function ReferralPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs mt-3" style={{ color: '#647068' }}>
+              <p className="text-xs mt-3" style={{ color: '#5C665F' }}>
                 Example: a hotel booking usually earns DealMatch a small commission, so it pays
                 points. A property sale or large rental earns DealMatch much more, so it pays full cash.
               </p>
@@ -316,7 +316,7 @@ export default function ReferralPage() {
               <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>
                 IMPORTANT
               </p>
-              <p className="text-xs" style={{ color: '#647068' }}>
+              <p className="text-xs" style={{ color: '#5C665F' }}>
                 You earn nothing just from sign-ups. All earnings are triggered only when a referred
                 user completes a real, paying transaction on DealMatch. No deal, no payment.
               </p>
@@ -367,7 +367,7 @@ export default function ReferralPage() {
                 <p className="text-sm font-bold mb-3" style={{ color: '#17211B' }}>
                   Redeem Points for Cash
                 </p>
-                <p className="text-xs mb-4" style={{ color: '#647068' }}>
+                <p className="text-xs mb-4" style={{ color: '#5C665F' }}>
                   Choose how many points to redeem. Must be in multiples of 100.
                   Each 100 points = N10,000 cash to your bank account.
                 </p>
@@ -382,7 +382,7 @@ export default function ReferralPage() {
                     <p className="font-black text-2xl" style={{ color: '#B8511E' }}>
                       {redeemAmt} pts
                     </p>
-                    <p className="text-xs" style={{ color: '#647068' }}>
+                    <p className="text-xs" style={{ color: '#5C665F' }}>
                       = {fmt(pointsToCash(redeemAmt))} cash
                     </p>
                   </div>
@@ -399,11 +399,11 @@ export default function ReferralPage() {
                   className="w-full py-3.5 rounded-xl text-sm font-bold"
                   style={{
                     backgroundColor: redeeming ? 'rgba(23,33,27,0.08)' : '#B8511E',
-                    color: redeeming ? '#647068' : '#fff',
+                    color: redeeming ? '#5C665F' : '#fff',
                   }}>
                   {redeeming ? 'Processing...' : 'Redeem ' + redeemAmt + ' pts for ' + fmt(pointsToCash(redeemAmt))}
                 </button>
-                <p className="text-xs text-center mt-2" style={{ color: '#647068' }}>
+                <p className="text-xs text-center mt-2" style={{ color: '#5C665F' }}>
                   Paid to your bank account within 3-5 business days
                 </p>
               </div>
@@ -413,7 +413,7 @@ export default function ReferralPage() {
                 <p className="text-sm font-bold mb-1" style={{ color: '#17211B' }}>
                   {MIN_REDEEM_POINTS - points.balance} more points to redeem
                 </p>
-                <p className="text-xs" style={{ color: '#647068' }}>
+                <p className="text-xs" style={{ color: '#5C665F' }}>
                   Minimum redemption is 100 points (N10,000).
                   Keep building your network to earn more.
                 </p>
@@ -435,7 +435,7 @@ export default function ReferralPage() {
                 style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px dashed #DEDDD6' }}>
                 <div className="flex justify-center mb-2"><Home size={32} className="text-terracotta" /></div>
                 <p className="text-sm font-bold mb-1" style={{ color: '#17211B' }}>No earnings yet</p>
-                <p className="text-xs" style={{ color: '#647068' }}>
+                <p className="text-xs" style={{ color: '#5C665F' }}>
                   Share your link. Earnings appear here when referred users close deals.
                 </p>
               </div>
@@ -457,11 +457,11 @@ export default function ReferralPage() {
                             {meta.label}
                           </span>
                           {t.referral_level && (
-                            <span className="text-xs" style={{ color: '#647068' }}>
+                            <span className="text-xs" style={{ color: '#5C665F' }}>
                               Level {t.referral_level}
                             </span>
                           )}
-                          <span className="text-xs" style={{ color: '#647068' }}>
+                          <span className="text-xs" style={{ color: '#5C665F' }}>
                             {ago(t.created_at)}
                           </span>
                         </div>
@@ -481,7 +481,7 @@ export default function ReferralPage() {
             <div className="mt-5 rounded-2xl p-4"
               style={{ backgroundColor: 'rgba(91,141,239,0.05)', border: '1px solid rgba(91,141,239,0.15)' }}>
               <p className="text-xs font-bold mb-1" style={{ color: '#5B8DEF' }}>Payouts</p>
-              <p className="text-xs" style={{ color: '#647068' }}>
+              <p className="text-xs" style={{ color: '#5C665F' }}>
                 Minimum cash payout: N5,000. Points minimum: 100 pts (N10,000).
                 Paid to your registered bank account within 3-5 business days.
                 Wondering why a transaction paid points instead of cash? Smaller deals earn

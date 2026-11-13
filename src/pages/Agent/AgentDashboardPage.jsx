@@ -348,7 +348,7 @@ export default function AgentDashboardPage() {
       {/* Liability declaration notice */}
       <div className="mx-4 mt-4 rounded-2xl p-3 flex items-start gap-2.5" style={{ backgroundColor:'rgba(200,95,45,0.06)', border:'1px solid rgba(200,95,45,0.15)' }}>
         <Shield size={15} style={{ color:'#B8511E', flexShrink:0, marginTop:1 }} />
-        <p className="text-xs leading-relaxed" style={{ color:'#647068' }}>
+        <p className="text-xs leading-relaxed" style={{ color:'#5C665F' }}>
           As a DealMatch agent you are legally accountable for every verification you submit. False or negligent verifications will result in strikes, suspension, and potential legal referral. All submissions are GPS-stamped, photo-evidenced, and permanently audit-logged.
         </p>
       </div>
@@ -360,7 +360,7 @@ export default function AgentDashboardPage() {
             className="flex-1 py-2.5 rounded-2xl text-xs font-bold transition-all relative"
             style={{
               backgroundColor: tab === t.id ? '#17211B' : 'rgba(23,33,27,0.05)',
-              color: tab === t.id ? 'white' : '#647068',
+              color: tab === t.id ? 'white' : '#5C665F',
             }}>
             {t.label}
             {t.count > 0 && (
@@ -378,7 +378,7 @@ export default function AgentDashboardPage() {
           {visibleListings.length === 0 && (
             <div className="text-center py-16">
               <ClipboardList size={40} className="mx-auto mb-3 text-muted opacity-40" />
-              <p className="text-sm" style={{ color:'#647068' }}>No {tab} listings</p>
+              <p className="text-sm" style={{ color:'#5C665F' }}>No {tab} listings</p>
             </div>
           )}
           {visibleListings.map(property => {
@@ -401,7 +401,7 @@ export default function AgentDashboardPage() {
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1">
                       <h3 className="font-bold text-sm leading-snug" style={{ color:'#17211B' }}>{property.title}</h3>
-                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color:'#647068' }}>
+                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color:'#5C665F' }}>
                         <MapPin size={11} /> {property.city}, {property.state}
                       </p>
                     </div>
@@ -413,7 +413,7 @@ export default function AgentDashboardPage() {
                   {/* Landlord contact */}
                   <div className="rounded-xl p-2.5 mb-3" style={{ backgroundColor:'rgba(23,33,27,0.03)' }}>
                     <p className="text-xs font-semibold mb-0.5" style={{ color:'#17211B' }}>{property.profiles?.full_name}</p>
-                    <p className="text-xs" style={{ color:'#647068' }}>{property.profiles?.phone} · {property.profiles?.email}</p>
+                    <p className="text-xs" style={{ color:'#5C665F' }}>{property.profiles?.phone} · {property.profiles?.email}</p>
                   </div>
 
                   {/* Already verified badge */}
@@ -461,7 +461,7 @@ export default function AgentDashboardPage() {
                       {/* Photos */}
                       <div>
                         <p className="text-xs font-bold mb-1" style={{ color:'#17211B' }}>
-                          Site Photos * <span style={{ color:'#647068', fontWeight:400 }}>(min 3 required - {(ev.photos||[]).length} uploaded)</span>
+                          Site Photos * <span style={{ color:'#5C665F', fontWeight:400 }}>(min 3 required - {(ev.photos||[]).length} uploaded)</span>
                         </p>
                         <button onClick={() => fileRef.current?.click()}
                           className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2"
@@ -603,14 +603,14 @@ export default function AgentDashboardPage() {
             {complaints.length === 0 ? (
               <div className="text-center py-10">
                 <Shield size={36} className="mx-auto mb-3" style={{ color:'#7A9E7E', opacity:0.5 }} />
-                <p className="text-sm" style={{ color:'#647068' }}>No complaints on record</p>
+                <p className="text-sm" style={{ color:'#5C665F' }}>No complaints on record</p>
               </div>
             ) : complaints.map(c => (
               <div key={c.id} className="rounded-2xl p-4 mb-3" style={{ backgroundColor:'white', border:'1px solid #DEDDD6' }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <p className="text-xs font-bold" style={{ color:'#17211B' }}>{c.properties?.title || 'Property'}</p>
-                    <p className="text-xs mt-0.5" style={{ color:'#647068' }}>{c.category?.replace(/_/g,' ')}</p>
+                    <p className="text-xs mt-0.5" style={{ color:'#5C665F' }}>{c.category?.replace(/_/g,' ')}</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{
                     backgroundColor: c.status==='upheld' ? 'rgba(201,74,58,0.1)' : c.status==='dismissed' ? 'rgba(122,158,126,0.1)' : 'rgba(212,168,83,0.1)',
@@ -649,7 +649,7 @@ export default function AgentDashboardPage() {
                   </div>
                 )}
                 {c.agent_response && (
-                  <p className="text-xs mt-2 italic" style={{ color:'#647068' }}>Your response: {c.agent_response}</p>
+                  <p className="text-xs mt-2 italic" style={{ color:'#5C665F' }}>Your response: {c.agent_response}</p>
                 )}
               </div>
             ))}
