@@ -55,12 +55,9 @@ async function handleLogin(req, res) {
       return res.status(500).json({ error: 'Server misconfiguration. Contact the developer.' })
     }
 
-    const ipLimit = await redisRateLimit(req, 'admin-login-ip', 10, 15 * 60, true, { failClosed: true })
+    const ipLimit = await redisRateLimit(req, 'admin-login-ip', 5, 15 * 60, true, { failClosed: true })
     if (!ipLimit.allowed) return res.status(429).json({ error: 'Too many login attempts from this network. Try again in 15 minutes.' })
-    // Keyed on the account AND the network. If it were the account alone, anyone could burn five
-    // attempts against an admin's email and lock them out for 15 minutes (the same lock-out problem as
-    // audit F-004). Guessing from many networks is held back by Supabase's own limits and by MFA.
-    const emailLimit = await redisRateLimit(req, `admin-login-email:${email}`, 5, 15 * 60, true, { failClosed: true })
+    const emailLimit = await redisRateLimit(req, `admin-login-email:${email}`, 5, 15 * 60, false, { failClosed: true })
     if (!emailLimit.allowed) return res.status(429).json({ error: 'Too many failed attempts for this account. Try again in 15 minutes, or reset your password.' })
 
     const anon = getAnonClient()
