@@ -108,7 +108,7 @@ export default function HomePage() {
               <span className="block">Find the right match.</span>
               <span className="block">Make the right <em className="not-italic text-terracotta whitespace-nowrap">deal.</em></span>
             </h1>
-            <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/65">
+            <p className="mt-5 mb-6 max-w-[560px] text-base sm:text-[17px] leading-relaxed text-deep/70">
               Discover opportunities, connect with the right people and find places that match what you're looking for. DealMatch makes discovery and transactions simpler, safer and more transparent.
             </p>
           </motion.div>
@@ -118,7 +118,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut', delay: 0.14 }}
-            className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/65">
+            className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-xs font-semibold text-deep/70">
             <span className="inline-flex items-center gap-2"><Check size={16} className="text-terracotta" /> Free to search</span>
             <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-terracotta" /> Discover. Connect. Agree. Transact with confidence.</span>
             <button onClick={() => setShowPostChoice(true)} type="button"
@@ -152,7 +152,7 @@ export default function HomePage() {
                 </span>
                 <div className="min-w-0">
                   <p className="font-bold text-[13px] text-deep truncate">{HERO_SLIDES[heroIdx].title}</p>
-                  <p className="flex items-center gap-1 text-[11px] text-deep/60"><MapPin size={12} /> {HERO_SLIDES[heroIdx].note}</p>
+                  <p className="flex items-center gap-1 text-[11px] text-deep/70"><MapPin size={12} /> {HERO_SLIDES[heroIdx].note}</p>
                 </div>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function HomePage() {
                     <item.icon size={22} className="text-terracotta" />
                   </div>
                   <h3 className="text-xl mb-1.5 text-deep">{item.title}</h3>
-                  <p className="text-sm leading-relaxed text-deep/65">{item.body}</p>
+                  <p className="text-sm leading-relaxed text-deep/70">{item.body}</p>
                 </div>
               </StaggerItem>
             ))}
@@ -281,10 +281,10 @@ export default function HomePage() {
         <FadeUp>
           <span className="eyebrow">Start with one search</span>
           <h2 className="mt-4 mx-auto max-w-[720px] text-[40px] sm:text-6xl leading-[1.02] text-deep">Your next deal starts with a match.</h2>
-          <p className="mx-auto mt-5 mb-2 max-w-[580px] text-deep/65 leading-relaxed">
+          <p className="mx-auto mt-5 mb-2 max-w-[580px] text-deep/70 leading-relaxed">
             Whether you're looking for something or have something to offer, start with DealMatch.
           </p>
-          <p className="text-sm font-bold mb-8 text-terracotta">Every deal starts with a match.</p>
+          <p className="text-sm font-bold mb-8 text-terracotta-dark">Every deal starts with a match.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
             <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta text-white font-bold px-8 py-4 hover:bg-[#A8441D] transition-colors">
               Create an Offer <ArrowRight size={16} />

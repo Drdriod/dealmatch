@@ -71,7 +71,7 @@
     @apply w-full px-5 py-4 rounded-2xl border border-deep/10 bg-cream
            font-body text-deep text-base outline-none
            focus:border-terracotta focus:bg-white transition-all duration-200
-           placeholder:text-deep/30;
+           placeholder:text-deep/70;
   }
 
   .select {
@@ -98,11 +98,11 @@
   }
 
   .section-sub {
-    @apply text-deep/50 text-lg leading-relaxed max-w-lg;
+    @apply text-deep/70 text-lg leading-relaxed max-w-lg;
   }
 
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-terracotta text-xs font-extrabold tracking-[0.14em] uppercase;
+    @apply inline-flex items-center gap-2 text-terracotta-dark text-xs font-extrabold tracking-[0.14em] uppercase;
   }
 
   .btn-forest {

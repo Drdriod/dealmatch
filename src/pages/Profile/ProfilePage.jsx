@@ -216,7 +216,7 @@ export default function ProfilePage() {
             return (
               <div className="rounded-2xl p-4 mb-5 border"
                 style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color:'#8A6A20' }}>Verification under review</p>
+                <p className="font-semibold text-sm mb-1" style={{ color:'#735618' }}>Verification under review</p>
                 <p className="text-xs leading-relaxed" style={{ color:'var(--dm-warm)' }}>
                   Your ID and selfie have been submitted. Our team will review and notify you here (and by email) within 24-48 hours.
                 </p>
@@ -283,7 +283,7 @@ export default function ProfilePage() {
               ].map(field => (
                 <div key={field.key}>
                   <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color:'rgba(23,33,27,0.5)' }}>{field.label}</label>
+                    style={{ color: 'rgba(23,33,27,0.7)' }}>{field.label}</label>
                   <input type={field.type} value={form[field.key]} onChange={set(field.key)}
                     disabled={!editing} placeholder={field.placeholder} className="input text-sm"
                     style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
@@ -293,7 +293,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>State</label>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>State</label>
                 <select value={form.state} onChange={set('state')} disabled={!editing}
                   className="select text-sm"
                   style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }}>
@@ -303,7 +303,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>City</label>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>City</label>
                 <input type="text" value={form.city} onChange={set('city')}
                   disabled={!editing} placeholder="Your city" className="input text-sm"
                   style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
@@ -311,7 +311,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                style={{ color:'rgba(23,33,27,0.5)' }}>Bio</label>
+                style={{ color: 'rgba(23,33,27,0.7)' }}>Bio</label>
               <textarea value={form.bio} onChange={set('bio')}
                 disabled={!editing} placeholder="A short bio..." className="input text-sm min-h-[80px] py-2"
                 style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
@@ -358,7 +358,7 @@ export default function ProfilePage() {
                     <div className="flex justify-between"><span style={{ color:'var(--dm-warm)' }}>Portfolio</span><span className="font-semibold" style={{ color:'var(--dm-deep)' }}>{providerInfo.submission.submission_data.portfolio_paths.length} photo{providerInfo.submission.submission_data.portfolio_paths.length === 1 ? '' : 's'} submitted</span></div>
                   )}
                   {skillPending && (
-                    <p className="text-xs mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(212,168,83,0.1)', color: '#8A6A20' }}>Your latest submission is under review.</p>
+                    <p className="text-xs mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(212,168,83,0.1)', color: '#735618' }}>Your latest submission is under review.</p>
                   )}
                 </div>
               )}
@@ -382,7 +382,7 @@ export default function ProfilePage() {
               ].map(field => (
                 <div key={field.key}>
                   <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color:'rgba(23,33,27,0.5)' }}>{field.label}</label>
+                    style={{ color: 'rgba(23,33,27,0.7)' }}>{field.label}</label>
                   <input type={field.type} value={form[field.key]} onChange={set(field.key)}
                     disabled={!editing} placeholder={field.placeholder} className="input text-sm"
                     style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />

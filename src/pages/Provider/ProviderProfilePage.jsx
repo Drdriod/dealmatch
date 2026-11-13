@@ -152,7 +152,7 @@ export default function ProviderProfilePage() {
                 <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{levelData.area}</p>
               )}
               {lastActiveLabel && (
-                <p className="text-[11px] mt-0.5" style={{ color: '#B5A99C' }}>Active {lastActiveLabel}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'rgba(23,33,27,0.7)' }}>Active {lastActiveLabel}</p>
               )}
             </div>
           </div>
@@ -180,7 +180,7 @@ export default function ProviderProfilePage() {
               </span>
             )}
             {level === 0 && (
-              <span className="text-[11px]" style={{ color: '#B5A99C' }}>Not verified yet</span>
+              <span className="text-[11px]" style={{ color: 'rgba(23,33,27,0.7)' }}>Not verified yet</span>
             )}
           </div>
 
@@ -194,7 +194,7 @@ export default function ProviderProfilePage() {
                   style={{ backgroundColor: 'rgba(23,33,27,0.04)', color: '#5C4A3A' }}>{c}</span>
               ))}
               {memberSince(businessPage.created_at) && (
-                <span className="text-[10px] ml-auto" style={{ color: '#B5A99C' }}>
+                <span className="text-[10px] ml-auto" style={{ color: 'rgba(23,33,27,0.7)' }}>
                   On DealMatch since {memberSince(businessPage.created_at)}
                 </span>
               )}
@@ -292,8 +292,8 @@ export default function ProviderProfilePage() {
         )}
         {level === 2 && portfolioUrls.length === 0 && (
           <div className="rounded-2xl p-4 mb-4 border flex items-center gap-2" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
-            <Camera size={14} style={{ color: '#B5A99C' }} />
-            <p className="text-xs" style={{ color: '#B5A99C' }}>No portfolio photos yet</p>
+            <Camera size={14} style={{ color: 'rgba(23,33,27,0.7)' }} />
+            <p className="text-xs" style={{ color: 'rgba(23,33,27,0.7)' }}>No portfolio photos yet</p>
           </div>
         )}
 
@@ -347,7 +347,7 @@ export default function ProviderProfilePage() {
                     ))}
                   </div>
                   <p className="text-xs" style={{ color: '#5C4A3A' }}>"{r.comment}"</p>
-                  <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
                     {r.reviewerName || 'DealMatch user'} · Completed on DealMatch
                   </p>
                 </div>

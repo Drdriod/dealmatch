@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 
 const STATUS_STYLES = {
   active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
-  pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20',  label: 'Under Review' },
+  pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#735618',  label: 'Under Review' },
   paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F',  label: 'Paused' },
   rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#B8511E',  label: 'Rejected' },
   sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
@@ -19,7 +19,7 @@ const STATUS_STYLES = {
 // Badge tones for the portfolio table, which sits on the cream surface.
 const TONES = {
   good:  { bg: 'rgba(122,158,126,0.12)', color: '#5C8060' },
-  warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#8A6A20' },
+  warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#735618' },
   bad:   { bg: 'rgba(200,95,45,0.12)',   color: '#B8511E' },
   muted: { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F' },
 }
@@ -375,7 +375,7 @@ export default function LandlordDashboardPage() {
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0"
                     style={{
                       backgroundColor: b.status === 'confirmed' ? 'rgba(122,158,126,0.12)' : 'rgba(212,168,83,0.12)',
-                      color:           b.status === 'confirmed' ? '#5C8060' : '#8A6A20',
+                      color:           b.status === 'confirmed' ? '#5C8060' : '#735618',
                     }}>
                     {b.status}
                   </span>

@@ -174,7 +174,7 @@ export default function VerificationPage() {
                         Owner: <strong style={{ color:'var(--dm-deep)' }}>{listing.profiles?.full_name || 'Unknown'}</strong>
                         {listing.profiles?.phone && <span> · {listing.profiles.phone}</span>}
                       </div>
-                      <div className="flex items-center gap-1 text-xs mt-1" style={{ color:'rgba(23,33,27,0.4)' }}>
+                      <div className="flex items-center gap-1 text-xs mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
                         <Clock size={9} />
                         <span>Submitted {new Date(listing.created_at).toLocaleDateString('en-NG')}</span>
                       </div>
@@ -216,7 +216,7 @@ export default function VerificationPage() {
 
                       {/* Verification note */}
                       <div className="mb-4">
-                        <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>
+                        <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>
                           Verification Note (optional)
                         </label>
                         <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}

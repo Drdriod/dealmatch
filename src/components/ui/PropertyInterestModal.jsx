@@ -159,14 +159,14 @@ export default function PropertyInterestModal({ property, onClose, onComplete })
                 <p className="text-sm font-semibold mb-4" style={{color:'#17211B'}}>How should the seller reach you?</p>
                 <div className="space-y-3 mb-5">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color:'rgba(23,33,27,0.5)'}}>Phone (for faster response)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color: 'rgba(23,33,27,0.7)'}}>Phone (for faster response)</label>
                     <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                       placeholder="e.g. 08012345678"
                       className="w-full px-4 py-3 rounded-2xl border-2 text-sm outline-none transition-all focus:border-[#B8511E]"
                       style={{borderColor:'#DEDDD6', backgroundColor:'#FFFFFF', color:'#17211B'}} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color:'rgba(23,33,27,0.5)'}}>Message (optional)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{color: 'rgba(23,33,27,0.7)'}}>Message (optional)</label>
                     <textarea value={message} onChange={e => setMessage(e.target.value)}
                       placeholder="Anything you'd like to ask?"
                       rows={3}

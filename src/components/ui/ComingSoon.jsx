@@ -15,7 +15,7 @@ export default function ComingSoon({ title = 'Coming Soon', message }) {
         {message || 'We are working on something exciting. This feature will unlock soon on DealMatch.'}
       </p>
       <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-8"
-        style={{ backgroundColor:'rgba(212,168,83,0.12)', color:'#8A6A20' }}>
+        style={{ backgroundColor:'rgba(212,168,83,0.12)', color:'#735618' }}>
         Unlocking Soon - Stay Tuned
       </div>
       <Link to="/dashboard" className="flex items-center gap-2 text-sm font-semibold"

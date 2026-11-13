@@ -12,7 +12,7 @@ export default function PlaceSubtypePicker({ category, propertyType, value, onCh
 
   return (
     <div>
-      <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{ color: 'rgba(23,33,27,0.5)' }}>{label}</label>
+      <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{label}</label>
       <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
         {choices.map((c, i) => {
           const selected = value ? value === c.id : i === 0

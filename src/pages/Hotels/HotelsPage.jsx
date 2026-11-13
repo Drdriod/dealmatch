@@ -165,7 +165,7 @@ function BookingModal({ hotel, onClose }) {
             {/* Room type */}
             {hotel.room_categories?.length > 0 && (
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Room Type</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Room Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {hotel.room_categories.map(c => (
                     <button key={c.id} type="button" onClick={() => setForm(f => ({ ...f, room_type: c.name }))}
@@ -190,12 +190,12 @@ function BookingModal({ hotel, onClose }) {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Check-in *</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Check-in *</label>
                 <input type="date" value={form.checkin} onChange={set('checkin')} min={new Date().toISOString().split('T')[0]}
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Check-out *</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Check-out *</label>
                 <input type="date" value={form.checkout} onChange={set('checkout')} min={form.checkin || new Date().toISOString().split('T')[0]}
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
@@ -204,14 +204,14 @@ function BookingModal({ hotel, onClose }) {
             {/* Guests + rooms */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Guests</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Guests</label>
                 <select value={form.guests} onChange={setN('guests')} className="select text-sm"
                   style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} guest{n>1?'s':''}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Rooms</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Rooms</label>
                 <select value={form.rooms} onChange={setN('rooms')} className="select text-sm"
                   style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} room{n>1?'s':''}</option>)}
@@ -226,14 +226,14 @@ function BookingModal({ hotel, onClose }) {
               { label:'Email',        key:'guest_email', type:'email', placeholder:'email@example.com' },
             ].map(f => (
               <div key={f.key}>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
             ))}
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Special requests</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Special requests</label>
               <textarea value={form.special} onChange={set('special')} rows={2} placeholder="Anything the hotel should know?"
                 className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>

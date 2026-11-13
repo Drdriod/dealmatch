@@ -51,7 +51,7 @@ export default function HeroSearch({ className = '' }) {
             const active = mode === key
             return (
               <button key={key} type="button" role="tab" aria-selected={active} onClick={() => setMode(key)}
-                className={`inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-xs font-bold transition-colors ${active ? 'bg-forest-pale text-forest' : 'text-deep/60 hover:text-deep'}`}>
+                className={`inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-xs font-bold transition-colors ${active ? 'bg-forest-pale text-forest' : 'text-deep/70 hover:text-deep'}`}>
                 <m.icon size={15} /> {m.label}
               </button>
             )
@@ -61,18 +61,18 @@ export default function HeroSearch({ className = '' }) {
         <div className="grid sm:grid-cols-[1.4fr_0.8fr_auto] items-stretch">
           <label className="px-4 py-2 sm:border-r border-line border-b sm:border-b-0">
             <span className="block text-[10px] font-extrabold uppercase tracking-wider mb-1">What do you need?</span>
-            <span className="flex items-center gap-2 text-deep/60">
+            <span className="flex items-center gap-2 text-deep/70">
               <Search size={16} className="flex-shrink-0" />
               <input value={what} onChange={e => setWhat(e.target.value)} placeholder={MODES[mode].placeholder}
-                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/40" />
+                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/70" />
             </span>
           </label>
           <label className="px-4 py-2 border-b sm:border-b-0 border-line">
             <span className="block text-[10px] font-extrabold uppercase tracking-wider mb-1">Where?</span>
-            <span className="flex items-center gap-2 text-deep/60">
+            <span className="flex items-center gap-2 text-deep/70">
               <MapPin size={16} className="flex-shrink-0" />
               <LocationField value={where} onChange={setWhere} placeholder="City or area" ariaLabel="Where?"
-                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/40" />
+                className="w-full min-w-0 bg-transparent outline-none text-sm text-deep placeholder:text-deep/70" />
             </span>
           </label>
           <button type="submit"

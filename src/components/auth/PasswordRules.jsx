@@ -33,7 +33,7 @@ export default function PasswordRules({ password, open, id }) {
       <span className="absolute -top-1.5 left-6 h-3 w-3 rotate-45 border-l border-t border-line bg-white" aria-hidden="true" />
 
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-wider text-deep/60">
+        <p className="text-xs font-bold uppercase tracking-wider text-deep/70">
           {allMet ? 'Strong password' : 'Your password needs'}
         </p>
         <p className="text-xs font-semibold text-warm">{metCount} of {PASSWORD_RULES.length}</p>
@@ -53,7 +53,7 @@ export default function PasswordRules({ password, open, id }) {
         {results.map((r) => (
           <li
             key={r.id}
-            className={`flex items-center gap-2 text-sm transition-colors duration-300 ${r.met ? 'text-forest' : 'text-deep/60'}`}
+            className={`flex items-center gap-2 text-sm transition-colors duration-300 ${r.met ? 'text-forest' : 'text-deep/70'}`}
           >
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors duration-300 ${

@@ -406,7 +406,7 @@ export default function JobPostingPage() {
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
                       className="w-full text-sm outline-none bg-transparent" style={{ color: 'var(--dm-deep)' }} />
                   </div>
-                  <p className="text-[11px] mt-1" style={{ color: '#B5A99C' }}>
+                  <p className="text-[11px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
                     {toggle === 'book'
                       ? 'The provider sees this exact amount and can only accept or decline it.'
                       : 'Providers see this as a guide - their actual bids may come in above or below it.'}
@@ -473,7 +473,7 @@ export default function JobPostingPage() {
                 </div>
 
                 {bids.length === 0 ? (
-                  <p className="text-xs text-center py-8" style={{ color: '#B5A99C' }}>Waiting for the first bid...</p>
+                  <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>Waiting for the first bid...</p>
                 ) : (
                   <div className="space-y-2 mb-4">
                     {bids.map(b => (
@@ -499,7 +499,7 @@ export default function JobPostingPage() {
                             <Check size={12} /> Accepted
                           </span>
                         ) : b.status === 'DECLINED' ? (
-                          <span className="text-[11px] flex-shrink-0" style={{ color: '#B5A99C' }}>Declined</span>
+                          <span className="text-[11px] flex-shrink-0" style={{ color: 'rgba(23,33,27,0.7)' }}>Declined</span>
                         ) : (
                           <div className="flex gap-1.5 flex-shrink-0">
                             <button onClick={() => acceptBid(b)}
@@ -531,7 +531,7 @@ export default function JobPostingPage() {
 
             {/* OPEN + direct request, waiting on the invited provider */}
             {transaction.status === 'OPEN' && transaction.model === 'NEAREST_AVAILABLE' && (
-              <p className="text-xs text-center py-8" style={{ color: '#B5A99C' }}>
+              <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>
                 Waiting for the provider to accept your request...
               </p>
             )}
@@ -551,7 +551,7 @@ export default function JobPostingPage() {
               </div>
             )}
             {transaction.status === 'PENDING' && !isRequester && (
-              <p className="text-xs text-center py-8" style={{ color: '#B5A99C' }}>
+              <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>
                 Accepted - waiting on the requester to pay for protection.
               </p>
             )}
@@ -603,7 +603,7 @@ export default function JobPostingPage() {
               </>
             )}
             {transaction.status === 'CANCELLED' && (
-              <p className="text-xs text-center py-8" style={{ color: '#B5A99C' }}>This request was cancelled.</p>
+              <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>This request was cancelled.</p>
             )}
             {transaction.status === 'DISPUTED' && (
               <p className="text-xs text-center py-8" style={{ color: '#C94A3A' }}>

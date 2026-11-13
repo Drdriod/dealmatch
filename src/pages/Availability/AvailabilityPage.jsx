@@ -68,7 +68,7 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-              style={{color:'rgba(23,33,27,0.5)'}}>Category Name *</label>
+              style={{color: 'rgba(23,33,27,0.7)'}}>Category Name *</label>
             <div className="flex flex-wrap gap-2 mb-2">
               {CATEGORY_PRESETS.map(p => (
                 <button key={p} type="button"
@@ -90,14 +90,14 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-                style={{color:'rgba(23,33,27,0.5)'}}>Total Rooms *</label>
+                style={{color: 'rgba(23,33,27,0.7)'}}>Total Rooms *</label>
               <input className="input text-sm" type="number" min="1" placeholder="e.g. 100"
                 value={form.total_rooms} onChange={set('total_rooms')}
                 style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-                style={{color:'rgba(23,33,27,0.5)'}}>Price/Night (₦)</label>
+                style={{color: 'rgba(23,33,27,0.7)'}}>Price/Night (₦)</label>
               <input className="input text-sm" type="number" placeholder="e.g. 35000"
                 value={form.price_per_night} onChange={set('price_per_night')}
                 style={{backgroundColor:'#FFFFFF', color:'#17211B'}} />
@@ -105,7 +105,7 @@ function AddCategoryModal({ propertyId, onClose, onSaved }) {
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block"
-              style={{color:'rgba(23,33,27,0.5)'}}>Description (optional)</label>
+              style={{color: 'rgba(23,33,27,0.7)'}}>Description (optional)</label>
             <input className="input text-sm" type="text"
               placeholder="e.g. Air-conditioned, en-suite bathroom, king bed"
               value={form.description} onChange={set('description')}
@@ -349,7 +349,7 @@ export default function AvailabilityPage() {
         <>
         {/* Refresh row */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold uppercase tracking-wider" style={{color:'rgba(23,33,27,0.4)'}}>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{color: 'rgba(23,33,27,0.7)'}}>
             Room Inventory
           </p>
           <button onClick={() => { if(selectedProp) loadCategories(selectedProp) }}

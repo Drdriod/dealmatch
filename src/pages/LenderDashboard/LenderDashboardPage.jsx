@@ -316,7 +316,7 @@ export default function LenderDashboardPage() {
                         <p className="font-display font-black text-lg" style={{ color:'var(--dm-terracotta)' }}>
                           ₦{(Number(app.property_value) - Number(app.down_payment)).toLocaleString()}
                         </p>
-                        <p className="text-[10px] font-bold uppercase" style={{ color:'rgba(23,33,27,0.3)' }}>Loan Requested</p>
+                        <p className="text-[10px] font-bold uppercase" style={{ color: 'rgba(23,33,27,0.7)' }}>Loan Requested</p>
                       </div>
                     </div>
                   </div>
@@ -338,7 +338,7 @@ export default function LenderDashboardPage() {
                               { label: 'Property Type', value: app.property_type || 'N/A' },
                             ].map(d => (
                               <div key={d.label}>
-                                <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color:'rgba(23,33,27,0.4)' }}>{d.label}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(23,33,27,0.7)' }}>{d.label}</p>
                                 <p className="text-sm font-semibold" style={{ color:'var(--dm-deep)' }}>{d.value}</p>
                               </div>
                             ))}
@@ -346,7 +346,7 @@ export default function LenderDashboardPage() {
 
                           {/* Notes */}
                           <div>
-                            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Internal Notes / Response</label>
+                            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Internal Notes / Response</label>
                             <textarea value={note} onChange={e => setNote(e.target.value)}
                               placeholder="Add notes or your response to the applicant..."
                               className="input min-h-[100px] text-sm py-3" style={{ backgroundColor:'#FFFFFF' }} />

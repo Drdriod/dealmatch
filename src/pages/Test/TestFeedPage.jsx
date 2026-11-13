@@ -72,7 +72,7 @@ export default function TestFeedPage() {
     <div className="max-w-5xl mx-auto px-4 py-6 text-deep">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-2xl font-semibold">Live test feed</h1>
-        <p className="text-sm text-deep/60">
+        <p className="text-sm text-deep/70">
           {updated ? `Updated ${updated.toLocaleTimeString()}, refreshes every 10 seconds` : 'Loading…'}
         </p>
       </div>
@@ -98,7 +98,7 @@ export default function TestFeedPage() {
                 <td className="p-2">{b.state}</td>
                 <td className="p-2">{b.reports}</td>
                 <td className="p-2"><span className={`rounded px-2 py-0.5 text-xs ${SEV_STYLE[b.worst]}`}>{b.worst === 'none' ? '-' : b.worst}</span></td>
-                <td className="p-2 text-deep/60">{ago(b.lastActivity)}</td>
+                <td className="p-2 text-deep/70">{ago(b.lastActivity)}</td>
               </tr>
             ))}
           </tbody>
@@ -118,15 +118,15 @@ export default function TestFeedPage() {
       </div>
 
       <ul className="mt-3 space-y-3">
-        {shown.length === 0 && <li className="text-sm text-deep/60">No reports yet.</li>}
+        {shown.length === 0 && <li className="text-sm text-deep/70">No reports yet.</li>}
         {shown.map((r) => (
           <li key={r.id} className="rounded-xl border border-deep/15 bg-white p-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold">{r.seat}</span>
               <span>{r.tester_name}</span>
               <span className={`rounded px-2 py-0.5 text-xs ${SEV_STYLE[r.severity]}`}>{r.severity === 'none' ? 'no problem' : r.severity}</span>
-              <span className="text-deep/60">{OUTCOME_LABEL[r.outcome]}</span>
-              <span className="ml-auto text-deep/50">{ago(r.created_at)}</span>
+              <span className="text-deep/70">{OUTCOME_LABEL[r.outcome]}</span>
+              <span className="ml-auto text-deep/70">{ago(r.created_at)}</span>
             </div>
             {r.step_no && <p className="mt-2"><strong>Step:</strong> {r.step_no}</p>}
             {r.tried && <p className="mt-1"><strong>Tried:</strong> {r.tried}</p>}
@@ -134,7 +134,7 @@ export default function TestFeedPage() {
             {r.expected && <p className="mt-1"><strong>Expected:</strong> {r.expected}</p>}
             {r.page_url && <p className="mt-1 break-all"><strong>Page:</strong> {r.page_url}</p>}
             {r.screenshot_url && <p className="mt-1 break-all"><strong>Screenshot:</strong> {r.screenshot_url}</p>}
-            {r.device && <p className="mt-1 text-deep/50 break-all">{r.device}</p>}
+            {r.device && <p className="mt-1 text-deep/70 break-all">{r.device}</p>}
           </li>
         ))}
       </ul>

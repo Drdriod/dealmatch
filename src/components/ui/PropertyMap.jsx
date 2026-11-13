@@ -46,7 +46,7 @@ const formatPrice = (n) => {
 function MapPlaceholder({ message = 'Map unavailable' }) {
   return (
     <div className="flex items-center justify-center bg-cream rounded-3xl border border-deep/8" style={{ height: '360px' }}>
-      <div className="text-center text-deep/30">
+      <div className="text-center text-deep/70">
         <div className="flex justify-center mb-3"><Map size={40} className="text-terracotta" /></div>
         <p className="text-sm font-medium">{message}</p>
         <p className="text-xs mt-1">Add VITE_GOOGLE_MAPS_API_KEY to enable maps</p>
@@ -97,7 +97,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
   if (loadError) return <MapPlaceholder message="Map failed to load" />
   if (!isLoaded) return (
     <div className="flex items-center justify-center bg-cream rounded-3xl" style={{ height }}>
-      <div className="flex flex-col items-center gap-3 text-deep/30">
+      <div className="flex flex-col items-center gap-3 text-deep/70">
         <Loader size={24} className="animate-spin" />
         <p className="text-sm">Loading map...</p>
       </div>
@@ -111,12 +111,12 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
       {/* Filter buttons */}
       <div className="bg-white px-4 py-3 flex items-center gap-2 border-b border-deep/8 overflow-x-auto"
         style={{ scrollbarWidth: 'none' }}>
-        <span className="text-xs font-bold text-deep/30 uppercase tracking-wider mr-1 flex-shrink-0">Nearby:</span>
+        <span className="text-xs font-bold text-deep/70 uppercase tracking-wider mr-1 flex-shrink-0">Nearby:</span>
         {AMENITY_TYPES.map(a => (
           <button key={a.type} onClick={() => fetchAmenities(a.type)}
             className={clsx(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex-shrink-0',
-              activeType === a.type ? 'bg-terracotta text-white' : 'bg-deep/5 text-deep/60 hover:bg-deep/10'
+              activeType === a.type ? 'bg-terracotta text-white' : 'bg-deep/5 text-deep/70 hover:bg-deep/10'
             )}>
             {loadingPOI && activeType === a.type
               ? <Loader size={10} className="animate-spin" />
@@ -191,7 +191,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
             <div className="p-1 max-w-[180px]">
               <p className="font-bold text-deep text-sm">{property?.title}</p>
               <p className="text-terracotta font-black text-base">{formatPrice(property?.price)}</p>
-              <p className="text-deep/50 text-xs mt-1">{property?.city}, {property?.state}</p>
+              <p className="text-deep/70 text-xs mt-1">{property?.city}, {property?.state}</p>
             </div>
           </InfoWindow>
         )}
@@ -205,10 +205,10 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
             <div className="p-1 max-w-[160px]">
               <p className="font-semibold text-deep text-xs">{selected.name}</p>
               {selected.rating && (
-                <p className="text-xs text-deep/50 mt-0.5">⭐ {selected.rating}</p>
+                <p className="text-xs text-deep/70 mt-0.5">⭐ {selected.rating}</p>
               )}
               {selected.vicinity && (
-                <p className="text-xs text-deep/40 mt-0.5">{selected.vicinity}</p>
+                <p className="text-xs text-deep/70 mt-0.5">{selected.vicinity}</p>
               )}
             </div>
           </InfoWindow>
@@ -217,7 +217,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
 
       {/* Footer */}
       <div className="bg-white px-4 py-2.5 flex items-center justify-between border-t border-deep/8">
-        <div className="flex items-center gap-1.5 text-xs text-deep/40">
+        <div className="flex items-center gap-1.5 text-xs text-deep/70">
           <div className="w-3 h-3 rounded-full bg-terracotta" />
           <span>{property?.city}, {property?.state}</span>
         </div>
@@ -227,7 +227,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
           </p>
         )}
         {activeType && amenities.length > 0 && hasConfirmedInspection && (
-          <p className="text-xs text-deep/40">{amenities.length} {amenityConfig?.label} within 2km</p>
+          <p className="text-xs text-deep/70">{amenities.length} {amenityConfig?.label} within 2km</p>
         )}
       </div>
     </div>
@@ -251,7 +251,7 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
   if (loadError) return <MapPlaceholder message="Map failed to load" />
   if (!isLoaded) return (
     <div className="flex items-center justify-center bg-cream rounded-3xl h-[400px]">
-      <div className="flex flex-col items-center gap-3 text-deep/30">
+      <div className="flex flex-col items-center gap-3 text-deep/70">
         <Loader size={24} className="animate-spin" />
         <p className="text-sm">Loading map explorer...</p>
       </div>
@@ -306,7 +306,7 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
               }}>
               <p className="font-bold text-deep text-sm leading-tight">{selected.title}</p>
               <p className="text-terracotta font-black text-base mt-1">{formatPrice(selected.price)}</p>
-              <p className="text-xs text-deep/50 mt-0.5">{selected.city}, {selected.state}</p>
+              <p className="text-xs text-deep/70 mt-0.5">{selected.city}, {selected.state}</p>
               <div className="mt-2 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full" style={{backgroundColor:"#B8511E", color:"#FFFFFF", display:"inline-flex"}}>
                 View Property →
               </div>
@@ -369,7 +369,7 @@ export function LocationInput({ value, onChange, placeholder = 'Search location.
               <MapPin size={14} className="text-terracotta flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-deep">{s.structured_formatting.main_text}</p>
-                <p className="text-xs text-deep/40">{s.structured_formatting.secondary_text}</p>
+                <p className="text-xs text-deep/70">{s.structured_formatting.secondary_text}</p>
               </div>
             </button>
           ))}

@@ -202,7 +202,7 @@ export default function WalletPage() {
       {/* Balance cards */}
       <div className="px-4 grid grid-cols-2 gap-3 mb-4">
         <div className="rounded-2xl p-4" style={{ backgroundColor: '#17211B' }}>
-          <div className="flex items-center gap-2 mb-2"><ShieldCheck size={14} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: '#B5A99C' }}>Held under Protection</p></div>
+          <div className="flex items-center gap-2 mb-2"><ShieldCheck size={14} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>Held under Protection</p></div>
           <p className="font-display text-xl font-black text-white">{loading ? ' - ' : fmt(summary.heldInEscrow)}</p>
         </div>
         <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
@@ -262,7 +262,7 @@ export default function WalletPage() {
           <div className="rounded-2xl p-4 mb-3" style={{ backgroundColor: '#17211B' }}>
             <div className="flex items-center gap-2 mb-1">
               <WalletIcon size={14} style={{ color: '#D4A853' }} />
-              <p className="text-[11px] font-semibold" style={{ color: '#B5A99C' }}>Available to withdraw</p>
+              <p className="text-[11px] font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>Available to withdraw</p>
             </div>
             <p className="font-display text-2xl font-black text-white">{fmt(walletTotals.availableBalance)}</p>
 
@@ -293,12 +293,12 @@ export default function WalletPage() {
             <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
               <div className="flex items-center gap-2 mb-2"><Clock size={13} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Held</p></div>
               <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.heldBalance)}</p>
-              <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>Confirmed, release pending</p>
+              <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>Confirmed, release pending</p>
             </div>
             <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
               <div className="flex items-center gap-2 mb-2"><Banknote size={13} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Withdrawn</p></div>
               <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.withdrawn)}</p>
-              <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>Paid to your bank, lifetime</p>
+              <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>Paid to your bank, lifetime</p>
             </div>
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function WalletPage() {
         ) : (
           feedByMonth.map(([month, items]) => (
             <div key={month} className="mb-5">
-              <p className="text-[11px] font-bold mb-2 px-1" style={{ color: '#B5A99C' }}>{month}</p>
+              <p className="text-[11px] font-bold mb-2 px-1" style={{ color: 'rgba(23,33,27,0.7)' }}>{month}</p>
               <div className="space-y-2">
                 {items.map(item => (
                   <button key={item.kind + item.id} onClick={() => navigate(item.link)}
@@ -331,7 +331,7 @@ export default function WalletPage() {
                       <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: item.status.color + '22', color: item.status.color }}>{item.status.label}</span>
-                        <span className="text-[10px]" style={{ color: '#B5A99C' }}>{new Date(item.at).toLocaleDateString()}</span>
+                        <span className="text-[10px]" style={{ color: 'rgba(23,33,27,0.7)' }}>{new Date(item.at).toLocaleDateString()}</span>
                       </div>
                     </div>
                     {item.amount != null && (

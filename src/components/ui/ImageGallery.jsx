@@ -53,7 +53,7 @@ export default function ImageGallery({ images = [], title = '' }) {
           <Expand size={13} color="white" />
         </button>
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: 'rgba(23,33,27,0.6)', color: '#FFFFFF' }}>
+          style={{ backgroundColor: 'rgba(23,33,27,0.7)', color: '#FFFFFF' }}>
           {activeIdx + 1} / {filtered.length}
         </div>
       </div>

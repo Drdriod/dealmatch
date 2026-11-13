@@ -150,15 +150,15 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
           <h3 className="font-display text-2xl font-black text-deep leading-tight">
             {formatPrice(property?.price)}
           </h3>
-          <span className="text-xs text-deep/40 bg-deep/5 px-2 py-1 rounded-full capitalize flex-shrink-0 ml-2">
+          <span className="text-xs text-deep/70 bg-deep/5 px-2 py-1 rounded-full capitalize flex-shrink-0 ml-2">
             {property?.property_type}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-deep/40 text-sm mb-3">
+        <div className="flex items-center gap-1.5 text-deep/70 text-sm mb-3">
           <MapPin size={13} className="flex-shrink-0" />
           <span className="truncate">{property?.city}, {property?.state}</span>
         </div>
-        <div className="flex items-center gap-4 text-sm text-deep/60 mb-4">
+        <div className="flex items-center gap-4 text-sm text-deep/70 mb-4">
           {property?.bedrooms  && <span className="flex items-center gap-1"><Bed size={13} /> {property.bedrooms} bed</span>}
           {property?.bathrooms && <span className="flex items-center gap-1"><Bath size={13} /> {property.bathrooms} bath</span>}
           {property?.size_sqm  && <span className="flex items-center gap-1"><Maximize size={13} /> {property.size_sqm}sqm</span>}
@@ -166,7 +166,7 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
         {matchReasons.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {matchReasons.slice(0, 3).map((r, i) => (
-              <span key={i} className="text-xs bg-terracotta/8 text-terracotta px-2.5 py-1 rounded-full font-medium">
+              <span key={i} className="text-xs bg-terracotta/8 text-terracotta-dark px-2.5 py-1 rounded-full font-medium">
                 {r}
               </span>
             ))}
@@ -177,7 +177,7 @@ export default function SwipeCard({ property, matchScore, matchReasons = [], onS
       {/* Action buttons */}
       <div className="flex items-center gap-3 px-5 pb-5">
         <button data-action="pass" onClick={() => swipe('pass')}
-          className="flex-1 h-14 rounded-2xl bg-deep/5 hover:bg-red-50 text-deep/40 hover:text-red-400 transition-all flex items-center justify-center">
+          className="flex-1 h-14 rounded-2xl bg-deep/5 hover:bg-red-50 text-deep/70 hover:text-red-400 transition-all flex items-center justify-center">
           <X size={22} />
         </button>
         <button data-action="super" onClick={() => swipe('super')}
