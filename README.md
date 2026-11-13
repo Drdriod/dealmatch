@@ -348,4 +348,4 @@ DealMatch enforces single-account-per-individual through three layers:
 
 ---
 
-*DealMatch Technology Limited, Uyo, Akwa Ibom, Nigeria*
+*DealMatch Technology Limited, Uyo, Akwa Ibom, Nigeria.*
