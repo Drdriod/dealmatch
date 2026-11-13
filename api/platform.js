@@ -649,7 +649,7 @@ const jsonResources = {
       if (!data?.account_name) {
         return res.status(200).json({ resolved: false, error: 'Could not resolve this account' })
       }
-      return res.status(200).json({ resolved: true, accountName: data.account_name })
+      return res.status(200).json({ resolved: true, accountName: data.account_name, testMode: isFlutterwaveSandbox() })
     } catch (err) {
       console.error('payout-resolve-account failed:', err.message)
       return res.status(200).json({ resolved: false, error: 'Could not resolve this account' })

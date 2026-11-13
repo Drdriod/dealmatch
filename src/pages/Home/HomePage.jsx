@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowRight, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Building2, Check, Eye, Handshake, Lock, MapPin, Search, ShieldCheck } from 'lucide-react'
+import { FlagIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { heroIcon } from '@/components/ui/heroIcon'
+
+const FlagMark = heroIcon(FlagIcon)
+const PinMark = heroIcon(MapPinIcon)
 import { FadeUp, StaggerChildren, StaggerItem } from '@/components/ui/ScrollReveal'
 import AnimatedStat from '@/components/ui/AnimatedStat'
 import FAQSection from '@/components/ui/FAQSection'
@@ -98,7 +103,7 @@ export default function HomePage() {
       >
         <div className="self-center px-5 pt-8 pb-8 sm:px-7 lg:pl-[max(28px,calc((100vw-1240px)/2))] lg:pr-14 lg:py-14">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
-            <div className="eyebrow"><Sparkles size={15} /> Built for Nigeria</div>
+            <div className="eyebrow"><FlagMark size={15} /> Built for Nigeria</div>
             <h1 className="mt-4 text-[clamp(38px,10.5vw,50px)] sm:text-[clamp(48px,4.6vw,72px)] leading-[1.02] max-w-[720px] text-deep">
               <span className="block">Find the right match.</span>
               <span className="block">Make the right <em className="not-italic text-terracotta whitespace-nowrap">deal.</em></span>
@@ -137,13 +142,13 @@ export default function HomePage() {
                 ))}
                 <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(17,27,21,0.5) 100%)' }} />
                 <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 rounded-full bg-forest text-white text-[11px] font-bold py-1.5 pl-1.5 pr-3.5">
-                  <span className="w-7 h-7 rounded-full bg-sun text-deep flex items-center justify-center"><Sparkles size={14} /></span>
+                  <span className="w-7 h-7 rounded-full bg-sun text-deep flex items-center justify-center"><PinMark size={14} /></span>
                   AI + location matched
                 </div>
               </div>
               <div className="absolute left-3 right-3 -bottom-5 sm:left-6 sm:right-auto flex items-center gap-3.5 rounded-2xl bg-white/95 backdrop-blur p-3 pr-5 shadow-card">
                 <span className="flex items-center gap-1 rounded-xl bg-forest text-white text-[10px] font-bold px-2.5 py-3">
-                  <Sparkles size={14} /> Nearby
+                  <PinMark size={14} /> Nearby
                 </span>
                 <div className="min-w-0">
                   <p className="font-bold text-[13px] text-deep truncate">{HERO_SLIDES[heroIdx].title}</p>
