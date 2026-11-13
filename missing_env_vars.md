@@ -4,6 +4,11 @@
 > `FLUTTERWAVE_V4_CLIENT_ID`, `FLUTTERWAVE_V4_CLIENT_SECRET`, `FLUTTERWAVE_BASE_URL`
 > and `FLUTTERWAVE_SECRET_HASH`. `FLUTTERWAVE_SECRET_KEY` and `VITE_FLUTTERWAVE_PUBLIC_KEY`
 > are no longer read and can be removed from Vercel. The list below is the earlier snapshot.
+>
+> **Reserved, not used yet:** `FLUTTERWAVE_ENCRYPTION_KEY` (the Encryption key on the
+> Flutterwave API keys page). No code reads it. It is needed only if the server ever sends
+> raw card details to Flutterwave directly, which would also bring PCI compliance duties.
+> Do not add it to Vercel until that feature exists.
 
 Based on the scan of the codebase and the provided Vercel deployment screenshot, here is the comparison of environment variables.
 
