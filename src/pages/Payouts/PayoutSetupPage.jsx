@@ -32,12 +32,19 @@ export default function PayoutSetupPage() {
   const [loading, setLoading]   = useState(true)
   const [current, setCurrent]   = useState(null)
   const [banks, setBanks]               = useState([])
-  const [bankCode, setBankCode]         = useState('')
+  const [bankText, setBankText]         = useState('')
+  const [testMode, setTestMode]         = useState(false)
   const [accountNumber, setAccountNumber] = useState('')
   const [accountName, setAccountName]     = useState('')
   const [resolving, setResolving]       = useState(false)
   const [resolved, setResolved]         = useState(false)
   const [submitting, setSubmitting]     = useState(false)
+
+  // The person types or picks a bank. An exact match gives us the bank's code (needed to confirm the
+  // account name and to automate payouts); anything else is a manual entry that our team checks.
+  const matchedBank = banks.find(b => b.name.toLowerCase() === bankText.trim().toLowerCase()) || null
+  const bankCode = matchedBank?.code || ''
+  const manual = bankText.trim().length > 0 && !matchedBank
 
   useEffect(() => { if (user?.id) load() }, [user?.id])
   useEffect(() => { loadBanks() }, [])
@@ -83,6 +90,7 @@ export default function PayoutSetupPage() {
       if (data.resolved) {
         setAccountName(data.accountName)
         setResolved(true)
+        setTestMode(Boolean(data.testMode))
         toast.success('Account confirmed: ' + data.accountName)
       } else {
         toast.error(data.error || 'We couldn\'t confirm this account. Check the number and bank.')
@@ -96,17 +104,16 @@ export default function PayoutSetupPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    const bank = banks.find(b => b.code === bankCode)
-    if (!bank || !accountNumber.trim() || !accountName.trim()) {
-      toast.error('Pick your bank, then confirm your account number.')
+    if (!bankText.trim() || accountNumber.trim().length < 10 || !accountName.trim() || (!manual && !resolved)) {
+      toast.error(manual ? 'Fill in your bank, account number and account name.' : 'Pick your bank, then confirm your account number.')
       return
     }
     setSubmitting(true)
     const { data, error } = await submitPayoutAccount({
-      bankName: bank.name,
+      bankName: matchedBank ? matchedBank.name : bankText.trim(),
       accountNumber: accountNumber.trim(),
       accountName: accountName.trim(),
-      bankCode,
+      bankCode: bankCode || null,
     })
     setSubmitting(false)
     if (error) {
@@ -115,7 +122,7 @@ export default function PayoutSetupPage() {
     }
     toast.success('Submitted for review. We\u2019ll notify you once it\u2019s verified.')
     setCurrent(data)
-    setBankCode(''); setAccountNumber(''); setAccountName(''); setResolved(false)
+    setBankText(''); setAccountNumber(''); setAccountName(''); setResolved(false)
   }
 
   const statusMeta = current ? STATUS_META[current.status] : null
@@ -163,11 +170,14 @@ export default function PayoutSetupPage() {
             </div>
             <div>
               <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Bank</label>
-              <select value={bankCode} onChange={(e) => { setBankCode(e.target.value); setResolved(false) }}
-                className="w-full rounded-lg px-3 py-2.5 text-sm bg-white" style={{ border: '1px solid #DEDDD6' }}>
-                <option value="">Select your bank</option>
-                {banks.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
-              </select>
+              <input list="payout-banks" value={bankText}
+                onChange={(e) => { setBankText(e.target.value); setResolved(false); setAccountName('') }}
+                className="w-full rounded-lg px-3 py-2.5 text-sm bg-white" style={{ border: '1px solid #DEDDD6' }}
+                placeholder="Type or pick your bank" autoComplete="off" />
+              <datalist id="payout-banks">
+                {banks.map(b => <option key={b.code} value={b.name} />)}
+              </datalist>
+              {manual && <p className="text-xs mt-1 text-stone-600">We don&apos;t recognise this bank name, so type your account name below exactly as your bank shows it. Our team will check it by hand.</p>}
             </div>
             <div>
               <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Account number</label>
@@ -175,7 +185,7 @@ export default function PayoutSetupPage() {
                 <input value={accountNumber} onChange={(e) => { setAccountNumber(e.target.value); setResolved(false) }}
                   className="flex-1 rounded-lg px-3 py-2.5 text-sm" style={{ border: '1px solid #DEDDD6' }}
                   placeholder="0123456789" inputMode="numeric" maxLength={10} />
-                <button type="button" onClick={handleResolve} disabled={resolving || !bankCode || accountNumber.trim().length < 10}
+                <button type="button" onClick={handleResolve} disabled={resolving || !bankCode || accountNumber.trim().length < 10 || manual}
                   className="px-4 rounded-lg text-xs font-semibold disabled:opacity-40 flex items-center gap-1.5"
                   style={{ backgroundColor: '#17211B', color: '#FFF' }}>
                   {resolving ? <Loader2 size={14} className="animate-spin" /> : 'Confirm'}
@@ -184,15 +194,17 @@ export default function PayoutSetupPage() {
             </div>
             <div>
               <label className="text-xs font-semibold block mb-1" style={{ color: '#5C665F' }}>Account name</label>
-              <input value={accountName} readOnly
+              <input value={accountName} readOnly={!manual}
+                onChange={(e) => setAccountName(e.target.value)}
                 className="w-full rounded-lg px-3 py-2.5 text-sm" style={{ border: '1px solid #DEDDD6', backgroundColor: resolved ? '#F3F8F3' : '#F5F0EA' }}
-                placeholder="Tap Confirm above to fetch this automatically" />
+                placeholder={manual ? 'Account name as your bank shows it' : 'Tap Confirm above to fetch this automatically'} />
               {resolved && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#7A9E7E' }}><CheckCircle2 size={12} /> Confirmed with your bank</p>}
+              {resolved && testMode && <p className="text-xs mt-1 font-semibold text-red-700">Test mode: this name is sample data, not your real bank record.</p>}
             </div>
-            <button type="submit" disabled={submitting || !resolved}
+            <button type="submit" disabled={submitting || (!resolved && !manual) || (manual && (!accountName.trim() || accountNumber.trim().length < 10))}
               className="w-full rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50"
               style={{ backgroundColor: '#17211B', color: '#FFF' }}>
-              {submitting ? 'Submitting…' : resolved ? 'Submit for verification' : 'Confirm your account first'}
+              {submitting ? 'Submitting…' : (resolved || manual) ? 'Submit for verification' : 'Confirm your account first'}
             </button>
           </form>
         )}

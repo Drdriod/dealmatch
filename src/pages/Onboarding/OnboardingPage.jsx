@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ArrowRight, Award, BookOpen, Building2, Check, ConciergeBell, GraduationCap,
-  HardHat, Home, Key, ShieldCheck, Sparkles, Users, Wrench,
+  HardHat, Home, Key, ShieldCheck, Users, Wrench,
 } from 'lucide-react'
 import { saveOnboardingProfile } from '@/data/profileRepository'
 import { useAuth } from '@/context/AuthContext'
@@ -11,6 +11,11 @@ import { clearIntent, resolveIntent } from '@/lib/intent'
 import { parseLocation } from '@/lib/location'
 import LocationField from '@/components/ui/LocationField'
 import toast from 'react-hot-toast'
+import { EllipsisHorizontalCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
+import { heroIcon } from '@/components/ui/heroIcon'
+
+const MoreMark = heroIcon(EllipsisHorizontalCircleIcon)
+const OtherSkillMark = heroIcon(PlusCircleIcon)
 
 /**
  * Onboarding
@@ -71,7 +76,7 @@ const DETAIL = {
       { id: 'trades',       icon: HardHat,  label: 'Repairs and trades', desc: 'Electrician, plumber, builder',  words: 'repairs' },
       { id: 'home_service', icon: Home,     label: 'Home services',      desc: 'Cleaning, laundry, moving',      words: 'home service' },
       { id: 'tutor',        icon: BookOpen, label: 'Tutoring and lessons', desc: 'Home lessons and exam prep',   words: 'tutor' },
-      { id: 'other',        icon: Sparkles, label: 'Something else',     desc: 'Tell us in the search',          words: '' },
+      { id: 'other',        icon: MoreMark, label: 'Something else',     desc: 'Tell us in the search',          words: '' },
     ],
   },
   offer_place: {
@@ -100,7 +105,7 @@ const DETAIL = {
       { id: 'artisan',      icon: Wrench,   label: 'Artisan or trade', desc: 'Electrician, plumber, carpenter' },
       { id: 'home_service', icon: Home,     label: 'Home service',     desc: 'Cleaning, laundry, moving' },
       { id: 'tutor',        icon: BookOpen, label: 'Tutor',            desc: 'Lessons and coaching' },
-      { id: 'other_skill',  icon: Sparkles, label: 'Other skill',      desc: 'Anything else you are good at' },
+      { id: 'other_skill',  icon: OtherSkillMark, label: 'Other skill',      desc: 'Anything else you are good at' },
     ],
   },
 }
