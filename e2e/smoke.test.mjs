@@ -35,6 +35,11 @@ test.after(async () => {
   server?.kill()
 })
 
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-expose-headers': 'content-range' }
+// The desktop top-bar menus are not shown on a phone (it has a hamburger menu instead), so those two
+// checks only make sense on a desktop-sized screen.
+const desktopOnly = { skip: process.env.DEVICE ? 'desktop menu: not shown on a phone' : false }
+
 async function newPage({ categoriesDown = true } = {}) {
   const device = process.env.DEVICE ? devices[process.env.DEVICE] : null
   if (process.env.DEVICE && !device) throw new Error('Unknown DEVICE: ' + process.env.DEVICE)
@@ -45,9 +50,9 @@ async function newPage({ categoriesDown = true } = {}) {
   // which is the outage the bundled taxonomy fallback exists for.
   await page.route(/127\.0\.0\.1:54321/, (route) => {
     const url = route.request().url()
-    if (url.includes('/rest/v1/categories') && categoriesDown) return route.fulfill({ status: 500, body: '{}' })
-    if (url.includes('/auth/v1/')) return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
-    return route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/0' }, body: '[]' })
+    if (url.includes('/rest/v1/categories') && categoriesDown) return route.fulfill({ status: 500, headers: CORS, body: '{}' })
+    if (url.includes('/auth/v1/')) return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: '{}' })
+    return route.fulfill({ status: 200, contentType: 'application/json', headers: { ...CORS, 'content-range': '0-0/0' }, body: '[]' })
   })
   return { page, errors }
 }
@@ -60,7 +65,7 @@ test('the app boots on the home page without script errors', async () => {
   await page.close()
 })
 
-test('the Place menu lists its groups from the bundled taxonomy when the category service is down', async () => {
+test('the Place menu lists its groups from the bundled taxonomy when the category service is down', desktopOnly, async () => {
   const { page } = await newPage()
   await page.goto(BASE, { waitUntil: 'networkidle' })
   await page.getByText('Place', { exact: true }).first().hover()
@@ -70,7 +75,7 @@ test('the Place menu lists its groups from the bundled taxonomy when the categor
   await page.close()
 })
 
-test('the People menu lists its groups from the bundled taxonomy', async () => {
+test('the People menu lists its groups from the bundled taxonomy', desktopOnly, async () => {
   const { page } = await newPage()
   await page.goto(BASE, { waitUntil: 'networkidle' })
   await page.getByText('People', { exact: true }).first().hover()
