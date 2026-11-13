@@ -65,7 +65,7 @@ function InterestModal({ rental, onClose }) {
     // Save enquiry to Supabase - this is a lead signal only, it does NOT
     // reveal any contact details or move the deal forward on its own.
     try {
-      await insertRentalEnquiry({
+      const { error } = await insertRentalEnquiry({
         property_id:  rental.id,
         user_id:      user?.id || null, // null for a true guest with no session -- attribution only when signed in
         tenant_name:  form.name,
@@ -75,6 +75,12 @@ function InterestModal({ rental, onClose }) {
         duration:     form.duration,
         message:      form.message,
       })
+      // The database caps enquiries per person (5 an hour). Say so instead of pretending it was sent.
+      if (error && /too many enquiries/i.test(error.message || '')) {
+        toast.error('You have sent several enquiries already. Please try again in a while.')
+        setSending(false)
+        return
+      }
     } catch {}
 
     setSending(false)

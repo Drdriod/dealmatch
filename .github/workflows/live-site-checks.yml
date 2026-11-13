@@ -1,0 +1,93 @@
+# Checks that need the real, public site. They run on GitHub's servers (which can reach it), not in
+# the build sandbox. Start it by hand: Actions > "Live site checks" > Run workflow. It also runs every
+# Monday. Nothing here changes data: it only reads public pages and sends harmless malformed requests.
+name: Live site checks
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Site to check
+        default: https://www.dealmatch.com.ng
+  schedule:
+    - cron: '0 6 * * 1'
+  # Also runs when this check itself changes, so a broken probe is noticed in review.
+  pull_request:
+    paths:
+      - .github/workflows/live-site-checks.yml
+      - scripts/live-probe.mjs
+      - e2e/**
+permissions:
+  contents: read
+
+env:
+  SITE: ${{ github.event.inputs.site || 'https://www.dealmatch.com.ng' }}
+
+jobs:
+  headers-and-probes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Security headers and unauthenticated probes
+        run: node scripts/live-probe.mjs "$SITE"
+
+  load:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      # Gentle by design: 20 connections for 20 seconds on public pages only. This is a smoke-level
+      # load test, not a stress test, and stays well inside normal hosting limits.
+      - name: Load test public pages
+        run: |
+          for path in / /places /rentals /how-it-works; do
+            echo "=== $path"
+            npx --yes autocannon@7 -c 20 -d 20 --json "$SITE$path" > out.json || true
+            node -e "
+              const r=JSON.parse(require('fs').readFileSync('out.json','utf8'));
+              const bad=(r.non2xx||0)+(r.errors||0)+(r.timeouts||0);
+              console.log('requests',r.requests.total,'| per second',r.requests.average,'| p50',r.latency.p50+'ms','p99',r.latency.p99+'ms','| errors/non-2xx',bad);
+              if (bad/Math.max(1,r.requests.total) > 0.01) { console.log('FAIL: more than 1% errors'); process.exit(1) }
+            "
+          done
+
+  passive-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      # OWASP ZAP baseline: crawls the public site and reports weaknesses it can see without attacking
+      # (missing headers, cookie flags, information leaks, risky scripts). Passive only.
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ env.SITE }}
+          fail_action: false
+          allow_issue_writing: false
+          cmd_options: '-a'
+
+  browsers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Firefox, browser: firefox, device: '' }
+          - { name: Safari engine (WebKit), browser: webkit, device: '' }
+          - { name: iPhone 14 (Safari engine), browser: webkit, device: 'iPhone 14' }
+          - { name: Pixel 7 (Chrome), browser: chromium, device: 'Pixel 7' }
+    name: Browser - ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      - run: npm run test:e2e
+        env:
+          BROWSER: ${{ matrix.browser }}
+          DEVICE: ${{ matrix.device }}
