@@ -6,6 +6,10 @@ updates:
     directory: /
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
+    # Vite 6+ needs a matching @vitejs/plugin-react; upgrade them together by hand.
+    ignore:
+      - dependency-name: vite
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
