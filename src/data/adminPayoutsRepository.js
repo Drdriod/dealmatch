@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 export function fetchPayoutAccounts() {
   return supabase.from('payout_accounts')
-    .select('id,profile_id,bank_name,bank_code,account_number,account_name,status,gateway_recipient_code,created_at')
+    .select('id,profile_id,bank_name,bank_code,account_number,account_name,status,name_check,gateway_recipient_code,created_at')
     .in('status', ['pending', 'verified', 'rejected'])
     .order('created_at', { ascending: false }).limit(100)
 }

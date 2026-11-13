@@ -154,6 +154,11 @@ export default function PayoutSetupPage() {
             {current.status === 'rejected' && current.rejected_reason && (
               <p className="text-xs mt-2" style={{ color: '#C94A3A' }}>{current.rejected_reason}</p>
             )}
+            {current.status === 'pending' && current.name_check && current.name_check !== 'match' && (
+              <p className="text-xs mt-2 text-amber-700">
+                The name on this bank account does not match the name on your DealMatch profile, so our team will check it before it is verified. This can take longer.
+              </p>
+            )}
             {current.status === 'pending' && (
               <p className="text-xs mt-2" style={{ color: '#5C665F' }}>Submitting a new form below replaces this pending request.</p>
             )}

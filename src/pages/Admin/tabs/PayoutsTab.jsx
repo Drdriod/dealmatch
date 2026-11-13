@@ -57,7 +57,7 @@ export function PayoutsTab() {
         const {data:profs}=await fetchProfileSummaries(ids)
         byId=Object.fromEntries((profs||[]).map(p=>[p.id,p]))
       }
-      setItems(rows.map(r=>({...r,profiles:byId[r.profile_id]||null})))
+      setItems(rows.map(r=>({...r,profiles:byId[r.profile_id]||null})).sort((x,y)=>(y.status==='pending'&&y.name_check!=='match')-(x.status==='pending'&&x.name_check!=='match')))
     }catch(e){console.error(e); setItems([])}
     setLoading(false)
   },[section])
@@ -110,7 +110,7 @@ export function PayoutsTab() {
             <TR key={a.id}>
               <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{a.profiles?.full_name||'N/A'}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{a.profiles?.email}</div></td>
               <td className="px-4 py-3 text-xs text-white">{a.bank_name}{!a.bank_code&&<span className="block" style={{color:'var(--dm-terracotta)'}}>No bank code (pre-automation)</span>}</td>
-              <td className="px-4 py-3 text-xs text-white">{a.account_name}<div style={{color:'rgba(255,255,255,0.35)'}}>****{String(a.account_number).slice(-4)}</div></td>
+              <td className="px-4 py-3 text-xs text-white">{a.account_name}<div style={{color:'rgba(255,255,255,0.35)'}}>****{String(a.account_number).slice(-4)}</div>{a.status==='pending'&&a.name_check==='mismatch'&&<div className="font-semibold text-amber-300">Name differs from profile ({a.profiles?.full_name||'N/A'}): check before verifying</div>}{a.status==='pending'&&a.name_check==='no_profile_name'&&<div className="font-semibold text-amber-300">Profile has no full name: check before verifying</div>}</td>
               <td className="px-4 py-3"><Badge label={a.status} color={SC[a.status]}/></td>
               <td className="px-4 py-3 text-xs whitespace-nowrap" style={{color:'rgba(255,255,255,0.35)'}}>{ago(a.created_at)}</td>
               <td className="px-4 py-3">
