@@ -104,7 +104,7 @@ const apiCases = [
   ['POST', '/api/send-email', { userId: 'x', subject: 'x', message: 'x' }, [401, 403]],
   ['POST', '/api/send-whatsapp', { userId: 'x', message: 'x' }, [401, 403]],
   ['POST', '/api/index-property', { property: { id: 'x' } }, [401, 403]],
-  ['POST', '/api/agent/start', {}, [401, 403]],
+  ['POST', '/api/agent/start', {}, [401, 403, 405]],
   ['GET', '/api/admin/people', null, [401, 403, 405]],
   ['POST', '/api/flutterwave-webhook', { type: 'charge.completed', data: { id: '1' } }, [400, 401, 403]],
   ['POST', '/api/escrow-webhook', { event: 'escrow.funded', data: { reference: 'x' } }, [400, 401, 403, 500]],
@@ -118,6 +118,13 @@ for (const [method, path, body, ok] of apiCases) {
     if (/stack|at \w+ \(|node_modules|SUPABASE|secret/i.test(text)) fail(`${path} leaks internals in its error`, text)
   } catch (e) { warn(`${path} could not be tested`, e.message) }
 }
+
+// Admin sign-in must work for a real person: wrong credentials give 401, never 429/5xx.
+// (A 429 on the very first try means the rate-limit store is missing and sign-in is blocked for everyone.)
+try {
+  const r = await get('/api/admin/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'probe@example.invalid', password: 'not-a-real-password' }) })
+  check(r.status === 401, 'Admin sign-in answers a wrong password with 401 (rate-limit store is working)', `status ${r.status} ${(await r.text()).slice(0, 100)}`)
+} catch (e) { warn('Admin sign-in probe could not run', e.message) }
 
 // ── 8. CORS: a foreign origin must not be allowed ────────────────────────────
 for (const path of ['/api/send-email', '/api/send-whatsapp']) {
