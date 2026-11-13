@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 // The provider's most recent payout account, or null.
 export function fetchLatestPayoutAccount(userId) {
   return supabase.from('payout_accounts')
-    .select('id, gateway, bank_name, bank_code, account_number, account_name, status, rejected_reason, created_at')
+    .select('id, gateway, bank_name, bank_code, account_number, account_name, status, name_check, rejected_reason, created_at')
     .eq('profile_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
