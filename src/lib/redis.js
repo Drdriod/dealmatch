@@ -13,13 +13,31 @@
 // failClosed: use for payment, auth and verification routes. If Redis is
 // unconfigured, unreachable, or returns an unexpected response in production,
 // the request is DENIED. Other routes keep the default fail-open behaviour.
-export async function redisRateLimit(req, key, max = 20, windowSec = 60, includeIp = true, { failClosed = false } = {}) {
+// memoryFallback: for sign-in routes. When Redis is unconfigured or down, count attempts in this
+// server instance's memory instead of refusing everyone. It is weaker (each instance counts alone)
+// but nobody is locked out of their own account because a storage service is missing.
+const memoryHits = new Map()
+function memoryLimit(rKey, max, windowSec) {
+  const now = Date.now()
+  if (memoryHits.size > 5000) for (const [k, v] of memoryHits) if (v.resetAt <= now) memoryHits.delete(k)
+  const hit = memoryHits.get(rKey)
+  if (!hit || hit.resetAt <= now) { memoryHits.set(rKey, { count: 1, resetAt: now + windowSec * 1000 }); return { allowed: true, remaining: max - 1 } }
+  hit.count += 1
+  return hit.count > max ? { allowed: false, remaining: 0, message: 'Too many requests' } : { allowed: true, remaining: max - hit.count }
+}
+
+export async function redisRateLimit(req, key, max = 20, windowSec = 60, includeIp = true, { failClosed = false, memoryFallback = false } = {}) {
   const upstashUrl   = process.env.UPSTASH_REDIS_REST_URL
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN
   const isProd       = process.env.NODE_ENV === 'production'
   const denyOnFailure = failClosed && isProd
 
   if (!upstashUrl || !upstashToken) {
+    if (memoryFallback) {
+      console.error('[RATE LIMIT] Upstash unconfigured: using in-memory limit for', key)
+      const ip0 = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown'
+      return memoryLimit(includeIp ? `${key}:${ip0}` : key, max, windowSec)
+    }
     if (denyOnFailure) {
       console.error('[RATE LIMIT] Upstash unconfigured on a fail-closed route')
       return { allowed: false, remaining: 0, message: 'Service temporarily unavailable. Please retry.' }
@@ -63,6 +81,7 @@ export async function redisRateLimit(req, key, max = 20, windowSec = 60, include
     return { allowed: true, remaining: max - count }
   } catch (err) {
     console.error('[RATE LIMIT] Redis error:', err?.message)
+    if (memoryFallback) return memoryLimit(rKey, max, windowSec)
     if (denyOnFailure) {
       return { allowed: false, remaining: 0, message: 'Rate limit check failed. Please retry.' }
     }
