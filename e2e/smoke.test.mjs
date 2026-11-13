@@ -45,7 +45,11 @@ async function newPage({ categoriesDown = true } = {}) {
   if (process.env.DEVICE && !device) throw new Error('Unknown DEVICE: ' + process.env.DEVICE)
   const page = await browser.newPage(device ? { ...device } : { viewport: { width: 1280, height: 900 } })
   const errors = []
-  page.on('pageerror', (e) => errors.push(e.message))
+  // WebKit reports a locally answered cross-origin request as an unhandled "Returned response is null"
+  // error (plus the request's address). It is a test-harness artefact of the mock, not an app error, so
+  // it is ignored on WebKit only; every other script error still fails the test.
+  const webkitMockNoise = (m) => process.env.BROWSER === 'webkit' && (/^Returned response is null\.?$/.test(m) || /^\/?127\.0\.0\.1:54321\//.test(m))
+  page.on('pageerror', (e) => { if (!webkitMockNoise(e.message)) errors.push(e.message) })
   // Every Supabase call is answered locally: no session, no rows. The category service can be made to fail,
   // which is the outage the bundled taxonomy fallback exists for.
   await page.route(/127\.0\.0\.1:54321/, (route) => {
