@@ -7,6 +7,15 @@ import { createClient } from '@supabase/supabase-js'
 import { markEscrowFunded, markEscrowReleased, markEscrowRefunded } from '../src/data/escrowRepository.js'
 import { log } from '../src/lib/logger.js'
 
+// Read the body as raw bytes: the signature is over exactly what the sender sent.
+export const config = { api: { bodyParser: false } }
+
+async function readRawBody(req) {
+  const chunks = []
+  for await (const chunk of req) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+  return Buffer.concat(chunks)
+}
+
 function getSupabase() {
   return createClient(
     process.env.VITE_SUPABASE_URL,
@@ -36,20 +45,26 @@ export default async function handler(req, res) {
   if (!signature) {
     return res.status(401).json({ error: 'Missing signature' })
   }
-  const hash = crypto
-    .createHmac('sha512', secret)
-    .update(JSON.stringify(req.body))
-    .digest('hex')
+  let rawBody
   try {
-    const valid = crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature))
-    if (!valid) {
-      return res.status(400).json({ error: 'Invalid signature' })
-    }
+    rawBody = await readRawBody(req)
   } catch {
-    return res.status(400).json({ error: 'Signature verification failed' })
+    return res.status(400).json({ error: 'Unreadable body' })
+  }
+  const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex')
+  const a = Buffer.from(hash)
+  const b = Buffer.from(String(signature))
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(400).json({ error: 'Invalid signature' })
   }
 
-  const { event, data } = req.body || {}
+  let body
+  try {
+    body = JSON.parse(rawBody.toString('utf8'))
+  } catch {
+    return res.status(400).json({ error: 'Malformed payload' })
+  }
+  const { event, data } = body || {}
   if (!event || !data) {
     return res.status(400).json({ error: 'Malformed payload' })
   }
