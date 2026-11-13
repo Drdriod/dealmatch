@@ -5,7 +5,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { chromium } from 'playwright'
+import { chromium, firefox, webkit, devices } from 'playwright'
 
 const PORT = 4173
 const BASE = `http://127.0.0.1:${PORT}`
@@ -23,7 +23,11 @@ async function waitForServer() {
 test.before(async () => {
   server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'], { stdio: 'ignore' })
   await waitForServer()
-  browser = await chromium.launch()
+  // BROWSER=chromium|firefox|webkit picks the engine (webkit is Safari's); DEVICE="iPhone 14" or
+  // "Pixel 7" emulates a phone's screen, touch and user agent. Default: Chromium on a desktop.
+  const engine = { chromium, firefox, webkit }[process.env.BROWSER || 'chromium']
+  if (!engine) throw new Error('BROWSER must be chromium, firefox or webkit')
+  browser = await engine.launch()
 })
 
 test.after(async () => {
@@ -32,7 +36,9 @@ test.after(async () => {
 })
 
 async function newPage({ categoriesDown = true } = {}) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+  const device = process.env.DEVICE ? devices[process.env.DEVICE] : null
+  if (process.env.DEVICE && !device) throw new Error('Unknown DEVICE: ' + process.env.DEVICE)
+  const page = await browser.newPage(device ? { ...device } : { viewport: { width: 1280, height: 900 } })
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   // Every Supabase call is answered locally: no session, no rows. The category service can be made to fail,
