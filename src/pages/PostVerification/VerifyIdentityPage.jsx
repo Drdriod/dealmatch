@@ -350,7 +350,7 @@ export default function VerifyIdentityPage() {
           {/* Back button */}
           <button onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-sm mb-8"
-            style={{ color:'rgba(23,33,27,0.4)' }}>
+            style={{ color: 'rgba(23,33,27,0.7)' }}>
             <ArrowLeft size={14} /> Back
           </button>
 
@@ -428,11 +428,11 @@ export default function VerifyIdentityPage() {
             onClick={handleSkip}
             disabled={skipping}
             className="w-full py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-70"
-            style={{ color:'rgba(23,33,27,0.4)', border:'1px solid #DEDDD6', backgroundColor:'transparent' }}>
+            style={{ color: 'rgba(23,33,27,0.7)', border:'1px solid #DEDDD6', backgroundColor:'transparent' }}>
             <SkipForward size={14} />
             {skipping ? 'Skipping...' : 'Skip for now - browse freely'}
           </button>
-          <p className="text-center text-xs mt-2" style={{ color:'rgba(23,33,27,0.3)' }}>
+          <p className="text-center text-xs mt-2" style={{ color: 'rgba(23,33,27,0.7)' }}>
             You'll be reminded when you try to make a transaction
           </p>
         </div>
@@ -446,7 +446,7 @@ export default function VerifyIdentityPage() {
       <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
         <div className="max-w-sm mx-auto px-5 py-8">
           <button onClick={() => setStep(0)}
-            className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(23,33,27,0.4)' }}>
+            className="flex items-center gap-2 text-sm mb-6" style={{ color: 'rgba(23,33,27,0.7)' }}>
             <ArrowLeft size={14} /> Back
           </button>
 
@@ -458,12 +458,12 @@ export default function VerifyIdentityPage() {
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                     style={{
                       backgroundColor: i < 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
-                      color: i < 1 ? 'white' : 'rgba(23,33,27,0.3)',
+                      color: i < 1 ? 'white' : 'rgba(23,33,27,0.7)',
                     }}>
                     {i < 0 ? <Check size={14} /> : i + 1}
                   </div>
                   <span className="text-xs font-semibold hidden sm:block"
-                    style={{ color: i === 0 ? '#17211B' : 'rgba(23,33,27,0.3)' }}>{label}</span>
+                    style={{ color: i === 0 ? '#17211B' : 'rgba(23,33,27,0.7)' }}>{label}</span>
                 </div>
                 {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
               </React.Fragment>
@@ -561,7 +561,7 @@ export default function VerifyIdentityPage() {
     <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
       <div className="max-w-sm mx-auto px-5 py-8">
         <button onClick={() => setStep(1)}
-          className="flex items-center gap-2 text-sm mb-6" style={{ color:'rgba(23,33,27,0.4)' }}>
+          className="flex items-center gap-2 text-sm mb-6" style={{ color: 'rgba(23,33,27,0.7)' }}>
           <ArrowLeft size={14} /> Back
         </button>
 
@@ -573,12 +573,12 @@ export default function VerifyIdentityPage() {
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{
                     backgroundColor: i <= 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
-                    color: i <= 1 ? 'white' : 'rgba(23,33,27,0.3)',
+                    color: i <= 1 ? 'white' : 'rgba(23,33,27,0.7)',
                   }}>
                   {i < 1 ? <Check size={14} /> : i + 1}
                 </div>
                 <span className="text-xs font-semibold hidden sm:block"
-                  style={{ color: i === 1 ? '#17211B' : 'rgba(23,33,27,0.3)' }}>{label}</span>
+                  style={{ color: i === 1 ? '#17211B' : 'rgba(23,33,27,0.7)' }}>{label}</span>
               </div>
               {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
             </React.Fragment>

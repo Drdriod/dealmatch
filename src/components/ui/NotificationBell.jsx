@@ -178,7 +178,7 @@ export default function NotificationBell() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold" style={{ color: '#17211B' }}>{n.title}</p>
                         <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#5C665F' }}>{n.message}</p>
-                        <p className="text-[10px] mt-1" style={{ color: '#B5A99C' }}>{ago(n.created_at)}</p>
+                        <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>{ago(n.created_at)}</p>
                       </div>
                       {!n.read && (
                         <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#B8511E' }} />

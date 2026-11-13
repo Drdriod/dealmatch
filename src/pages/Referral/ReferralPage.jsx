@@ -186,7 +186,7 @@ export default function ReferralPage() {
               style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px solid #DEDDD6' }}>
               <div className="flex items-center gap-2 mb-1.5">
                 <s.icon size={13} style={{ color: s.color }} />
-                <span className="text-xs font-semibold" style={{ color: 'rgba(23,33,27,0.4)' }}>{s.label}</span>
+                <span className="text-xs font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>{s.label}</span>
               </div>
               <p className="font-black text-xl" style={{ color: '#17211B' }}>{s.value}</p>
             </div>

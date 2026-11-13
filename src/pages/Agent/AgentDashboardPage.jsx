@@ -29,7 +29,7 @@ function EmptyNote({ text }) {
 }
 
 const STATUS_CFG = {
-  pending_review:     { bg:'rgba(212,168,83,0.12)',  color:'#8A6A20', label:'Pending Review' },
+  pending_review:     { bg:'rgba(212,168,83,0.12)',  color:'#735618', label:'Pending Review' },
   under_verification: { bg:'rgba(91,141,239,0.12)',  color:'#4A72C4', label:'Verifying' },
   active:             { bg:'rgba(122,158,126,0.12)', color:'#4A7A4E', label:'Active' },
   rejected:           { bg:'rgba(200,95,45,0.12)',  color:'#8A4A20', label:'Rejected' },
@@ -614,7 +614,7 @@ export default function AgentDashboardPage() {
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{
                     backgroundColor: c.status==='upheld' ? 'rgba(201,74,58,0.1)' : c.status==='dismissed' ? 'rgba(122,158,126,0.1)' : 'rgba(212,168,83,0.1)',
-                    color: c.status==='upheld' ? '#C94A3A' : c.status==='dismissed' ? '#4A7A4E' : '#8A6A20'
+                    color: c.status==='upheld' ? '#C94A3A' : c.status==='dismissed' ? '#4A7A4E' : '#735618'
                   }}>
                     {c.status}
                   </span>
@@ -623,7 +623,7 @@ export default function AgentDashboardPage() {
                 {/* Response window */}
                 {c.status === 'open' && !c.agent_responded_at && (
                   <div className="rounded-xl p-2.5" style={{ backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)' }}>
-                    <p className="text-xs font-bold mb-1" style={{ color:'#8A6A20' }}>
+                    <p className="text-xs font-bold mb-1" style={{ color:'#735618' }}>
                       <Clock size={11} className="inline mr-1" />
                       Respond within 48 hours
                     </p>

@@ -100,7 +100,7 @@ export default function ListPropertyPage() {
             <p className="text-sm" style={{color:'var(--dm-warm)'}}>Tell us what you're selling and how you'd like to list it.</p>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Property type *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>Property type *</label>
             <div className="grid grid-cols-2 gap-3">
               {TYPES.map(t => (
                 <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, property_type: t.id, category_id: null }))}
@@ -119,7 +119,7 @@ export default function ListPropertyPage() {
           <PlaceSubtypePicker category="sale" propertyType={form.property_type}
             value={form.category_id} onChange={id => set('category_id', id)} />
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>How are you listing it? *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>How are you listing it? *</label>
             <div className="grid grid-cols-2 gap-2 mb-2">
               {LISTING_TYPES.map(lt => (
                 <button key={lt} type="button" onClick={() => set('listing_type', lt)}
@@ -147,7 +147,7 @@ export default function ListPropertyPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Listing title *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Listing title *</label>
             <input className="input" type="text"
               placeholder="e.g. 700 sqm plot with bungalow, Uyo"
               value={form.title} onChange={setE('title')}
@@ -168,24 +168,24 @@ export default function ListPropertyPage() {
             <p className="text-sm" style={{color:'var(--dm-warm)'}}>Where is it, and what are you asking for it?</p>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>State *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>State *</label>
             <select className="select" value={form.state} onChange={setE('state')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}}>
               <option value="">Choose a state</option>
               {STATES.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>City or area *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>City or area *</label>
             <input className="input" type="text" placeholder="e.g. Lekki Phase 1"
               value={form.city} onChange={setE('city')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Street address (optional)</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Street address (optional)</label>
             <input className="input" type="text" placeholder="Add it only if you want to share it with serious buyers"
               value={form.address} onChange={setE('address')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Asking price (₦) *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Asking price (₦) *</label>
             <input className="input" type="number" min="0" placeholder="e.g. 38500000"
               value={form.price} onChange={setE('price')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             {form.price && (() => {
@@ -216,7 +216,7 @@ export default function ListPropertyPage() {
                       <span className="font-bold" style={{color:'#4A7A4E'}}>You receive</span>
                       <span className="font-black" style={{color:'#4A7A4E'}}>₦{takeHome.toLocaleString()}</span>
                     </div>
-                    <p className="text-xs mt-1" style={{color:'rgba(23,33,27,0.35)'}}>
+                    <p className="text-xs mt-1" style={{color: 'rgba(23,33,27,0.7)'}}>
                       The agent who verified your listing earns ₦{agentBonus.toLocaleString()} closing bonus on deal completion.
                     </p>
                   </div>
@@ -242,25 +242,25 @@ export default function ListPropertyPage() {
             {!isLandType && (
               <>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Beds</label>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Beds</label>
                   <input className="input" type="number" min="0" placeholder="0"
                     value={form.bedrooms} onChange={setE('bedrooms')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Baths</label>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Baths</label>
                   <input className="input" type="number" min="0" placeholder="0"
                     value={form.bathrooms} onChange={setE('bathrooms')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
                 </div>
               </>
             )}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>Size (sqm) *</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>Size (sqm) *</label>
               <input className="input" type="number" min="0" placeholder="e.g. 400"
                 value={form.size_sqm} onChange={setE('size_sqm')} style={{backgroundColor:'#FFFFFF', color:'var(--dm-deep)'}} />
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Features and amenities</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>Features and amenities</label>
             <div className="flex flex-wrap gap-2">
               {FEATURES.map(f => (
                 <button key={f} type="button" onClick={() => toggle('features', f)}
@@ -276,7 +276,7 @@ export default function ListPropertyPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>Documents you can show buyers</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>Documents you can show buyers</label>
             <div className="flex flex-wrap gap-2">
               {DOCS.map(d => (
                 <button key={d} type="button" onClick={() => toggle('documents', d)}
@@ -311,7 +311,7 @@ export default function ListPropertyPage() {
 
           {/* Photo upload */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>
               Photos {form.images.length > 0
                 ? <span style={{color:'var(--dm-sage)'}}>({form.images.length} added)</span>
                 : <span style={{color:'var(--dm-terracotta)'}}>* required</span>}
@@ -392,7 +392,7 @@ export default function ListPropertyPage() {
 
           {/* Video upload */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color:'rgba(23,33,27,0.5)'}}>
+            <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{color: 'rgba(23,33,27,0.7)'}}>
               Video tour (optional, but it helps)
             </label>
             <div
@@ -432,7 +432,7 @@ export default function ListPropertyPage() {
             )}
 
             <div className="mt-3">
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color:'rgba(23,33,27,0.5)'}}>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{color: 'rgba(23,33,27,0.7)'}}>
                 Or paste a YouTube or Loom link
               </label>
               <input className="input" type="url"
@@ -444,7 +444,7 @@ export default function ListPropertyPage() {
           </div>
 
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
-            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
+            <p className="text-xs font-semibold mb-1" style={{color:'#735618'}}>Tip</p>
             <p className="text-xs leading-relaxed" style={{color:'var(--dm-warm)'}}>
               A short video tour shows buyers more than photos can. Walk through the property on your phone. No editing needed.
             </p>
@@ -473,7 +473,7 @@ export default function ListPropertyPage() {
             </p>
           </div>
           <div className="p-4 rounded-2xl" style={{backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)'}}>
-            <p className="text-xs font-semibold mb-1" style={{color:'#8A6A20'}}>Tip</p>
+            <p className="text-xs font-semibold mb-1" style={{color:'#735618'}}>Tip</p>
             <p className="text-xs leading-relaxed" style={{color:'var(--dm-warm)'}}>
               Detailed descriptions help the right buyers find you. Mention nearby landmarks, road access and the title status.
             </p>
@@ -655,13 +655,13 @@ export default function ListPropertyPage() {
                 <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold transition-colors"
                   style={{
                     backgroundColor: i < step ? '#3D7A45' : i === step ? '#B8511E' : '#FFFFFF',
-                    color: i <= step ? '#FFFFFF' : '#B5A99C',
+                    color: i <= step ? '#FFFFFF' : 'rgba(23,33,27,0.7)',
                     border: i === step ? 'none' : '1.5px solid #DEDDD6',
                   }}>
                   {i < step ? '✓' : i + 1}
                 </div>
                 <span className="text-sm" style={{
-                  color: i === step ? '#17211B' : i < step ? '#5C665F' : '#B5A99C',
+                  color: i === step ? '#17211B' : i < step ? '#5C665F' : 'rgba(23,33,27,0.7)',
                   fontWeight: i === step ? 700 : 500,
                 }}>
                   {s.title}
@@ -718,7 +718,7 @@ export default function ListPropertyPage() {
           {step > 0 && (
             <button onClick={() => setStep(s => s - 1)} disabled={saving}
               className="flex items-center gap-2 px-5 py-4 rounded-2xl text-sm font-semibold transition-all"
-              style={{border:'1.5px solid #DEDDD6', color:'rgba(23,33,27,0.5)', backgroundColor:'#FFFFFF'}}>
+              style={{border:'1.5px solid #DEDDD6', color: 'rgba(23,33,27,0.7)', backgroundColor:'#FFFFFF'}}>
               <ArrowLeft size={16} />
             </button>
           )}

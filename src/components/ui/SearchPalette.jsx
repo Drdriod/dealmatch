@@ -46,7 +46,7 @@ export default function SearchPalette({ isOpen, onClose }) {
             className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl"
             style={{ backgroundColor: '#FFFAF5' }}>
             <div className="flex items-center gap-3 p-4 border-b" style={{ borderColor: 'var(--dm-line)' }}>
-              <Search size={18} style={{ color: 'rgba(23,33,27,0.35)', flexShrink: 0 }} />
+              <Search size={18} style={{ color: 'rgba(23,33,27,0.7)', flexShrink: 0 }} />
               <input ref={inputRef} type="text" value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search properties, cities, states..."

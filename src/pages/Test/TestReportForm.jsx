@@ -88,14 +88,14 @@ export default function TestReportForm({ seat }) {
           <label className="block">Screenshot link (optional)
             <input className={inputCls} value={form.screenshotUrl} onChange={set('screenshotUrl')} maxLength={500} inputMode="url" />
           </label>
-          <p className="text-deep/60">Money wrong, or you can see someone else's private data? Choose S1 and also message the owner straight away.</p>
+          <p className="text-deep/70">Money wrong, or you can see someone else's private data? Choose S1 and also message the owner straight away.</p>
         </>
       )}
 
       <button type="submit" disabled={status === 'sending'} className="w-full rounded-lg bg-deep text-white py-3 font-medium disabled:opacity-60">
         {status === 'sending' ? 'Sending…' : 'Send report'}
       </button>
-      <p className="text-xs text-deep/50">We note your phone or browser type automatically.</p>
+      <p className="text-xs text-deep/70">We note your phone or browser type automatically.</p>
     </form>
   )
 }

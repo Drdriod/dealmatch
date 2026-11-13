@@ -160,7 +160,7 @@ export default function SkillVerificationPage() {
                   ? <img src={files[0].previewUrl} alt="" className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                       <Camera size={28} style={{ color: '#D8C4AE' }} />
-                      <span className="text-xs" style={{ color: '#B5A99C' }}>Your first photo appears here</span>
+                      <span className="text-xs" style={{ color: 'rgba(23,33,27,0.7)' }}>Your first photo appears here</span>
                     </div>}
               </div>
               {files.length > 0 && (

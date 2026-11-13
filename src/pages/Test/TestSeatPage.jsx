@@ -95,7 +95,7 @@ export default function TestSeatPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <p className="text-xs font-semibold uppercase tracking-wide text-deep/60">
+      <p className="text-xs font-semibold uppercase tracking-wide text-deep/70">
         {phase.label} · Seat {seat.seat} · {seat.door}
       </p>
       <h1 className="mt-1 text-2xl font-semibold text-deep">{seat.title}</h1>
@@ -105,7 +105,7 @@ export default function TestSeatPage() {
         <p><strong>When to start:</strong> {seat.startWhen}</p>
         <p><strong>Works with:</strong> {seat.pairWith}.</p>
         <p><strong>Time:</strong> about {seat.minutes} minutes.</p>
-        <p className="text-deep/60">{phase.blurb}</p>
+        <p className="text-deep/70">{phase.blurb}</p>
       </div>
 
       <div className="mt-4 rounded-xl bg-[#FEF3C7] border border-[#F59E0B]/40 p-4 text-sm text-deep">

@@ -89,7 +89,7 @@ export default function BrowsePage() {
                 {queue.length} propert{queue.length === 1 ? 'y' : 'ies'} matching what you're looking for
               </p>
             </div>
-            <button onClick={loadProperties}
+            <button onClick={loadProperties} aria-label="Refresh places"
               className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
               <RefreshCw size={16} style={{ color: '#5C4A3A' }} />

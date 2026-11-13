@@ -54,7 +54,7 @@ function ActiveEscrowSection() {
             style={{backgroundColor:'var(--dm-sage)',color:'white'}}>
             <CheckCircle size={16} /> {confirming === e.id ? 'Confirming…' : 'Confirm Move-In & Release Funds'}
           </button>
-          <p className="text-xs text-center mt-2" style={{color:'rgba(23,33,27,0.35)'}}>
+          <p className="text-xs text-center mt-2" style={{color: 'rgba(23,33,27,0.7)'}}>
             Only confirm after you have physically moved in and are satisfied with the property.
           </p>
         </div>

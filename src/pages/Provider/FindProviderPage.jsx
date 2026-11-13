@@ -185,7 +185,7 @@ export default function FindProviderPage() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--dm-cream)' }}>
       <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: 'var(--dm-cream)', borderBottom: '1px solid #DEDDD6' }}>
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FFF' }}>
+          <button onClick={() => navigate(-1)} aria-label="Go back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FFF' }}>
             <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
           </button>
           <div>

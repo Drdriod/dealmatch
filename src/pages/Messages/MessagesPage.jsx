@@ -114,7 +114,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Reason *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Reason *</label>
             <div className="flex flex-wrap gap-2">
               {REASONS.map(r => (
                 <button key={r} onClick={() => setReason(r)}
@@ -126,7 +126,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Description *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Description *</label>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={4}
               placeholder="Describe what happened in detail..."
               className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />

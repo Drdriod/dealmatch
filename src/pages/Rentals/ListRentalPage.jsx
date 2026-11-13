@@ -61,7 +61,7 @@ export default function ListRentalPage() {
           {/* Category selector for hotel types */}
           {isHotel && (
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Type *</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Type *</label>
               <div className="grid grid-cols-2 gap-2">
                 {[['hotel','Hotel'],['shortlet','Short-let']].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setForm(f => ({ ...f, category:v, category_id:null }))}
@@ -84,13 +84,13 @@ export default function ListRentalPage() {
             { label: isHotel ? 'Starting price per night (₦) *' : 'Annual rent (₦) *', key:'price', type:'number', placeholder:'e.g. 35000' },
           ].map(f => (
             <div key={f.key}>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{f.label}</label>
               <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
                 className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
           ))}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>State *</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>State *</label>
             <select className="select" value={form.state} onChange={set('state')} style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
               <option value="">Choose a state</option>
               {STATES.map(s => <option key={s}>{s}</option>)}
@@ -111,25 +111,25 @@ export default function ListRentalPage() {
             {!isHotel && (
               <>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Bedrooms</label>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Bedrooms</label>
                   <input type="number" min="0" value={form.bedrooms} onChange={set('bedrooms')} placeholder="0"
                     className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Bathrooms</label>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Bathrooms</label>
                   <input type="number" min="0" value={form.bathrooms} onChange={set('bathrooms')} placeholder="0"
                     className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
                 </div>
               </>
             )}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Size (sqm) *</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Size (sqm) *</label>
               <input type="number" min="0" value={form.size_sqm} onChange={set('size_sqm')} placeholder="e.g. 120"
                 className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
             </div>
             {isHotel && (
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Maximum guests</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Maximum guests</label>
                 <input type="number" min="1" value={form.max_guests} onChange={set('max_guests')} placeholder="e.g. 4"
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
@@ -138,7 +138,7 @@ export default function ListRentalPage() {
 
           {/* Features */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Features and amenities</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Features and amenities</label>
             <div className="flex flex-wrap gap-2">
               {(isHotel ? HOTEL_FEATURES : RENTAL_FEATURES).map(f => (
                 <button key={f} type="button" onClick={() => toggle('features', f)}
@@ -152,7 +152,7 @@ export default function ListRentalPage() {
 
           {/* Photos: multiple upload */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>
               Photos * {form.images.length > 0 ? <span style={{ color:'var(--dm-sage)' }}>({form.images.length} added)</span> : <span style={{ color:'var(--dm-terracotta)' }}>required</span>}
             </label>
             <div className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all"
@@ -198,7 +198,7 @@ export default function ListRentalPage() {
 
           {/* Video */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Video tour (optional, but it helps)</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Video tour (optional, but it helps)</label>
             <input type="url" value={form.video_url} onChange={set('video_url')}
               placeholder="Paste a YouTube or Loom link, or add a video below"
               className="input text-sm mb-2" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
@@ -214,7 +214,7 @@ export default function ListRentalPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color:'rgba(23,33,27,0.5)' }}>Description</label>
+            <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Description</label>
             <textarea className="input resize-none" rows={4}
               placeholder={`Describe the ${isHotel ? 'hotel or short-let' : 'property'}: where it is, how to get there, nearby landmarks and what makes it special.`}
               value={form.description} onChange={set('description')}

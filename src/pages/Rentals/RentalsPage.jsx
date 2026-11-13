@@ -172,7 +172,7 @@ function InterestModal({ rental, onClose }) {
               { label:'Email',        key:'email', type:'email', placeholder:'Optional' },
             ].map(f => (
               <div key={f.key}>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>{f.label}</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
@@ -180,12 +180,12 @@ function InterestModal({ rental, onClose }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Move-in Date</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Move-in Date</label>
                 <input type="date" value={form.moveIn} onChange={set('moveIn')} min={new Date().toISOString().split('T')[0]}
                   className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Duration</label>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Duration</label>
                 <select value={form.duration} onChange={set('duration')} className="select text-sm"
                   style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
                   {[1,3,6,12,24].map(n => <option key={n} value={n}>{n} month{n>1?'s':''}</option>)}
@@ -194,7 +194,7 @@ function InterestModal({ rental, onClose }) {
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color:'rgba(23,33,27,0.5)' }}>Message (optional)</label>
+              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Message (optional)</label>
               <textarea value={form.message} onChange={set('message')} rows={3}
                 placeholder="Tell the landlord about yourself..."
                 className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />

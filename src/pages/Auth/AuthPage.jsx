@@ -61,7 +61,7 @@ function Field({
       <label
         htmlFor={inputId}
         className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-        style={{ color:'rgba(23,33,27,0.5)' }}>
+        style={{ color: 'rgba(23,33,27,0.7)' }}>
         {label}{required && <span style={{ color:'var(--dm-terracotta)' }}> *</span>}
       </label>
       <div className="relative">
@@ -527,7 +527,7 @@ export default function AuthPage() {
             </Link>
 
             <Link to="/" className="inline-flex items-center gap-2 text-sm mb-6 transition-colors"
-              style={{ color:'rgba(23,33,27,0.4)' }}>
+              style={{ color: 'rgba(23,33,27,0.7)' }}>
               <ArrowLeft size={14} /> Back to home
             </Link>
 
@@ -550,7 +550,7 @@ export default function AuthPage() {
                   className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
                   style={{
                     backgroundColor: tab === t ? '#FFFFFF' : 'transparent',
-                    color:           tab === t ? '#17211B' : 'rgba(23,33,27,0.4)',
+                    color:           tab === t ? '#17211B' : 'rgba(23,33,27,0.7)',
                     boxShadow:       tab === t ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                   }}>{l}</button>
               ))}
@@ -570,7 +570,7 @@ export default function AuthPage() {
                     <div className="w-full border-t" style={{ borderColor:'var(--dm-line)' }} />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color:'rgba(23,33,27,0.4)' }}>or with email</span>
+                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color: 'rgba(23,33,27,0.7)' }}>or with email</span>
                   </div>
                 </div>
               </>
@@ -581,13 +581,13 @@ export default function AuthPage() {
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
                 <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Your next deal starts here.</h1>
-                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
+                <p className="text-sm" style={{ color: 'rgba(23,33,27,0.7)' }}>Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
               </div>
 
               {/* Full Name - no live check */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>
                   Full Name <span style={{ color:'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <input
@@ -644,9 +644,9 @@ export default function AuthPage() {
               {/* Referral code. Saved to the account after the email is confirmed (apply_referral_code). */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>
                   Referral code{' '}
-                  <span style={{ color:'rgba(23,33,27,0.3)', fontWeight:400, textTransform:'none', fontSize:11 }}>
+                  <span style={{ color: 'rgba(23,33,27,0.7)', fontWeight:400, textTransform:'none', fontSize:11 }}>
                     (optional)
                   </span>
                 </label>
@@ -704,7 +704,7 @@ export default function AuthPage() {
                   </p>
                 )}
                 {!fieldErrors.inviteCode && !form.inviteCode && (
-                  <p className="text-xs mt-1" style={{ color:'rgba(23,33,27,0.35)' }}>
+                  <p className="text-xs mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
                     Did someone refer you? Enter their referral code.
                   </p>
                 )}
@@ -717,7 +717,7 @@ export default function AuthPage() {
                 onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPwFocus(false) }}
               >
                 <label htmlFor="signup-password" className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>
                   Password <span style={{ color:'var(--dm-terracotta)' }}>*</span>
                 </label>
                 <div className="relative">
@@ -762,11 +762,11 @@ export default function AuthPage() {
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
                 <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Welcome back.</h1>
-                <p className="text-sm" style={{ color:'rgba(23,33,27,0.4)' }}>Sign in to continue where you left off.</p>
+                <p className="text-sm" style={{ color: 'rgba(23,33,27,0.7)' }}>Sign in to continue where you left off.</p>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>Email</label>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>Email</label>
                 <input className="input w-full" type="email" placeholder="your@email.com"
                   value={form.email} onChange={setField('email')}
                   autoComplete="email"
@@ -774,7 +774,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color:'rgba(23,33,27,0.5)' }}>Password</label>
+                  style={{ color: 'rgba(23,33,27,0.7)' }}>Password</label>
                 <div className="relative">
                   <input className="input w-full pr-10" type={showPass ? 'text' : 'password'}
                     placeholder="••••••••"
@@ -804,7 +804,7 @@ export default function AuthPage() {
           <AuthBrandPanel />
         </div>
 
-        <p className="mt-5 px-4 text-center text-xs text-deep/50">
+        <p className="mt-5 px-4 text-center text-xs text-deep/70">
           By continuing you agree to our{' '}
           <Link to="/terms" className="font-semibold text-terracotta hover:underline">Terms</Link>
           {' '}and{' '}
