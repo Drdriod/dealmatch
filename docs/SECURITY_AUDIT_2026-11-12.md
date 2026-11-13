@@ -19,10 +19,10 @@ The platform is in reasonable shape for a closed launch. Payments are priced and
 | F-007 | MED | Database | `spatial_ref_sys` had row security off and write rights for the public key | Fixed: revoked in production |
 | F-008 | LOW | Storage | property-images accepted uploads anywhere in the bucket; public buckets accepted any file type; identity-docs had no size or type limit | Fix ready: PR #73; migration on staging only, production awaits go-ahead |
 | F-009 | LOW | Storage | Duplicate avatar policies | Same PR #73 |
-| F-010 | LOW | Escrow webhook | Signature computed over re-serialised JSON, not raw bytes; no amount check | Open (see D) |
+| F-010 | LOW | Escrow webhook | Signature computed over re-serialised JSON, not raw bytes; no amount check | Fixed: raw-body HMAC, 4 tests (PR fix/audit-small-fixes). Amount check not added: the endpoint only changes state by reference |
 | F-011 | LOW | Headers | X-XSS-Protection 1; no CSP frame-ancestors | Fix in PR #73 |
 | F-012 | LOW | Webhook | In-memory duplicate guard (database gate still protects) | Open, informational |
-| F-013 | LOW | Database speed | 9 policies re-evaluate auth functions per row; 141 unused indexes (normal at this traffic); no missing foreign-key indexes | Open |
+| F-013 | LOW | Database speed | 9 policies re-evaluate auth functions per row; 141 unused indexes (normal at this traffic); no missing foreign-key indexes | Fixed (9 policies wrapped, live in production and staging). Unused indexes and multiple-policy warnings left: revisit with real traffic |
 | F-014 | LOW | Extensions | postgis and pg_net live in the public schema | Open |
 | F-015 | LOW | Performance | Home page layout shift 0.245 (mobile) / 0.297 (desktop), over the 0.1 target | Fixed: PR #74, measured 0 |
 | F-016 | LOW | Accessibility | Unnamed WhatsApp button (critical) on every page, plus 7 other unnamed icon buttons; muted grey text at 4.3:1 (needs 4.5) across the app; text at 40-50% opacity (2.4-3.2:1) in about 20 places; brand terracotta on tint 4.2:1 | Buttons and muted grey fixed in PRs #75 and #78; opacity text and terracotta tint need a design decision |
@@ -36,7 +36,7 @@ The platform is in reasonable shape for a closed launch. Payments are priced and
 | F-025 | HIGH | Live: admin sign-in | The live probe got "too many attempts" on the very first admin sign-in: the login limiter refuses everyone when its Redis store is missing, and it is not working on the live site | Hotfix PR #91 (in-memory fallback for sign-in). Owner: set the Upstash variables in Vercel |
 | F-026 | HIGH | Live: payments | /api/flutterwave-webhook answers "Server misconfiguration" on the live site, so Flutterwave payment confirmations would fail | Owner: set FLUTTERWAVE_SECRET_HASH, FLUTTERWAVE_V4_CLIENT_ID, FLUTTERWAVE_V4_CLIENT_SECRET and FLUTTERWAVE_BASE_URL in Vercel Production |
 | F-027 | MED | Live: rate limits | 20 rapid calls to /api/send-email never produced a 429: the Redis rate limiter is not enforcing on the live site (same cause as F-025). Payment routes that fail closed would be refused until it is set | Owner: set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel Production, then re-run Live site checks |
-| F-019 | LOW | Dependencies | npm audit: 1 high (vite dev server), 3 moderate (esbuild, react-router). Dev-server only or not reachable: the redirect target comes from in-app state, not the URL | Open: upgrade vite and react-router-dom together |
+| F-019 | LOW | Dependencies | npm audit: 1 high (vite dev server), 3 moderate (esbuild, react-router). Dev-server only or not reachable: the redirect target comes from in-app state, not the URL | Fixed for production code: react-router-dom 7.18.5, `npm audit --omit=dev` now 0 vulnerabilities; 258 unit tests, build and e2e pass. Vite/esbuild advisories remain dev-server only |
 
 Also noted, not rated: signup lookups (`check_phone_exists`, `check_username_exists`, `check_signup_conflicts`, `check_device_exists`) are open to the public so anyone can test whether a phone or username is registered (accepted for signup UX).
 
@@ -79,3 +79,9 @@ Production database changes made today (all additive or revoking): revoke public
 ## F. Production readiness: READY WITH CONDITIONS
 
 Ready for a closed or soft launch once the PRs are merged and deployed, the storage migration is applied, and the owner actions in D.3 are done. Before open public launch: run a full payment in the Flutterwave sandbox from signup to payout, probe the live headers, and commission an external penetration test.
+
+
+## Addendum 13 Nov 2026
+
+- F-012 left as is (informational; the database gate protects).
+- F-014 not changed: moving postgis would break functions that rely on the public search path, and pg_net cannot be relocated. Accepted, documented.
