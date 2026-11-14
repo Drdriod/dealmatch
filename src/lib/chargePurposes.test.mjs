@@ -36,11 +36,18 @@ test('no purpose, or a purpose not in the registry, changes nothing', async () =
   } finally { restore() }
 })
 
-test('registry covers exactly the six purposes', () => {
+test('registry covers exactly the known purposes', () => {
   assert.deepEqual(Object.keys(CHARGE_PURPOSES).sort(), [
     'contact_unlock_credits', 'escrow_payment', 'hostel_listing_fee',
-    'hotel_booking', 'professional_subscription', 'transaction_escrow',
+    'hotel_booking', 'payment_test', 'professional_subscription', 'transaction_escrow',
   ])
+})
+
+test('payment_test: stops the pipeline so nothing is granted and no revenue row is written', async () => {
+  const restore = quiet()
+  try {
+    assert.deepEqual(await runChargePurpose(svcWith({}), charge({ type: 'payment_test' })), { stop: true })
+  } finally { restore() }
 })
 
 test('professional: approved identity activates the application, matched by application_id', async () => {

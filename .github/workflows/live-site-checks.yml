@@ -26,14 +26,14 @@ jobs:
   headers-and-probes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Security headers and unauthenticated probes
         run: node scripts/live-probe.mjs "$SITE"
 
   load:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 22 }
       # Gentle by design: 20 connections for 20 seconds on public pages only. This is a smoke-level
       # load test, not a stress test, and stays well inside normal hosting limits.
@@ -41,7 +41,7 @@ jobs:
         run: |
           for path in / /places /rentals /how-it-works; do
             echo "=== $path"
-            npx --yes autocannon@7 -c 20 -d 20 --json "$SITE$path" > out.json || true
+            npx --yes autocannon@7.15.0 -c 20 -d 20 --json "$SITE$path" > out.json || true
             node -e "
               const r=JSON.parse(require('fs').readFileSync('out.json','utf8'));
               const bad=(r.non2xx||0)+(r.errors||0)+(r.timeouts||0);
@@ -59,7 +59,7 @@ jobs:
       # OWASP ZAP baseline: crawls the public site and reports weaknesses it can see without attacking
       # (missing headers, cookie flags, information leaks, risky scripts). Passive only.
       - name: ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed # v0.14.0
         with:
           target: ${{ env.SITE }}
           fail_action: false
@@ -78,8 +78,8 @@ jobs:
           - { name: Pixel 7 (Chrome), browser: chromium, device: 'Pixel 7' }
     name: Browser - ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}

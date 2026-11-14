@@ -183,6 +183,17 @@ async function hotelBooking(svc, { subject, reference, user }) {
   }
 }
 
+// Owner's end-to-end check of the live payment path (admin page /admin/payment-test).
+// Only a superadmin may start one, and the price is fixed here at 100 naira, so the
+// payer cannot choose an amount. The charge handler for this type grants nothing and
+// writes no revenue row (see chargePurposes.js).
+export const PAYMENT_TEST_NAIRA = 100
+async function paymentTest(svc, { user }) {
+  const { data: profile } = await svc.from('profiles').select('role').eq('id', user.id).maybeSingle()
+  if (!profile || profile.role !== 'superadmin') throw new PaymentError('Not available', 403)
+  return { amountNaira: PAYMENT_TEST_NAIRA, metadata: { type: 'payment_test', user_id: user.id } }
+}
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 const handlers = Object.create(null)
@@ -198,6 +209,7 @@ registerPaymentPurpose('professional_subscription', professionalSubscription)
 registerPaymentPurpose('hostel_listing_fee', hostelListingFee)
 registerPaymentPurpose('contact_unlock_credits', contactUnlockCredits)
 registerPaymentPurpose('hotel_booking', hotelBooking)
+registerPaymentPurpose('payment_test', paymentTest)
 
 // Look up the handler for a purpose and run it. Unknown purposes are refused,
 // including names that exist on Object.prototype.

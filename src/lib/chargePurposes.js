@@ -375,6 +375,13 @@ async function transactionEscrow(svc, { reference, amount, amountNgn, customer }
   return {}
 }
 
+// The owner's 100 naira check of the live payment path. It proves the money arrived and the
+// webhook ran, and nothing else: no grant, no payments row (so no revenue) and no referral.
+async function paymentTest(_svc, { reference, amountNgn }) {
+  log.info('payment_test.confirmed', { reference, amountNgn })
+  return { stop: true }
+}
+
 // Registry (creational pattern): one handler per purpose. A purpose not listed
 // here has no server-side effect beyond the payments log.
 export const CHARGE_PURPOSES = Object.freeze({
@@ -384,6 +391,7 @@ export const CHARGE_PURPOSES = Object.freeze({
   contact_unlock_credits: contactUnlockCredits,
   escrow_payment: escrowPayment,
   transaction_escrow: transactionEscrow,
+  payment_test: paymentTest,
 })
 
 // Runs the handler for a confirmed charge's purpose. Returns the handler's
