@@ -1,23 +1,15 @@
-// Admin-only test page for the Flutterwave virtual-account payment flow.
-// Reachable at /admin/payment-test (behind AdminRoute + MFA).
-// Uses metadata type "payment_test": the webhook has no mapping for it, so
-// it only marks the payment paid. It creates no subscription and no payout.
+// Owner-only check of the real payment path. Reachable at /admin/payment-test
+// (behind AdminRoute + MFA). It asks the server for a payment with purpose
+// "payment_test": the server allows only a superadmin, fixes the price at 100 naira
+// and, once the transfer lands, marks it paid without granting anything or adding
+// to revenue. In live mode this is a real 100 naira transfer from your bank.
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 import { initializeFlutterwavePayment } from '@/lib/flutterwave'
 
 export default function PaymentTestPage() {
-  const [email, setEmail] = useState('')
-  const [amount, setAmount] = useState('100')
   const [busy, setBusy] = useState(false)
   const [log, setLog] = useState([])
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setEmail(data?.session?.user?.email || '')
-    })
-  }, [])
 
   const addLog = (text) =>
     setLog((rows) => [`${new Date().toLocaleTimeString()}  ${text}`, ...rows])
@@ -26,17 +18,18 @@ export default function PaymentTestPage() {
     // Must match the server's reference rule: letters, digits and dashes, 6-42 chars.
     const reference = `dm-test-${Date.now().toString(36)}`
     setBusy(true)
-    addLog(`Starting test payment ₦${amount} (ref ${reference})`)
+    addLog(`Starting the 100 naira test (ref ${reference})`)
     try {
       await initializeFlutterwavePayment({
-        email,
-        amount: Number(amount),
+        purpose: 'payment_test',
         reference,
-        metadata: { type: 'payment_test' },
-        onSuccess: () => addLog(`PAID: ${reference}`),
+        onSuccess: () => {
+          addLog(`PAID: ${reference}. The webhook confirmed the transfer.`)
+          setBusy(false)
+        },
         onClose: () => {
           setBusy(false)
-          addLog(`Closed transfer screen: ${reference}`)
+          addLog(`Closed the transfer screen (${reference})`)
         },
       })
     } catch (err) {
@@ -47,39 +40,22 @@ export default function PaymentTestPage() {
 
   return (
     <div className="mx-auto max-w-xl p-4">
-      <h1 className="mb-1 text-xl font-semibold">Flutterwave payment test</h1>
-      <p className="mb-6 text-sm text-neutral-600">
-        Creates a real sandbox virtual account for this amount. Use a sandbox
-        transfer to pay it. Nothing is granted to any user.
+      <h1 className="mb-1 text-xl font-semibold">Payment test</h1>
+      <p className="mb-2 text-sm text-neutral-600">
+        Creates a payment account for exactly ₦100. Transfer ₦100 to it from your bank app, then
+        wait for the PAID line below. It proves the live payment path works end to end.
       </p>
-
-      <label className="mb-4 block">
-        <span className="mb-1 block text-sm text-neutral-700">Payer email</span>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded border border-neutral-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="mb-6 block">
-        <span className="mb-1 block text-sm text-neutral-700">Amount (₦)</span>
-        <input
-          type="number"
-          min="1"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full rounded border border-neutral-300 px-3 py-2"
-        />
-      </label>
+      <p className="mb-6 text-sm text-neutral-600">
+        Nothing is granted to anyone, and it adds nothing to revenue or referrals. If the site is
+        still in Flutterwave test mode, the transfer is simulated.
+      </p>
 
       <button
         onClick={start}
-        disabled={busy || !email || !(Number(amount) > 0)}
+        disabled={busy}
         className="w-full rounded bg-neutral-900 px-4 py-3 text-white disabled:opacity-50"
       >
-        {busy ? 'Waiting for transfer…' : 'Start test payment'}
+        {busy ? 'Waiting for the transfer…' : 'Start ₦100 test payment'}
       </button>
 
       <div className="mt-8">

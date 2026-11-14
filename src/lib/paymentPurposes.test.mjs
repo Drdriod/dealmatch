@@ -8,11 +8,27 @@ import { fakeSupabase } from './testing/fakeSupabase.mjs'
 
 const buyer = { id: 'buyer-1', email: 'b@example.com' }
 
-test('the six built-in purposes are registered', () => {
+test('the built-in purposes are registered', () => {
   assert.deepEqual(registeredPurposes(), [
     'contact_unlock_credits', 'escrow_payment', 'hostel_listing_fee',
-    'hotel_booking', 'professional_subscription', 'transaction_escrow',
+    'hotel_booking', 'payment_test', 'professional_subscription', 'transaction_escrow',
   ])
+})
+
+test('payment_test: only a superadmin, always 100 naira, and the caller cannot change the price', async () => {
+  const tables = { profiles: [{ id: 'boss', role: 'superadmin' }, { id: 'buyer-1', role: 'buyer' }, { id: 'adm', role: 'admin' }] }
+  const ok = await resolvePayment(fakeSupabase(tables), {
+    purpose: 'payment_test', subject: { amount: 999999 }, reference: 'dm-test-abc123', user: { id: 'boss', email: 'o@x.com' },
+  })
+  assert.equal(ok.amountNaira, 100)
+  assert.equal(ok.metadata.type, 'payment_test')
+  for (const id of ['buyer-1', 'adm', 'nobody']) {
+    await assert.rejects(
+      () => resolvePayment(fakeSupabase(tables), { purpose: 'payment_test', subject: {}, reference: 'dm-test-abc123', user: { id } }),
+      (err) => err instanceof PaymentError && err.status === 403,
+      id,
+    )
+  }
 })
 
 test('an unknown purpose is refused with a 400', async () => {
