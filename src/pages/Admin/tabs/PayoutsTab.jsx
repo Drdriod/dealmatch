@@ -7,7 +7,7 @@ import { Activity, AlertOctagon, AlertTriangle, Award, Ban, BarChart2, Bell, Boo
 import { motion, AnimatePresence } from 'motion/react'
 import {
   fetchPayoutAccounts, fetchPayoutQueue, fetchWithdrawalRequests, fetchProfileSummaries,
-  verifyPayoutAccount, rejectPayoutAccount, requeuePayout, fulfillWithdrawal, rejectWithdrawal,
+  verifyPayoutAccount, rejectPayoutAccount, requeuePayout, fulfillWithdrawal as fulfillWithdrawalRequest, rejectWithdrawal as rejectWithdrawalRequest,
 } from '@/data/adminPayoutsRepository'
 import { processReferralPayoutsForTransaction, AGENT_FIELD_FEE, AGENT_SENIOR_FEE } from '@/lib/referral'
 import { notifyIdentityApproved, notifyIdentityRejected } from '@/lib/notifications'
@@ -87,12 +87,12 @@ export function PayoutsTab() {
   }
 
   const fulfillWithdrawal=async(id)=>{
-    const {error}=await fulfillWithdrawal(id)
+    const {error}=await fulfillWithdrawalRequest(id)
     if(error) return toast.error(error.message)
     toast.success('Marked as paid'); load()
   }
   const rejectWithdrawal=async(id)=>{
-    const {error}=await rejectWithdrawal(id)
+    const {error}=await rejectWithdrawalRequest(id)
     if(error) return toast.error(error.message)
     toast.success('Rejected'); load()
   }
@@ -102,7 +102,7 @@ export function PayoutsTab() {
 
   return(
     <div className="space-y-4">
-      <FilterBar options={[{value:'accounts',label:'Payout Accounts'},{value:'queue',label:'Automated Payouts'},{value:'withdrawals',label:'Withdrawal Requests'}]} value={section} onChange={setSection}/>
+      <FilterBar options={[['accounts','Payout Accounts'],['queue','Automated Payouts'],['withdrawals','Withdrawal Requests']]} value={section} onChange={setSection}/>
 
       {section==='accounts'&&(
         <TableWrap cols={['Provider','Bank','Account','Status','Submitted','Actions']}>
