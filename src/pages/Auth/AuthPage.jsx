@@ -1,16 +1,20 @@
-import React, { useState, useEffect, useRef, useCallback, useId } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { ArrowLeft, Check, CheckCircle, Eye, EyeOff, Loader, Store, X, XCircle } from 'lucide-react'
+import {
+  ArrowLeftIcon, ChevronDownIcon, EnvelopeIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon,
+  CheckCircleIcon, XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase'
 import { checkPhoneExists, checkUsernameExists, checkDeviceExists, checkSignupConflicts } from '@/data/signupRepository'
 import { upsertProfile } from '@/data/profileRepository'
 import { applyReferralCode } from '@/data/referralRepository'
 import PasswordRules, { isPasswordValid } from '@/components/auth/PasswordRules'
 import AuthBrandPanel from '@/components/auth/AuthBrandPanel'
+import AuthField from '@/components/auth/AuthField'
+import { useFormDraft } from '@/hooks/useFormDraft'
 import { getDeviceFingerprint } from '@/lib/deviceFingerprint'
 import { analytics } from '@/lib/posthog'
 import toast from 'react-hot-toast'
-import clsx from 'clsx'
 
 // Google blocks OAuth inside embedded WebViews (403 disallowed_useragent), and
 // Capacitor would bounce the flow out to the system browser, leaving the app
@@ -28,83 +32,6 @@ const GoogleIcon = () => (
     <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.96L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
   </svg>
 )
-
-// ─── FieldStatus indicator ────────────────────────────────────────────────────
-// FIX: Defined OUTSIDE AuthPage so React never treats it as a new component
-// type between renders. Defining it inside caused React to unmount + remount
-// the input on every keystroke, dismissing the Android keyboard immediately.
-function FieldStatus({ status }) {
-  if (status === 'checking') return <Loader size={14} className="animate-spin" style={{ color:'var(--dm-warm)' }} />
-  if (status === 'taken')    return <XCircle size={14} style={{ color:'var(--dm-terracotta)' }} />
-  if (status === 'free')     return <CheckCircle size={14} style={{ color:'var(--dm-sage)' }} />
-  return null
-}
-
-// ─── Field component ──────────────────────────────────────────────────────────
-// FIX: Also moved OUTSIDE AuthPage for the same reason.
-// When Field was defined inside AuthPage, every parent render created a brand
-// new function reference for Field, causing React to unmount the old Field
-// instance and mount a fresh one - destroying focus and dismissing the keyboard.
-// Moving it outside means React recognises it as the same stable component
-// across renders and simply updates its props instead of remounting.
-function Field({
-  label, fieldKey, type = 'text', placeholder,
-  required = false, hint = '',
-  value, onChange, status, error,
-}) {
-  const borderColor = error ? '#B8511E' : status === 'free' ? '#7A9E7E' : '#DEDDD6'
-  const uid = useId()
-  const inputId = `${uid}-input`
-  const noteId = `${uid}-note`
-  return (
-    <div>
-      <label
-        htmlFor={inputId}
-        className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-        style={{ color: 'rgba(23,33,27,0.7)' }}>
-        {label}{required && <span style={{ color:'var(--dm-terracotta)' }}> *</span>}
-      </label>
-      <div className="relative">
-        <input
-          id={inputId}
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          aria-invalid={error ? 'true' : undefined}
-          aria-required={required || undefined}
-          aria-describedby={error || hint || status === 'free' ? noteId : undefined}
-          autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : 'off'}
-          // Prevent autocomplete dropdowns from triggering re-renders that
-          // dismiss the keyboard on Android Chrome
-          autoCorrect="off"
-          autoCapitalize={type === 'email' ? 'none' : 'words'}
-          spellCheck={false}
-          className="input w-full pr-9"
-          style={{ borderColor, backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
-        />
-        {status && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <FieldStatus status={status} />
-          </div>
-        )}
-      </div>
-      {error && (
-        <p id={noteId} role="alert" className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'var(--dm-terracotta)' }}>
-          <XCircle size={11} /> {error}
-        </p>
-      )}
-      {!error && status === 'free' && (
-        <p id={noteId} className="text-xs mt-1.5 flex items-center gap-1.5" style={{ color:'var(--dm-sage)' }}>
-          <CheckCircle size={11} /> Available
-        </p>
-      )}
-      {hint && !error && status !== 'free' && (
-        <p id={noteId} className="text-xs mt-1" style={{ color:'var(--dm-warm)' }}>{hint}</p>
-      )}
-    </div>
-  )
-}
 
 // ─── Error message parser ─────────────────────────────────────────────────────
 // Supabase's raw Auth error text is written for logs, not end users -- some
@@ -135,19 +62,62 @@ function parseAuthError(message) {
 // call site for a rename alone.
 const parseSignInError = parseAuthError
 
+// ─── Small helpers ────────────────────────────────────────────────────────────
+const EMPTY_OTP = ['', '', '', '', '', '']
+const RESEND_SECONDS = 30
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Maps a live-check status onto the icon the field shows.
+const iconFor = (s) =>
+  s === 'checking' ? 'checking' : (s === 'free' || s === 'valid') ? 'ok' : (s === 'taken' || s === 'invalid') ? 'bad' : null
+
+// Soft blurred drops behind the card, the same water-drop motif as the rest of the site.
+function Backdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-24 top-10 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/15 blur-3xl" />
+      <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/20 blur-3xl" />
+      <div className="absolute left-1/3 top-2/3 h-48 w-48 rounded-full bg-sun/25 blur-3xl" />
+    </div>
+  )
+}
+
+function Alert({ children, tone = 'error' }) {
+  const palette = tone === 'ok'
+    ? 'border-forest/20 bg-forest-pale text-forest-dark'
+    : 'border-terracotta/30 bg-orange-pale text-terracotta-dark'
+  const Icon = tone === 'ok' ? CheckCircleIcon : ExclamationCircleIcon
+  return (
+    <div role={tone === 'ok' ? 'status' : 'alert'} className={`flex items-start gap-2.5 rounded-2xl border p-3.5 text-sm font-semibold ${palette}`}>
+      <Icon className="mt-px h-5 w-5 flex-shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </div>
+  )
+}
+
+function PasswordToggle({ shown, onToggle }) {
+  const Icon = shown ? EyeSlashIcon : EyeIcon
+  return (
+    <button type="button" onClick={onToggle} aria-label={shown ? 'Hide password' : 'Show password'}
+      className="rounded-full p-1 text-warm hover:text-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
+      <Icon className="h-5 w-5" aria-hidden="true" />
+    </button>
+  )
+}
+
 // ─── Main AuthPage ────────────────────────────────────────────────────────────
 export default function AuthPage() {
-  const [searchParams] = useSearchParams()
-  const refCode = searchParams.get('ref') || sessionStorage.getItem('dm_ref') || ''
-  // Store ref code in sessionStorage so it survives the signup flow
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const refCode = params.get('ref') || sessionStorage.getItem('dm_ref') || ''
+  // Keep the referral code so it survives the sign-up flow.
   if (refCode) sessionStorage.setItem('dm_ref', refCode)
 
-  const [params]  = useSearchParams()
-  const navigate  = useNavigate()
   const [tab, setTab] = useState(params.get('tab') === 'signup' ? 'signup' : 'signin')
   const [showPass, setShowPass] = useState(false)
-  const [pwFocus,  setPwFocus]  = useState(false)
-  const [loading,  setLoading]  = useState(false)
+  const [pwFocus, setPwFocus] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [showMore, setShowMore] = useState(Boolean(refCode))
 
   // Surface auth-callback errors passed via URL query param
   const urlError = params.get('error')
@@ -160,55 +130,92 @@ export default function AuthPage() {
   const callbackErrorMessage = urlError ? (urlErrorMessages[urlError] || 'We couldn\'t sign you in. Please try again.') : null
 
   const [form, setForm] = useState({
-    fullName: '', username: '', email: '', phone: '', password: '', inviteCode: refCode
+    fullName: '', username: '', email: '', phone: '', password: '', inviteCode: refCode,
   })
 
+  // Live checks against the server (phone, username, referral code).
   const [fieldStatus, setFieldStatus] = useState({ email: null, phone: null, username: null, inviteCode: null })
   const [fieldErrors, setFieldErrors] = useState({ email: '', phone: '', username: '', inviteCode: '' })
+  // Problems found when the person presses the button (empty or badly formed fields).
+  const [submitErrors, setSubmitErrors] = useState({})
+  const [formError, setFormError] = useState('')
+  const [formNotice, setFormNotice] = useState('')
 
   const [verificationSent, setVerificationSent] = useState(false)
-  const [otp,       setOtp]       = useState(['','','','','',''])
+  const [otp, setOtp] = useState(EMPTY_OTP)
+  const [otpError, setOtpError] = useState('')
   const [verifying, setVerifying] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
+  const [cooldown, setCooldown] = useState(0)
 
   const debounceRef = useRef({})
 
-  // Stable setters - these don't change between renders so passing them
-  // as props to Field does not cause Field to remount
+  // Keep what they typed (never the password) so a dropped connection or a reload
+  // does not send them back to the start. Also remembers the code-entry screen.
+  const draft = useFormDraft(
+    'auth',
+    { tab, form, verificationSent, signupEmail },
+    (saved) => {
+      if (saved.form) {
+        setForm((f) => ({ ...f, ...saved.form, password: '', inviteCode: saved.form.inviteCode || refCode }))
+        if (saved.form.username || saved.form.inviteCode) setShowMore(true)
+      }
+      if (saved.tab && !params.get('tab')) setTab(saved.tab)
+      if (saved.verificationSent && saved.signupEmail) {
+        setSignupEmail(saved.signupEmail)
+        setVerificationSent(true)
+      }
+    },
+    { omit: ['password'] },
+  )
+
+  // Resend countdown
+  useEffect(() => {
+    if (cooldown <= 0) return undefined
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
+
+  const clearSubmitError = (k) => setSubmitErrors((e) => (e[k] ? { ...e, [k]: '' } : e))
+
+  // Plain fields (no live check)
   const setField = useCallback((k) => (e) => {
-    setForm(f => ({ ...f, [k]: e.target.value }))
+    const val = e.target.value
+    setForm((f) => ({ ...f, [k]: val }))
+    setSubmitErrors((er) => (er[k] ? { ...er, [k]: '' } : er))
+    setFormError('')
   }, [])
 
   // ─── Real-time field validation ────────────────────────────────
   const checkField = useCallback(async (field, value) => {
     if (!value || value.length < 3) {
-      setFieldStatus(s => ({ ...s, [field]: null }))
-      setFieldErrors(e => ({ ...e, [field]: '' }))
+      setFieldStatus((s) => ({ ...s, [field]: null }))
+      setFieldErrors((e) => ({ ...e, [field]: '' }))
       return
     }
-    setFieldStatus(s => ({ ...s, [field]: 'checking' }))
+    setFieldStatus((s) => ({ ...s, [field]: 'checking' }))
     try {
       let taken = false
       let errorMsg = ''
 
       if (field === 'email') {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          setFieldStatus(s => ({ ...s, email: 'taken' }))
-          setFieldErrors(e => ({ ...e, email: 'Please enter a valid email address' }))
+        if (!EMAIL_RE.test(value)) {
+          setFieldStatus((s) => ({ ...s, email: 'taken' }))
+          setFieldErrors((e) => ({ ...e, email: 'Please enter a valid email address' }))
           return
         }
         // Do not query whether an email exists. That creates an anonymous
         // account-enumeration oracle. Signup handles conflicts generically.
-        setFieldStatus(s => ({ ...s, email: 'free' }))
-        setFieldErrors(e => ({ ...e, email: '' }))
+        setFieldStatus((s) => ({ ...s, email: 'free' }))
+        setFieldErrors((e) => ({ ...e, email: '' }))
         return
       }
 
       if (field === 'phone') {
         const clean = value.replace(/\D/g, '')
         if (clean.length < 10) {
-          setFieldStatus(s => ({ ...s, phone: 'taken' }))
-          setFieldErrors(e => ({ ...e, phone: 'Enter a valid phone number (min 10 digits)' }))
+          setFieldStatus((s) => ({ ...s, phone: 'taken' }))
+          setFieldErrors((e) => ({ ...e, phone: 'Enter a valid phone number (min 10 digits)' }))
           return
         }
         const { data } = await checkPhoneExists(clean)
@@ -219,8 +226,8 @@ export default function AuthPage() {
       if (field === 'username') {
         const clean = value.trim().toLowerCase()
         if (!/^[a-z0-9_]{3,20}$/.test(clean)) {
-          setFieldStatus(s => ({ ...s, username: 'taken' }))
-          setFieldErrors(e => ({ ...e, username: 'Username: 3–20 characters, letters, numbers and _ only' }))
+          setFieldStatus((s) => ({ ...s, username: 'taken' }))
+          setFieldErrors((e) => ({ ...e, username: 'Username: 3–20 characters, letters, numbers and _ only' }))
           return
         }
         const { data } = await checkUsernameExists(clean)
@@ -232,11 +239,11 @@ export default function AuthPage() {
         const clean = value.trim().toLowerCase()
         // Format check before hitting the server
         if (!/^[a-z0-9]{6,12}$/.test(clean)) {
-          setFieldStatus(s => ({ ...s, inviteCode: 'invalid' }))
-          setFieldErrors(e => ({ ...e, inviteCode: 'Referral codes are 6–12 characters (letters and numbers only)' }))
+          setFieldStatus((s) => ({ ...s, inviteCode: 'invalid' }))
+          setFieldErrors((e) => ({ ...e, inviteCode: 'Referral codes are 6–12 characters (letters and numbers only)' }))
           return
         }
-        // Use secure server-side API - rate-limited, never exposes user data
+        // Secure server-side API: rate-limited, never exposes user data
         try {
           const base = import.meta.env.VITE_APP_URL || ''
           const res = await fetch(`${base}/api/validate-invite`, {
@@ -246,64 +253,96 @@ export default function AuthPage() {
           })
           const data = await res.json()
           if (res.status === 429) {
-            setFieldStatus(s => ({ ...s, inviteCode: 'invalid' }))
-            setFieldErrors(e => ({ ...e, inviteCode: data.error || 'Too many attempts. Wait a moment.' }))
+            setFieldStatus((s) => ({ ...s, inviteCode: 'invalid' }))
+            setFieldErrors((e) => ({ ...e, inviteCode: data.error || 'Too many attempts. Wait a moment.' }))
             return
           }
           if (data.valid) {
-            setFieldStatus(s => ({ ...s, inviteCode: 'valid' }))
-            setFieldErrors(e => ({ ...e, inviteCode: `Referred by ${data.inviterName}` }))
+            setFieldStatus((s) => ({ ...s, inviteCode: 'valid' }))
+            setFieldErrors((e) => ({ ...e, inviteCode: `Referred by ${data.inviterName}` }))
           } else {
-            setFieldStatus(s => ({ ...s, inviteCode: 'invalid' }))
-            setFieldErrors(e => ({ ...e, inviteCode: data.error || 'This referral code is not valid.' }))
+            setFieldStatus((s) => ({ ...s, inviteCode: 'invalid' }))
+            setFieldErrors((e) => ({ ...e, inviteCode: data.error || 'This referral code is not valid.' }))
           }
         } catch {
-          // Network error - don't block signup, just clear the field status
-          setFieldStatus(s => ({ ...s, inviteCode: null }))
+          // Network error: don't block signup, just clear the field status
+          setFieldStatus((s) => ({ ...s, inviteCode: null }))
         }
         return
       }
 
-      setFieldStatus(s => ({ ...s, [field]: taken ? 'taken' : 'free' }))
-      setFieldErrors(e => ({ ...e, [field]: errorMsg }))
+      setFieldStatus((s) => ({ ...s, [field]: taken ? 'taken' : 'free' }))
+      setFieldErrors((e) => ({ ...e, [field]: errorMsg }))
     } catch {
-      setFieldStatus(s => ({ ...s, [field]: null }))
+      setFieldStatus((s) => ({ ...s, [field]: null }))
     }
   }, [])
 
-  // Debounced field change handler - stable reference via useCallback
+  // Debounced change handler for the live-checked fields
   const handleFieldChange = useCallback((field) => (e) => {
     const val = e.target.value
-    setForm(f => ({ ...f, [field]: val }))
+    setForm((f) => ({ ...f, [field]: val }))
+    setSubmitErrors((er) => (er[field] ? { ...er, [field]: '' } : er))
+    setFormError('')
     if (debounceRef.current[field]) clearTimeout(debounceRef.current[field])
     debounceRef.current[field] = setTimeout(() => checkField(field, val), 600)
   }, [checkField])
 
+  const handleInviteChange = (e) => {
+    const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    setForm((f) => ({ ...f, inviteCode: val }))
+    if (val) sessionStorage.setItem('dm_ref', val)
+    else sessionStorage.removeItem('dm_ref')
+    if (debounceRef.current.inviteCode) clearTimeout(debounceRef.current.inviteCode)
+    setFieldStatus((s) => ({ ...s, inviteCode: val.length >= 6 ? 'checking' : null }))
+    setFieldErrors((er) => ({ ...er, inviteCode: '' }))
+    setFormError('')
+    if (val.length >= 6) {
+      debounceRef.current.inviteCode = setTimeout(() => checkField('inviteCode', val), 700)
+    }
+  }
+
+  const focusFirst = (ids) => {
+    const id = ids.find((i) => document.getElementById(i))
+    if (id) document.getElementById(id).focus()
+  }
+
+  // The message shown under a field: a problem found on submit, else the live check.
+  const errorFor = (k) => submitErrors[k] || (['taken', 'invalid'].includes(fieldStatus[k]) ? fieldErrors[k] : '')
+
   // ─── Sign Up ────────────────────────────────────────────────────
   const handleSignUp = async (e) => {
     e.preventDefault()
-    if (!form.fullName.trim())    return toast.error('Enter your full name')
-    if (!form.email.trim())       return toast.error('Enter your email address')
-    if (!form.phone.trim())       return toast.error('Enter your phone number')
-    if (!isPasswordValid(form.password)) return toast.error('Password must be at least 8 characters, with uppercase, lowercase, a number, and a symbol.')
+    setFormError('')
+    const errs = {}
+    if (!form.fullName.trim()) errs.fullName = 'Enter your full name'
+    if (!form.email.trim()) errs.email = 'Enter your email address'
+    else if (!EMAIL_RE.test(form.email.trim())) errs.email = 'Please enter a valid email address'
+    if (!form.phone.trim()) errs.phone = 'Enter your phone number'
+    else if (form.phone.replace(/\D/g, '').length < 10) errs.phone = 'Enter a valid phone number (min 10 digits)'
+    if (!isPasswordValid(form.password)) errs.password = 'Use at least 8 characters, with uppercase, lowercase, a number and a symbol.'
+    setSubmitErrors(errs)
 
-    if (fieldStatus.email      === 'taken')   return toast.error('This email is already registered. Sign in instead.')
-    if (fieldStatus.phone      === 'taken')   return toast.error('This phone number is already linked to an account.')
-    if (fieldStatus.username   === 'taken')   return toast.error('This username is already taken. Choose another.')
-    if (fieldStatus.inviteCode === 'invalid') return toast.error('That referral code isn\'t valid.')
-    if (fieldStatus.inviteCode === 'checking') return toast.error('Checking your referral code. One moment.')
-    if (Object.values(fieldStatus).includes('checking')) return toast.error('Still checking your details. One moment.')
-    // If user typed a code but it shows as null (never validated), validate it now
+    const order = ['fullName', 'email', 'phone', 'password']
+    const firstBad = order.find((k) => errs[k])
+    if (firstBad) return focusFirst([`su-${firstBad}`])
+
+    if (['taken'].includes(fieldStatus.phone)) return focusFirst(['su-phone'])
+    if (fieldStatus.email === 'taken') return focusFirst(['su-email'])
+    if (fieldStatus.username === 'taken') { setShowMore(true); return focusFirst(['su-username']) }
+    if (fieldStatus.inviteCode === 'invalid') { setShowMore(true); return focusFirst(['su-invite']) }
+    if (Object.values(fieldStatus).includes('checking')) {
+      return setFormError('Still checking your details. Give it a second, then try again.')
+    }
+    // A code was typed but never validated (e.g. restored from the saved draft): validate it now.
     if (form.inviteCode.trim() && fieldStatus.inviteCode === null) {
-      toast.error('Checking your referral code. One moment.')
       checkField('inviteCode', form.inviteCode.trim())
-      setLoading(false)
-      return
+      return setFormError('Checking your referral code. Give it a second, then try again.')
     }
 
     setLoading(true)
     try {
-      const cleanPhone    = form.phone.replace(/\D/g, '')
+      const cleanPhone = form.phone.replace(/\D/g, '')
       const cleanUsername = form.username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '')
 
       // One-account-per-person check: same device already registered?
@@ -311,15 +350,14 @@ export default function AuthPage() {
       if (fingerprint) {
         const { data: deviceCheck } = await checkDeviceExists(fingerprint)
         if (deviceCheck?.[0]?.exists_count > 0) {
-          toast.error('An account already exists on this device. Sign in instead, or contact support if you think this is a mistake.')
-          setLoading(false)
+          setFormError('An account already exists on this device. Sign in instead, or contact support if you think this is a mistake.')
           return
         }
       }
 
       const { data: conflicts, error: rpcErr } = await checkSignupConflicts({
-        email:    form.email.trim().toLowerCase(),
-        phone:    cleanPhone    || null,
+        email: form.email.trim().toLowerCase(),
+        phone: cleanPhone || null,
         username: cleanUsername || null,
       })
 
@@ -327,58 +365,58 @@ export default function AuthPage() {
         // Deliberately do not expose conflicts.email_taken. The caller must
         // receive the same general signup outcome for known and unknown email.
         if (conflicts.phone_taken) {
-          setFieldStatus(s => ({ ...s, phone: 'taken' }))
-          setFieldErrors(e => ({ ...e, phone: 'This phone number is already linked to an account.' }))
-          toast.error('This phone number is already linked to an account.')
-          return
+          setFieldStatus((s) => ({ ...s, phone: 'taken' }))
+          setFieldErrors((er) => ({ ...er, phone: 'This phone number is already linked to an account.' }))
+          return focusFirst(['su-phone'])
         }
         if (conflicts.username_taken) {
-          setFieldStatus(s => ({ ...s, username: 'taken' }))
-          setFieldErrors(e => ({ ...e, username: 'This username is already taken.' }))
-          toast.error('This username is already taken. Choose another.')
-          return
+          setShowMore(true)
+          setFieldStatus((s) => ({ ...s, username: 'taken' }))
+          setFieldErrors((er) => ({ ...er, username: 'This username is already taken.' }))
+          return focusFirst(['su-username'])
         }
       }
 
       const { data, error } = await supabase.auth.signUp({
-        email:    form.email.trim().toLowerCase(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            full_name:   form.fullName.trim(),
-            phone:       cleanPhone,
-          }
+            full_name: form.fullName.trim(),
+            phone: cleanPhone,
+          },
         },
       })
 
       if (error) {
         // Keep registration outcomes generic so existing accounts cannot be
         // distinguished by response text.
-        toast.error('We couldn\'t create your account. Check your details, or try signing in.')
+        setFormError('We couldn\'t create your account. Check your details, or try signing in.')
         return
       }
 
       if (data?.user) {
         await upsertProfile({
-          id:                  data.user.id,
-          full_name:           form.fullName.trim(),
-          email:               form.email.trim().toLowerCase(),
-          phone:               cleanPhone || null,
-          username:            cleanUsername || null,
-          device_fingerprint:  fingerprint || null,
+          id: data.user.id,
+          full_name: form.fullName.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: cleanPhone || null,
+          username: cleanUsername || null,
+          device_fingerprint: fingerprint || null,
         })
       }
 
       analytics?.signedUp?.('email')
       setSignupEmail(form.email.trim().toLowerCase())
       setVerificationSent(true)
-      setOtp(['','','','','',''])
+      setOtp(EMPTY_OTP)
+      setOtpError('')
+      setCooldown(RESEND_SECONDS)
       toast.success('Account created. Check your email for the 6-digit code.')
-
     } catch (err) {
       console.error('Signup error:', err)
-      toast.error(parseAuthError(err.message) || 'We couldn\'t create your account. Please try again.')
+      setFormError(parseAuthError(err.message) || 'We couldn\'t create your account. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -394,50 +432,78 @@ export default function AuthPage() {
   }
 
   // ─── OTP ────────────────────────────────────────────────────────
-  const handleOtpChange = (i, val) => {
-    if (!/^\d*$/.test(val)) return
-    const n = [...otp]; n[i] = val.slice(-1); setOtp(n)
-    if (val && i < 5) document.getElementById(`otp-${i+1}`)?.focus()
-  }
-  const handleOtpKeyDown = (i, e) => {
-    if (e.key === 'Backspace' && !otp[i] && i > 0) document.getElementById(`otp-${i-1}`)?.focus()
-  }
-  const handleOtpPaste = (e) => {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6)
-    const n = [...otp]; pasted.split('').forEach((d,i) => { n[i]=d }); setOtp(n)
-    document.getElementById(`otp-${Math.min(pasted.length,5)}`)?.focus()
-  }
-  const handleVerifyOtp = async () => {
-    const code = otp.join('')
-    if (code.length < 6) return toast.error('Enter the full 6-digit code')
+  const verifyCode = async (code) => {
+    if (verifying) return
+    if (code.length < 6) return setOtpError('Enter all 6 digits of the code.')
+    setOtpError('')
     setVerifying(true)
     const { error } = await supabase.auth.verifyOtp({ email: signupEmail, token: code, type: 'email' })
     setVerifying(false)
-    if (error) return toast.error('That code is incorrect or has expired. Resend a new code and try again.')
+    if (error) {
+      setOtp(EMPTY_OTP)
+      document.getElementById('otp-0')?.focus()
+      return setOtpError('That code is incorrect or has expired. Check it, or resend a new code.')
+    }
     await linkReferral()
+    draft.clear()
     toast.success('Email confirmed. Welcome to DealMatch.')
     navigate('/onboarding', { replace: true })
   }
+
+  const handleOtpChange = (i, val) => {
+    if (!/^\d*$/.test(val)) return
+    const n = [...otp]
+    n[i] = val.slice(-1)
+    setOtp(n)
+    setOtpError('')
+    if (val && i < 5) document.getElementById(`otp-${i + 1}`)?.focus()
+    if (n.every(Boolean)) verifyCode(n.join(''))
+  }
+  const handleOtpKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) document.getElementById(`otp-${i - 1}`)?.focus()
+  }
+  const handleOtpPaste = (e) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (!pasted) return
+    const n = [...EMPTY_OTP]
+    pasted.split('').forEach((d, i) => { n[i] = d })
+    setOtp(n)
+    setOtpError('')
+    document.getElementById(`otp-${Math.min(pasted.length, 5)}`)?.focus()
+    if (pasted.length === 6) verifyCode(pasted)
+  }
   const handleResendOtp = async () => {
-    const { error } = await supabase.auth.resend({ type:'signup', email: signupEmail })
-    if (error) return toast.error(parseAuthError(error.message))
+    if (cooldown > 0) return
+    const { error } = await supabase.auth.resend({ type: 'signup', email: signupEmail })
+    if (error) return setOtpError(parseAuthError(error.message))
     toast.success('New code sent to ' + signupEmail)
-    setOtp(['','','','','',''])
+    setOtp(EMPTY_OTP)
+    setOtpError('')
+    setCooldown(RESEND_SECONDS)
+    document.getElementById('otp-0')?.focus()
   }
 
   // ─── Sign In ────────────────────────────────────────────────────
   const handleSignIn = async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) return toast.error('Enter your email and password')
+    setFormError('')
+    setFormNotice('')
+    const errs = {}
+    if (!form.email.trim()) errs.email = 'Enter your email address'
+    if (!form.password) errs.password = 'Enter your password'
+    setSubmitErrors(errs)
+    if (errs.email || errs.password) return focusFirst([errs.email ? 'si-email' : 'si-password'])
+
     setLoading(true)
     const { error } = await supabase.auth.signInWithPassword({
-      email:    form.email.trim().toLowerCase(),
+      email: form.email.trim().toLowerCase(),
       password: form.password,
     })
     setLoading(false)
-    if (error) return toast.error(parseSignInError(error.message))
+    if (error) return setFormError(parseSignInError(error.message))
     analytics?.signedIn?.()
+    draft.clear()
     // replace:true clears error params and prevents back-navigation to the login form
     navigate('/browse', { replace: true })
   }
@@ -445,70 +511,87 @@ export default function AuthPage() {
   const handleGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` }
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
-    if (error) toast.error(parseAuthError(error.message))
+    if (error) setFormError(parseAuthError(error.message))
   }
 
   const handleForgotPassword = async () => {
-    if (!form.email) return toast.error('Enter your email address first, then try again')
+    setFormError('')
+    setFormNotice('')
+    if (!form.email.trim()) {
+      setSubmitErrors((er) => ({ ...er, email: 'Enter your email first, then tap "Forgot password?"' }))
+      return focusFirst(['si-email'])
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(
       form.email.trim().toLowerCase(),
-      { redirectTo: `${window.location.origin}/auth/reset-password` }
+      { redirectTo: `${window.location.origin}/auth/reset-password` },
     )
-    if (error) return toast.error(error.message)
-    toast.success('If that email is registered, we\'ve sent reset instructions to ' + form.email)
+    if (error) return setFormError(parseAuthError(error.message))
+    setFormNotice('If that email is registered, we\'ve sent reset instructions to ' + form.email.trim())
   }
 
-  const resetTabState = () => {
-    setFieldStatus({ email: null, phone: null, username: null })
-    setFieldErrors({ email: '', phone: '', username: '' })
+  const switchTab = (t) => {
+    setTab(t)
+    setFieldStatus({ email: null, phone: null, username: null, inviteCode: null })
+    setFieldErrors({ email: '', phone: '', username: '', inviteCode: '' })
+    setSubmitErrors({})
+    setFormError('')
+    setFormNotice('')
   }
 
-  // ─── OTP Screen ─────────────────────────────────────────────────
+  const checking = Object.values(fieldStatus).includes('checking')
+
+  // ─── Code-entry screen ──────────────────────────────────────────
   if (verificationSent) {
     return (
-      <div style={{ backgroundColor:'#FAF3EA' }} className="min-h-screen flex flex-col items-center px-6 pt-10 pb-12 sm:justify-center sm:pt-12">
-        <div className="w-full max-w-sm text-center rounded-3xl p-8 sm:p-9"
-          style={{ backgroundColor:'#FFFFFF', boxShadow:'0 12px 40px rgba(23,33,27,0.08)', border:'1px solid #F0E5D8' }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{ backgroundColor:'rgba(200,95,45,0.1)' }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#B8511E" strokeWidth="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-          </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-black mb-2" style={{ color:'var(--dm-deep)' }}>Check your email</h1>
-          <p className="text-sm mb-1" style={{ color:'var(--dm-warm)' }}>We sent a 6-digit code to</p>
-          <p className="font-semibold text-sm mb-8" style={{ color:'var(--dm-terracotta)' }}>{signupEmail}</p>
-          <div className="flex gap-2.5 sm:gap-3 justify-center mb-8" onPaste={handleOtpPaste}>
+      <div className="relative flex min-h-svh flex-col items-center bg-cream px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-10 sm:justify-center">
+        <Backdrop />
+        <div className="relative w-full max-w-sm rounded-[40px_40px_40px_12px] border border-white/70 bg-white/80 p-7 text-center shadow-soft backdrop-blur-xl sm:p-9">
+          <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[22px_22px_22px_8px] bg-orange-pale text-terracotta">
+            <EnvelopeIcon className="h-8 w-8" aria-hidden="true" />
+          </span>
+          <h1 className="mb-2 font-display text-3xl text-deep">Check your email</h1>
+          <p className="text-sm text-warm">We sent a 6-digit code to</p>
+          <p className="mb-6 break-all text-sm font-bold text-terracotta-dark">{signupEmail}</p>
+
+          <div role="group" aria-label="6-digit confirmation code" className="mb-4 flex justify-center gap-2 sm:gap-2.5" onPaste={handleOtpPaste}>
             {otp.map((digit, i) => (
               <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
+                aria-label={`Digit ${i + 1} of 6`}
+                autoComplete={i === 0 ? 'one-time-code' : 'off'}
                 value={digit}
-                onChange={e => handleOtpChange(i, e.target.value)}
-                onKeyDown={e => handleOtpKeyDown(i, e)}
-                style={{
-                  backgroundColor: digit ? 'rgba(200,95,45,0.06)' : '#F7F4ED',
-                  borderColor: digit ? '#B8511E' : '#DEDDD6',
-                  color: digit ? '#B8511E' : '#17211B'
-                }}
-                className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all focus:border-[#B8511E]"
+                disabled={verifying}
+                onChange={(e) => handleOtpChange(i, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                className={`h-14 w-11 rounded-2xl border-2 text-center text-xl font-black outline-none transition-colors focus:border-terracotta focus:bg-white sm:w-12 ${
+                  otpError ? 'border-terracotta bg-orange-pale text-terracotta-dark'
+                    : digit ? 'border-terracotta bg-orange-pale text-terracotta-dark' : 'border-line bg-cream text-deep'
+                }`}
               />
             ))}
           </div>
-          <button onClick={handleVerifyOtp} disabled={verifying || otp.join('').length < 6}
-            className="w-full py-4 rounded-2xl font-bold text-white mb-4 transition-all hover:opacity-90 disabled:opacity-40"
-            style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
-            {verifying ? 'Verifying...' : 'Confirm Email'}
+
+          {otpError ? <div className="mb-4 text-left"><Alert>{otpError}</Alert></div> : null}
+
+          <button type="button" onClick={() => verifyCode(otp.join(''))} disabled={verifying}
+            className="btn-primary mb-4 w-full !py-3.5 text-[15px]">
+            {verifying ? 'Confirming…' : 'Confirm email'}
           </button>
-          <p style={{ color:'var(--dm-warm)' }} className="text-sm">
-            Didn't receive it?{' '}
-            <button onClick={handleResendOtp} style={{ color:'var(--dm-terracotta)' }}
-              className="font-semibold hover:underline">Resend code</button>
+
+          <p className="text-sm text-warm">
+            Didn&apos;t get it?{' '}
+            {cooldown > 0 ? (
+              <span className="font-semibold text-deep">Resend in {cooldown}s</span>
+            ) : (
+              <button type="button" onClick={handleResendOtp} className="font-bold text-terracotta-dark hover:underline">Resend code</button>
+            )}
           </p>
-          <button onClick={() => { setVerificationSent(false); setOtp(['','','','','','']) }}
-            className="mt-6 flex items-center gap-2 text-sm mx-auto" style={{ color:'var(--dm-warm)' }}>
-            <ArrowLeft size={14} /> Back to Create Account
+          <p className="mt-1 text-xs text-warm">Check your spam folder too.</p>
+
+          <button type="button" onClick={() => { setVerificationSent(false); setOtp(EMPTY_OTP); setOtpError('') }}
+            className="mx-auto mt-6 flex items-center gap-1.5 text-sm font-semibold text-warm hover:text-deep">
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" /> Change my details
           </button>
         </div>
       </div>
@@ -517,288 +600,158 @@ export default function AuthPage() {
 
   // ─── Main ───────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-cream p-4 md:p-10">
-      <div className="w-full max-w-sm md:max-w-4xl">
-        <div className="grid rounded-3xl border border-line bg-white shadow-soft md:grid-cols-2">
+    <div className="relative flex min-h-svh flex-col items-center justify-center bg-cream p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:p-10">
+      <Backdrop />
+      <div className="relative w-full max-w-sm md:max-w-4xl">
+        <div className="grid rounded-[40px_40px_40px_12px] border border-white/70 bg-white/80 shadow-soft backdrop-blur-xl md:grid-cols-2">
           <div className="p-6 sm:p-8">
-            <Link to="/" className="md:hidden mb-5 flex items-center gap-2 font-display text-xl text-deep">
+            <Link to="/" className="mb-5 flex items-center gap-2 font-display text-xl text-deep md:hidden">
               <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />
               <span>Deal<span className="text-terracotta">Match</span></span>
             </Link>
 
-            <Link to="/" className="inline-flex items-center gap-2 text-sm mb-6 transition-colors"
-              style={{ color: 'rgba(23,33,27,0.7)' }}>
-              <ArrowLeft size={14} /> Back to home
+            <Link to="/" className="mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-warm hover:text-deep">
+              <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" /> Back to home
             </Link>
 
-            {/* Auth callback error banner */}
-            {callbackErrorMessage && (
-              <div
-                className="flex items-start gap-3 p-4 rounded-2xl mb-6 text-sm"
-                style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.25)', color:'var(--dm-terracotta)' }}
-                role="alert"
-              >
-                <XCircle size={16} className="flex-shrink-0 mt-0.5" />
-                <span>{callbackErrorMessage}</span>
-              </div>
-            )}
+            {callbackErrorMessage ? <div className="mb-5"><Alert>{callbackErrorMessage}</Alert></div> : null}
 
             {/* Tabs */}
-            <div className="flex rounded-2xl p-1 mb-6" style={{ backgroundColor:'var(--dm-cream)' }}>
-              {[['signin','Sign In'],['signup','Create Account']].map(([t,l]) => (
-                <button key={t} onClick={() => { setTab(t); resetTabState() }}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
-                  style={{
-                    backgroundColor: tab === t ? '#FFFFFF' : 'transparent',
-                    color:           tab === t ? '#17211B' : 'rgba(23,33,27,0.7)',
-                    boxShadow:       tab === t ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  }}>{l}</button>
+            <div role="tablist" aria-label="Sign in or create an account" className="mb-6 flex rounded-full bg-cream-deep p-1">
+              {[['signin', 'Sign In'], ['signup', 'Create Account']].map(([t, l]) => (
+                <button key={t} type="button" role="tab" aria-selected={tab === t}
+                  onClick={() => switchTab(t)}
+                  className={`flex-1 rounded-full py-2.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${
+                    tab === t ? 'bg-white text-deep shadow-card' : 'text-warm hover:text-deep'
+                  }`}>{l}</button>
               ))}
             </div>
+
+            {draft.restored && !formError ? (
+              <div role="status" className="mb-5 flex items-start justify-between gap-3 rounded-[20px_20px_20px_6px] border border-forest/20 bg-forest-pale px-4 py-3 text-sm font-semibold text-forest-dark">
+                <span>We kept what you had typed. For your safety, re-enter your password.</span>
+                <button type="button" onClick={draft.dismiss} aria-label="Dismiss" className="flex-shrink-0 rounded-full p-0.5 hover:bg-white/70">
+                  <XMarkIcon className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            ) : null}
 
             {/* Google (web only -- see IS_NATIVE_APP above) */}
             {!IS_NATIVE_APP && (
               <>
                 <button onClick={handleGoogle} type="button"
-                  className="w-full py-3 px-4 rounded-2xl border-2 flex items-center justify-center gap-3 font-semibold transition-all hover:bg-gray-50 mb-5"
-                  style={{ borderColor:'var(--dm-line)', color:'var(--dm-deep)' }}>
+                  className="mb-5 flex w-full items-center justify-center gap-3 rounded-full border border-line bg-white px-4 py-3 text-[15px] font-bold text-deep transition-colors hover:border-deep/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
                   <GoogleIcon /> Continue with Google
                 </button>
-
-                <div className="relative mb-5">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t" style={{ borderColor:'var(--dm-line)' }} />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="px-3 text-xs" style={{ backgroundColor:'#FFFFFF', color: 'rgba(23,33,27,0.7)' }}>or with email</span>
-                  </div>
+                <div className="relative mb-5 flex items-center gap-3 text-xs font-semibold text-warm" aria-hidden="true">
+                  <span className="h-px flex-1 bg-line" />
+                  or with email
+                  <span className="h-px flex-1 bg-line" />
                 </div>
               </>
             )}
 
-          {/* ── Sign Up ── */}
-          {tab === 'signup' ? (
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Your next deal starts here.</h1>
-                <p className="text-sm" style={{ color: 'rgba(23,33,27,0.7)' }}>Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
-              </div>
-
-              {/* Full Name - no live check */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>
-                  Full Name <span style={{ color:'var(--dm-terracotta)' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  className="input w-full"
-                  placeholder="e.g. John Doe"
-                  value={form.fullName}
-                  onChange={setField('fullName')}
-                  autoComplete="name"
-                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
-                />
-              </div>
-
-              {/* Email */}
-              <Field
-                fieldKey="email"
-                label="Email Address"
-                type="email"
-                placeholder="your@email.com"
-                required
-                hint="We'll send a 6-digit confirmation code to this email"
-                value={form.email}
-                onChange={handleFieldChange('email')}
-                status={fieldStatus.email}
-                error={fieldErrors.email}
-              />
-
-              {/* Phone */}
-              <Field
-                fieldKey="phone"
-                label="Phone Number"
-                type="tel"
-                placeholder="e.g. 08012345678"
-                required
-                hint="Used for WhatsApp contact and account recovery"
-                value={form.phone}
-                onChange={handleFieldChange('phone')}
-                status={fieldStatus.phone}
-                error={fieldErrors.phone}
-              />
-
-              {/* Username */}
-              <Field
-                fieldKey="username"
-                label="Username"
-                placeholder="e.g. john_doe (optional)"
-                hint="3–20 characters, letters, numbers, underscore only"
-                value={form.username}
-                onChange={handleFieldChange('username')}
-                status={fieldStatus.username}
-                error={fieldErrors.username}
-              />
-
-              {/* Referral code. Saved to the account after the email is confirmed (apply_referral_code). */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>
-                  Referral code{' '}
-                  <span style={{ color: 'rgba(23,33,27,0.7)', fontWeight:400, textTransform:'none', fontSize:11 }}>
-                    (optional)
-                  </span>
-                </label>
-                <div className="relative">
-                  <input
-                    className="input w-full pr-10"
-                    type="text"
-                    placeholder="e.g. a3f8bc12"
-                    name="referral_code"
-                    value={form.inviteCode}
-                    onChange={e => {
-                      const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-                      setForm(f => ({ ...f, inviteCode: val }))
-                      if (val) sessionStorage.setItem('dm_ref', val)
-                      else sessionStorage.removeItem('dm_ref')
-                      if (debounceRef.current['inviteCode']) clearTimeout(debounceRef.current['inviteCode'])
-                      setFieldStatus(s => ({ ...s, inviteCode: val.length >= 6 ? 'checking' : null }))
-                      setFieldErrors(e2 => ({ ...e2, inviteCode: '' }))
-                      if (val.length >= 6) {
-                        debounceRef.current['inviteCode'] = setTimeout(() => checkField('inviteCode', val), 700)
-                      }
-                    }}
-                    maxLength={12}
-                    autoComplete="off"
-                    spellCheck={false}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      color: '#17211B',
-                      borderColor: fieldStatus.inviteCode === 'valid'
-                        ? '#7A9E7E'
-                        : fieldStatus.inviteCode === 'invalid'
-                        ? '#B8511E'
-                        : undefined,
-                    }}
-                  />
-                  {/* Status indicator */}
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {fieldStatus.inviteCode === 'checking' && (
-                      <div className="w-4 h-4 rounded-full border-2 border-transparent animate-spin"
-                        style={{ borderTopColor:'#B8511E' }}/>
-                    )}
-                    {fieldStatus.inviteCode === 'valid' && (
-                      <Check size={16} style={{ color:"#7A9E7E" }} />
-                    )}
-                    {fieldStatus.inviteCode === 'invalid' && (
-                      <X size={16} style={{ color:"#B8511E" }} />
-                    )}
-                  </div>
+            {tab === 'signup' ? (
+              /* ── Sign Up ── */
+              <form onSubmit={handleSignUp} noValidate className="space-y-4">
+                <div>
+                  <h1 className="mb-1 font-display text-3xl leading-tight text-deep">Your next deal starts here.</h1>
+                  <p className="text-sm text-warm">Create an account to discover opportunities, manage your offers and keep track of your transactions.</p>
                 </div>
-                {/* Feedback message */}
-                {fieldErrors.inviteCode && (
-                  <p role={fieldStatus.inviteCode === 'valid' ? 'status' : 'alert'} className="text-xs mt-1 font-semibold"
-                    style={{ color: fieldStatus.inviteCode === 'valid' ? '#7A9E7E' : '#B8511E' }}>
-                    {fieldErrors.inviteCode}
-                  </p>
-                )}
-                {!fieldErrors.inviteCode && !form.inviteCode && (
-                  <p className="text-xs mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
-                    Did someone refer you? Enter their referral code.
-                  </p>
-                )}
-              </div>
 
-              {/* Password. The rules open as an animated popup while the field has focus. */}
-              <div
-                className="relative"
-                onFocus={() => setPwFocus(true)}
-                onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPwFocus(false) }}
-              >
-                <label htmlFor="signup-password" className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>
-                  Password <span style={{ color:'var(--dm-terracotta)' }}>*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="signup-password"
-                    className="input w-full pr-10"
+                <AuthField id="su-fullName" label="Full name" placeholder="e.g. John Doe"
+                  value={form.fullName} onChange={setField('fullName')}
+                  autoComplete="name" autoCapitalize="words" error={submitErrors.fullName} />
+
+                <AuthField id="su-email" label="Email address" type="email" placeholder="your@email.com"
+                  hint="We'll send a 6-digit confirmation code to this email."
+                  value={form.email} onChange={handleFieldChange('email')}
+                  autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  status={iconFor(fieldStatus.email)} error={errorFor('email')} />
+
+                <AuthField id="su-phone" label="Phone number" type="tel" placeholder="e.g. 08012345678"
+                  hint="Used for WhatsApp contact and account recovery."
+                  value={form.phone} onChange={handleFieldChange('phone')}
+                  autoComplete="tel" inputMode="tel"
+                  status={iconFor(fieldStatus.phone)} error={errorFor('phone')}
+                  success={fieldStatus.phone === 'free' ? 'Available' : undefined} />
+
+                {/* Password. The rules open as an animated popup while the field has focus. */}
+                <div className="relative"
+                  onFocus={() => setPwFocus(true)}
+                  onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPwFocus(false) }}>
+                  <AuthField id="su-password" label="Password" placeholder="Create a password"
                     type={showPass ? 'text' : 'password'}
-                    placeholder="Create a password"
-                    value={form.password}
-                    onChange={setField('password')}
-                    autoComplete="new-password"
-                    aria-describedby="password-rules"
-                    style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    aria-label={showPass ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                <PasswordRules id="password-rules" password={form.password} open={pwFocus} />
-              </div>
-
-              <button type="submit" disabled={
-                loading ||
-                fieldStatus.email    === 'taken' ||
-                fieldStatus.phone    === 'taken' ||
-                fieldStatus.username === 'taken' ||
-                Object.values(fieldStatus).includes('checking')
-              }
-                className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
-                {loading ? 'Creating account...' :
-                 Object.values(fieldStatus).includes('checking') ? 'Checking availability...' :
-                 'Create Account'}
-              </button>
-
-            </form>
-
-          ) : (
-            /* ── Sign In ── */
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div>
-                <h1 className="font-display text-3xl font-black mb-1" style={{ color:'var(--dm-deep)' }}>Welcome back.</h1>
-                <p className="text-sm" style={{ color: 'rgba(23,33,27,0.7)' }}>Sign in to continue where you left off.</p>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>Email</label>
-                <input className="input w-full" type="email" placeholder="your@email.com"
-                  value={form.email} onChange={setField('email')}
-                  autoComplete="email"
-                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>Password</label>
-                <div className="relative">
-                  <input className="input w-full pr-10" type={showPass ? 'text' : 'password'}
-                    placeholder="••••••••"
                     value={form.password} onChange={setField('password')}
-                    autoComplete="current-password"
-                    style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    aria-label={showPass ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                    autoComplete="new-password" error={submitErrors.password}
+                    trailing={<PasswordToggle shown={showPass} onToggle={() => setShowPass((v) => !v)} />} />
+                  <PasswordRules id="password-rules" password={form.password} open={pwFocus} />
                 </div>
-              </div>
-              <button type="submit" disabled={loading}
-                className="w-full py-3.5 rounded-2xl font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor:'var(--dm-terracotta)', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
-                {loading ? 'Signing in...' : 'Sign In'}
-              </button>
-              <button type="button" onClick={handleForgotPassword}
-                className="w-full py-2 text-sm font-semibold" style={{ color:'var(--dm-terracotta)' }}>
-                Forgot password?
-              </button>
-            </form>
-          )}
+
+                {/* Optional extras stay out of the way until wanted */}
+                <div>
+                  <button type="button" onClick={() => setShowMore((v) => !v)} aria-expanded={showMore}
+                    className="flex items-center gap-1.5 text-sm font-bold text-forest hover:text-forest-dark">
+                    <ChevronDownIcon className={`h-4 w-4 transition-transform ${showMore ? 'rotate-180' : ''}`} aria-hidden="true" />
+                    Username or referral code (optional)
+                  </button>
+                  {showMore ? (
+                    <div className="mt-3 space-y-4 rounded-[24px_24px_24px_8px] border border-line bg-cream/70 p-4">
+                      <AuthField id="su-username" label="Username" optional placeholder="e.g. john_doe"
+                        hint="3–20 characters: letters, numbers and underscore."
+                        value={form.username} onChange={handleFieldChange('username')}
+                        autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                        status={iconFor(fieldStatus.username)} error={errorFor('username')}
+                        success={fieldStatus.username === 'free' ? 'Available' : undefined} />
+                      <AuthField id="su-invite" label="Referral code" optional placeholder="e.g. a3f8bc12"
+                        hint="Did someone refer you? Enter their code."
+                        name="referral_code" maxLength={12}
+                        value={form.inviteCode} onChange={handleInviteChange}
+                        autoComplete="off" spellCheck={false}
+                        status={iconFor(fieldStatus.inviteCode)}
+                        error={fieldStatus.inviteCode === 'invalid' ? fieldErrors.inviteCode : ''}
+                        success={fieldStatus.inviteCode === 'valid' ? fieldErrors.inviteCode : undefined} />
+                    </div>
+                  ) : null}
+                </div>
+
+                {formError ? <Alert>{formError}</Alert> : null}
+
+                <button type="submit" disabled={loading} className="btn-primary w-full !py-3.5 text-[15px]">
+                  {loading ? 'Creating account…' : checking ? 'Checking availability…' : 'Create Account'}
+                </button>
+              </form>
+            ) : (
+              /* ── Sign In ── */
+              <form onSubmit={handleSignIn} noValidate className="space-y-4">
+                <div>
+                  <h1 className="mb-1 font-display text-3xl leading-tight text-deep">Welcome back.</h1>
+                  <p className="text-sm text-warm">Sign in to continue where you left off.</p>
+                </div>
+
+                <AuthField id="si-email" label="Email" type="email" placeholder="your@email.com"
+                  value={form.email} onChange={setField('email')}
+                  autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  error={submitErrors.email} />
+
+                <AuthField id="si-password" label="Password" placeholder="Your password"
+                  type={showPass ? 'text' : 'password'}
+                  value={form.password} onChange={setField('password')}
+                  autoComplete="current-password" error={submitErrors.password}
+                  labelAside={
+                    <button type="button" onClick={handleForgotPassword}
+                      className="text-xs font-bold text-terracotta-dark hover:underline">Forgot password?</button>
+                  }
+                  trailing={<PasswordToggle shown={showPass} onToggle={() => setShowPass((v) => !v)} />} />
+
+                {formError ? <Alert>{formError}</Alert> : null}
+                {formNotice ? <Alert tone="ok">{formNotice}</Alert> : null}
+
+                <button type="submit" disabled={loading} className="btn-primary w-full !py-3.5 text-[15px]">
+                  {loading ? 'Signing in…' : 'Sign In'}
+                </button>
+              </form>
+            )}
           </div>
 
           <AuthBrandPanel />
@@ -806,9 +759,9 @@ export default function AuthPage() {
 
         <p className="mt-5 px-4 text-center text-xs text-deep/70">
           By continuing you agree to our{' '}
-          <Link to="/terms" className="font-semibold text-terracotta hover:underline">Terms</Link>
+          <Link to="/terms" className="font-semibold text-terracotta-dark hover:underline">Terms</Link>
           {' '}and{' '}
-          <Link to="/privacy" className="font-semibold text-terracotta hover:underline">Privacy Policy</Link>.
+          <Link to="/privacy" className="font-semibold text-terracotta-dark hover:underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>
