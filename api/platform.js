@@ -270,15 +270,13 @@ const jsonResources = {
       // Flutterwave rejects a second customer with the same email, so reuse the
       // one we already created for this email. Only our own rows are used.
       const { data: prior } = await findCustomerIdForEmail(svc, email)
-      const customer = prior?.customer_id
-        ? { id: prior.customer_id }
-        : await paymentGateway.createCustomer({
-            email,
-            idempotencyKey: idemKey('dmcus', reference),
-          })
-      const va = await paymentGateway.createVirtualAccount({
+      const makeCustomer = () => paymentGateway.createCustomer({
+        email,
+        idempotencyKey: idemKey('dmcus', reference),
+      })
+      const openAccount = (customerId) => paymentGateway.createVirtualAccount({
         body: {
-          customer_id: customer.id,
+          customer_id: customerId,
           reference,
           currency: 'NGN',
           account_type: 'dynamic',
@@ -292,6 +290,17 @@ const jsonResources = {
         // so a test account can be paid. Never sent to live.
         extraHeaders: isFlutterwaveSandbox() ? { 'X-Scenario-Key': 'issuer:approved' } : undefined,
       })
+      let customer = prior?.customer_id ? { id: prior.customer_id } : await makeCustomer()
+      let va
+      try {
+        va = await openAccount(customer.id)
+      } catch (err) {
+        // A saved customer id can belong to another Flutterwave environment (test
+        // mode ids do not exist in live). Make a fresh customer and try once more.
+        if (!prior?.customer_id || !/customer not found/i.test(err?.message || '')) throw err
+        customer = await makeCustomer()
+        va = await openAccount(customer.id)
+      }
 
       const row = {
         reference,
