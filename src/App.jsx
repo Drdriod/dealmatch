@@ -171,7 +171,7 @@ function AnimatedRoutes() {
         } />
 
         <Route path="/list-rental" element={
-          <AppShell>
+          <AppShell showFooter={false} showWhatsApp={false}>
             <Suspense fallback={<PageSkeleton />}>
               <PageTransition><ListRentalPage /></PageTransition>
             </Suspense>
@@ -255,7 +255,7 @@ function AnimatedRoutes() {
 
         <Route path="/list-hostel" element={
           <ProtectedRoute>
-            <AppShell showFooter={false}>
+            <AppShell showFooter={false} showWhatsApp={false}>
               <Suspense fallback={<PageSkeleton />}>
                 <PageTransition><ListHostelPage /></PageTransition>
               </Suspense>

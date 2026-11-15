@@ -115,10 +115,10 @@ export function ChoiceCard({ selected, onClick, icon: Icon, label, description }
       role="radio"
       aria-checked={selected}
       onClick={onClick}
-      className={`relative flex items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition-colors ${focusRing} ${selected ? 'border-terracotta bg-orange-pale' : 'border-line bg-white hover:border-deep/30'}`}
+      className={`relative flex items-center gap-2.5 rounded-2xl border-2 p-3 text-left transition-colors ${focusRing} ${selected ? 'border-terracotta bg-orange-pale' : 'border-line bg-white hover:border-deep/30'}`}
     >
       {Icon ? (
-        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${selected ? 'bg-terracotta text-white' : 'bg-forest-pale text-forest'}`}>
+        <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full ${selected ? 'bg-terracotta text-white' : 'bg-forest-pale text-forest'}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       ) : null}

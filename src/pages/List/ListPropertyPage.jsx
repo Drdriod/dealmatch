@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowTopRightOnSquareIcon, BanknotesIcon, BuildingOffice2Icon, BuildingOfficeIcon, BuildingStorefrontIcon,
   CheckCircleIcon, ClockIcon, HomeIcon, HomeModernIcon, KeyIcon, LightBulbIcon, MapIcon, MapPinIcon,
-  PencilSquareIcon, PhotoIcon, ShieldCheckIcon, VideoCameraIcon, XMarkIcon, ExclamationTriangleIcon,
+  PencilSquareIcon, ShieldCheckIcon, VideoCameraIcon,
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import toast from 'react-hot-toast'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import DraftNotice from '@/components/ui/DraftNotice'
 import { WizardShell, WizardActions, StepHeading, Field, ChoiceCard, Chip, InfoBox, inputClass } from '@/components/ui/WizardKit'
+import PhotoPicker from '@/components/ui/PhotoPicker'
 import PlaceSubtypePicker from '@/components/ui/PlaceSubtypePicker'
 import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { createProperty } from '@/lib/supabase'
@@ -53,7 +54,6 @@ const LISTING_TYPES = [
 ]
 const STEPS = ['Property', 'Location and price', 'Details', 'Photos', 'Review']
 const MAX_PHOTOS = 12
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 const MIN_DESCRIPTION = 50
 
 const INITIAL = {
@@ -132,7 +132,6 @@ export default function ListPropertyPage() {
   const [progress, setProgress] = useState('')
   const [saved, setSaved] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
-  const photoInput = useRef(null)
   const firstRender = useRef(true)
   const { fees } = usePlatformFees()
   const saleEscrow = escrowRates(fees, 'sale_escrow')
@@ -162,35 +161,6 @@ export default function ListPropertyPage() {
     document.getElementById('wizard-step-title')?.focus({ preventScroll: true })
     setShowErrors(false)
   }, [step])
-
-  // Release the photo previews when leaving the page.
-  const imagesRef = useRef(form.images)
-  imagesRef.current = form.images
-  useEffect(() => () => imagesRef.current.forEach((i) => i.url?.startsWith('blob:') && URL.revokeObjectURL(i.url)), [])
-
-  const addPhotos = (fileList) => {
-    const room = MAX_PHOTOS - form.images.length
-    const picked = Array.from(fileList || [])
-    const ok = picked.filter((f) => {
-      if (!f.type.startsWith('image/')) { toast.error(`${f.name} is not a photo.`); return false }
-      if (f.size > MAX_PHOTO_BYTES) { toast.error(`${f.name} is over 10 MB.`); return false }
-      return true
-    }).slice(0, Math.max(room, 0))
-    if (picked.length > room) toast(`You can add up to ${MAX_PHOTOS} photos.`)
-    if (!ok.length) return
-    setForm((f) => ({
-      ...f,
-      images: [...f.images, ...ok.map((file, i) => ({ url: URL.createObjectURL(file), file, is_primary: f.images.length === 0 && i === 0 }))],
-    }))
-  }
-  const removePhoto = (idx) => setForm((f) => {
-    const gone = f.images[idx]
-    if (gone?.url?.startsWith('blob:')) URL.revokeObjectURL(gone.url)
-    const rest = f.images.filter((_, j) => j !== idx)
-    if (rest.length && !rest.some((i) => i.is_primary)) rest[0] = { ...rest[0], is_primary: true }
-    return { ...f, images: rest }
-  })
-  const makeMain = (idx) => setForm((f) => ({ ...f, images: f.images.map((x, j) => ({ ...x, is_primary: j === idx })) }))
 
   const goNext = () => {
     if (errorKeys.length) {
@@ -443,34 +413,8 @@ export default function ListPropertyPage() {
 
             <Field id="f-images" label={`Photos (${form.images.length} of ${MAX_PHOTOS})`} error={shown.images}
               hint="JPG, PNG or WebP, up to 10 MB each. Front, rooms, compound and surroundings.">
-              <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
-                {form.images.map((img, i) => (
-                  <div key={img.url} className={`relative aspect-square overflow-hidden rounded-2xl border-2 ${img.is_primary ? 'border-terracotta' : 'border-line'}`}>
-                    <img src={img.url} alt={`Photo ${i + 1}${img.is_primary ? ', main photo' : ''}`} className="h-full w-full object-cover" />
-                    <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove photo ${i + 1}`}
-                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-deep/75 text-white backdrop-blur focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                      <XMarkIcon className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                    {img.is_primary ? (
-                      <span className="absolute inset-x-0 bottom-0 bg-terracotta py-1 text-center text-[11px] font-bold text-white">Main photo</span>
-                    ) : (
-                      <button type="button" onClick={() => makeMain(i)}
-                        className="absolute inset-x-0 bottom-0 bg-deep/70 py-1 text-center text-[11px] font-bold text-white backdrop-blur focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                        Make main
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {form.images.length < MAX_PHOTOS && (
-                  <button type="button" onClick={() => photoInput.current?.click()}
-                    className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed text-center text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${shown.images ? 'border-terracotta bg-orange-pale text-terracotta-dark' : 'border-forest/40 bg-forest-pale text-forest hover:border-forest'}`}>
-                    <PhotoIcon className="h-7 w-7" aria-hidden="true" />
-                    {form.images.length ? 'Add more' : 'Add photos'}
-                  </button>
-                )}
-              </div>
-              <input ref={photoInput} type="file" accept="image/*" multiple className="hidden"
-                onChange={(e) => { addPhotos(e.target.files); e.target.value = '' }} />
+              <PhotoPicker images={form.images} invalid={!!shown.images} max={MAX_PHOTOS}
+                onChange={(next) => setForm((f) => ({ ...f, images: typeof next === 'function' ? next(f.images) : next }))} />
             </Field>
 
             <Field id="f-video_url" label="Video tour link" optional error={shown.video_url}
