@@ -8,7 +8,7 @@
 // deploy shows up on the very next load), and only fall back to the cache
 // if the network genuinely fails (offline). Cache is now purely an offline
 // safety net, not the default source of truth.
-const CACHE = 'dealmatch-v2'
+const CACHE = 'dealmatch-v3'
 const PRECACHE = ['/', '/index.html']
 
 self.addEventListener('install', e => {
@@ -33,6 +33,13 @@ self.addEventListener('fetch', e => {
         if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()))
         return res
       })
-      .catch(() => caches.match(e.request)) // offline fallback only
+      .catch(async () => {
+        // Offline fallback only. A page the person has not opened before still loads:
+        // every route is the same app shell, so serve it and let the app draw the page.
+        const hit = await caches.match(e.request)
+        if (hit) return hit
+        if (e.request.mode === 'navigate') return caches.match('/index.html')
+        return hit
+      })
   )
 })

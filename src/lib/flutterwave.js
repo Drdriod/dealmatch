@@ -166,26 +166,50 @@ function openTransferModal({ account, error, onPaid, onClose }) {
   overlay.setAttribute('role', 'dialog')
   overlay.setAttribute('aria-modal', 'true')
   Object.assign(overlay.style, {
-    position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.5)', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', zIndex: '9999', padding: '16px',
+    position: 'fixed', inset: '0', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: '9999', padding: '16px', overflowY: 'auto',
+    // Soft brand-coloured light behind the glass so the blur has something to frost.
+    background: 'radial-gradient(circle at 20% 15%, rgba(243,201,106,0.45), transparent 45%), radial-gradient(circle at 85% 85%, rgba(184,81,30,0.40), transparent 50%), rgba(23,52,40,0.55)',
+    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
   })
 
   const card = document.createElement('div')
   Object.assign(card.style, {
-    background: '#fff', color: '#111', borderRadius: '12px', maxWidth: '420px', width: '100%',
-    padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', boxSizing: 'border-box',
-    fontFamily: 'inherit', lineHeight: '1.4',
+    position: 'relative', overflow: 'hidden', maxWidth: '440px', width: '100%', margin: 'auto',
+    padding: '28px 24px 24px', boxSizing: 'border-box', color: '#17211B', lineHeight: '1.45',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+    // Frosted glass with a water-drop shape: three round corners and one tight one.
+    background: 'rgba(255,255,255,0.78)', border: '1px solid rgba(255,255,255,0.75)',
+    borderRadius: '40px 40px 40px 12px',
+    backdropFilter: 'blur(24px) saturate(160%)', WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+    boxShadow: '0 24px 70px rgba(23,33,27,0.30), inset 0 1px 0 rgba(255,255,255,0.9)',
   })
+  // Two decorative drops (a circle with one pointed corner, turned) in the brand colours.
+  const drop = (size, top, right, bottom, left, colour) => {
+    const d = document.createElement('div')
+    d.setAttribute('aria-hidden', 'true')
+    Object.assign(d.style, {
+      position: 'absolute', width: size + 'px', height: size + 'px', pointerEvents: 'none',
+      borderRadius: '50% 50% 50% 6%', transform: 'rotate(-45deg)', background: colour, filter: 'blur(1px)',
+      ...(top != null ? { top: top + 'px' } : {}), ...(right != null ? { right: right + 'px' } : {}),
+      ...(bottom != null ? { bottom: bottom + 'px' } : {}), ...(left != null ? { left: left + 'px' } : {}),
+    })
+    return d
+  }
+  const decor = [
+    drop(120, -40, -30, null, null, 'linear-gradient(135deg, rgba(243,201,106,0.75), rgba(184,81,30,0.35))'),
+    drop(90, null, null, -34, -26, 'linear-gradient(135deg, rgba(122,158,126,0.55), rgba(35,76,58,0.25))'),
+  ]
 
   const line = (label, value, { big = false } = {}) => {
     const wrap = document.createElement('div')
     wrap.style.margin = '12px 0'
     const l = document.createElement('div')
     l.textContent = label
-    Object.assign(l.style, { fontSize: '12px', color: '#666' })
+    Object.assign(l.style, { fontSize: '12px', color: '#5C665F', fontWeight: '600', letterSpacing: '0.04em', textTransform: 'uppercase' })
     const v = document.createElement('div')
     v.textContent = value
-    Object.assign(v.style, { fontSize: big ? '24px' : '16px', fontWeight: '600', letterSpacing: big ? '0.08em' : 'normal' })
+    Object.assign(v.style, { fontSize: big ? '30px' : '16px', fontWeight: '700', letterSpacing: big ? '0.1em' : 'normal', color: big ? '#fff' : '#17211B' })
     wrap.append(l, v)
     return { wrap, value: v }
   }
@@ -195,16 +219,19 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     b.type = 'button'
     b.textContent = text
     Object.assign(b.style, {
-      padding: '10px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600',
-      border: primary ? 'none' : '1px solid #ccc', background: primary ? '#111' : '#fff',
-      color: primary ? '#fff' : '#111',
+      padding: '11px 18px', borderRadius: '999px 999px 999px 8px', cursor: 'pointer', fontSize: '14px', fontWeight: '700',
+      fontFamily: 'inherit',
+      border: primary ? 'none' : '1px solid rgba(23,33,27,0.25)',
+      background: primary ? '#B8511E' : 'rgba(255,255,255,0.6)',
+      color: primary ? '#fff' : '#17211B',
+      boxShadow: primary ? '0 8px 24px rgba(200,95,45,0.35)' : 'none',
     })
     return b
   }
 
   const title = document.createElement('h2')
   title.textContent = error ? 'Payment unavailable' : 'Pay by bank transfer'
-  Object.assign(title.style, { margin: '0 0 8px', fontSize: '20px' })
+  Object.assign(title.style, { margin: '0 0 8px', fontSize: '26px', fontWeight: '400', fontFamily: "'DM Serif Display', Georgia, serif", color: '#173428' })
   card.appendChild(title)
 
   const status = document.createElement('p')
@@ -240,8 +267,17 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     Object.assign(intro.style, { margin: '0', fontSize: '14px' })
 
     const numberLine = line('Account number', account.accountNumber, { big: true })
-    const copyBtn = button('Copy account number', false)
-    copyBtn.style.marginTop = '4px'
+    numberLine.wrap.querySelector('div').style.color = 'rgba(255,255,255,0.8)'
+    const copyBtn = button('Copy account number', true)
+    copyBtn.style.marginTop = '10px'
+    copyBtn.style.padding = '9px 16px'
+    copyBtn.style.fontSize = '13px'
+    numberLine.wrap.append(copyBtn)
+    Object.assign(numberLine.wrap.style, {
+      margin: '16px 0', padding: '16px 18px', borderRadius: '28px 28px 28px 8px',
+      background: 'linear-gradient(135deg, rgba(35,76,58,0.95), rgba(23,52,40,0.95))',
+      boxShadow: '0 12px 32px rgba(23,52,40,0.35)',
+    })
     copyBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(account.accountNumber)
@@ -255,12 +291,12 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     const amountLine = line('Amount', formatNaira(account.amountNaira))
     const expiryLine = line('Account valid until', account.expiresAt ? new Date(account.expiresAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) : 'See your payment')
 
-    Object.assign(status.style, { color: '#444' })
+    Object.assign(status.style, { color: '#17211B', fontWeight: '600' })
     status.textContent = 'Waiting for your transfer. This updates automatically once it arrives.'
 
     const note = document.createElement('p')
     note.textContent = 'Only send from your own bank account. If you close this window after sending, the payment is still confirmed automatically.'
-    Object.assign(note.style, { margin: '12px 0 0', fontSize: '12px', color: '#666' })
+    Object.assign(note.style, { margin: '12px 0 0', fontSize: '12px', color: '#5C665F' })
 
     // "I have already paid": asks the server to look for the transfer now, so the payer does not
     // have to wait for the bank's notification. Only the server's answer is believed.
@@ -291,7 +327,7 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     })
     actions.insertBefore(checkBtn, closeBtn)
 
-    card.append(title, intro, numberLine.wrap, copyBtn, bankLine.wrap, amountLine.wrap, expiryLine.wrap, status, note, actions)
+    card.append(title, intro, numberLine.wrap, bankLine.wrap, amountLine.wrap, expiryLine.wrap, status, note, actions)
 
     const expiresMs = account.expiresAt ? new Date(account.expiresAt).getTime() : Infinity
     const poll = async () => {
@@ -320,6 +356,11 @@ function openTransferModal({ account, error, onPaid, onClose }) {
   closeBtn.addEventListener('click', dismiss)
   overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss() })
   document.addEventListener('keydown', onKey)
+  // Content sits above the decorative drops.
+  const content = document.createElement('div')
+  content.style.position = 'relative'
+  content.append(...card.childNodes)
+  card.append(...decor, content)
   overlay.appendChild(card)
   document.body.appendChild(overlay)
 }

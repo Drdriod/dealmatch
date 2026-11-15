@@ -132,7 +132,9 @@ export default function HomePage() {
           <div className="hidden lg:block absolute inset-0 bg-forest-pale" />
           <div className="relative h-full flex items-center lg:px-10">
             <div className="relative w-full max-w-[560px] mx-auto">
-              <div className="relative rounded-[28px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3' }}>
+              {/* One piece: the photo, with frosted-glass chips sitting inside it. The
+                  corners are a soft water-drop shape (one tighter corner). */}
+              <div className="relative rounded-[44px_44px_44px_14px] overflow-hidden shadow-soft bg-cream-deep" style={{ aspectRatio: '4 / 3' }}>
                 {HERO_SLIDES.map((slide, i) => (
                   <img key={slide.src} src={slide.src} alt={i === heroIdx ? slide.alt : ''} aria-hidden={i !== heroIdx}
                     width="800" height="280" decoding="async"
@@ -140,19 +142,22 @@ export default function HomePage() {
                     className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
                     style={{ opacity: i === heroIdx ? 1 : 0 }} />
                 ))}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(17,27,21,0.5) 100%)' }} />
-                <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 rounded-full bg-forest text-white text-[11px] font-bold py-1.5 pl-1.5 pr-3.5">
+                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(23,52,40,0.18) 0%, transparent 35%, rgba(23,52,40,0.62) 100%)' }} />
+                <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 rounded-[999px_999px_999px_8px] bg-forest-dark/40 backdrop-blur-xl border border-white/30 shadow-lg text-white text-[11px] font-bold py-1.5 pl-1.5 pr-4">
                   <span className="w-7 h-7 rounded-full bg-sun text-deep flex items-center justify-center"><PinMark size={14} /></span>
                   AI + location matched
                 </div>
-              </div>
-              <div className="absolute left-3 right-3 -bottom-5 sm:left-6 sm:right-auto flex items-center gap-3.5 rounded-2xl bg-white/95 backdrop-blur p-3 pr-5 shadow-card">
-                <span className="flex items-center gap-1 rounded-xl bg-forest text-white text-[10px] font-bold px-2.5 py-3">
-                  <PinMark size={14} /> Nearby
-                </span>
-                <div className="min-w-0">
-                  <p className="font-bold text-[13px] text-deep truncate">{HERO_SLIDES[heroIdx].title}</p>
-                  <p className="flex items-center gap-1 text-[11px] text-deep/70"><MapPin size={12} /> {HERO_SLIDES[heroIdx].note}</p>
+                <div className="absolute left-3 right-3 bottom-3 sm:left-5 sm:right-5 sm:bottom-5 flex items-center gap-3.5 rounded-[28px_28px_28px_8px] bg-forest-dark/45 backdrop-blur-xl border border-white/30 shadow-lg p-3 pr-5 text-white">
+                  <span className="w-11 h-11 flex-shrink-0 rounded-full bg-terracotta text-white flex items-center justify-center shadow-glow"><PinMark size={18} /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-[14px] truncate">{HERO_SLIDES[heroIdx].title}</p>
+                    <p className="flex items-center gap-1 text-[12px] text-white/85"><MapPin size={12} /> {HERO_SLIDES[heroIdx].note}</p>
+                  </div>
+                  <div className="flex gap-1.5" aria-hidden="true">
+                    {HERO_SLIDES.map((_, i) => (
+                      <span key={i} className={`h-1.5 rounded-full transition-all ${i === heroIdx ? 'w-4 bg-sun' : 'w-1.5 bg-white/50'}`} />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
