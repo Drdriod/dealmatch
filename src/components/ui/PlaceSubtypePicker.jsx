@@ -12,19 +12,14 @@ export default function PlaceSubtypePicker({ category, propertyType, value, onCh
 
   return (
     <div>
-      <label className="text-xs font-bold uppercase tracking-wider mb-3 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{label}</label>
+      <p className="mb-2 text-sm font-bold">{label}</p>
       <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
         {choices.map((c, i) => {
           const selected = value ? value === c.id : i === 0
           return (
             <button key={c.id} type="button" role="radio" aria-checked={selected}
               onClick={() => onChange(c.id)}
-              className="px-3.5 py-2 rounded-full text-xs font-semibold border-2 transition-all"
-              style={{
-                borderColor: selected ? '#B8511E' : '#DEDDD6',
-                color: selected ? '#B8511E' : '#5C665F',
-                backgroundColor: selected ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
-              }}>
+              className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${selected ? 'border-terracotta bg-orange-pale text-terracotta-dark' : 'border-line bg-white text-deep hover:border-deep/30'}`}>
               {c.name}
             </button>
           )

@@ -171,7 +171,7 @@ function AnimatedRoutes() {
         } />
 
         <Route path="/list-rental" element={
-          <AppShell>
+          <AppShell showFooter={false} showWhatsApp={false}>
             <Suspense fallback={<PageSkeleton />}>
               <PageTransition><ListRentalPage /></PageTransition>
             </Suspense>
@@ -255,7 +255,7 @@ function AnimatedRoutes() {
 
         <Route path="/list-hostel" element={
           <ProtectedRoute>
-            <AppShell showFooter={false}>
+            <AppShell showFooter={false} showWhatsApp={false}>
               <Suspense fallback={<PageSkeleton />}>
                 <PageTransition><ListHostelPage /></PageTransition>
               </Suspense>
@@ -521,13 +521,13 @@ function AnimatedRoutes() {
           ['/dashboard',    DashboardPage,           { showFooter:false }],
           ['/landlord',     LandlordDashboardPage,   { showFooter:false }],
           ['/lender',       LenderDashboardPage,     { showFooter:false }],
-          ['/list',         ListPropertyPage,        { showFooter:false }],
+          ['/list',         ListPropertyPage,        { showFooter:false, showWhatsApp:false }],
           ['/profile',      ProfilePage,             {}],
           ['/availability', AvailabilityPage,        {}],
           ['/verify',       VerificationPage,        { showFooter:false }],
           ['/referrals',    ReferralPage,            {}],
           ['/referral',     ReferralPage,            {}],
-          ['/apply-professional', ApplyProfessionalPage, {}],
+          ['/apply-professional', ApplyProfessionalPage, { showFooter:false, showWhatsApp:false }],
         ].map(([path, Page, shellProps]) => (
           <Route key={path} path={path} element={
             <ProtectedRoute>

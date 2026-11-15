@@ -10,47 +10,46 @@
  * until payment is confirmed AND an admin/verifier approves it.
  */
 
-import React, { useState, useEffect } from 'react'
-import { useFormDraft } from '@/hooks/useFormDraft'
-import DraftNotice from '@/components/ui/DraftNotice'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  BanknotesIcon, BuildingOffice2Icon, BuildingOfficeIcon, CheckCircleIcon, ClockIcon,
+  CreditCardIcon, HomeIcon, InformationCircleIcon, LockClosedIcon, PencilSquareIcon, ShieldCheckIcon, UserGroupIcon, UserIcon,
+} from '@heroicons/react/24/outline'
+import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
+import toast from 'react-hot-toast'
 import { uploadFile, publicUrlFor } from '@/data/storageRepository'
-import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, Fence, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
 import { updateHostel, insertHostel } from '@/data/hostelListingRepository'
 import { useAuth } from '@/context/AuthContext'
+import { useFormDraft } from '@/hooks/useFormDraft'
 import { initializeFlutterwavePayment, generateReference, getFeeAmounts } from '@/lib/flutterwave'
 import { usePlatformFees } from '@/lib/platformFees'
-import toast from 'react-hot-toast'
-import clsx from 'clsx'
+import DraftNotice from '@/components/ui/DraftNotice'
+import PhotoPicker from '@/components/ui/PhotoPicker'
+import { WizardShell, WizardActions, StepHeading, Field, ChoiceCard, Chip, InfoBox, inputClass } from '@/components/ui/WizardKit'
 
 const ROOM_TYPES = [
-  { id: 'single',       label: 'Single Room',          desc: '1 person per room' },
-  { id: 'shared_2',     label: 'Shared (2 per room)',   desc: '2 people sharing' },
-  { id: 'shared_4',     label: 'Shared (4 per room)',   desc: '4 people sharing' },
-  { id: 'shared_6',     label: 'Shared (6 per room)',   desc: '6 people sharing' },
-  { id: 'self_contain', label: 'Self Contain',          desc: 'Private bathroom & kitchen' },
-  { id: 'mini_flat',    label: 'Mini Flat',             desc: 'Sitting room + bedroom' },
-  { id: '2_bedroom',    label: '2 Bedroom',             desc: 'Full 2-bedroom apartment' },
+  { id: 'single',       label: 'Single room',   desc: '1 person per room',           icon: UserIcon },
+  { id: 'shared_2',     label: 'Shared (2)',    desc: '2 people sharing',            icon: UserGroupIcon },
+  { id: 'shared_4',     label: 'Shared (4)',    desc: '4 people sharing',            icon: UserGroupIcon },
+  { id: 'shared_6',     label: 'Shared (6)',    desc: '6 people sharing',            icon: UserGroupIcon },
+  { id: 'self_contain', label: 'Self contain',  desc: 'Private bathroom and kitchen', icon: HomeIcon },
+  { id: 'mini_flat',    label: 'Mini flat',     desc: 'Sitting room and bedroom',    icon: BuildingOfficeIcon },
+  { id: '2_bedroom',    label: '2 bedroom',     desc: 'Full 2-bedroom apartment',    icon: BuildingOffice2Icon },
 ]
 
+// The ids are what the listing stores, so they must not change.
 const AMENITIES = [
-  { id: 'wifi',     label: 'WiFi',          icon: <Wifi size={18} className="text-terracotta" /> },
-  { id: 'gen',      label: 'Generator',     icon: <Zap size={18} className="text-terracotta" /> },
-  { id: 'water',    label: 'Running Water', icon: <Droplets size={18} className="text-terracotta" /> },
-  { id: 'security', label: 'Security',      icon: <Shield size={18} className="text-terracotta" /> },
-  { id: 'fence',    label: 'Fenced',        icon: <Fence size={18} className="text-terracotta" /> },
-  { id: 'cctv',     label: 'CCTV',          icon: <Camera size={18} className="text-terracotta" /> },
-  { id: 'parking',  label: 'Parking',       icon: <Car size={18} className="text-terracotta" /> },
-  { id: 'kitchen',  label: 'Kitchen',       icon: <Utensils size={18} className="text-terracotta" /> },
-  { id: 'study',    label: 'Study Room',    icon: <BookOpen size={18} className="text-terracotta" /> },
-  { id: 'laundry',  label: 'Laundry',       icon: <Shirt size={18} className="text-terracotta" /> },
+  { id: 'wifi', label: 'WiFi' }, { id: 'gen', label: 'Generator' }, { id: 'water', label: 'Running water' },
+  { id: 'security', label: 'Security' }, { id: 'fence', label: 'Fenced' }, { id: 'cctv', label: 'CCTV' },
+  { id: 'parking', label: 'Parking' }, { id: 'kitchen', label: 'Kitchen' }, { id: 'study', label: 'Study room' },
+  { id: 'laundry', label: 'Laundry' },
 ]
 
 const GENDER_OPTIONS = [
-  { id: 'mixed',       label: 'Mixed (Male & Female)' },
-  { id: 'male_only',   label: 'Male Students Only' },
-  { id: 'female_only', label: 'Female Students Only' },
+  { id: 'mixed',       label: 'Mixed',        desc: 'Male and female' },
+  { id: 'male_only',   label: 'Male only',    desc: 'Male students' },
+  { id: 'female_only', label: 'Female only',  desc: 'Female students' },
 ]
 
 const INITIAL_FORM = {
@@ -58,7 +57,7 @@ const INITIAL_FORM = {
   institution_id: '', institution_name: '', distance_km: '',
   distance_label: '',
   room_type: '', gender_policy: 'mixed',
-  rooms_available: 1, total_rooms: 1,
+  rooms_available: '1', total_rooms: '1',
   price_per_year: '', caution_fee: '', agency_fee: '',
   amenities: [], images: [],
 }
@@ -71,125 +70,114 @@ const STATES = [
   'Zamfara','Abuja (FCT)',
 ]
 
-const STEPS = ['Details', 'Location', 'Amenities', 'Photos', 'Payment']
+const STEPS = ['Rooms', 'Rent and fees', 'Location', 'Amenities and photos', 'Plan and payment']
+const SAVE_AT = 3          // leaving this step saves the listing, ready for payment
+const MAX_PHOTOS = 8
 
-// ─── Step indicator ───────────────────────────────────────────────────────────
-function StepBar({ current, total }) {
+const naira = (n) => `₦${Number(n || 0).toLocaleString('en-NG')}`
+const digitsOnly = (v, max = 9) => String(v).replace(/\D/g, '').slice(0, max)
+const money = (k, set) => ({
+  type: 'text', inputMode: 'numeric', autoComplete: 'off',
+  onChange: (e) => set(k, digitsOnly(e.target.value, 10)),
+})
+
+// A naira amount box: shows 120,000 while the value stays plain digits. Field passes its id and
+// aria attributes to this component, which hands them to the input.
+function NairaInput({ value, onChange, className = '', ...rest }) {
   return (
-    <div className="flex items-center gap-2 mb-8">
-      {STEPS.map((label, i) => (
-        <React.Fragment key={label}>
-          <div className="flex flex-col items-center gap-1">
-            <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all')}
-              style={{
-                backgroundColor: i < current ? '#7A9E7E' : i === current ? '#B8511E' : '#F5EDE0',
-                color: i <= current ? '#fff' : '#5C665F',
-              }}>
-              {i < current ? <Check size={14} /> : i + 1}
-            </div>
-            <span className="text-xs hidden sm:block font-medium"
-              style={{ color: i === current ? '#B8511E' : '#5C665F' }}>{label}</span>
-          </div>
-          {i < STEPS.length - 1 && (
-            <div className="flex-1 h-0.5 mb-5" style={{ backgroundColor: i < current ? '#7A9E7E' : '#DEDDD6' }} />
-          )}
-        </React.Fragment>
-      ))}
+    <div className="relative">
+      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-warm">₦</span>
+      <input type="text" inputMode="numeric" autoComplete="off" className={`input ${inputClass} !pl-9 ${className}`}
+        value={value ? Number(value).toLocaleString('en-NG') : ''}
+        onChange={(e) => onChange(digitsOnly(e.target.value, 10))} {...rest} />
     </div>
   )
 }
 
-function Input({ label, name, value, onChange, type = 'text', placeholder, required, hint, prefix }) {
-  return (
-    <div>
-      <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
-        {label}{required && <span style={{ color: 'var(--dm-terracotta)' }}> *</span>}
-      </label>
-      <div className="relative">
-        {prefix && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold" style={{ color: 'var(--dm-warm)' }}>{prefix}</span>
-        )}
-        <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
-          className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-          style={{
-            backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: '#17211B',
-            paddingLeft: prefix ? '2.5rem' : '1rem',
-          }} />
-      </div>
-      {hint && <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>{hint}</p>}
-    </div>
-  )
+function validate(step, form) {
+  const e = {}
+  if (step === 0) {
+    if (form.title.trim().length < 4) e.title = 'Add the hostel name (at least 4 characters).'
+    if (!form.room_type) e.room_type = 'Choose the room type.'
+    const avail = Number(form.rooms_available)
+    const total = Number(form.total_rooms)
+    if (!(avail >= 1)) e.rooms_available = 'Enter at least 1 room.'
+    else if (total && avail > total) e.rooms_available = 'This cannot be more than the total rooms.'
+  }
+  if (step === 1) {
+    if (!(Number(form.price_per_year) > 0)) e.price_per_year = 'Enter the annual rent.'
+  }
+  if (step === 2) {
+    if (!form.address.trim()) e.address = 'Enter the street address.'
+    if (!form.city.trim()) e.city = 'Enter the city.'
+    if (!form.state) e.state = 'Choose the state.'
+    if (!form.institution_name.trim()) e.institution_name = 'Enter the nearest school.'
+  }
+  if (step === 3) {
+    if (form.images.length === 0) e.images = 'Add at least one photo.'
+  }
+  return e
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ListHostelPage() {
-  const { user, profile } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [step,       setStep]    = useState(0)
   const [form,       setForm]    = useState(INITIAL_FORM)
-  const [institutions, setInstitutions] = useState([])
   const [plan,       setPlan]    = useState('semester')
   const [saving,     setSaving]  = useState(false)
   const [hostelId,   setHostelId] = useState(null)
   const [paymentDone, setPaymentDone] = useState(false)
-  const [imageUploading, setImageUploading] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
+  const firstRender = useRef(true)
+
   // Keeps the answers on this device so a dropped connection or reload never starts it over.
+  // Photos are uploaded as they are added, so they come back too.
   const draft = useFormDraft('list-hostel', { step, form, plan, hostelId },
     (d) => {
-      setStep(d.step || 0)
+      setStep(Math.min(d.step || 0, STEPS.length - 1))
       setForm({ ...INITIAL_FORM, ...(d.form || {}) })
       if (d.plan) setPlan(d.plan)
       if (d.hostelId) setHostelId(d.hostelId)
     },
     { userId: user?.id, enabled: !!user?.id })
+
   // Plan prices from the platform fee registry. A price is null while loading.
   const { fees } = usePlatformFees()
   const LISTING_PLANS = getFeeAmounts(fees).HOSTEL_LISTING_PLANS
   const plansReady = !!LISTING_PLANS[plan]?.price
 
-  // institutions table removed - school name is now a free-text input
-  // so listing owners can type their school name directly without
-  // needing a pre-seeded institutions table in the database.
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-  const setVal = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+  const text = (k) => (e) => set(k, e.target.value)
+  const toggleAmenity = (id) => setForm((f) => ({
+    ...f, amenities: f.amenities.includes(id) ? f.amenities.filter((a) => a !== id) : [...f.amenities, id],
+  }))
 
-  const toggleAmenity = (id) => {
-    setForm(f => ({
-      ...f,
-      amenities: f.amenities.includes(id)
-        ? f.amenities.filter(a => a !== id)
-        : [...f.amenities, id],
-    }))
+  const errors = validate(step, form)
+  const errorKeys = Object.keys(errors)
+  const shown = showErrors ? errors : {}
+
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.getElementById('wizard-step-title')?.focus({ preventScroll: true })
+    setShowErrors(false)
+  }, [step])
+
+  // Upload one photo; the picker keeps the returned address.
+  const uploadPhoto = async (file) => {
+    const ext = file.name.split('.').pop()
+    const path = `hostels/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+    const { error } = await uploadFile('property-images', path, file, { upsert: false })
+    if (error) throw error
+    return publicUrlFor('property-images', path)
   }
-
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files || [])
-    if (!files.length) return
-    if (form.images.length + files.length > 8) { toast.error('You can add up to 8 images.'); return }
-
-    setImageUploading(true)
-    const uploaded = []
-    for (const file of files) {
-      if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} is too large. Choose one under 5MB.`); continue }
-      const ext  = file.name.split('.').pop()
-      const path = `hostels/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await uploadFile('property-images', path, file, { upsert: false })
-      if (error) { toast.error(`We couldn't upload ${file.name}.`); continue }
-      uploaded.push(publicUrlFor('property-images', path))
-    }
-    setForm(f => ({ ...f, images: [...f.images, ...uploaded] }))
-    setImageUploading(false)
-    if (uploaded.length) toast.success(`${uploaded.length} photo${uploaded.length > 1 ? 's' : ''} uploaded.`)
-  }
-
-  const removeImage = (url) => setForm(f => ({ ...f, images: f.images.filter(i => i !== url) }))
 
   // ── Save hostel (pending_review, unpaid) ──────────────────────────────
   const saveHostel = async () => {
     setSaving(true)
     try {
-      const selectedInstitution = institutions.find(i => i.id === form.institution_id)
       const payload = {
         owner_id:         user.id,
         title:            form.title.trim(),
@@ -197,14 +185,14 @@ export default function ListHostelPage() {
         address:          form.address.trim(),
         city:             form.city.trim(),
         state:            form.state,
-        institution_id:   form.institution_id || null,
-        institution_name: selectedInstitution?.name || form.institution_name || null,
+        institution_id:   null,
+        institution_name: form.institution_name.trim() || null,
         distance_km:      form.distance_km ? Number(form.distance_km) : null,
         distance_label:   form.distance_label.trim() || null,
         room_type:        form.room_type,
         gender_policy:    form.gender_policy,
         rooms_available:  Number(form.rooms_available),
-        total_rooms:      Number(form.total_rooms),
+        total_rooms:      Number(form.total_rooms) || Number(form.rooms_available),
         price_per_year:   Number(form.price_per_year),
         caution_fee:      form.caution_fee ? Number(form.caution_fee) : 0,
         agency_fee:       form.agency_fee  ? Number(form.agency_fee)  : 0,
@@ -266,376 +254,291 @@ export default function ListHostelPage() {
     })
   }
 
-  const canProceed = () => {
-    if (step === 0) return form.title && form.room_type && form.price_per_year && form.gender_policy
-    if (step === 1) return form.address && form.city && form.state
-    if (step === 2) return true
-    if (step === 3) return true
-    return true
-  }
-
-  const handleNext = async () => {
-    if (!canProceed()) { toast.error('Complete the required fields to continue.'); return }
-    if (step === 3) {
-      // Save before going to payment step
+  const goNext = async () => {
+    if (errorKeys.length) {
+      setShowErrors(true)
+      const first = document.querySelector(`[data-field="f-${errorKeys[0]}"]`)
+      first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      first?.querySelector('input,select,textarea,button')?.focus({ preventScroll: true })
+      return
+    }
+    if (step === STEPS.length - 1) { handlePayment(); return }
+    if (step === SAVE_AT) {
+      // Save before going to the payment step
       const id = await saveHostel()
       if (!id) return
     }
-    setStep(s => s + 1)
+    setStep((s) => s + 1)
   }
 
-  if (paymentDone) return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#FFFAF5' }}>
-      <div className="text-center max-w-sm">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ backgroundColor: 'rgba(122,158,126,0.12)', border: '2px solid rgba(122,158,126,0.4)' }}>
-          <Check size={36} style={{ color: 'var(--dm-sage)' }} />
-        </div>
-        <h1 className="font-display font-black text-2xl mb-3" style={{ color: 'var(--dm-deep)' }}>
-          Listing Submitted!
-        </h1>
-        <p className="text-sm mb-2" style={{ color: 'var(--dm-warm)' }}>
-          Your hostel listing is under review. Once the details are verified, it will go live and you can check its status on your dashboard.
-        </p>
-        <p className="text-xs mb-6" style={{ color: 'var(--dm-warm)' }}>
-          Students will start seeing your hostel as soon as it's approved.
-        </p>
-        <div className="flex flex-col gap-3">
-          <Link to="/student-hostels" className="w-full py-3.5 rounded-2xl font-bold text-sm text-center transition-all hover:opacity-90"
-            style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
-            Browse Hostels
-          </Link>
-          <Link to="/dashboard" className="w-full py-3.5 rounded-2xl font-bold text-sm text-center"
-            style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-deep)' }}>
-            Go to Dashboard
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
+  if (paymentDone) return <PaidScreen />
+
+  const firstYear = Number(form.price_per_year || 0) + Number(form.caution_fee || 0) + Number(form.agency_fee || 0)
+  const last = step === STEPS.length - 1
+  const nextLabel = last
+    ? (!plansReady ? 'Loading prices…' : `Pay ${naira(LISTING_PLANS[plan].price)} and go live`)
+    : step === SAVE_AT ? 'Save and continue' : 'Continue'
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh', paddingTop: 72 }}>
-      <div className="max-w-xl mx-auto px-5 py-8">
-        <DraftNotice draft={draft} onStartOver={() => { setStep(0); setForm(INITIAL_FORM); setHostelId(null) }} />
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate('/student-hostels')}
-            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-black/5"
-            style={{ backgroundColor: '#F5EDE0' }}>
-            <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
-          </button>
-          <div>
-            <h1 className="font-display font-black text-xl" style={{ color: 'var(--dm-deep)' }}>List your hostel</h1>
-            <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Reach students looking near your campus</p>
-          </div>
-        </div>
+    <>
+      <WizardShell
+        eyebrow="List a student hostel"
+        title="List your hostel"
+        subtitle="Reach students looking near your campus. Five short steps, and your answers are saved as you go."
+        steps={STEPS}
+        step={step}
+        onStepClick={(i) => setStep(i)}
+        notice={<DraftNotice photosKept draft={draft} onStartOver={() => { setStep(0); setForm(INITIAL_FORM); setHostelId(null) }} />}
+      >
+        {step === 0 && (
+          <div className="space-y-6">
+            <StepHeading title="Tell us about the rooms">What students will be renting.</StepHeading>
 
-        <StepBar current={step} total={STEPS.length} />
+            <Field id="f-title" label="Hostel name" error={shown.title}>
+              <input className={`input ${inputClass}`} type="text" maxLength={80} autoComplete="off"
+                placeholder="e.g. Grace Court Hostel, Peace Villa" value={form.title} onChange={text('title')} />
+            </Field>
 
-        <AnimatePresence mode="wait">
-          {/* ── Step 0: Room Details ── */}
-          {step === 0 && (
-            <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <Input label="Hostel Name" name="title" value={form.title} onChange={set('title')}
-                placeholder="e.g. Grace Court Hostel, Peace Villa" required />
-
-              <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
-                  Room Type <span style={{ color: 'var(--dm-terracotta)' }}>*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {ROOM_TYPES.map(r => (
-                    <button key={r.id} onClick={() => setVal('room_type', r.id)}
-                      className="p-3 rounded-xl text-left transition-all"
-                      style={{
-                        backgroundColor: form.room_type === r.id ? 'rgba(200,95,45,0.08)' : '#F5EDE0',
-                        border: `1.5px solid ${form.room_type === r.id ? '#B8511E' : 'transparent'}`,
-                      }}>
-                      <div className="text-xs font-bold" style={{ color: form.room_type === r.id ? '#B8511E' : '#17211B' }}>{r.label}</div>
-                      <div className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{r.desc}</div>
-                    </button>
-                  ))}
-                </div>
+            <Field id="f-room_type" label="Room type" error={shown.room_type}>
+              <div role="radiogroup" aria-label="Room type" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {ROOM_TYPES.map((r) => (
+                  <ChoiceCard key={r.id} icon={r.icon} label={r.label} description={r.desc}
+                    selected={form.room_type === r.id} onClick={() => set('room_type', r.id)} />
+                ))}
               </div>
+            </Field>
 
-              <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>Gender policy <span style={{ color: 'var(--dm-terracotta)' }}>*</span></label>
-                <div className="flex gap-2">
-                  {GENDER_OPTIONS.map(g => (
-                    <button key={g.id} onClick={() => setVal('gender_policy', g.id)}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{
-                        backgroundColor: form.gender_policy === g.id ? '#17211B' : '#F5EDE0',
-                        color: form.gender_policy === g.id ? '#FFFAF5' : '#17211B',
-                      }}>
-                      {g.label.split(' ')[0]}
-                    </button>
-                  ))}
-                </div>
+            <Field id="f-gender_policy" label="Who can live here?">
+              <div role="radiogroup" aria-label="Who can live here?" className="grid grid-cols-3 gap-2.5">
+                {GENDER_OPTIONS.map((g) => (
+                  <ChoiceCard key={g.id} label={g.label} description={g.desc}
+                    selected={form.gender_policy === g.id} onClick={() => set('gender_policy', g.id)} />
+                ))}
               </div>
+            </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Rooms Available" name="rooms_available" value={form.rooms_available}
-                  onChange={set('rooms_available')} type="number" placeholder="1" required />
-                <Input label="Total Rooms" name="total_rooms" value={form.total_rooms}
-                  onChange={set('total_rooms')} type="number" placeholder="10" />
-              </div>
-
-              <Input label="Annual Rent (₦)" name="price_per_year" value={form.price_per_year}
-                onChange={set('price_per_year')} type="number" placeholder="120000" prefix="₦" required
-                hint="Price students pay per year (academic session)" />
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Caution Fee (₦)" name="caution_fee" value={form.caution_fee}
-                  onChange={set('caution_fee')} type="number" placeholder="0" prefix="₦"
-                  hint="Refundable on exit" />
-                <Input label="Agency Fee (₦)" name="agency_fee" value={form.agency_fee}
-                  onChange={set('agency_fee')} type="number" placeholder="0" prefix="₦" />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>Description</label>
-                <textarea value={form.description} onChange={set('description')} rows={4}
-                  placeholder="Describe your hostel - rules, environment, what makes it great for students…"
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 1: Location ── */}
-          {step === 1 && (
-            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <Input label="Street Address" name="address" value={form.address} onChange={set('address')}
-                placeholder="e.g. 14 Adeleke Street, Beside GTBank" required />
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="City" name="city" value={form.city} onChange={set('city')} placeholder="e.g. Yaba" required />
-                <div>
-                  <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>State <span style={{ color: 'var(--dm-terracotta)' }}>*</span></label>
-                  <select value={form.state} onChange={set('state')}
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                    style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.state ? '#17211B' : '#5C665F' }}>
-                    <option value="">Select state</option>
-                    {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold mb-1.5 block" style={{ color: 'var(--dm-warm)' }}>
-                  Nearest University / Polytechnic / College *
-                </label>
-                <input
-                  value={form.institution_name}
-                  onChange={e => setForm(f => ({ ...f, institution_name: e.target.value, institution_id: '' }))}
-                  placeholder="e.g. University of Lagos, University of Ibadan..."
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
-                />
-                <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
-                  Type your school name exactly as students would search for it.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Distance to Campus (km)" name="distance_km" value={form.distance_km}
-                  onChange={set('distance_km')} type="number" placeholder="0.5"
-                  hint="Approximate walking distance" />
-                <Input label="Distance Label" name="distance_label" value={form.distance_label}
-                  onChange={set('distance_label')} placeholder="5 min walk"
-                  hint="How students will see it" />
-              </div>
-
-              <div className="rounded-2xl p-4 flex items-start gap-3"
-                style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-                <Info size={16} style={{ color: 'var(--dm-terracotta)', flexShrink: 0, marginTop: 2 }} />
-                <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>
-                  A DealMatch verifier may visit the address before activating your listing to protect students from fake hostels.
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 2: Amenities ── */}
-          {step === 2 && (
-            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>What does your hostel offer?</h2>
-                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>Select all that apply. More amenities = more enquiries.</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {AMENITIES.map(a => (
-                    <button key={a.id} onClick={() => toggleAmenity(a.id)}
-                      className="flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                      style={{
-                        backgroundColor: form.amenities.includes(a.id) ? 'rgba(200,95,45,0.08)' : '#F5EDE0',
-                        border: `1.5px solid ${form.amenities.includes(a.id) ? '#B8511E' : 'transparent'}`,
-                      }}>
-                      <span>{a.icon}</span>
-                      <div className="flex-1">
-                        <div className="text-xs font-semibold" style={{ color: form.amenities.includes(a.id) ? '#B8511E' : '#17211B' }}>{a.label}</div>
-                      </div>
-                      {form.amenities.includes(a.id) && <Check size={12} style={{ color: 'var(--dm-terracotta)' }} />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 3: Photos ── */}
-          {step === 3 && (
-            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>Add photos</h2>
-                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>
-                  Clear photos help students trust what they see. Up to 8 photos, 5MB each.
-                </p>
-
-                <label className="block cursor-pointer">
-                  <div className="border-2 border-dashed rounded-2xl p-8 text-center transition-all hover:border-orange-300"
-                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#F5EDE0' }}>
-                    {imageUploading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-sm" style={{ color: 'var(--dm-warm)' }}>Uploading…</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload size={24} style={{ color: 'var(--dm-terracotta)', margin: '0 auto 8px' }} />
-                        <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Click to add photos</p>
-                        <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>JPG, PNG · Max 5MB each</p>
-                      </>
-                    )}
-                  </div>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={imageUploading} />
-                </label>
-
-                {form.images.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-3">
-                    {form.images.map((url, i) => (
-                      <div key={url} className="relative rounded-xl overflow-hidden aspect-square">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                        {i === 0 && (
-                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-xs font-bold"
-                            style={{ backgroundColor: 'rgba(23,33,27,0.7)', color: '#fff' }}>Cover</div>
-                        )}
-                        <button onClick={() => removeImage(url)}
-                          className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: 'rgba(200,95,45,0.9)' }}>
-                          <X size={12} style={{ color: '#fff' }} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 4: Payment ── */}
-          {step === 4 && (
-            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <div>
-                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--dm-deep)' }}>Choose your listing plan</h2>
-                <p className="text-sm mb-4" style={{ color: 'var(--dm-warm)' }}>
-                  Students browse for free - you pay a small fee to list your hostel.
-                </p>
-
-                <div className="space-y-3 mb-6">
-                  {Object.entries(LISTING_PLANS).map(([key, p]) => (
-                    <button key={key} onClick={() => setPlan(key)}
-                      className="w-full p-4 rounded-2xl text-left transition-all"
-                      style={{
-                        backgroundColor: plan === key ? 'rgba(200,95,45,0.06)' : '#F5EDE0',
-                        border: `2px solid ${plan === key ? '#B8511E' : 'transparent'}`,
-                      }}>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm" style={{ color: 'var(--dm-deep)' }}>{p.name}</span>
-                            {p.badge && (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                                style={{ backgroundColor: plan === key ? '#B8511E' : '#DEDDD6', color: plan === key ? '#fff' : '#5C665F' }}>
-                                {p.badge}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{p.duration}</div>
-                          {p.saving && <div className="text-xs mt-0.5 font-semibold" style={{ color: 'var(--dm-sage)' }}>{p.saving}</div>}
-                        </div>
-                        <div className="text-right">
-                          <div className="font-black text-lg" style={{ color: plan === key ? '#B8511E' : '#17211B' }}>
-                            {p.price ? `₦${p.price.toLocaleString()}` : '...'}
-                          </div>
-                          {plan === key && <Check size={14} style={{ color: 'var(--dm-terracotta)', marginLeft: 'auto' }} />}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* What's included */}
-                <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6' }}>
-                  <h4 className="font-bold text-sm mb-3" style={{ color: 'var(--dm-deep)' }}>What's included</h4>
-                  {[
-                    'Listed on the student hostels page',
-                    'Visible to all verified students near your school',
-                    'Enquiries via WhatsApp and in-app',
-                    'Verified badge after inspection',
-                    'Edit or pause your listing anytime',
-                  ].map(f => (
-                    <div key={f} className="flex items-center gap-2 mb-2">
-                      <Check size={12} style={{ color: 'var(--dm-sage)', flexShrink: 0 }} />
-                      <span className="text-xs" style={{ color: 'var(--dm-deep)' }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="rounded-2xl p-3 flex items-start gap-2" style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-                  <Shield size={14} style={{ color: 'var(--dm-sage)', flexShrink: 0, marginTop: 1 }} />
-                  <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>
-                    Payment is secured by Flutterwave. Your listing goes live once your payment is confirmed and the details are verified.
-                  </p>
-                </div>
-
-                <button onClick={handlePayment} disabled={saving || !plansReady}
-                  className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
-                  style={{ backgroundColor: 'var(--dm-terracotta)', color: '#fff' }}>
-                  {saving
-                    ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : !plansReady
-                      ? 'Loading prices...'
-                      : <><CreditCard size={16} /> Pay ₦{LISTING_PLANS[plan].price.toLocaleString()} - Go Live</>}
-                </button>
-
-                <p className="text-xs text-center mt-3" style={{ color: 'var(--dm-warm)' }}>
-                  Your listing is saved as a draft. Pay anytime to activate it.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Navigation */}
-        {step < 4 && (
-          <div className="flex gap-3 mt-8">
-            {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)}
-                className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-                style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-deep)' }}>
-                Back
-              </button>
-            )}
-            <button onClick={handleNext} disabled={saving || !canProceed()}
-              className="flex-1 py-3.5 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ backgroundColor: canProceed() ? '#17211B' : '#DEDDD6', color: canProceed() ? '#FFFAF5' : '#5C665F' }}>
-              {saving
-                ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                : <>{step === 3 ? 'Save & Continue' : 'Continue'} <ArrowRight size={14} /></>}
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="f-rooms_available" label="Rooms available" error={shown.rooms_available}>
+                <input className={`input ${inputClass}`} placeholder="1" value={form.rooms_available} {...money('rooms_available', set)} />
+              </Field>
+              <Field id="f-total_rooms" label="Total rooms" optional>
+                <input className={`input ${inputClass}`} placeholder="10" value={form.total_rooms} {...money('total_rooms', set)} />
+              </Field>
+            </div>
           </div>
         )}
+
+        {step === 1 && (
+          <div className="space-y-6">
+            <StepHeading title="Rent and fees">What a student pays. Be clear, since it avoids disputes later.</StepHeading>
+
+            <Field id="f-price_per_year" label="Annual rent" error={shown.price_per_year} hint="Price per year (one academic session).">
+              <NairaInput placeholder="e.g. 120,000" value={form.price_per_year} onChange={(v) => set('price_per_year', v)} />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="f-caution_fee" label="Caution fee" optional hint="Refundable when the student leaves.">
+                <NairaInput placeholder="0" value={form.caution_fee} onChange={(v) => set('caution_fee', v)} />
+              </Field>
+              <Field id="f-agency_fee" label="Agency fee" optional>
+                <NairaInput placeholder="0" value={form.agency_fee} onChange={(v) => set('agency_fee', v)} />
+              </Field>
+            </div>
+
+            {firstYear > 0 && (
+              <InfoBox icon={BanknotesIcon} title="What a student pays up front">
+                <p className="text-lg font-bold text-forest">{naira(firstYear)}</p>
+                <p className="mt-0.5">Rent plus caution and agency fees, as students will see it.</p>
+              </InfoBox>
+            )}
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-6">
+            <StepHeading title="Where is it?">Students search by school first, so be exact.</StepHeading>
+
+            <Field id="f-address" label="Street address" error={shown.address}>
+              <input className={`input ${inputClass}`} type="text" autoComplete="off"
+                placeholder="e.g. 14 Adeleke Street, beside GTBank" value={form.address} onChange={text('address')} />
+            </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field id="f-city" label="City" error={shown.city}>
+                <input className={`input ${inputClass}`} type="text" autoComplete="off" placeholder="e.g. Yaba" value={form.city} onChange={text('city')} />
+              </Field>
+              <Field id="f-state" label="State" error={shown.state}>
+                <select className={`select ${inputClass}`} value={form.state} onChange={text('state')}>
+                  <option value="">Select state</option>
+                  {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <Field id="f-institution_name" label="Nearest university, polytechnic or college" error={shown.institution_name}
+              hint="Type the name exactly as students would search for it.">
+              <input className={`input ${inputClass}`} type="text" autoComplete="off" placeholder="e.g. University of Lagos"
+                value={form.institution_name} onChange={text('institution_name')} />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="f-distance_km" label="Distance (km)" optional hint="Roughly, on foot.">
+                <input className={`input ${inputClass}`} type="text" inputMode="decimal" placeholder="0.5"
+                  value={form.distance_km} onChange={(e) => set('distance_km', e.target.value.replace(/[^\d.]/g, '').slice(0, 5))} />
+              </Field>
+              <Field id="f-distance_label" label="How students see it" optional>
+                <input className={`input ${inputClass}`} type="text" maxLength={30} placeholder="5 min walk" value={form.distance_label} onChange={text('distance_label')} />
+              </Field>
+            </div>
+
+            <InfoBox icon={InformationCircleIcon}>
+              A DealMatch verifier may visit the address before activating your listing, to protect students from fake hostels.
+            </InfoBox>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-6">
+            <StepHeading title="What it offers, and how it looks">More amenities and clear photos bring more enquiries.</StepHeading>
+
+            <div>
+              <p className="mb-2 text-sm font-bold">Amenities <span className="text-xs font-medium text-warm">Optional</span></p>
+              <div className="flex flex-wrap gap-2">
+                {AMENITIES.map((a) => <Chip key={a.id} selected={form.amenities.includes(a.id)} onClick={() => toggleAmenity(a.id)}>{a.label}</Chip>)}
+              </div>
+            </div>
+
+            <Field id="f-images" label={`Photos (${form.images.length} of ${MAX_PHOTOS})`} error={shown.images}
+              hint="JPG, PNG or WebP, up to 10 MB each. The first photo is the cover.">
+              <PhotoPicker images={form.images.map((url, i) => ({ url, is_primary: i === 0 }))} max={MAX_PHOTOS} invalid={!!shown.images}
+                upload={uploadPhoto}
+                onChange={(next) => setForm((f) => {
+                  const cur = f.images.map((url, i) => ({ url, is_primary: i === 0 }))
+                  const list = typeof next === 'function' ? next(cur) : next
+                  // The main photo goes first, since the first one is the cover.
+                  const main = list.find((i) => i.is_primary)
+                  const ordered = main ? [main, ...list.filter((i) => i !== main)] : list
+                  return { ...f, images: ordered.map((i) => i.url) }
+                })} />
+            </Field>
+
+            <Field id="f-description" label="Description" optional hint="House rules, the neighbourhood, and what makes it good for students.">
+              <textarea className={`input ${inputClass} resize-none`} rows={4} placeholder="Describe your hostel…"
+                value={form.description} onChange={text('description')} />
+            </Field>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-6">
+            <StepHeading title="Choose your listing plan">Students browse for free. You pay a small fee to list your hostel.</StepHeading>
+
+            <div role="radiogroup" aria-label="Listing plan" className="space-y-2.5">
+              {Object.entries(LISTING_PLANS).map(([key, p]) => (
+                <button key={key} type="button" role="radio" aria-checked={plan === key} onClick={() => setPlan(key)}
+                  className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${plan === key ? 'border-terracotta bg-orange-pale' : 'border-line bg-white hover:border-deep/30'}`}>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-bold">{p.name}</span>
+                      {p.badge ? <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${plan === key ? 'bg-terracotta text-white' : 'bg-line text-deep'}`}>{p.badge}</span> : null}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-warm">{p.duration}</span>
+                    {p.saving ? <span className="mt-0.5 block text-xs font-bold text-forest">{p.saving}</span> : null}
+                  </span>
+                  <span className="text-right">
+                    <span className={`block font-display text-xl ${plan === key ? 'text-terracotta-dark' : 'text-deep'}`}>{p.price ? naira(p.price) : '…'}</span>
+                  </span>
+                  {plan === key ? <CheckCircleSolid className="h-5 w-5 flex-shrink-0 text-terracotta" aria-hidden="true" /> : null}
+                </button>
+              ))}
+            </div>
+
+            <ul className="space-y-2 rounded-2xl border border-line bg-cream/60 p-4 text-sm">
+              <li className="mb-1 text-xs font-bold uppercase tracking-wider text-warm">What is included</li>
+              {[
+                'Listed on the student hostels page',
+                'Visible to verified students near your school',
+                'Enquiries through WhatsApp and in the app',
+                'Verified badge after inspection',
+                'Edit or pause your listing any time',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-xs">
+                  <CheckCircleIcon className="mt-px h-4 w-4 flex-shrink-0 text-forest" aria-hidden="true" />{f}
+                </li>
+              ))}
+            </ul>
+
+            <InfoBox icon={LockClosedIcon}>
+              Payment is secured by Flutterwave. Your listing goes live once the payment is confirmed and the details are verified. It is saved as a draft until then, so you can pay any time.
+            </InfoBox>
+
+            <dl className="divide-y divide-line rounded-2xl border border-line bg-white">
+              {[
+                { to: 0, label: 'Hostel', value: form.title, sub: ROOM_TYPES.find((r) => r.id === form.room_type)?.label },
+                { to: 1, label: 'Annual rent', value: naira(form.price_per_year), sub: `${naira(firstYear)} up front` },
+                { to: 2, label: 'Location', value: `${form.city}, ${form.state}`, sub: form.institution_name },
+                { to: 3, label: 'Photos', value: `${form.images.length} photo${form.images.length === 1 ? '' : 's'}`, sub: `${form.amenities.length} amenities` },
+              ].map((row) => (
+                <div key={row.label} className="flex items-start justify-between gap-3 p-3.5">
+                  <div className="min-w-0">
+                    <dt className="text-xs font-bold uppercase tracking-wider text-warm">{row.label}</dt>
+                    <dd className="mt-0.5 truncate text-sm font-semibold">{row.value}</dd>
+                    <dd className="truncate text-xs text-warm">{row.sub}</dd>
+                  </div>
+                  <button type="button" onClick={() => setStep(row.to)}
+                    className="flex flex-shrink-0 items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold hover:border-deep/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
+                    <PencilSquareIcon className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+                  </button>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+      </WizardShell>
+
+      <WizardActions
+        onBack={step > 0 ? () => setStep((s) => s - 1) : undefined}
+        onNext={goNext}
+        nextLabel={nextLabel}
+        last={last}
+        busy={saving || (last && !plansReady)}
+        busyLabel={last && !plansReady ? 'Loading prices…' : 'Saving…'}
+        hint={showErrors && errorKeys.length ? `${errorKeys.length === 1 ? '1 thing needs' : `${errorKeys.length} things need`} your attention above` : null}
+      />
+    </>
+  )
+}
+
+function PaidScreen() {
+  const next = [
+    { icon: CheckCircleSolid, title: 'Payment received', text: 'We are confirming it with Flutterwave.', done: true },
+    { icon: ShieldCheckIcon, title: 'Checked by a verifier', text: 'Our team verifies the details, and may visit the address.' },
+    { icon: ClockIcon, title: 'Goes live', text: 'Students see your hostel as soon as it is approved.' },
+  ]
+  return (
+    <div className="min-h-screen bg-cream px-4 pb-10 pt-12 text-deep">
+      <div className="mx-auto max-w-md text-center">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-forest text-white shadow-glow">
+          <CheckCircleIcon className="h-9 w-9" aria-hidden="true" />
+        </span>
+        <h1 className="mt-5 font-display text-3xl">Your listing is submitted</h1>
+        <p className="mt-2 text-sm text-warm">It is under review. Once the details are verified it goes live, and you can follow its status on your dashboard.</p>
+
+        <ol className="mt-7 space-y-3 rounded-[32px_32px_32px_10px] border border-line bg-white p-5 text-left shadow-card">
+          {next.map((n) => (
+            <li key={n.title} className="flex gap-3">
+              <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full ${n.done ? 'bg-forest text-white' : 'bg-forest-pale text-forest'}`}>
+                <n.icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span><span className="block text-sm font-bold">{n.title}</span><span className="block text-xs text-warm">{n.text}</span></span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-6 space-y-3">
+          <Link to="/dashboard" className="btn-primary block w-full !py-3.5 text-center">Go to dashboard</Link>
+          <Link to="/student-hostels" className="btn-secondary block w-full !py-3.5 text-center">Browse hostels</Link>
+        </div>
       </div>
     </div>
   )
