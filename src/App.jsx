@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog'
 import A11yEffects from '@/components/ui/A11yEffects'
+import OfflineBanner from '@/components/ui/OfflineBanner'
 
 
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
@@ -29,6 +30,7 @@ function AnimatedRoutes() {
   return (
     <>
     <IntentTracker />
+    <OfflineBanner />
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
 

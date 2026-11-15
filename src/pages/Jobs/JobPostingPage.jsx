@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useFormDraft } from '@/hooks/useFormDraft'
+import DraftNotice from '@/components/ui/DraftNotice'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap } from 'lucide-react'
@@ -118,6 +120,17 @@ export default function JobPostingPage() {
   const [cancelling, setCancelling]           = useState(false)
   const [showGuestAuth, setShowGuestAuth]     = useState(false) // guest checkout: phone-OTP instead of full /auth
 
+  // Keeps the request on this device so a dropped connection or reload never starts it over.
+  // Only for a new request: an existing job (/jobs/:id) is loaded from the server.
+  const draft = useFormDraft('post-job', { toggle, description, location, budget },
+    (d) => {
+      if (d.toggle) setToggle(d.toggle)
+      setDescription(d.description || '')
+      setLocation(d.location || '')
+      setBudget(d.budget || '')
+    },
+    { userId: user?.id, enabled: !routeId })
+
   // Load an existing transaction when visiting /jobs/:id -- this is the
   // route every notification link (escrow.funded, bid.accepted, etc.)
   // already pointed to, but nothing loaded it before this.
@@ -206,6 +219,7 @@ export default function JobPostingPage() {
 
     setPosting(false)
     if (error) { toast.error(friendlyDbError(error, 'We couldn\'t post that. Please try again.')); return }
+    draft.clear()
     setTransaction(data)
     navigate(`/jobs/${data.id}`, { replace: true })
     toast.success(toggle === 'book' ? 'Request sent.' : 'Job posted. Bids will appear here.')
@@ -347,6 +361,8 @@ export default function JobPostingPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-4">
+
+        {!transaction && <DraftNotice draft={draft} onStartOver={() => { setDescription(''); setLocation(''); setBudget('') }} />}
 
         {!transaction && (
           <div className="md:grid md:grid-cols-[1fr,340px] md:gap-8 md:items-start">

@@ -11,6 +11,8 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { useFormDraft } from '@/hooks/useFormDraft'
+import DraftNotice from '@/components/ui/DraftNotice'
 import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpen, Building2, Camera, Car, Check, CreditCard, Droplets, Eye, Fence, GraduationCap, HardHat, Info, Lock, MapPin, Plus, Shield, Shirt, Trash2, Upload, Utensils, Wifi, X, Zap } from 'lucide-react'
@@ -132,6 +134,15 @@ export default function ListHostelPage() {
   const [hostelId,   setHostelId] = useState(null)
   const [paymentDone, setPaymentDone] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
+  // Keeps the answers on this device so a dropped connection or reload never starts it over.
+  const draft = useFormDraft('list-hostel', { step, form, plan, hostelId },
+    (d) => {
+      setStep(d.step || 0)
+      setForm({ ...INITIAL_FORM, ...(d.form || {}) })
+      if (d.plan) setPlan(d.plan)
+      if (d.hostelId) setHostelId(d.hostelId)
+    },
+    { userId: user?.id, enabled: !!user?.id })
   // Plan prices from the platform fee registry. A price is null while loading.
   const { fees } = usePlatformFees()
   const LISTING_PLANS = getFeeAmounts(fees).HOSTEL_LISTING_PLANS
@@ -245,6 +256,7 @@ export default function ListHostelPage() {
         // The server unlocks the listing when Flutterwave confirms the charge
         // (api/flutterwave-webhook.js). The browser must not write payment
         // status: anything written here could be forged from the console.
+        draft.clear()
         setPaymentDone(true)
         toast.success('Payment received. Your listing will be activated once it is confirmed.')
       },
@@ -305,6 +317,7 @@ export default function ListHostelPage() {
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh', paddingTop: 72 }}>
       <div className="max-w-xl mx-auto px-5 py-8">
+        <DraftNotice draft={draft} onStartOver={() => { setStep(0); setForm(INITIAL_FORM); setHostelId(null) }} />
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate('/student-hostels')}
