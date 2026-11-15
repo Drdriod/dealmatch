@@ -150,6 +150,10 @@ export function getFeeAmounts(fees) {
 // endpoint to update itself: nothing here grants anything.
 
 const STATUS_POLL_MS = 5000
+// Every Nth tick also asks the server to look for the transfer itself, so a slow or
+// failing webhook does not leave the payer waiting. The server limits this to one
+// look-up per 15 seconds, and only its answer is believed.
+const VERIFY_EVERY_TICKS = 3
 
 const authHeaders = async () => {
   const { data } = await supabase.auth.getSession()
@@ -294,8 +298,10 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     card.append(title, intro, numberLine.wrap, copyBtn, bankLine.wrap, amountLine.wrap, expiryLine.wrap, status, note, actions)
 
     const expiresMs = account.expiresAt ? new Date(account.expiresAt).getTime() : Infinity
+    let tick = 0
     const poll = async () => {
       if (done) return
+      tick += 1
       if (Date.now() > expiresMs) {
         clearInterval(timer)
         status.textContent = 'This account has expired. Start the payment again.'
@@ -309,6 +315,19 @@ function openTransferModal({ account, error, onPaid, onClose }) {
         if (r.ok && json?.paid) {
           finish()
           onPaid?.({ reference: account.reference, status: 'paid', bookingId: account.bookingId || null })
+          return
+        }
+        if (tick % VERIFY_EVERY_TICKS === 0 && !done) {
+          const vr = await fetch('/api/payments/verify', {
+            method: 'POST',
+            headers: await authHeaders(),
+            body: JSON.stringify({ reference: account.reference }),
+          })
+          const vjson = await vr.json().catch(() => null)
+          if (!done && describeCheck(vr.status, vjson).paid) {
+            finish()
+            onPaid?.({ reference: account.reference, status: 'paid', bookingId: account.bookingId || null })
+          }
         }
       } catch {
         // Network blip: the next tick tries again.

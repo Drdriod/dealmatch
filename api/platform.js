@@ -28,6 +28,9 @@ import { identityHmac, IdentityHashError } from '../src/lib/identityHash.js'
 import { alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
 import { paymentGateway } from '../src/lib/paymentGateway.js'
 import { PaymentError, resolvePayment, clean, VA_TTL_SECONDS } from '../src/lib/paymentPurposes.js'
+
+// Shown to the payer as the name on the transfer account.
+const PAYMENT_NARRATION = 'DealMatch Technology Limited'
 import { movePayout } from '../src/lib/payoutStates.js'
 import { insertNotification } from '../src/lib/notificationFactory.js'
 import { settlePayout } from '../src/lib/payoutSettlement.js'
@@ -282,7 +285,7 @@ const jsonResources = {
           account_type: 'dynamic',
           amount: amountKobo / 100, // Flutterwave takes naira
           expiry: VA_TTL_SECONDS,
-          narration: 'DealMatch payment',
+          narration: PAYMENT_NARRATION,
           meta: metadata,
         },
         idempotencyKey: idemKey('dmva', reference),
