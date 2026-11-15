@@ -21,7 +21,7 @@
     "@heroicons/react": "^2.2.0",
     "@pinecone-database/pinecone": "^9.0.0",
     "@react-google-maps/api": "^2.19.3",
-    "@sentry/react": "^7.108.0",
+    "@sentry/react": "^11.12.0",
     "@supabase/supabase-js": "^2.42.0",
     "ajv": "^8.17.1",
     "clsx": "^2.1.0",
