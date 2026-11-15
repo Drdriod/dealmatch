@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
@@ -8,13 +8,14 @@ import toast from 'react-hot-toast'
 // removed or the page closes. Storage accepts images only, up to 10 MB each.
 const MAX_BYTES = 10 * 1024 * 1024
 
-export default function PhotoPicker({ images, onChange, max = 12, invalid = false }) {
+export default function PhotoPicker({ images, onChange, max = 12, invalid = false, upload }) {
   const input = useRef(null)
+  const [busy, setBusy] = useState(false)
   const latest = useRef(images)
   latest.current = images
   useEffect(() => () => latest.current.forEach((i) => i.url?.startsWith('blob:') && URL.revokeObjectURL(i.url)), [])
 
-  const add = (fileList) => {
+  const add = async (fileList) => {
     const picked = Array.from(fileList || [])
     const room = Math.max(max - images.length, 0)
     const ok = picked.filter((f) => {
@@ -25,6 +26,17 @@ export default function PhotoPicker({ images, onChange, max = 12, invalid = fals
     if (ok.length > room) toast(`You can add up to ${max} photos.`)
     const take = ok.slice(0, room)
     if (!take.length) return
+    // With `upload`, each photo goes to storage straight away and the list holds its web address.
+    if (upload) {
+      setBusy(true)
+      const done = []
+      for (const file of take) {
+        try { done.push(await upload(file)) } catch { toast.error(`We couldn't upload ${file.name}. Check your connection and try again.`) }
+      }
+      setBusy(false)
+      if (done.length) onChange((list) => [...list, ...done.map((url, i) => ({ url, is_primary: list.length === 0 && i === 0 }))])
+      return
+    }
     onChange((list) => [
       ...list,
       ...take.map((file, i) => ({ url: URL.createObjectURL(file), file, is_primary: list.length === 0 && i === 0 })),
@@ -62,10 +74,10 @@ export default function PhotoPicker({ images, onChange, max = 12, invalid = fals
           </div>
         ))}
         {images.length < max && (
-          <button type="button" onClick={() => input.current?.click()}
+          <button type="button" onClick={() => input.current?.click()} disabled={busy}
             className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed text-center text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${invalid ? 'border-terracotta bg-orange-pale text-terracotta-dark' : 'border-forest/40 bg-forest-pale text-forest hover:border-forest'}`}>
-            <PhotoIcon className="h-7 w-7" aria-hidden="true" />
-            {images.length ? 'Add more' : 'Add photos'}
+            <PhotoIcon className={`h-7 w-7 ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
+            {busy ? 'Uploading…' : images.length ? 'Add more' : 'Add photos'}
           </button>
         )}
       </div>
