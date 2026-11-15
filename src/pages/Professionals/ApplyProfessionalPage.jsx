@@ -1,15 +1,17 @@
-import React, { useState } from 'react'
-import { useFormDraft } from '@/hooks/useFormDraft'
-import DraftNotice from '@/components/ui/DraftNotice'
-import { motion } from 'motion/react'
-import { ArrowLeft, ArrowRight, Briefcase, Building, Check, ChevronDown, Map } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  BriefcaseIcon, CheckCircleIcon, ClockIcon, InformationCircleIcon, PencilSquareIcon, ShieldCheckIcon,
+} from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
 import { useVerificationGuard } from '@/hooks/useVerificationGuard'
+import { useFormDraft } from '@/hooks/useFormDraft'
 import { insertProfessionalApplication } from '@/data/professionalsRepository'
 import { getFeeAmounts, subscribeProfessional } from '@/lib/flutterwave'
 import { usePlatformFees, feeText } from '@/lib/platformFees'
-import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import DraftNotice from '@/components/ui/DraftNotice'
+import { WizardShell, WizardActions, StepHeading, Field, InfoBox, inputClass } from '@/components/ui/WizardKit'
 
 // Comprehensive list of real-estate and property-related professions.
 // Grouped by category so the dropdown is easy to scan.
@@ -96,41 +98,60 @@ const planKeyFor = (id) => {
   return 'surveyor'
 }
 
+const STEPS = ['Profession', 'Your details', 'Plan and payment']
+
+const naira = (n) => `₦${Number(n || 0).toLocaleString('en-NG')}`
+const phoneDigits = (v) => String(v).replace(/[^\d+]/g, '')
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+
+function validate(step, form) {
+  const e = {}
+  if (step === 0) {
+    if (!form.profession_id) e.profession_id = 'Choose your profession.'
+    else if (form.profession_id === 'other' && !form.custom_profession.trim()) e.custom_profession = 'Type your profession.'
+  }
+  if (step === 1) {
+    if (form.full_name.trim().length < 3) e.full_name = 'Enter your full name.'
+    if (phoneDigits(form.phone).replace('+', '').length < 10) e.phone = 'Enter a phone number with at least 10 digits.'
+    if (!isEmail(form.email)) e.email = 'Enter a valid email address.'
+  }
+  return e
+}
+
 export default function ApplyProfessionalPage() {
   const { user, profile } = useAuth()
-  const { requireVerification } = useVerificationGuard()
+  const { requireVerification, isVerified, isPending } = useVerificationGuard()
   const navigate = useNavigate()
   const [step, setStep]         = useState(0)
   const [saving, setSaving]     = useState(false)
   const [planType, setPlanType] = useState('monthly')
-  const [showDropdown, setShowDropdown] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
+  const firstRender = useRef(true)
   // Plan prices from the platform fee registry. A price is null while loading.
   const { fees } = usePlatformFees()
   const monthlyText = feeText(fees, 'professional_monthly')
 
   const [form, setForm] = useState({
-    profession_id:   '',   // selected from dropdown
-    custom_profession: '', // typed if 'other' selected
+    profession_id:   '',   // chosen from the list
+    custom_profession: '', // typed if 'other' is chosen
     full_name:       profile?.full_name || '',
     company:         '',
     phone:           profile?.phone || '',
     email:           user?.email || '',
     license_no:      '',
-    years_exp:       '',
     coverage_areas:  '',
-    bio:             '',
   })
 
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   // Keeps the answers on this device so a dropped connection or reload never starts it over.
   const draft = useFormDraft('apply-professional', { step, planType, form },
-    (d) => { setStep(d.step || 0); if (d.planType) setPlanType(d.planType); setForm(f => ({ ...f, ...(d.form || {}) })) },
+    (d) => { setStep(Math.min(d.step || 0, STEPS.length - 1)); if (d.planType) setPlanType(d.planType); setForm((f) => ({ ...f, ...(d.form || {}) })) },
     { userId: user?.id, enabled: !!user?.id })
 
   const selectedLabel = form.profession_id === 'other'
     ? (form.custom_profession || 'Other (specify below)')
-    : ALL_PROFESSIONS.find(p => p.id === form.profession_id)?.label || ''
+    : ALL_PROFESSIONS.find((p) => p.id === form.profession_id)?.label || ''
 
   const professionForDB = form.profession_id === 'other'
     ? (form.custom_profession || 'Other')
@@ -140,20 +161,16 @@ export default function ApplyProfessionalPage() {
   const plan    = getFeeAmounts(fees).PROFESSIONAL_PLANS[planKey]
   const chosenAmount = planType === 'annual' ? plan.annualFee : plan.monthlyFee
 
-  const canProceed = () => {
-    if (step === 0) {
-      if (!form.profession_id) return false
-      if (form.profession_id === 'other' && !form.custom_profession.trim()) return false
-      return true
-    }
-    if (step === 1) return form.full_name && form.phone && form.email
-    return true
-  }
+  const errors = validate(step, form)
+  const errorKeys = Object.keys(errors)
+  const shown = showErrors ? errors : {}
 
-  const handleNext = () => {
-    if (!canProceed()) { toast.error('Fill in the required fields to continue'); return }
-    setStep(s => s + 1)
-  }
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.getElementById('wizard-step-title')?.focus({ preventScroll: true })
+    setShowErrors(false)
+  }, [step])
 
   const handlePay = async () => {
     if (!user) { toast.error('Sign in to continue'); return }
@@ -169,18 +186,16 @@ export default function ApplyProfessionalPage() {
 
     setSaving(true)
 
-    const monthlyFee = planType === 'annual' ? plan.annualFee : plan.monthlyFee
-
     // Insert using live schema column names exactly
     const { data: application, error } = await insertProfessionalApplication({
       user_id:           user.id,
       professional_type: professionForDB,   // the actual profession label/name
-      full_name:         form.full_name,
-      company_name:      form.company || null,
-      phone:             form.phone,
-      email:             form.email,
-      license_number:    form.license_no || null,
-      coverage_areas:    form.coverage_areas || null,
+      full_name:         form.full_name.trim(),
+      company_name:      form.company.trim() || null,
+      phone:             form.phone.trim(),
+      email:             form.email.trim(),
+      license_number:    form.license_no.trim() || null,
+      coverage_areas:    form.coverage_areas.trim() || null,
       plan_type:         planType,
       status:            'pending',
     })
@@ -196,7 +211,7 @@ export default function ApplyProfessionalPage() {
       applicationId:    application.id,
       userId:           user.id,
       professionalType: planKey,
-      email:            form.email,
+      email:            form.email.trim(),
       planType,
       onSuccess: () => {
         draft.clear()
@@ -210,313 +225,192 @@ export default function ApplyProfessionalPage() {
     })
   }
 
+  const goNext = () => {
+    if (errorKeys.length) {
+      setShowErrors(true)
+      const first = document.querySelector(`[data-field="f-${errorKeys[0]}"]`)
+      first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      first?.querySelector('input,select,textarea,button')?.focus({ preventScroll: true })
+      return
+    }
+    if (step < STEPS.length - 1) setStep((s) => s + 1)
+    else handlePay()
+  }
+
+  const last = step === STEPS.length - 1
+  const priceReady = chosenAmount > 0
+  const verifyNotice = !isVerified() && !isPending() ? (
+    <div className="mb-5 flex items-start gap-3 rounded-[24px_24px_24px_8px] border border-sun/50 bg-sun/15 p-4 text-sm">
+      <ShieldCheckIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-forest" aria-hidden="true" />
+      <p>
+        <span className="font-bold">Fill this in now, verify before you pay.</span>{' '}
+        We confirm your identity before your profile goes live.{' '}
+        <Link to="/verify-identity" state={{ returnTo: '/apply-professional' }} className="font-bold text-terracotta-dark underline underline-offset-2">Verify now</Link>
+        . Your answers stay saved.
+      </p>
+    </div>
+  ) : null
+
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
-      <div className="max-w-lg mx-auto px-4">
-
-        <DraftNotice draft={draft} onStartOver={() => { setStep(0) }} />
-
-        {/* Header */}
-        <div className="mb-6">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-            style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-            <Briefcase size={22} style={{ color: 'var(--dm-terracotta)' }} />
-          </div>
-          <h1 className="font-display text-2xl font-black" style={{ color: 'var(--dm-deep)' }}>
-            Join as a Professional
-          </h1>
-          <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
-            Get matched with clients actively looking for your services on DealMatch.
-          </p>
-        </div>
-
-        {/* Progress bar */}
-        <div className="flex gap-1.5 mb-6">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-1.5 flex-1 rounded-full transition-all"
-              style={{ backgroundColor: i <= step ? '#B8511E' : '#DEDDD6' }} />
-          ))}
-        </div>
-
-        {/* ── STEP 0: Profession selector ── */}
+    <>
+      <WizardShell
+        eyebrow="Join as a professional"
+        title="Get matched with clients"
+        subtitle="Clients actively look for your services on DealMatch. Three short steps, and your answers are saved as you go."
+        steps={STEPS}
+        step={step}
+        onStepClick={(i) => setStep(i)}
+        notice={<>{verifyNotice}<DraftNotice photosKept draft={draft} onStartOver={() => setStep(0)} /></>}
+      >
         {step === 0 && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="space-y-4">
-            <div>
-              <p className="text-sm font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>
-                What is your profession?
-              </p>
-              <p className="text-xs mb-4" style={{ color: 'var(--dm-warm)' }}>
-                Select from the list below, or choose "Other" to type your own.
-              </p>
+          <div className="space-y-6">
+            <StepHeading title="What is your profession?">Pick the closest match, or choose Other to type your own.</StepHeading>
 
-              {/* Custom dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowDropdown(v => !v)}
-                  className="w-full px-4 py-3.5 rounded-xl border-2 text-sm text-left flex items-center justify-between transition-all"
-                  style={{
-                    borderColor: form.profession_id ? '#B8511E' : '#DEDDD6',
-                    backgroundColor: '#FFFAF5',
-                    color: form.profession_id ? '#17211B' : '#5C665F',
-                  }}>
-                  <span>{form.profession_id ? selectedLabel : 'Select your profession'}</span>
-                  <ChevronDown size={16} style={{
-                    color: '#5C665F',
-                    transform: showDropdown ? 'rotate(180deg)' : 'none',
-                    transition: 'transform 0.2s',
-                  }} />
-                </button>
+            <Field id="f-profession_id" label="Profession" error={shown.profession_id}>
+              <select className={`select ${inputClass}`} value={form.profession_id}
+                onChange={(e) => setForm((f) => ({ ...f, profession_id: e.target.value, custom_profession: '' }))}>
+                <option value="">Select your profession</option>
+                {PROFESSION_GROUPS.map((g) => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                  </optgroup>
+                ))}
+                <optgroup label="Not listed?">
+                  <option value="other">Other (I will specify)</option>
+                </optgroup>
+              </select>
+            </Field>
 
-                {showDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl shadow-xl z-50 overflow-hidden"
-                    style={{ backgroundColor: '#FFFAF5', border: '1px solid #DEDDD6', maxHeight: 320, overflowY: 'auto' }}>
-
-                    {PROFESSION_GROUPS.map(group => (
-                      <div key={group.group}>
-                        <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider"
-                          style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-warm)' }}>
-                          {group.group}
-                        </div>
-                        {group.options.map(opt => (
-                          <button key={opt.id} type="button"
-                            onClick={() => {
-                              setForm(f => ({ ...f, profession_id: opt.id, custom_profession: '' }))
-                              setShowDropdown(false)
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm transition-colors"
-                            style={{
-                              backgroundColor: form.profession_id === opt.id
-                                ? 'rgba(200,95,45,0.08)' : 'transparent',
-                              color: form.profession_id === opt.id ? '#B8511E' : '#17211B',
-                            }}>
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-
-                    {/* Other option */}
-                    <div>
-                      <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider"
-                        style={{ backgroundColor: '#F5EDE0', color: 'var(--dm-warm)' }}>
-                        Not listed?
-                      </div>
-                      <button type="button"
-                        onClick={() => {
-                          setForm(f => ({ ...f, profession_id: 'other' }))
-                          setShowDropdown(false)
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm transition-colors"
-                        style={{
-                          backgroundColor: form.profession_id === 'other'
-                            ? 'rgba(200,95,45,0.08)' : 'transparent',
-                          color: form.profession_id === 'other' ? '#B8511E' : '#17211B',
-                        }}>
-                        Other - I will specify below
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Custom profession text input - shown only when "Other" is selected */}
-              {form.profession_id === 'other' && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-3">
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                    Your Profession *
-                  </label>
-                  <input
-                    value={form.custom_profession}
-                    onChange={set('custom_profession')}
-                    placeholder="e.g. Environmental Consultant, Geotechnical Engineer..."
-                    className="w-full px-4 py-3 rounded-xl border text-sm"
-                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }}
-                    autoFocus
-                  />
-                </motion.div>
-              )}
-            </div>
-
-            {/* Preview chip of selected profession */}
-            {form.profession_id && form.profession_id !== 'other' && (
-              <div className="flex items-center gap-2 p-3 rounded-xl"
-                style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-                <Check size={14} style={{ color: 'var(--dm-sage)', flexShrink: 0 }} />
-                <p className="text-xs" style={{ color: '#5C4A3A' }}>
-                  <strong>{selectedLabel}</strong> selected. {monthlyText ? `All types are listed at ${monthlyText}/month.` : 'All types are listed at the same monthly rate.'}
-                </p>
-              </div>
+            {form.profession_id === 'other' && (
+              <Field id="f-custom_profession" label="Your profession" error={shown.custom_profession}>
+                <input className={`input ${inputClass}`} type="text" autoComplete="off" maxLength={60}
+                  placeholder="e.g. Environmental consultant, geotechnical engineer"
+                  value={form.custom_profession} onChange={set('custom_profession')} />
+              </Field>
             )}
-          </motion.div>
+
+            {form.profession_id && form.profession_id !== 'other' && (
+              <InfoBox icon={CheckCircleIcon} title={`${selectedLabel} selected`}>
+                {monthlyText ? `Every profession is listed at ${monthlyText} a month.` : 'Every profession is listed at the same monthly rate.'}
+              </InfoBox>
+            )}
+          </div>
         )}
 
-        {/* ── STEP 1: Personal details ── */}
         {step === 1 && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="space-y-4">
+          <div className="space-y-6">
+            <StepHeading title="Your details">Tell us who you are and how to reach you.</StepHeading>
 
-            <div className="p-3 rounded-xl mb-2"
-              style={{ backgroundColor: 'rgba(200,95,45,0.06)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <p className="text-xs" style={{ color: 'var(--dm-terracotta)' }}>
-                Listing as: <strong>{professionForDB}</strong>
-              </p>
+            <p className="flex items-center gap-2 rounded-full bg-orange-pale px-4 py-2 text-xs font-semibold text-terracotta-dark">
+              <BriefcaseIcon className="h-4 w-4" aria-hidden="true" /> Listing as {professionForDB}
+            </p>
+
+            <Field id="f-full_name" label="Full name" error={shown.full_name}>
+              <input className={`input ${inputClass}`} type="text" autoComplete="name" placeholder="Your legal full name"
+                value={form.full_name} onChange={set('full_name')} />
+            </Field>
+
+            <Field id="f-company" label="Company or firm" optional>
+              <input className={`input ${inputClass}`} type="text" autoComplete="organization" placeholder="e.g. ABC Surveyors Ltd"
+                value={form.company} onChange={set('company')} />
+            </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field id="f-phone" label="Phone" error={shown.phone}>
+                <input className={`input ${inputClass}`} type="tel" inputMode="tel" autoComplete="tel" placeholder="08012345678"
+                  value={form.phone} onChange={set('phone')} />
+              </Field>
+              <Field id="f-email" label="Email" error={shown.email}>
+                <input className={`input ${inputClass}`} type="email" inputMode="email" autoComplete="email" placeholder="you@example.com"
+                  value={form.email} onChange={set('email')} />
+              </Field>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                Full Name *
-              </label>
-              <input value={form.full_name} onChange={set('full_name')}
-                placeholder="Your legal full name"
-                className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-            </div>
+            <Field id="f-license_no" label="Licence or registration number" optional hint="It helps clients trust you. We check it during verification.">
+              <input className={`input ${inputClass}`} type="text" autoComplete="off" placeholder="e.g. NIS/2024/001"
+                value={form.license_no} onChange={set('license_no')} />
+            </Field>
 
-            <div>
-              <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                Company / Firm (optional)
-              </label>
-              <input value={form.company} onChange={set('company')}
-                placeholder="e.g. ABC Surveyors Ltd"
-                className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                  Phone *
-                </label>
-                <input value={form.phone} onChange={set('phone')}
-                  placeholder="08012345678"
-                  className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-              </div>
-              <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                  Email *
-                </label>
-                <input value={form.email} onChange={set('email')}
-                  className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                  License / Reg. No. (optional)
-                </label>
-                <input value={form.license_no} onChange={set('license_no')}
-                  placeholder="NIS/2024/001"
-                  className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-              </div>
-              <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                  Years of Experience
-                </label>
-                <input type="number" min="0" max="50"
-                  value={form.years_exp} onChange={set('years_exp')}
-                  placeholder="5"
-                  className="w-full px-4 py-3 rounded-xl border text-sm"
-                  style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                Coverage Areas
-              </label>
-              <input value={form.coverage_areas} onChange={set('coverage_areas')}
-                placeholder="e.g. Lagos, Abuja, Port Harcourt"
-                className="w-full px-4 py-3 rounded-xl border text-sm"
-                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold block mb-1.5" style={{ color: '#5C4A3A' }}>
-                Short Bio (optional)
-              </label>
-              <textarea value={form.bio} onChange={set('bio')} rows={3}
-                placeholder="Tell clients about your experience and specialisation..."
-                className="w-full px-4 py-3 rounded-xl border text-sm resize-none"
-                style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5', color: 'var(--dm-deep)' }} />
-            </div>
-          </motion.div>
+            <Field id="f-coverage_areas" label="Where do you work?" optional hint="Cities or states, separated by commas.">
+              <input className={`input ${inputClass}`} type="text" autoComplete="off" placeholder="e.g. Lagos, Abuja, Port Harcourt"
+                value={form.coverage_areas} onChange={set('coverage_areas')} />
+            </Field>
+          </div>
         )}
 
-        {/* ── STEP 2: Plan & payment ── */}
-        {step === 2 && plan && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="rounded-2xl border p-5 mb-4"
-              style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFAF5' }}>
-              <p className="text-sm font-bold mb-3" style={{ color: 'var(--dm-deep)' }}>
-                {professionForDB} - What you get
-              </p>
-              {plan.features.map((f, i) => (
-                <div key={i} className="flex items-start gap-2 mb-2">
-                  <Check size={14} style={{ color: 'var(--dm-sage)', marginTop: 2, flexShrink: 0 }} />
-                  <p className="text-xs" style={{ color: '#5C4A3A' }}>{f}</p>
-                </div>
-              ))}
-            </div>
+        {step === 2 && (
+          <div className="space-y-6">
+            <StepHeading title="Choose your plan">Pay to activate your profile.</StepHeading>
 
-            <div className="flex gap-2 mb-5">
+            {plan?.features?.length ? (
+              <ul className="space-y-2 rounded-2xl border border-line bg-cream/60 p-4">
+                <li className="mb-1 text-xs font-bold uppercase tracking-wider text-warm">{professionForDB}: what you get</li>
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-xs">
+                    <CheckCircleIcon className="mt-px h-4 w-4 flex-shrink-0 text-forest" aria-hidden="true" />{f}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <div role="radiogroup" aria-label="Billing" className="grid grid-cols-2 gap-2.5">
               {[
                 { id: 'monthly', label: 'Monthly', price: plan.monthlyFee },
-                { id: 'annual',  label: plan.annualSavingPercent ? `Annual (save ${plan.annualSavingPercent}%)` : 'Annual', price: plan.annualFee },
-              ].map(p => (
-                <button key={p.id} onClick={() => setPlanType(p.id)}
-                  className="flex-1 rounded-2xl border-2 p-4 text-left transition-all"
-                  style={{
-                    borderColor: planType === p.id ? '#B8511E' : '#DEDDD6',
-                    backgroundColor: planType === p.id ? 'rgba(200,95,45,0.05)' : '#FFFAF5',
-                  }}>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--dm-warm)' }}>{p.label}</p>
-                  <p className="font-display font-black text-lg" style={{ color: 'var(--dm-deep)' }}>
-                    {p.price ? `N${p.price.toLocaleString()}` : '...'}
-                  </p>
+                { id: 'annual',  label: 'Annual', price: plan.annualFee, badge: plan.annualSavingPercent ? `Save ${plan.annualSavingPercent}%` : null },
+              ].map((p) => (
+                <button key={p.id} type="button" role="radio" aria-checked={planType === p.id} onClick={() => setPlanType(p.id)}
+                  className={`rounded-2xl border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${planType === p.id ? 'border-terracotta bg-orange-pale' : 'border-line bg-white hover:border-deep/30'}`}>
+                  <span className="flex items-center justify-between gap-2 text-xs font-bold text-warm">
+                    {p.label}
+                    {p.badge ? <span className="rounded-full bg-forest px-2 py-0.5 text-[11px] text-white">{p.badge}</span> : null}
+                  </span>
+                  <span className={`mt-1 block font-display text-2xl ${planType === p.id ? 'text-terracotta-dark' : 'text-deep'}`}>
+                    {p.price ? naira(p.price) : '…'}
+                  </span>
                 </button>
               ))}
             </div>
 
-            <button onClick={handlePay} disabled={saving || !(chosenAmount > 0)}
-              className="btn-primary w-full py-4 flex items-center justify-center gap-2">
-              {saving ? 'Processing...' : !(chosenAmount > 0) ? 'Loading prices...' : 'Pay & Activate Profile'}
-              {!saving && chosenAmount > 0 && <ArrowRight size={16} />}
-            </button>
-          </motion.div>
-        )}
+            <InfoBox icon={ClockIcon} title="After you pay">
+              Your profile is checked, then goes live. Unverified applicants are asked to confirm their identity first.
+            </InfoBox>
 
-        {/* Nav buttons */}
-        {step < 2 && (
-          <div className="flex gap-3 mt-6">
-            {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)}
-                className="px-5 py-3.5 rounded-2xl text-sm font-semibold border flex items-center gap-2"
-                style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
-                <ArrowLeft size={14} /> Back
-              </button>
-            )}
-            <button onClick={handleNext}
-              className="btn-primary flex-1 py-3.5 flex items-center justify-center gap-2">
-              Continue <ArrowRight size={16} />
-            </button>
+            <dl className="divide-y divide-line rounded-2xl border border-line bg-white">
+              {[
+                { to: 0, label: 'Profession', value: professionForDB, sub: form.company || 'No firm added' },
+                { to: 1, label: 'Contact', value: form.full_name, sub: `${form.phone} · ${form.email}` },
+              ].map((row) => (
+                <div key={row.label} className="flex items-start justify-between gap-3 p-3.5">
+                  <div className="min-w-0">
+                    <dt className="text-xs font-bold uppercase tracking-wider text-warm">{row.label}</dt>
+                    <dd className="mt-0.5 truncate text-sm font-semibold">{row.value}</dd>
+                    <dd className="truncate text-xs text-warm">{row.sub}</dd>
+                  </div>
+                  <button type="button" onClick={() => setStep(row.to)}
+                    className="flex flex-shrink-0 items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold hover:border-deep/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
+                    <PencilSquareIcon className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+                  </button>
+                </div>
+              ))}
+            </dl>
+
+            <p className="flex items-start gap-2 text-xs text-warm">
+              <InformationCircleIcon className="mt-px h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              Payment is secured by Flutterwave.
+            </p>
           </div>
         )}
-        {step === 2 && (
-          <button onClick={() => setStep(1)} disabled={saving}
-            className="mt-3 w-full py-3 rounded-2xl text-xs font-semibold border flex items-center justify-center gap-2"
-            style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)' }}>
-            <ArrowLeft size={12} /> Back to details
-          </button>
-        )}
+      </WizardShell>
 
-      </div>
-    </div>
+      <WizardActions
+        onBack={step > 0 ? () => setStep((s) => s - 1) : undefined}
+        onNext={goNext}
+        last={last}
+        nextLabel={last ? (priceReady ? `Pay ${naira(chosenAmount)} and activate` : 'Loading prices…') : 'Continue'}
+        busy={saving || (last && !priceReady)}
+        busyLabel={saving ? 'Processing…' : 'Loading prices…'}
+        hint={showErrors && errorKeys.length ? `${errorKeys.length === 1 ? '1 thing needs' : `${errorKeys.length} things need`} your attention above` : null}
+      />
+    </>
   )
 }

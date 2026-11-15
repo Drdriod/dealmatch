@@ -527,7 +527,7 @@ function AnimatedRoutes() {
           ['/verify',       VerificationPage,        { showFooter:false }],
           ['/referrals',    ReferralPage,            {}],
           ['/referral',     ReferralPage,            {}],
-          ['/apply-professional', ApplyProfessionalPage, {}],
+          ['/apply-professional', ApplyProfessionalPage, { showFooter:false, showWhatsApp:false }],
         ].map(([path, Page, shellProps]) => (
           <Route key={path} path={path} element={
             <ProtectedRoute>
