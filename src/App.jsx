@@ -521,7 +521,7 @@ function AnimatedRoutes() {
           ['/dashboard',    DashboardPage,           { showFooter:false }],
           ['/landlord',     LandlordDashboardPage,   { showFooter:false }],
           ['/lender',       LenderDashboardPage,     { showFooter:false }],
-          ['/list',         ListPropertyPage,        { showFooter:false }],
+          ['/list',         ListPropertyPage,        { showFooter:false, showWhatsApp:false }],
           ['/profile',      ProfilePage,             {}],
           ['/availability', AvailabilityPage,        {}],
           ['/verify',       VerificationPage,        { showFooter:false }],
