@@ -67,7 +67,11 @@ export async function redisRateLimit(req, key, max = 20, windowSec = 60, include
 
   try {
     const [incr] = await pipeline([['INCR', rKey]])
-    if (typeof incr?.result !== 'number') throw new Error('Upstash INCR: no numeric result')
+    if (typeof incr?.result !== 'number') {
+      // Upstash reports problems (wrong or read-only token, etc.) as {error: "..."}.
+      const detail = typeof incr?.error === 'string' ? incr.error.slice(0, 120) : 'no numeric result'
+      throw new Error(`Upstash INCR: ${detail}`)
+    }
     const count = incr.result
 
     // Start the window on the first hit only
