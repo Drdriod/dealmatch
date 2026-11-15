@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useFormDraft } from '@/hooks/useFormDraft'
+import DraftNotice from '@/components/ui/DraftNotice'
 import { uploadFile, publicUrlFor } from '@/data/storageRepository'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Building, Building2, Camera, Check, CheckCircle, Home, Leaf, MapPin, Store, Upload, Video, X } from 'lucide-react'
@@ -76,6 +78,10 @@ export default function ListPropertyPage() {
   const [saved,  setSaved]  = useState(false)
   const [form,   setForm]   = useState(INITIAL)
   const [agreed, setAgreed] = useState(false)
+  // Keeps the answers on this device so a dropped connection or reload never starts it over.
+  const draft = useFormDraft('list-property', { step, form, agreed },
+    (d) => { setStep(d.step || 0); setForm({ ...INITIAL, ...(d.form || {}) }); setAgreed(!!d.agreed) },
+    { userId: user?.id, enabled: !!user?.id })
   // Sale escrow rate from the platform fee registry (one total, half per side).
   const { fees } = usePlatformFees()
   const saleEscrow = escrowRates(fees, 'sale_escrow')
@@ -595,6 +601,7 @@ export default function ListPropertyPage() {
         console.warn('Pinecone index failed (non-blocking):', indexErr)
       }
 
+      draft.clear()
       setSaved(true)
 
     } catch (err) {
@@ -643,6 +650,8 @@ export default function ListPropertyPage() {
   return (
     <div className="min-h-screen pt-24 pb-16" style={{backgroundColor:'#EEE9DE'}}>
       <div className="max-w-lg mx-auto px-4">
+
+        <DraftNotice draft={draft} onStartOver={() => { setStep(0); setForm(INITIAL); setAgreed(false) }} />
 
         {/* Header */}
         <div className="mb-8">

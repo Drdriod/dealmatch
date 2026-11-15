@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useFormDraft } from '@/hooks/useFormDraft'
+import DraftNotice from '@/components/ui/DraftNotice'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Briefcase, Building, Check, ChevronDown, Map } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -121,6 +123,11 @@ export default function ApplyProfessionalPage() {
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
+  // Keeps the answers on this device so a dropped connection or reload never starts it over.
+  const draft = useFormDraft('apply-professional', { step, planType, form },
+    (d) => { setStep(d.step || 0); if (d.planType) setPlanType(d.planType); setForm(f => ({ ...f, ...(d.form || {}) })) },
+    { userId: user?.id, enabled: !!user?.id })
+
   const selectedLabel = form.profession_id === 'other'
     ? (form.custom_profession || 'Other (specify below)')
     : ALL_PROFESSIONS.find(p => p.id === form.profession_id)?.label || ''
@@ -192,6 +199,7 @@ export default function ApplyProfessionalPage() {
       email:            form.email,
       planType,
       onSuccess: () => {
+        draft.clear()
         toast.success('Payment received. Your profile goes live shortly.')
         navigate('/professionals')
       },
@@ -205,6 +213,8 @@ export default function ApplyProfessionalPage() {
   return (
     <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
       <div className="max-w-lg mx-auto px-4">
+
+        <DraftNotice draft={draft} onStartOver={() => { setStep(0) }} />
 
         {/* Header */}
         <div className="mb-6">

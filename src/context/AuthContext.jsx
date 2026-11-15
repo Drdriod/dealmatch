@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { supabase, getProfile, updateProfile } from '@/lib/supabase'
 import { Check } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { clearAllDrafts } from '@/lib/formDraft'
 
 
 const AuthContext = createContext({})
@@ -92,6 +93,8 @@ export function AuthProvider({ children }) {
     // started on the next tick, after the lock is released.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // A signed-out device keeps no saved form answers.
+        if (event === 'SIGNED_OUT') clearAllDrafts()
         setUser(session?.user ?? null)
 
         setTimeout(async () => {
