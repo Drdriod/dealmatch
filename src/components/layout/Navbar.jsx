@@ -113,8 +113,10 @@ export default function Navbar() {
 
           {!user && (
             <button onClick={() => navigate('/auth')}
-              className="bg-[#B8511E] text-white text-[13px] font-bold px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
-              Create Account
+              aria-label="Create account"
+              className="whitespace-nowrap bg-[#B8511E] text-white text-[13px] font-bold px-4 md:px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
+              <span className="md:hidden">Join</span>
+              <span className="hidden md:inline">Create Account</span>
             </button>
           )}
 
