@@ -3,18 +3,10 @@
  * ══════════════════════════════════════
  * Universal identity verification for ALL non-student roles.
  *
- * ROLE SYSTEM:
- * ┌─────────────────────────────────────────────────────────────────┐
- * │ Role         │ Verification Required For                        │
- * ├─────────────────────────────────────────────────────────────────┤
- * │ buyer        │ Expressing interest in buying / deal agreements  │
- * │ seller       │ Listing a property for sale                      │
- * │ renter       │ Signing tenancy agreements / escrow payments     │
- * │ landlord     │ Listing properties / receiving escrow payouts    │
- * │ investor     │ Deal agreements / escrow payments                │
- * │ agent        │ All client-facing deal actions                   │
- * │ lender       │ All lending and mortgage actions                 │
- * └─────────────────────────────────────────────────────────────────┘
+ * Three steps: your ID, a selfie, then a review before submitting.
+ *
+ * ROLE SYSTEM (what verification unlocks):
+ *   buyer / seller / renter / landlord / investor / agent / lender
  *
  * SKIP POLICY:
  * - Users may skip verification to browse, swipe, book hotels/short-lets
@@ -24,25 +16,30 @@
  *
  * STUDENT CONFLICT:
  * - Students use /student-verify (separate flow, separate table)
- * - This page is shown only to non-student roles
  * - Students who also want to buy/sell use BOTH flows independently
+ *
+ * Photos cannot be saved on the device, and the NIN/BVN is sensitive, so this
+ * page deliberately does not keep a local draft.
  */
 
-import React, { useState, useRef } from 'react'
-import { uploadFile, publicUrlFor } from '@/data/storageRepository'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, Camera, Car, Check, Clock, CreditCard, Eye, Info, Lock, Shield, SkipForward, Store, Upload, Users, Vote, X } from 'lucide-react'
+import {
+  ArrowPathIcon, ArrowUpTrayIcon, BookOpenIcon, CameraIcon, CheckCircleIcon, ClockIcon, CreditCardIcon,
+  IdentificationIcon, LockClosedIcon, PencilSquareIcon, ShieldCheckIcon, TruckIcon, UserGroupIcon, XMarkIcon,
+} from '@heroicons/react/24/outline'
+import { uploadFile } from '@/data/storageRepository'
 import { supabase } from '@/lib/supabase'
 import { markVerificationSkipped, fetchLiveVerified, saveIdentitySubmission } from '@/data/identityVerificationRepository'
 import { useAuth } from '@/context/AuthContext'
-import { motion, AnimatePresence } from 'motion/react'
 import toast from 'react-hot-toast'
+import { WizardShell, WizardActions, StepHeading, Field, ChoiceCard, InfoBox, inputClass } from '@/components/ui/WizardKit'
 
 const ID_TYPES = [
-  { id:'nin',      label:'NIN Slip / Card',        icon: <CreditCard size={20} className="text-terracotta" /> },
-  { id:'voters',   label:"Voter's Card",            icon: <Vote size={20} className="text-terracotta" /> },
-  { id:'passport', label:'International Passport',  icon: <BookOpen size={20} className="text-terracotta" /> },
-  { id:'drivers',  label:"Driver's License",        icon: <Car size={20} className="text-terracotta" /> },
+  { id: 'nin',      label: 'NIN slip or card',       icon: IdentificationIcon },
+  { id: 'voters',   label: "Voter's card",           icon: UserGroupIcon },
+  { id: 'passport', label: 'International passport', icon: BookOpenIcon },
+  { id: 'drivers',  label: "Driver's licence",       icon: TruckIcon },
 ]
 
 // What each role needs to verify for
@@ -56,35 +53,84 @@ const ROLE_LABELS = {
   lender:   'approve and manage mortgage applications',
 }
 
+const STEPS = ['Your ID', 'Selfie', 'Review']
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+// Problems per step, keyed by field.
+function validate(step, { idType, idFile, nin, faceFile }) {
+  const e = {}
+  if (step === 0) {
+    if (!idType) e.idType = 'Choose the type of ID you will upload'
+    if (!idFile) e.idFile = 'Upload a clear photo of your ID'
+    if (nin.length !== 11) e.nin = 'Enter your 11-digit NIN or BVN'
+  }
+  if (step === 1 && !faceFile) e.faceFile = 'Take or choose a selfie'
+  return e
+}
+
+// A centred message screen: verified, under review, or just submitted.
+function StatusScreen({ tone = 'forest', icon: Icon, title, children, actionLabel, onAction }) {
+  const ring = tone === 'sun' ? 'bg-sun/25 text-terracotta-dark' : 'bg-forest-pale text-forest'
+  return (
+    <div className="flex min-h-screen items-start justify-center bg-cream px-4 pb-24 pt-16 text-deep">
+      <div className="w-full max-w-md rounded-[40px_40px_40px_12px] border border-white/70 bg-white/85 p-8 text-center shadow-soft backdrop-blur-xl">
+        <span className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[22px_22px_22px_8px] ${ring}`}>
+          <Icon className="h-8 w-8" aria-hidden="true" />
+        </span>
+        <h1 className="mb-2 font-display text-3xl">{title}</h1>
+        <div className="space-y-3 text-sm text-warm">{children}</div>
+        <button type="button" onClick={onAction} className="btn-primary mt-7 w-full !py-3.5 text-[15px]">{actionLabel}</button>
+      </div>
+    </div>
+  )
+}
+
 export default function VerifyIdentityPage() {
   const { user, profile, refreshProfile } = useAuth()
-  const navigate  = useNavigate()
-  const location  = useLocation()
-  const idFileRef = useRef(null)
-  const faceFileRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // Where to redirect after skip or completion
   const returnTo = location.state?.returnTo || null
 
-  const [step,        setStep]        = useState(0) // 0=intro, 1=ID, 2=face, 3=done
-  const [idType,      setIdType]      = useState('')
-  const [idFile,      setIdFile]      = useState(null)
-  const [idPreview,   setIdPreview]   = useState(null)
-  const [faceCapture, setFaceCapture] = useState(null) // preview object URL
-  const [faceFile,    setFaceFile]    = useState(null) // compressed Blob to upload
-  const [saving,      setSaving]      = useState(false)
-  const [skipping,    setSkipping]    = useState(false)
-  const [nin,         setNin]         = useState('')
+  const [step, setStep] = useState(0)
+  const [idType, setIdType] = useState('')
+  const [idFile, setIdFile] = useState(null)
+  const [idPreview, setIdPreview] = useState(null)
+  const [faceFile, setFaceFile] = useState(null) // compressed Blob to upload
+  const [facePreview, setFacePreview] = useState(null)
+  const [nin, setNin] = useState('')
+  const [fileErrors, setFileErrors] = useState({})
+  const [showErrors, setShowErrors] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [skipping, setSkipping] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const firstRender = useRef(true)
+  const previews = useRef({})
+  previews.current = { idPreview, facePreview }
 
-  // Post-verification routing: previously branched on profile.role to
-  // /landlord or /lender, neither of which are registered routes in
-  // App.jsx - dead links. That part of the fix stands regardless of the
-  // role/persona hotfix below: everyone lands on /search after
-  // verification, which works for every role.
-  const role      = profile?.role || 'buyer'
+  // Release the preview images when leaving the page.
+  useEffect(() => () => {
+    Object.values(previews.current).forEach((u) => { if (u) URL.revokeObjectURL(u) })
+  }, [])
+
+  const role = profile?.role || 'buyer'
   const roleLabel = ROLE_LABELS[role] || 'complete transactions'
   const alreadySubmitted = profile?.identity_verification_status === 'submitted'
-  const alreadyVerified  = profile?.is_photo_verified && profile?.is_live_verified
+  const alreadyVerified = profile?.is_photo_verified && profile?.is_live_verified
+
+  const errors = { ...validate(step, { idType, idFile, nin, faceFile }) }
+  const errorKeys = Object.keys(errors)
+  const shown = showErrors ? errors : {}
+
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.getElementById('wizard-step-title')?.focus({ preventScroll: true })
+    setShowErrors(false)
+  }, [step])
+
+  const handleDone = () => navigate(returnTo || '/search', { replace: true })
 
   // ── Skip verification ────────────────────────────────────────────
   const handleSkip = async () => {
@@ -92,52 +138,33 @@ export default function VerifyIdentityPage() {
     try {
       await markVerificationSkipped(user.id)
       await refreshProfile()
-      toast('Verification skipped. You can verify anytime from your profile.', {
-        icon: 'ℹ️', duration: 4000,
-      })
-      if (returnTo) {
-        navigate(returnTo, { replace: true })
-      } else {
-        navigate('/search', { replace: true })
-      }
+      toast('Verification skipped. You can verify anytime from your profile.', { icon: 'ℹ️', duration: 4000 })
+      handleDone()
     } catch {
       toast.error('Could not skip. Please try again.')
     }
     setSkipping(false)
   }
 
-  // ── ID document upload ───────────────────────────────────────────
+  // ── ID document ──────────────────────────────────────────────────
   const handleIdUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-      toast.error('Please upload a JPG, PNG or WEBP image'); return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File must be under 5MB'); return
-    }
+    if (!IMAGE_TYPES.includes(file.type)) { setFileErrors((f) => ({ ...f, id: 'Please use a JPG, PNG or WEBP image' })); return }
+    if (file.size > 5 * 1024 * 1024) { setFileErrors((f) => ({ ...f, id: 'That file is over 5 MB. Choose a smaller photo.' })); return }
+    setFileErrors((f) => ({ ...f, id: '' }))
+    if (idPreview) URL.revokeObjectURL(idPreview)
     setIdFile(file)
     setIdPreview(URL.createObjectURL(file))
   }
 
-  // ── Selfie upload (native file input, no camera API / canvas ref) ──
-  // Swapped out getUserMedia()+<canvas ref> for a plain <input type="file"
-  // capture="user">. On mobile this still opens the front camera directly
-  // (same UX as before), but it's a native browser control instead of
-  // custom camera plumbing - removes an entire class of bugs (permission
-  // states, video element lifecycle, canvas-ref-goes-null-after-capture).
-  // Compression still happens client-side, but via a canvas created fresh
-  // in this function (never mounted/tied to React's render tree), so
-  // there's no ref-unmount timing issue to worry about.
+  // ── Selfie (native file input; compressed in a throwaway canvas) ─
   const handleFaceUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-      toast.error('Please upload a JPG, PNG or WEBP image'); return
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error('File must be under 8MB'); return
-    }
+    if (!IMAGE_TYPES.includes(file.type)) { setFileErrors((f) => ({ ...f, face: 'Please use a JPG, PNG or WEBP image' })); return }
+    if (file.size > 8 * 1024 * 1024) { setFileErrors((f) => ({ ...f, face: 'That file is over 8 MB. Choose a smaller photo.' })); return }
+    setFileErrors((f) => ({ ...f, face: '' }))
 
     const objectUrl = URL.createObjectURL(file)
     const img = new window.Image()
@@ -145,38 +172,33 @@ export default function VerifyIdentityPage() {
       const MAX_DIMENSION = 1280
       const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height))
       const canvas = document.createElement('canvas')
-      canvas.width  = Math.round(img.width * scale)
+      canvas.width = Math.round(img.width * scale)
       canvas.height = Math.round(img.height * scale)
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob(blob => {
+      canvas.toBlob((blob) => {
         URL.revokeObjectURL(objectUrl)
-        if (!blob) { toast.error('Could not process that image. Please try another photo.'); return }
+        if (!blob) { setFileErrors((f) => ({ ...f, face: 'Could not process that image. Please try another photo.' })); return }
+        if (facePreview) URL.revokeObjectURL(facePreview)
         setFaceFile(blob)
-        setFaceCapture(URL.createObjectURL(blob))
-        toast.success('Selfie added!')
+        setFacePreview(URL.createObjectURL(blob))
       }, 'image/jpeg', 0.85)
     }
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl)
-      toast.error('Could not read that image. Please try another photo.')
+      setFileErrors((f) => ({ ...f, face: 'Could not read that image. Please try another photo.' }))
     }
     img.src = objectUrl
   }
 
   const retakePhoto = () => {
-    setFaceCapture(null)
+    if (facePreview) URL.revokeObjectURL(facePreview)
+    setFacePreview(null)
     setFaceFile(null)
-    if (faceFileRef.current) faceFileRef.current.value = ''
   }
 
   // ── Final submit ─────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!idFile && !idPreview) { toast.error('Please upload your ID document'); return }
-    if (!faceCapture || !faceFile) { toast.error('Please add a selfie'); return }
-    if (!idType) { toast.error('Please select your ID type'); return }
-    if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); setStep(1); return }
     setSaving(true)
-
     try {
       // The NIN/BVN is hashed on the server before anything is stored (SEC-1).
       // The browser never keeps or writes the hash itself.
@@ -189,7 +211,6 @@ export default function VerifyIdentityPage() {
       if (!ninRes.ok) {
         const j = await ninRes.json().catch(() => ({}))
         toast.error(j.error || 'Could not save your NIN/BVN. Please try again.')
-        setSaving(false)
         return
       }
 
@@ -201,435 +222,256 @@ export default function VerifyIdentityPage() {
       }
 
       // One fixed path per document per user. A re-upload replaces the
-      // existing object in place, so there are no superseded copies to track
-      // or purge. Paths must NOT repeat the bucket name: RLS checks that the
-      // first folder segment equals auth.uid().
-      const idPath   = `${user.id}/id-document`
+      // existing object in place. Paths must NOT repeat the bucket name: RLS
+      // checks that the first folder segment equals auth.uid().
+      const idPath = `${user.id}/id-document`
       const facePath = `${user.id}/selfie`
 
-      if (idFile) {
-        const { error: idErr } = await uploadFile('identity-docs', idPath, idFile, { upsert:true, contentType: idFile.type || 'image/jpeg' })
-        // ✅ SECURITY FIX: no longer falls back to the PUBLIC 'avatars'
-        // bucket on failure - identity documents must stay in the private
-        // bucket. A real failure here should surface as an error, not
-        // silently leak ID photos into a publicly-readable bucket.
-        if (idErr) throw new Error(`ID upload failed: ${idErr.message}`)
-      }
+      // Identity documents stay in the PRIVATE bucket; there is no public fallback.
+      const { error: idErr } = await uploadFile('identity-docs', idPath, idFile, { upsert: true, contentType: idFile.type || 'image/jpeg' })
+      if (idErr) throw new Error(`ID upload failed: ${idErr.message}`)
 
-      // Upload selfie - faceFile is the compressed Blob set by
-      // handleFaceUpload when the file was selected/captured.
-      if (!faceFile) throw new Error('Selfie image was not captured correctly. Please retake it.')
-      const { error: faceErr } = await uploadFile('identity-docs', facePath, faceFile, { upsert:true, contentType:'image/jpeg' })
+      const { error: faceErr } = await uploadFile('identity-docs', facePath, faceFile, { upsert: true, contentType: 'image/jpeg' })
       if (faceErr) throw new Error(`Selfie upload failed: ${faceErr.message}`)
 
-      // Store the storage paths (not public URLs) - bucket is PRIVATE
-      // Admin will generate short-lived signed URLs when viewing submissions
-
-      await saveIdentitySubmission(user.id, {
-        identity_photo_url:           idPath,   // storage path - private bucket, signed URL generated on read
-        identity_selfie_url:          facePath, // storage path - private bucket, signed URL generated on read
-        identity_doc_type:            idType,
+      // Store the storage paths (not public URLs). Admin generates short-lived
+      // signed URLs when viewing submissions.
+      const { error } = await saveIdentitySubmission(user.id, {
+        identity_photo_url: idPath,
+        identity_selfie_url: facePath,
+        identity_doc_type: idType,
         identity_verification_status: 'submitted',
-        verification_skipped:         false,
-        // SECURITY: is_photo_verified / is_live_verified set ONLY by admin
-      }).then(({ error, count }) => {
-        // This call's result was previously discarded entirely - if the
-        // update failed for any reason (an RLS policy, a trigger, a
-        // constraint), the code would still show "Submitted!" with no way
-        // to ever find out something actually went wrong. Photos would be
-        // sitting in storage with no matching status change, exactly what
-        // was happening here.
-        if (error) throw new Error(`Could not save verification status: ${error.message}`)
+        verification_skipped: false,
+        // SECURITY: is_photo_verified / is_live_verified are set ONLY by an admin
       })
+      // A failed status update must not look like success.
+      if (error) throw new Error(`Could not save verification status: ${error.message}`)
 
       await refreshProfile()
-      setStep(3)
-
+      setSubmitted(true)
     } catch (err) {
       console.error('Identity verification error:', err)
       const msg = err?.message?.includes('fetch')
-        ? 'Network error - check your connection and try again'
-        : (err?.message || 'Submission failed - please try again')
+        ? 'Network error. Check your connection and try again.'
+        : (err?.message || 'Submission failed. Please try again.')
       toast.error(msg)
     } finally {
       setSaving(false)
     }
   }
 
-  const handleDone = () => {
-    if (returnTo) navigate(returnTo, { replace: true })
-    else navigate('/search', { replace: true })
+  const goNext = () => {
+    if (errorKeys.length) {
+      setShowErrors(true)
+      const first = document.querySelector(`[data-field="f-${errorKeys[0]}"]`)
+      first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      first?.querySelector('input,select,textarea,button')?.focus({ preventScroll: true })
+      return
+    }
+    if (step < STEPS.length - 1) setStep((s) => s + 1)
+    else handleSubmit()
   }
 
-  // Already verified
+  // ── Message screens ──────────────────────────────────────────────
   if (alreadyVerified) {
     return (
-      <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:80 }}>
-        <div className="max-w-sm mx-auto px-5 py-10 text-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-            style={{ backgroundColor:'rgba(122,158,126,0.12)' }}>
-            <Shield size={36} style={{ color:'#7A9E7E' }} />
-          </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>You're Verified</h1>
-          <p className="text-sm mb-8" style={{ color:'#5C665F' }}>
-            Your identity has been verified. You have full access to all DealMatch features.
-          </p>
-          <button onClick={handleDone}
-            className="w-full py-4 rounded-2xl font-bold text-white"
-            style={{ backgroundColor:'#B8511E' }}>
-            Continue →
-          </button>
-        </div>
-      </div>
+      <StatusScreen icon={ShieldCheckIcon} title="You're verified" actionLabel="Continue" onAction={handleDone}>
+        <p>Your identity has been verified. You have full access to all DealMatch features.</p>
+      </StatusScreen>
     )
   }
 
-  // Already submitted, pending review
-  if (alreadySubmitted && step !== 3) {
+  if (submitted) {
     return (
-      <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:80 }}>
-        <div className="max-w-sm mx-auto px-5 py-10 text-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-            style={{ backgroundColor:'rgba(212,168,83,0.12)' }}>
-            <Shield size={36} style={{ color:'#D4A853' }} />
-          </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Under Review</h1>
-          <p className="text-sm mb-4" style={{ color:'#5C665F' }}>
-            Your identity documents were submitted and are being reviewed. This usually takes under 24 hours.
-          </p>
-          <div className="rounded-2xl p-4 mb-8 text-left"
-            style={{ backgroundColor:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)' }}>
-            <p className="text-xs font-semibold" style={{ color:'#D4A853' }}>What you can do while waiting:</p>
-            <ul className="text-xs mt-2 space-y-1" style={{ color:'#5C665F' }}>
-              <li>• Browse and swipe properties</li>
-              <li>• Book hotels and short-lets</li>
-              <li>• Message matched contacts</li>
-            </ul>
-          </div>
-          <button onClick={handleDone}
-            className="w-full py-4 rounded-2xl font-bold text-white"
-            style={{ backgroundColor:'#17211B' }}>
-            Continue Browsing →
-          </button>
-        </div>
-      </div>
+      <StatusScreen icon={CheckCircleIcon} title="Submitted" actionLabel="Start exploring DealMatch" onAction={handleDone}>
+        <p>Your ID and selfie have been uploaded. Our team will verify you within 24 hours.</p>
+        <p className="rounded-2xl bg-cream-deep p-3 text-xs">You&apos;ll be able to {roleLabel} as soon as your verification is approved.</p>
+      </StatusScreen>
     )
   }
 
-  // ── Step 3: Done ─────────────────────────────────────────────────
-  if (step === 3) {
+  if (alreadySubmitted) {
     return (
-      <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:80 }}>
-        <div className="max-w-sm mx-auto px-5 py-10 text-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-            style={{ backgroundColor:'rgba(122,158,126,0.12)' }}>
-            <Check size={36} style={{ color:'#7A9E7E' }} />
-          </div>
-          <h1 className="font-display font-black text-2xl mb-2" style={{ color:'#17211B' }}>Submitted!</h1>
-          <p className="text-sm mb-4" style={{ color:'#5C665F' }}>
-            Your ID and selfie have been uploaded. Our team will verify you within 24 hours.
-          </p>
-          <p className="text-xs mb-8 p-3 rounded-xl" style={{ color:'#5C665F', backgroundColor:'rgba(23,33,27,0.04)' }}>
-            You'll be able to {roleLabel} as soon as your verification is approved.
-          </p>
-          <button onClick={handleDone}
-            className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#B8511E' }}>
-            Start Exploring DealMatch
-          </button>
+      <StatusScreen tone="sun" icon={ClockIcon} title="Under review" actionLabel="Continue browsing" onAction={handleDone}>
+        <p>Your identity documents were submitted and are being reviewed. This usually takes under 24 hours.</p>
+        <div className="rounded-2xl border border-sun/50 bg-sun/15 p-4 text-left text-xs text-deep">
+          <p className="mb-1.5 font-bold">What you can do while waiting</p>
+          <ul className="list-disc space-y-1 pl-4">
+            <li>Browse and swipe properties</li>
+            <li>Book hotels and short-lets</li>
+            <li>Message matched contacts</li>
+          </ul>
         </div>
-      </div>
+      </StatusScreen>
     )
   }
 
-  // ── Step 0: Intro ─────────────────────────────────────────────────
-  if (step === 0) {
-    return (
-      <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
-        <div className="max-w-sm mx-auto px-5 py-8">
-          {/* Back button */}
-          <button onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm mb-8"
-            style={{ color: 'rgba(23,33,27,0.7)' }}>
-            <ArrowLeft size={14} /> Back
-          </button>
+  const idLabel = ID_TYPES.find((t) => t.id === idType)?.label
 
-          {/* Hero */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor:'rgba(200,95,45,0.1)' }}>
-              <Shield size={36} style={{ color:'#B8511E' }} />
-            </div>
-            <h1 className="font-display font-black text-3xl mb-2" style={{ color:'#17211B' }}>Verify Your Identity</h1>
-            <p className="text-sm" style={{ color:'#5C665F' }}>
-              Required to {roleLabel}. Takes about 2 minutes.
-            </p>
-          </div>
-
-          {/* What you need */}
-          <div className="space-y-3 mb-6">
-            {[
-              { icon: <CreditCard size={20} className="text-terracotta" />, title:'Government-issued ID', desc:'NIN slip, voter\'s card, passport, or driver\'s license' },
-              { icon: <Camera size={20} className="text-terracotta" />, title:'A quick selfie', desc:'Your phone camera - no special equipment needed' },
-              { icon: <Clock size={20} className="text-terracotta" />, title:'24-hour review', desc:'Our team reviews submissions manually for your security' },
-            ].map(item => (
-              <div key={item.title} className="flex items-start gap-3 p-4 rounded-2xl"
-                style={{ backgroundColor:'rgba(23,33,27,0.03)', border:'1px solid #DEDDD6' }}>
-                <span className="flex-shrink-0">{item.icon}</span>
-                <div>
-                  <p className="font-semibold text-sm" style={{ color:'#17211B' }}>{item.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color:'#5C665F' }}>{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Security note */}
-          <div className="flex items-start gap-2 p-3 rounded-xl mb-6"
-            style={{ backgroundColor:'rgba(122,158,126,0.06)', border:'1px solid rgba(122,158,126,0.2)' }}>
-            <Lock size={13} style={{ color:'#7A9E7E', flexShrink:0, marginTop:2 }} />
-            <p className="text-xs" style={{ color:'#5C665F' }}>
-              Your ID is stored encrypted and never shared publicly. Only used to confirm you are a real person.
-            </p>
-          </div>
-
-          {/* What requires verification */}
-          <div className="p-4 rounded-2xl mb-6"
-            style={{ backgroundColor:'rgba(200,95,45,0.05)', border:'1px solid rgba(200,95,45,0.15)' }}>
-            <p className="text-xs font-bold mb-2" style={{ color:'#B8511E' }}>
-              <Lock size={11} className="inline mr-1" />Requires verification
-            </p>
-            <ul className="text-xs space-y-1" style={{ color:'#5C665F' }}>
-              <li>• Expressing interest in buying a property</li>
-              <li>• Listing a property for sale or rent</li>
-              <li>• Signing tenancy agreements</li>
-              <li>• Making or receiving protection payments</li>
-            </ul>
-            <p className="text-xs font-bold mt-3 mb-1" style={{ color:'#7A9E7E' }}>
-              <Eye size={11} className="inline mr-1" />Free without verification
-            </p>
-            <ul className="text-xs space-y-1" style={{ color:'#5C665F' }}>
-              <li>• Browse and swipe all listings</li>
-              <li>• Book hotels and short-lets</li>
-              <li>• View professionals directory</li>
-              <li>• Browse student hostels</li>
-            </ul>
-          </div>
-
-          {/* CTA */}
-          <button onClick={() => setStep(1)}
-            className="w-full py-4 rounded-2xl font-bold text-white mb-3 flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#B8511E', boxShadow:'0 4px 16px rgba(200,95,45,0.3)' }}>
-            <Shield size={16} /> Verify Now - Free
-          </button>
-
-          {/* Skip button */}
-          <button
-            onClick={handleSkip}
-            disabled={skipping}
-            className="w-full py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-70"
-            style={{ color: 'rgba(23,33,27,0.7)', border:'1px solid #DEDDD6', backgroundColor:'transparent' }}>
-            <SkipForward size={14} />
-            {skipping ? 'Skipping...' : 'Skip for now - browse freely'}
-          </button>
-          <p className="text-center text-xs mt-2" style={{ color: 'rgba(23,33,27,0.7)' }}>
-            You'll be reminded when you try to make a transaction
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Step 1: ID Upload ─────────────────────────────────────────────
-  if (step === 1) {
-    return (
-      <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
-        <div className="max-w-sm mx-auto px-5 py-8">
-          <button onClick={() => setStep(0)}
-            className="flex items-center gap-2 text-sm mb-6" style={{ color: 'rgba(23,33,27,0.7)' }}>
-            <ArrowLeft size={14} /> Back
-          </button>
-
-          {/* Progress */}
-          <div className="flex items-center gap-2 mb-8">
-            {['ID Document','Selfie','Done'].map((label, i) => (
-              <React.Fragment key={label}>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{
-                      backgroundColor: i < 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
-                      color: i < 1 ? 'white' : 'rgba(23,33,27,0.7)',
-                    }}>
-                    {i < 0 ? <Check size={14} /> : i + 1}
-                  </div>
-                  <span className="text-xs font-semibold hidden sm:block"
-                    style={{ color: i === 0 ? '#17211B' : 'rgba(23,33,27,0.7)' }}>{label}</span>
-                </div>
-                {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
-              </React.Fragment>
-            ))}
-          </div>
-
-          <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Upload your ID</h2>
-          <p className="text-sm mb-6" style={{ color:'#5C665F' }}>Choose the type and upload a clear photo.</p>
-
-          {/* ID type selection - a single-select list rather than a grid of
-              tiles: one clean container, hairline dividers between rows, a
-              soft icon tile on the left and a checkmark on the right for
-              the selected row. Nothing needs a heavy colored border to read
-              as "selected" when the row itself already tells you. */}
-          <div className="rounded-2xl overflow-hidden mb-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDE4D8' }}>
-            {ID_TYPES.map((t, i) => (
-              <button key={t.id} onClick={() => setIdType(t.id)}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors"
-                style={{
-                  backgroundColor: idType === t.id ? 'rgba(200,95,45,0.05)' : 'transparent',
-                  borderTop: i === 0 ? 'none' : '1px solid #F2EAE0',
-                }}>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: idType === t.id ? 'rgba(200,95,45,0.12)' : '#F5EDE0' }}>
-                  {t.icon}
-                </div>
-                <span className="flex-1 text-sm font-semibold" style={{ color: '#17211B' }}>
-                  {t.label}
-                </span>
-                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-                  style={{
-                    backgroundColor: idType === t.id ? '#B8511E' : 'transparent',
-                    border: idType === t.id ? 'none' : '1.5px solid #E0D4C4',
-                  }}>
-                  {idType === t.id && <Check size={12} className="text-white" strokeWidth={3} />}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Upload area */}
-          <label className="block cursor-pointer mb-5">
-            {idPreview ? (
-              <div className="relative rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(23,33,27,0.08)' }}>
-                <img src={idPreview} alt="ID" className="w-full h-48 object-cover" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                  style={{ backgroundColor:'rgba(23,33,27,0.45)' }}>
-                  <span className="text-white text-xs font-semibold">Tap to replace</span>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl p-10 text-center transition-colors"
-                style={{ border: '1.5px dashed #DCCFBE', backgroundColor:'#FFFFFF' }}>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>
-                  <Upload size={20} style={{ color:'#B8511E' }} />
-                </div>
-                <p className="font-semibold text-sm" style={{ color:'#17211B' }}>Upload ID Photo</p>
-                <p className="text-xs mt-1" style={{ color:'#5C665F' }}>JPG, PNG or WEBP - max 5MB</p>
-              </div>
-            )}
-            <input ref={idFileRef} type="file" accept="image/*" className="hidden" onChange={handleIdUpload} />
-          </label>
-
-          <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color:'#5C665F' }} htmlFor="nin-input">
-              Your NIN or BVN (11 digits)
-            </label>
-            <input id="nin-input" inputMode="numeric" autoComplete="off" maxLength={11}
-              value={nin}
-              onChange={e => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
-              placeholder="e.g. 12345678901" className="input" />
-            <p className="text-[11px] mt-1.5" style={{ color:'#5C665F' }}>
-              Used only to stop duplicate accounts. Stored as a secure hash, never in plain text.
-            </p>
-          </div>
-
-          <button
-            onClick={() => {
-              if (!idType) { toast.error('Select your ID type'); return }
-              if (!idFile && !idPreview) { toast.error('Upload your ID photo'); return }
-              if (nin.length !== 11) { toast.error('Enter your 11-digit NIN or BVN'); return }
-              setStep(2)
-            }}
-            className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#B8511E' }}>
-            Next: Take Selfie <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Step 2: Selfie ────────────────────────────────────────────────
-  return (
-    <div style={{ backgroundColor:'#FFFAF5', minHeight:'100vh', paddingTop:72 }}>
-      <div className="max-w-sm mx-auto px-5 py-8">
-        <button onClick={() => setStep(1)}
-          className="flex items-center gap-2 text-sm mb-6" style={{ color: 'rgba(23,33,27,0.7)' }}>
-          <ArrowLeft size={14} /> Back
-        </button>
-
-        {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
-          {['ID Document','Selfie','Done'].map((label, i) => (
-            <React.Fragment key={label}>
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{
-                    backgroundColor: i <= 1 ? '#B8511E' : 'rgba(23,33,27,0.08)',
-                    color: i <= 1 ? 'white' : 'rgba(23,33,27,0.7)',
-                  }}>
-                  {i < 1 ? <Check size={14} /> : i + 1}
-                </div>
-                <span className="text-xs font-semibold hidden sm:block"
-                  style={{ color: i === 1 ? '#17211B' : 'rgba(23,33,27,0.7)' }}>{label}</span>
-              </div>
-              {i < 2 && <div className="flex-1 h-px" style={{ backgroundColor:'#DEDDD6' }} />}
-            </React.Fragment>
-          ))}
-        </div>
-
-        <h2 className="font-display font-black text-2xl mb-1" style={{ color:'#17211B' }}>Take a selfie</h2>
-        <p className="text-sm mb-6" style={{ color:'#5C665F' }}>
-          Look straight at the camera. Good lighting helps.
-        </p>
-
-        {/* Selfie capture area */}
-        <div className="mb-5">
-          {faceCapture ? (
-            <div className="relative rounded-2xl overflow-hidden">
-              <img src={faceCapture} alt="Selfie" className="w-full rounded-2xl" />
-              <button onClick={retakePhoto}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor:'rgba(23,33,27,0.6)' }}>
-                <X size={14} color="white" />
-              </button>
-            </div>
-          ) : (
-            <label htmlFor="selfie-input"
-              className="relative rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 p-6 cursor-pointer"
-              style={{ backgroundColor:'#17211B', minHeight:240 }}>
-              <Camera size={40} style={{ color:'rgba(255,255,255,0.6)' }} />
-              <p className="text-xs text-center" style={{ color:'rgba(255,255,255,0.5)' }}>
-                Tap to open your camera and take a selfie
-              </p>
-              {/* capture="user" hints mobile browsers to open the front
-                  camera directly, same UX as the old custom camera view */}
-              <input ref={faceFileRef} id="selfie-input" type="file" accept="image/*"
-                capture="user" className="hidden" onChange={handleFaceUpload} />
-            </label>
-          )}
-        </div>
-
-        {/* Controls */}
-        {faceCapture && (
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
-            style={{ backgroundColor:'#B8511E' }}>
-            {saving
-              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <><Shield size={16} /> Submit for Verification</>}
-          </button>
-        )}
-      </div>
+  const intro = (
+    <div className="mb-5">
+      <InfoBox icon={LockClosedIcon} title={`Required to ${roleLabel}`}>
+        It takes about 2 minutes and is free. Your ID is stored encrypted and never shown publicly. It is only used to confirm you are a real person.
+      </InfoBox>
     </div>
+  )
+
+  return (
+    <>
+      <WizardShell
+        eyebrow="Identity check"
+        title="Verify your identity"
+        subtitle="Upload your ID, add a selfie, then check everything before you send it."
+        steps={STEPS}
+        step={step}
+        onStepClick={(i) => setStep(i)}
+        notice={step === 0 ? intro : null}
+      >
+        {step === 0 && (
+          <div className="space-y-6">
+            <StepHeading title="Your ID">Choose the type, then add a clear photo and your number.</StepHeading>
+
+            <Field id="f-idType" label="Type of ID" error={shown.idType}>
+              <div role="radiogroup" aria-label="Type of ID" className="grid grid-cols-2 gap-2.5">
+                {ID_TYPES.map((t) => (
+                  <ChoiceCard key={t.id} selected={idType === t.id} onClick={() => setIdType(t.id)} icon={t.icon} label={t.label} />
+                ))}
+              </div>
+            </Field>
+
+            <div data-field="f-idFile">
+              <p className="mb-1.5 text-sm font-bold">Photo of your ID</p>
+              <label className="group relative block cursor-pointer">
+                <input type="file" accept="image/*" className="peer sr-only" onChange={handleIdUpload}
+                  aria-label="Upload a photo of your ID" aria-invalid={shown.idFile || fileErrors.id ? true : undefined} />
+                {idPreview ? (
+                  <span className="relative block overflow-hidden rounded-[24px_24px_24px_8px] border border-line peer-focus-visible:ring-2 peer-focus-visible:ring-terracotta">
+                    <img src={idPreview} alt="Your ID" className="h-48 w-full object-cover" />
+                    <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-deep/60 py-2 text-xs font-bold text-white backdrop-blur-sm">
+                      <ArrowPathIcon className="h-4 w-4" aria-hidden="true" /> Tap to replace
+                    </span>
+                  </span>
+                ) : (
+                  <span className={`flex flex-col items-center rounded-[24px_24px_24px_8px] border-2 border-dashed bg-white p-8 text-center transition-colors group-hover:border-deep/30 peer-focus-visible:ring-2 peer-focus-visible:ring-terracotta ${shown.idFile || fileErrors.id ? 'border-terracotta' : 'border-line'}`}>
+                    <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-pale text-terracotta">
+                      <ArrowUpTrayIcon className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <span className="text-sm font-bold">Add a photo of your ID</span>
+                    <span className="mt-1 text-xs text-warm">JPG, PNG or WEBP, up to 5 MB. Make sure every corner shows.</span>
+                  </span>
+                )}
+              </label>
+              {(shown.idFile || fileErrors.id) ? (
+                <p role="alert" className="mt-1.5 text-xs font-semibold text-terracotta-dark">{fileErrors.id || shown.idFile}</p>
+              ) : null}
+            </div>
+
+            <Field id="f-nin" label="Your NIN or BVN" hint="11 digits. Used only to stop duplicate accounts. Stored as a secure hash, never in plain text." error={shown.nin}>
+              <input inputMode="numeric" autoComplete="off" maxLength={11} value={nin}
+                onChange={(e) => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                placeholder="e.g. 12345678901" className={`input ${inputClass}`} />
+            </Field>
+
+            <div className="border-t border-line pt-4 text-center">
+              <button type="button" onClick={handleSkip} disabled={skipping}
+                className="text-sm font-bold text-warm underline-offset-2 hover:text-deep hover:underline disabled:opacity-50">
+                {skipping ? 'Skipping…' : 'Skip for now and browse freely'}
+              </button>
+              <p className="mt-1 text-xs text-warm">You will be asked again when you list, pay or sign something.</p>
+            </div>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="space-y-5">
+            <StepHeading title="Take a selfie">Look straight at the camera in good light.</StepHeading>
+
+            <div data-field="f-faceFile">
+              {facePreview ? (
+                <div className="relative overflow-hidden rounded-[28px_28px_28px_10px] border border-line">
+                  <img src={facePreview} alt="Your selfie" className="max-h-[28rem] w-full object-cover" />
+                  <button type="button" onClick={retakePhoto}
+                    className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-deep/70 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm hover:bg-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <XMarkIcon className="h-4 w-4" aria-hidden="true" /> Retake
+                  </button>
+                </div>
+              ) : (
+                <label className="group relative block cursor-pointer">
+                  {/* capture="user" opens the front camera directly on phones */}
+                  <input type="file" accept="image/*" capture="user" className="peer sr-only" onChange={handleFaceUpload}
+                    aria-label="Take a selfie" aria-invalid={shown.faceFile || fileErrors.face ? true : undefined} />
+                  <span className={`flex min-h-[15rem] flex-col items-center justify-center gap-3 rounded-[28px_28px_28px_10px] bg-forest-dark p-6 text-center text-white transition-colors group-hover:bg-forest peer-focus-visible:ring-2 peer-focus-visible:ring-terracotta peer-focus-visible:ring-offset-2 ${shown.faceFile || fileErrors.face ? 'ring-2 ring-terracotta' : ''}`}>
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                      <CameraIcon className="h-7 w-7" aria-hidden="true" />
+                    </span>
+                    <span className="text-sm font-bold">Tap to open your camera</span>
+                    <span className="text-xs text-white/70">Or choose a recent photo of your face</span>
+                  </span>
+                </label>
+              )}
+              {(shown.faceFile || fileErrors.face) ? (
+                <p role="alert" className="mt-1.5 text-xs font-semibold text-terracotta-dark">{fileErrors.face || shown.faceFile}</p>
+              ) : null}
+            </div>
+
+            <InfoBox title="For a quick approval">
+              Face the camera, keep your whole face in the frame, and avoid hats or sunglasses.
+            </InfoBox>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-5">
+            <StepHeading title="Review and submit">Check that both photos are clear and your details are right.</StepHeading>
+
+            <ul className="divide-y divide-line rounded-[24px_24px_24px_8px] border border-line bg-white">
+              <li className="flex items-center gap-3 p-4">
+                {idPreview ? <img src={idPreview} alt="" className="h-14 w-20 flex-shrink-0 rounded-xl object-cover" /> : null}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-warm">ID</p>
+                  <p className="truncate text-sm font-bold">{idLabel}</p>
+                </div>
+                <button type="button" onClick={() => setStep(0)} className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-xs font-bold hover:border-deep/30">
+                  <PencilSquareIcon className="h-4 w-4" aria-hidden="true" /> Edit
+                </button>
+              </li>
+              <li className="flex items-center gap-3 p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-warm">NIN or BVN</p>
+                  <p className="text-sm font-bold tracking-wider">{'•'.repeat(8)}{nin.slice(-3)}</p>
+                </div>
+                <button type="button" onClick={() => setStep(0)} className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-xs font-bold hover:border-deep/30">
+                  <PencilSquareIcon className="h-4 w-4" aria-hidden="true" /> Edit
+                </button>
+              </li>
+              <li className="flex items-center gap-3 p-4">
+                {facePreview ? <img src={facePreview} alt="" className="h-14 w-14 flex-shrink-0 rounded-full object-cover" /> : null}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-warm">Selfie</p>
+                  <p className="text-sm font-bold">Ready to send</p>
+                </div>
+                <button type="button" onClick={() => setStep(1)} className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-xs font-bold hover:border-deep/30">
+                  <PencilSquareIcon className="h-4 w-4" aria-hidden="true" /> Edit
+                </button>
+              </li>
+            </ul>
+
+            <InfoBox icon={ClockIcon} title="What happens next">
+              Our team reviews every submission by hand, usually within 24 hours. You can keep browsing while you wait.
+            </InfoBox>
+          </div>
+        )}
+      </WizardShell>
+
+      <WizardActions
+        onBack={step > 0 ? () => setStep((s) => s - 1) : undefined}
+        onNext={goNext}
+        last={step === STEPS.length - 1}
+        nextLabel={step === STEPS.length - 1 ? 'Submit for verification' : step === 0 ? 'Next: selfie' : 'Next: review'}
+        busy={saving}
+        busyLabel="Uploading…"
+        hint={showErrors && errorKeys.length ? `${errorKeys.length === 1 ? '1 thing needs' : `${errorKeys.length} things need`} your attention above` : null}
+      />
+    </>
   )
 }

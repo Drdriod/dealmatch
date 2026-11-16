@@ -12,7 +12,7 @@ const POINTS = [
 // behind motion-safe, so it costs no JavaScript and stops for reduced motion.
 export default function AuthBrandPanel() {
   return (
-    <div className="relative hidden min-h-[560px] self-stretch overflow-hidden rounded-r-3xl bg-deep md:block">
+    <div className="relative hidden min-h-[560px] self-stretch overflow-hidden md:rounded-r-[40px] bg-deep md:block">
       <img
         src="/home/hero-place-house.webp"
         alt=""
