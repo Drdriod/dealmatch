@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import {
-  ArrowLeftIcon, ChevronDownIcon, EnvelopeIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon,
-  CheckCircleIcon, XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase'
 import { checkPhoneExists, checkUsernameExists, checkDeviceExists, checkSignupConflicts } from '@/data/signupRepository'
 import { upsertProfile } from '@/data/profileRepository'
@@ -11,6 +8,8 @@ import { applyReferralCode } from '@/data/referralRepository'
 import PasswordRules, { isPasswordValid } from '@/components/auth/PasswordRules'
 import AuthBrandPanel from '@/components/auth/AuthBrandPanel'
 import AuthField from '@/components/auth/AuthField'
+import OtpScreen from '@/components/auth/OtpScreen'
+import { Alert, Backdrop, PasswordToggle } from '@/components/auth/AuthParts'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { getDeviceFingerprint } from '@/lib/deviceFingerprint'
 import { analytics } from '@/lib/posthog'
@@ -70,40 +69,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Maps a live-check status onto the icon the field shows.
 const iconFor = (s) =>
   s === 'checking' ? 'checking' : (s === 'free' || s === 'valid') ? 'ok' : (s === 'taken' || s === 'invalid') ? 'bad' : null
-
-// Soft blurred drops behind the card, the same water-drop motif as the rest of the site.
-function Backdrop() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute -left-24 top-10 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/15 blur-3xl" />
-      <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/20 blur-3xl" />
-      <div className="absolute left-1/3 top-2/3 h-48 w-48 rounded-full bg-sun/25 blur-3xl" />
-    </div>
-  )
-}
-
-function Alert({ children, tone = 'error' }) {
-  const palette = tone === 'ok'
-    ? 'border-forest/20 bg-forest-pale text-forest-dark'
-    : 'border-terracotta/30 bg-orange-pale text-terracotta-dark'
-  const Icon = tone === 'ok' ? CheckCircleIcon : ExclamationCircleIcon
-  return (
-    <div role={tone === 'ok' ? 'status' : 'alert'} className={`flex items-start gap-2.5 rounded-2xl border p-3.5 text-sm font-semibold ${palette}`}>
-      <Icon className="mt-px h-5 w-5 flex-shrink-0" aria-hidden="true" />
-      <span>{children}</span>
-    </div>
-  )
-}
-
-function PasswordToggle({ shown, onToggle }) {
-  const Icon = shown ? EyeSlashIcon : EyeIcon
-  return (
-    <button type="button" onClick={onToggle} aria-label={shown ? 'Hide password' : 'Show password'}
-      className="rounded-full p-1 text-warm hover:text-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
-      <Icon className="h-5 w-5" aria-hidden="true" />
-    </button>
-  )
-}
 
 // ─── Main AuthPage ────────────────────────────────────────────────────────────
 export default function AuthPage() {
@@ -545,56 +510,19 @@ export default function AuthPage() {
   // ─── Code-entry screen ──────────────────────────────────────────
   if (verificationSent) {
     return (
-      <div className="relative flex min-h-svh flex-col items-center bg-cream px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-10 sm:justify-center">
-        <Backdrop />
-        <div className="relative w-full max-w-sm rounded-[40px_40px_40px_12px] border border-white/70 bg-white/80 p-7 text-center shadow-soft backdrop-blur-xl sm:p-9">
-          <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[22px_22px_22px_8px] bg-orange-pale text-terracotta">
-            <EnvelopeIcon className="h-8 w-8" aria-hidden="true" />
-          </span>
-          <h1 className="mb-2 font-display text-3xl text-deep">Check your email</h1>
-          <p className="text-sm text-warm">We sent a 6-digit code to</p>
-          <p className="mb-6 break-all text-sm font-bold text-terracotta-dark">{signupEmail}</p>
-
-          <div role="group" aria-label="6-digit confirmation code" className="mb-4 flex justify-center gap-2 sm:gap-2.5" onPaste={handleOtpPaste}>
-            {otp.map((digit, i) => (
-              <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
-                aria-label={`Digit ${i + 1} of 6`}
-                autoComplete={i === 0 ? 'one-time-code' : 'off'}
-                value={digit}
-                disabled={verifying}
-                onChange={(e) => handleOtpChange(i, e.target.value)}
-                onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                className={`h-14 w-11 rounded-2xl border-2 text-center text-xl font-black outline-none transition-colors focus:border-terracotta focus:bg-white sm:w-12 ${
-                  otpError ? 'border-terracotta bg-orange-pale text-terracotta-dark'
-                    : digit ? 'border-terracotta bg-orange-pale text-terracotta-dark' : 'border-line bg-cream text-deep'
-                }`}
-              />
-            ))}
-          </div>
-
-          {otpError ? <div className="mb-4 text-left"><Alert>{otpError}</Alert></div> : null}
-
-          <button type="button" onClick={() => verifyCode(otp.join(''))} disabled={verifying}
-            className="btn-primary mb-4 w-full !py-3.5 text-[15px]">
-            {verifying ? 'Confirming…' : 'Confirm email'}
-          </button>
-
-          <p className="text-sm text-warm">
-            Didn&apos;t get it?{' '}
-            {cooldown > 0 ? (
-              <span className="font-semibold text-deep">Resend in {cooldown}s</span>
-            ) : (
-              <button type="button" onClick={handleResendOtp} className="font-bold text-terracotta-dark hover:underline">Resend code</button>
-            )}
-          </p>
-          <p className="mt-1 text-xs text-warm">Check your spam folder too.</p>
-
-          <button type="button" onClick={() => { setVerificationSent(false); setOtp(EMPTY_OTP); setOtpError('') }}
-            className="mx-auto mt-6 flex items-center gap-1.5 text-sm font-semibold text-warm hover:text-deep">
-            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" /> Change my details
-          </button>
-        </div>
-      </div>
+      <OtpScreen
+        email={signupEmail}
+        otp={otp}
+        error={otpError}
+        verifying={verifying}
+        cooldown={cooldown}
+        onChange={handleOtpChange}
+        onKeyDown={handleOtpKeyDown}
+        onPaste={handleOtpPaste}
+        onConfirm={() => verifyCode(otp.join(''))}
+        onResend={handleResendOtp}
+        onBack={() => { setVerificationSent(false); setOtp(EMPTY_OTP); setOtpError('') }}
+      />
     )
   }
 
