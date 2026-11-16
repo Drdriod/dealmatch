@@ -37,7 +37,7 @@ export default function PlaceCard({ place }) {
       to={`/property/${place.id}`}
       {...cardMotion}
       className="group flex-shrink-0 block rounded-[19px] overflow-hidden transition-shadow hover:shadow-card-hover"
-      style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', width: 260 }}
+      style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', width: 260 }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
         {place.image ? (

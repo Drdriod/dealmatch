@@ -87,7 +87,7 @@ export default function MfaGate({ children }) {
   if (status === 'checking') {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#120D0B' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-transparent animate-spin" style={{ borderTopColor: '#D4A853' }} />
+        <div className="w-8 h-8 rounded-full border-2 border-transparent animate-spin" style={{ borderTopColor: 'var(--dm-gold)' }} />
       </div>
     )
   }
@@ -101,7 +101,7 @@ export default function MfaGate({ children }) {
       <div className="w-full max-w-sm rounded-3xl p-6 space-y-4" style={{ backgroundColor: '#1E1510', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,168,83,0.12)' }}>
-            <Shield size={18} style={{ color: '#D4A853' }} />
+            <Shield size={18} style={{ color: 'var(--dm-gold)' }} />
           </div>
           <div>
             <h3 className="text-white font-bold">{isEnroll ? 'Set up two-factor authentication' : 'Enter your two-factor code'}</h3>
@@ -139,7 +139,7 @@ export default function MfaGate({ children }) {
           onClick={isEnroll ? submitEnrollment : submitChallenge}
           disabled={busy || code.length !== 6}
           className="w-full py-3 rounded-2xl text-sm font-bold disabled:opacity-50"
-          style={{ backgroundColor: '#D4A853', color: '#17211B' }}
+          style={{ backgroundColor: 'var(--dm-gold)', color: 'var(--dm-deep)' }}
         >
           {busy ? 'Verifying...' : isEnroll ? 'Enable two-factor authentication' : 'Verify'}
         </button>

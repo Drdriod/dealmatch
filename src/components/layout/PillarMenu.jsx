@@ -35,9 +35,9 @@ function groupsFor(pillarSlug, tree) {
 function MenuStatus({ tree, error, groups, retry }) {
   if (error) {
     return (
-      <p role="status" className="text-sm text-[#5C665F]">
+      <p role="status" className="text-sm text-warm">
         We couldn't load the categories. Check your connection and{' '}
-        <button type="button" onClick={retry} className="font-semibold text-[#B8511E] underline">try again</button>.
+        <button type="button" onClick={retry} className="font-semibold text-terracotta underline">try again</button>.
       </p>
     )
   }
@@ -54,7 +54,7 @@ function MenuStatus({ tree, error, groups, retry }) {
     )
   }
   if (groups.length === 0) {
-    return <p role="status" className="text-sm text-[#5C665F]">Groups for this section are being set up. Check back soon.</p>
+    return <p role="status" className="text-sm text-warm">Groups for this section are being set up. Check back soon.</p>
   }
   return null
 }
@@ -140,7 +140,7 @@ function DesktopPillar({ pillar, active }) {
             setOpen(true)
           }
         }}
-        className={`relative inline-flex items-center gap-1 py-2 hover:text-[#B8511E] ${active ? 'text-[#B8511E]' : ''}`}
+        className={`relative inline-flex items-center gap-1 py-2 hover:text-terracotta ${active ? 'text-terracotta' : ''}`}
       >
         {pillar.name}
         <motion.span
@@ -154,7 +154,7 @@ function DesktopPillar({ pillar, active }) {
         {active && (
           <motion.span
             layoutId="nav-underline"
-            className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#B8511E]"
+            className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-terracotta"
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           />
         )}
@@ -174,12 +174,12 @@ function DesktopPillar({ pillar, active }) {
           >
             <nav
               aria-label={`${pillar.name} categories`}
-              className="w-[min(1240px,96vw)] max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[#DEDDD6] bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
+              className="w-[min(1240px,96vw)] max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-[#FFFDF8] p-6 shadow-[0_24px_60px_-20px_rgba(23,33,27,0.28)]"
             >
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#5C665F]">{pillar.name}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-warm">{pillar.name}</p>
                 <Link to={pillar.route} onClick={hideNow}
-                  className="text-xs font-semibold text-[#B8511E] hover:text-[#A8441D]">
+                  className="text-xs font-semibold text-terracotta hover:text-terracotta-dark">
                   {VIEW_ALL[pillar.slug]} →
                 </Link>
               </div>
@@ -192,7 +192,7 @@ function DesktopPillar({ pillar, active }) {
                   {groups.map(group => (
                     <motion.div key={group.id} variants={itemVariants}>
                       <Link to={categoryHref(group.slug)} onClick={hideNow} data-pillar-item
-                        className="text-sm font-bold text-[#17211B] hover:text-[#B8511E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E] rounded">
+                        className="text-sm font-bold text-deep hover:text-terracotta focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta rounded">
                         {group.name}
                       </Link>
                       {group.children?.length > 0 && (
@@ -204,11 +204,11 @@ function DesktopPillar({ pillar, active }) {
                                 onMouseEnter={() => setHovered(child.id)}
                                 onFocus={() => setHovered(child.id)}
                                 onBlur={() => setHovered(null)}
-                                className="relative block rounded-lg px-2 py-1.5 text-[13px] text-[#3A4740] hover:text-[#17211B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E]">
+                                className="relative block rounded-lg px-2 py-1.5 text-[13px] text-[#3A4740] hover:text-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta">
                                 {hovered === child.id && (
                                   <motion.span
                                     layoutId={`pillar-hover-${pillar.slug}`}
-                                    className="absolute inset-0 rounded-lg bg-[#B8511E]/10"
+                                    className="absolute inset-0 rounded-lg bg-terracotta/10"
                                     transition={{ type: 'spring', stiffness: 500, damping: 40 }}
                                   />
                                 )}
@@ -244,7 +244,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
     <div>
       <div className="flex items-center justify-between">
         <Link to={pillar.route} onClick={onNavigate}
-          className={`block flex-1 py-3 font-semibold ${active ? 'text-[#B8511E]' : 'text-[#17211B]'}`}>
+          className={`block flex-1 py-3 font-semibold ${active ? 'text-terracotta' : 'text-deep'}`}>
           {pillar.name}
         </Link>
         <button
@@ -252,7 +252,7 @@ function MobilePillar({ pillar, active, onNavigate }) {
           aria-expanded={open}
           aria-label={`Show ${pillar.name} categories`}
           onClick={() => setOpen(o => !o)}
-          className="p-2 text-[#17211B]"
+          className="p-2 text-deep"
         >
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2, ease }} className="inline-flex">
             <ChevronDown size={18} />
@@ -270,12 +270,12 @@ function MobilePillar({ pillar, active, onNavigate }) {
             transition={{ duration: 0.22, ease }}
             className="overflow-hidden"
           >
-            <div className="mb-2 ml-1 space-y-4 border-l-2 border-[#B8511E]/30 pb-3 pl-4">
+            <div className="mb-2 ml-1 space-y-4 border-l-2 border-terracotta/30 pb-3 pl-4">
               <MenuStatus tree={tree} error={error} groups={groups} retry={retry} />
               {tree && !error && groups.map(group => (
                 <div key={group.id}>
                   <Link to={categoryHref(group.slug)} onClick={onNavigate}
-                    className="block py-1.5 text-sm font-bold text-[#17211B]">
+                    className="block py-1.5 text-sm font-bold text-deep">
                     {group.name}
                   </Link>
                   {group.children?.map(child => (

@@ -30,7 +30,7 @@ export default function MatchToast({ property, onClose }) {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Heart size={11} fill="#B8511E" style={{ color: 'var(--dm-terracotta)' }} />
+            <Heart size={11} fill="var(--dm-terracotta)" style={{ color: 'var(--dm-terracotta)' }} />
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--dm-terracotta)' }}>
               New Match!
             </span>

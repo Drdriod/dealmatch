@@ -31,7 +31,7 @@ export default function PostChoiceModal({ open, onClose }) {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             onClick={e => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl p-6"
-            style={{ backgroundColor: '#FFFFFF' }}
+            style={{ backgroundColor: 'white' }}
           >
             <div className="flex items-center justify-between mb-5">
               <span className="font-display font-black text-lg" style={{ color: 'var(--dm-deep)' }}>What do you want to post?</span>
@@ -44,8 +44,8 @@ export default function PostChoiceModal({ open, onClose }) {
                 const Icon = choice.icon
                 return (
                   <button key={choice.to} onClick={() => { onClose(); navigate(choice.to) }}
-                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-colors hover:bg-[#EEE9DE]"
-                    style={{ border: '1px solid #DEDDD6' }}>
+                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-colors hover:bg-cream-deep"
+                    style={{ border: '1px solid var(--dm-line)' }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                       <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
                     </div>

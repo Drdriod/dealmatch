@@ -31,10 +31,10 @@ function CategoryChip({ active, onClick, children }) {
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#B8511E] hover:text-[#B8511E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B8511E]"
+      className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-terracotta hover:text-terracotta focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
       style={active
-        ? { backgroundColor: '#17211B', color: '#FFFFFF', border: '1px solid #17211B' }
-        : { backgroundColor: '#FFFDF8', color: '#17211B', border: '1px solid #DEDDD6' }}
+        ? { backgroundColor: 'var(--dm-deep)', color: 'white', border: '1px solid var(--dm-deep)' }
+        : { backgroundColor: '#FFFDF8', color: 'var(--dm-deep)', border: '1px solid var(--dm-line)' }}
     >
       {children}
     </button>
@@ -136,11 +136,11 @@ export default function SearchPage() {
               onChange={e => setInputValue(e.target.value)}
               placeholder="Find a shortlet, a plumber, house rent, a tutor..."
               className="w-full pl-11 pr-4 py-3.5 rounded-full text-sm outline-none"
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
+              style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}
             />
           </div>
           <button type="submit" className="px-6 py-3.5 rounded-full text-sm font-bold flex-shrink-0"
-            style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
+            style={{ backgroundColor: 'var(--dm-terracotta)', color: 'white' }}>
             Search
           </button>
         </form>
@@ -156,7 +156,7 @@ export default function SearchPage() {
             <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--dm-warm)' }}>
               <SlidersHorizontal size={12} /> Within
               <select value={radiusKm} onChange={e => setRadiusKm(Number(e.target.value))}
-                className="text-xs rounded-lg px-1.5 py-1" style={{ border: '1px solid #DEDDD6', background: '#fff' }}>
+                className="text-xs rounded-lg px-1.5 py-1" style={{ border: '1px solid var(--dm-line)', background: '#fff' }}>
                 {[5, 10, 15, 25, 50].map(km => <option key={km} value={km}>{km} km</option>)}
               </select>
             </label>
@@ -207,7 +207,7 @@ export default function SearchPage() {
               {aiResults.map(r => (
                 <Link key={r.id} to={r.url_path || `/listing/${r.id}`}
                   className="block rounded-2xl p-4"
-                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+                  style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{r.title}</p>
                     {typeof r.score === 'number' && (
@@ -232,7 +232,7 @@ export default function SearchPage() {
               {keywordOnly.map(r => (
                 <motion.div key={`${r.source}-${r.item_id}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                   <Link to={r.url_path} className="block rounded-2xl p-4"
-                    style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+                    style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
                         style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#5C4A3A' }}>

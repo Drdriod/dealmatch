@@ -99,10 +99,10 @@ export default function ReportModal({ entityType, entityId, listingSource = null
               className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all"
               style={{
                 backgroundColor: form.category === cat.id ? 'rgba(201,74,58,0.06)' : 'rgba(23,33,27,0.03)',
-                border: `1.5px solid ${form.category === cat.id ? '#C94A3A' : '#DEDDD6'}`,
+                border: `1.5px solid ${form.category === cat.id ? '#C94A3A' : 'var(--dm-line)'}`,
               }}>
               <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
-                style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : '#DEDDD6'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
+                style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : 'var(--dm-line)'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
                 {form.category === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
               <span className="text-xs" style={{ color: 'var(--dm-deep)' }}>{cat.label}</span>
@@ -117,7 +117,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
           placeholder="Provide as much detail as possible - dates, what you were told vs reality, any money lost..."
           rows={4}
           className="w-full rounded-2xl px-4 py-3 text-xs resize-none outline-none mb-4"
-          style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: 'var(--dm-deep)' }}
+          style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)', color: 'var(--dm-deep)' }}
         />
 
         <button onClick={submit} disabled={filing || !form.category || !form.description.trim()}

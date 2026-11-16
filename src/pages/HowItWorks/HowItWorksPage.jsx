@@ -5,10 +5,10 @@ import { ShieldCheck, Search, MessageCircle, Lock, CheckCircle2, Home, Wrench } 
 // Spec palette - do not substitute the warm tones used elsewhere in the app.
 const C = {
   bg:      '#EEE9DE',
-  primary: '#B8511E',
-  text:    '#17211B',
+  primary: 'var(--dm-terracotta)',
+  text:    'var(--dm-deep)',
   dark:    '#1C1410',
-  line:    '#DEDDD6',
+  line:    'var(--dm-line)',
 }
 
 const STEPS = [
@@ -45,7 +45,7 @@ export default function HowItWorksPage() {
 
         <div className="grid sm:grid-cols-2 gap-4 mb-12">
           {STEPS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}` }}>
+            <div key={title} className="rounded-2xl p-5" style={{ backgroundColor: 'white', border: `1px solid ${C.line}` }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(200,95,45,0.12)' }}>
                 <Icon size={18} style={{ color: C.primary }} />
               </div>
@@ -55,7 +55,7 @@ export default function HowItWorksPage() {
           ))}
         </div>
 
-        <div className="rounded-2xl p-6 mb-12" style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}` }}>
+        <div className="rounded-2xl p-6 mb-12" style={{ backgroundColor: 'white', border: `1px solid ${C.line}` }}>
           <div className="flex items-center gap-2 mb-3">
             <ShieldCheck size={20} style={{ color: C.primary }} />
             <h2 className="font-display font-bold text-base" style={{ color: C.dark }}>Two kinds of verification</h2>
@@ -89,9 +89,9 @@ export default function HowItWorksPage() {
           <Link to="/places" className="px-6 py-3 rounded-full text-sm font-semibold text-white"
             style={{ backgroundColor: C.primary }}>Explore Places</Link>
           <Link to="/providers" className="px-6 py-3 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}`, color: C.dark }}>Explore People</Link>
+            style={{ backgroundColor: 'white', border: `1px solid ${C.line}`, color: C.dark }}>Explore People</Link>
           <Link to="/request" className="px-6 py-3 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: '#FFFFFF', border: `1px solid ${C.line}`, color: C.dark }}>Post a Request</Link>
+            style={{ backgroundColor: 'white', border: `1px solid ${C.line}`, color: C.dark }}>Post a Request</Link>
         </div>
       </div>
     </div>

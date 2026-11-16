@@ -19,7 +19,7 @@ export default function BidList({ bids, onAccept, onCounter }) {
         <div className="space-y-2 mb-4">
           {bids.map(b => (
             <div key={b.id} className="rounded-2xl p-3 border flex items-center gap-3"
-              style={{ backgroundColor: '#FFFFFF', borderColor: b.status === 'ACCEPTED' ? '#7A9E7E' : '#DEDDD6' }}>
+              style={{ backgroundColor: 'white', borderColor: b.status === 'ACCEPTED' ? 'var(--dm-sage)' : 'var(--dm-line)' }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                 {b.providerProfile?.avatar_url

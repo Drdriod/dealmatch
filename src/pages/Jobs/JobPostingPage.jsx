@@ -285,10 +285,10 @@ export default function JobPostingPage() {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
-        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
+        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--dm-line)' }}>
         <button onClick={() => navigate(-1)} aria-label="Go back"
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: 'white' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
         <span className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>Post a Request</span>
@@ -307,20 +307,20 @@ export default function JobPostingPage() {
         {!transaction && (
           <div className="md:grid md:grid-cols-[1fr,340px] md:gap-8 md:items-start">
           <div>
-            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <button onClick={() => setToggle('book')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'book' ? '#B8511E' : 'transparent',
-                  color: toggle === 'book' ? '#FFFFFF' : '#5C665F',
+                  backgroundColor: toggle === 'book' ? 'var(--dm-terracotta)' : 'transparent',
+                  color: toggle === 'book' ? 'white' : 'var(--dm-warm)',
                 }}>
                 <Zap size={14} /> I need someone now
               </button>
               <button onClick={() => setToggle('bid')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'bid' ? '#B8511E' : 'transparent',
-                  color: toggle === 'bid' ? '#FFFFFF' : '#5C665F',
+                  backgroundColor: toggle === 'bid' ? 'var(--dm-terracotta)' : 'transparent',
+                  color: toggle === 'bid' ? 'white' : 'var(--dm-warm)',
                 }}>
                 <Gavel size={14} /> Let providers bid
               </button>
@@ -332,19 +332,19 @@ export default function JobPostingPage() {
                 : 'Your job stays open and providers send in price offers. You compare and pick whichever works best for you.'}
             </p>
 
-            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <div>
                 <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>What do you need? *</p>
                 <input value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="I need a plumber to fix a leaking pipe"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>Location *</p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)' }}>
                     <MapPin size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
                       placeholder="e.g. Lekki, Lagos"
@@ -356,7 +356,7 @@ export default function JobPostingPage() {
                     {toggle === 'book' ? 'Your fixed budget' : 'Starting budget (optional)'}
                   </p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)' }}>
                     <Wallet size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={budget} onChange={e => setBudget(e.target.value)}
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
@@ -384,7 +384,7 @@ export default function JobPostingPage() {
 
         {transaction && (
           <>
-            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>{transaction.attributes?.description}</p>
               <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>{transaction.attributes?.location}</p>
             </div>
@@ -405,7 +405,7 @@ export default function JobPostingPage() {
 
             {/* PENDING: bid/request accepted, awaiting escrow */}
             {transaction.status === 'PENDING' && isRequester && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
                 <p className="text-sm font-semibold mb-1" style={{ color: 'var(--dm-deep)' }}>Accepted - pay for protection to proceed</p>
                 <p className="text-xs mb-3" style={{ color: 'var(--dm-warm)' }}>
                   {formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)} will be held until you confirm the job is done.
@@ -427,7 +427,7 @@ export default function JobPostingPage() {
             {isRequester && (transaction.status === 'OPEN' || transaction.status === 'PENDING') && (
               <button onClick={cancelJob} disabled={cancelling}
                 className="w-full py-3 rounded-2xl text-sm font-bold border disabled:opacity-50 mt-3"
-                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
+                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: 'white' }}>
                 {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
@@ -435,7 +435,7 @@ export default function JobPostingPage() {
             {/* FUNDED: work in progress, both sides confirm independently,
                 the transaction only reaches COMPLETED once both have. */}
             {transaction.status === 'FUNDED' && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Lock size={14} style={{ color: '#5C8060' }} />
                   <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Protection funded</p>

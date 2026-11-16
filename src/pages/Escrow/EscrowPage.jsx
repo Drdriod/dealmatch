@@ -40,7 +40,7 @@ function ActiveEscrowSection() {
     <div className="mt-8 px-4 max-w-lg mx-auto">
       <h3 className="font-display text-lg font-black mb-4" style={{color:'var(--dm-deep)'}}>Active Protection</h3>
       {escrows.map(e => (
-        <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid #DEDDD6'}}>
+        <div key={e.id} className="rounded-3xl p-4 mb-3" style={{backgroundColor:'white',border:'1px solid var(--dm-line)'}}>
           <p className="font-bold text-sm" style={{color:'var(--dm-deep)'}}>{e.properties?.title}</p>
           <p className="text-xs mb-3" style={{color:'var(--dm-warm)'}}>{e.properties?.city} · ₦{Number(e.gross_amount).toLocaleString()}</p>
           {e.move_in_date && (
@@ -84,7 +84,7 @@ export default function EscrowPage() {
               style={{ backgroundColor:'rgba(122,158,126,0.2)' }}>
               <Shield size={32} style={{ color:'var(--dm-sage)' }} />
             </div>
-            <h1 className="font-display font-black text-3xl mb-3" style={{ color:'#FFFFFF' }}>
+            <h1 className="font-display font-black text-3xl mb-3" style={{ color:'white' }}>
               DealMatch Protection
             </h1>
             <p className="text-sm leading-relaxed mb-6" style={{ color:'rgba(255,255,255,0.55)' }}>
@@ -108,7 +108,7 @@ export default function EscrowPage() {
             {HOW_IT_WORKS.map((s, i) => (
               <div key={i} className="flex gap-4">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ backgroundColor:'rgba(23,33,27,0.04)', border:'1px solid #DEDDD6' }}>
+                  style={{ backgroundColor:'rgba(23,33,27,0.04)', border:'1px solid var(--dm-line)' }}>
                   {s.icon}
                 </div>
                 <div>

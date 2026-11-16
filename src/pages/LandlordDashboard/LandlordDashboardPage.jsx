@@ -11,8 +11,8 @@ import toast from 'react-hot-toast'
 const STATUS_STYLES = {
   active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
   pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#735618',  label: 'Under Review' },
-  paused:         { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F',  label: 'Paused' },
-  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: '#B8511E',  label: 'Rejected' },
+  paused:         { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)',  label: 'Paused' },
+  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: 'var(--dm-terracotta)',  label: 'Rejected' },
   sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
 }
 
@@ -20,8 +20,8 @@ const STATUS_STYLES = {
 const TONES = {
   good:  { bg: 'rgba(122,158,126,0.12)', color: '#5C8060' },
   warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#735618' },
-  bad:   { bg: 'rgba(200,95,45,0.12)',   color: '#B8511E' },
-  muted: { bg: 'rgba(23,33,27,0.08)',    color: '#5C665F' },
+  bad:   { bg: 'rgba(200,95,45,0.12)',   color: 'var(--dm-terracotta)' },
+  muted: { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)' },
 }
 
 const RENT_MONTHS = 6
@@ -101,9 +101,9 @@ export default function LandlordDashboardPage() {
   const occupiedCount = rentals.filter(p => p.status !== 'pending_review' && p.occupancy_status === 'occupied').length
   const vacantCount   = rentals.filter(p => p.status !== 'pending_review' && p.occupancy_status !== 'occupied').length
   const occupancySlices = [
-    { label: 'Occupied',       value: occupiedCount,  color: '#7A9E7E' },
-    { label: 'Vacant',         value: vacantCount,    color: '#B8511E' },
-    { label: 'Pending review', value: pendingReview,  color: '#D4A853' },
+    { label: 'Occupied',       value: occupiedCount,  color: 'var(--dm-sage)' },
+    { label: 'Vacant',         value: vacantCount,    color: 'var(--dm-terracotta)' },
+    { label: 'Pending review', value: pendingReview,  color: 'var(--dm-gold)' },
   ]
 
   return (
@@ -145,10 +145,10 @@ export default function LandlordDashboardPage() {
 
               {/* KPI row */}
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <KpiTile label="Rent collected" value={fmtNaira(collected6m)} spark={collectedByMonth} color="#D4A853" />
-                <KpiTile label="Active listings" value={activeCount} spark={listingsByMonth} color="#7A9E7E" />
+                <KpiTile label="Rent collected" value={fmtNaira(collected6m)} spark={collectedByMonth} color="var(--dm-gold)" />
+                <KpiTile label="Active listings" value={activeCount} spark={listingsByMonth} color="var(--dm-sage)" />
                 <div className="col-span-2">
-                  <KpiTile label="Enquiries" value={enquiries.length} spark={enquiriesByMonth} color="#B8511E" />
+                  <KpiTile label="Enquiries" value={enquiries.length} spark={enquiriesByMonth} color="var(--dm-terracotta)" />
                 </div>
               </div>
 
@@ -167,8 +167,8 @@ export default function LandlordDashboardPage() {
                           <button key={c.id} onClick={() => setSelectedProp(c.id)}
                             className="flex-shrink-0 max-w-[10rem] truncate px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
                             style={{
-                              backgroundColor: on ? '#D4A853' : 'rgba(255,255,255,0.06)',
-                              color:           on ? '#17211B' : 'rgba(255,255,255,0.7)',
+                              backgroundColor: on ? 'var(--dm-gold)' : 'rgba(255,255,255,0.06)',
+                              color:           on ? 'var(--dm-deep)' : 'rgba(255,255,255,0.7)',
                             }}>
                             {c.title}
                           </button>
@@ -181,8 +181,8 @@ export default function LandlordDashboardPage() {
                       format={fmtNum}
                       height={200}
                       series={[
-                        { key: 'collected',   label: 'Collected',   color: '#7A9E7E' },
-                        { key: 'outstanding', label: 'Outstanding', color: '#B8511E' },
+                        { key: 'collected',   label: 'Collected',   color: 'var(--dm-sage)' },
+                        { key: 'outstanding', label: 'Outstanding', color: 'var(--dm-terracotta)' },
                       ]}
                     />
                     <div className="flex items-center gap-4 mt-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
@@ -253,7 +253,7 @@ export default function LandlordDashboardPage() {
                 ) : (
                   <>
                     <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2.5 text-[10px] uppercase tracking-wider"
-                      style={{ color: 'var(--dm-warm)', borderBottom: '1px solid #DEDDD6' }}>
+                      style={{ color: 'var(--dm-warm)', borderBottom: '1px solid var(--dm-line)' }}>
                       <span>Property</span>
                       <span>Occupancy</span>
                       <span>This month</span>
@@ -265,7 +265,7 @@ export default function LandlordDashboardPage() {
                       return (
                         <Link key={p.id} to={`/property/${p.id}`}
                           className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-3"
-                          style={{ borderBottom: '1px solid #DEDDD6' }}>
+                          style={{ borderBottom: '1px solid var(--dm-line)' }}>
                           <div className="min-w-0">
                             <p className="font-semibold text-sm truncate" style={{ color: 'var(--dm-deep)' }}>{p.title}</p>
                             <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--dm-warm)' }}>
@@ -292,9 +292,9 @@ export default function LandlordDashboardPage() {
                 <button key={v} onClick={() => setTab(v)}
                   className="px-5 py-2.5 rounded-full text-sm font-semibold border transition-all"
                   style={{
-                    backgroundColor: tab === v ? '#17211B' : '#FFFFFF',
-                    color:           tab === v ? '#FFFFFF'  : '#5C4A3A',
-                    borderColor:     tab === v ? '#17211B'  : '#DEDDD6',
+                    backgroundColor: tab === v ? 'var(--dm-deep)' : 'white',
+                    color:           tab === v ? 'white'  : '#5C4A3A',
+                    borderColor:     tab === v ? 'var(--dm-deep)'  : 'var(--dm-line)',
                   }}>
                   {l}
                 </button>
@@ -332,13 +332,13 @@ export default function LandlordDashboardPage() {
                   <div className="flex gap-2">
                     <Link to={`/property/${l.id}`}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                      style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
+                      style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: 'white' }}>
                       <Eye size={12} /> View
                     </Link>
                     {(l.status === 'active' || l.status === 'paused') && (
                       <button onClick={() => togglePause(l)}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                        style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: '#FFFFFF' }}>
+                        style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: 'white' }}>
                         <Pause size={12} /> {l.status === 'active' ? 'Pause' : 'Activate'}
                       </button>
                     )}

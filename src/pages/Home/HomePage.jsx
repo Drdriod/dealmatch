@@ -291,7 +291,7 @@ export default function HomePage() {
           </p>
           <p className="text-sm font-bold mb-8 text-terracotta-dark">Every deal starts with a match.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
-            <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta text-white font-bold px-8 py-4 hover:bg-[#A8441D] transition-colors">
+            <Link to={isAuthenticated ? '/start' : '/auth?tab=signup'} className="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta text-white font-bold px-8 py-4 hover:bg-terracotta-dark transition-colors">
               Create an Offer <ArrowRight size={16} />
             </Link>
             <Link to="/search" className="btn-outline inline-flex items-center justify-center">Find Your Match</Link>

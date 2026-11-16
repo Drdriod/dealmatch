@@ -174,7 +174,7 @@ function InterestModal({ rental, onClose }) {
               <div key={f.key}>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                  className="input text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
               </div>
             ))}
 
@@ -182,12 +182,12 @@ function InterestModal({ rental, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Move-in Date</label>
                 <input type="date" value={form.moveIn} onChange={set('moveIn')} min={new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                  className="input text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Duration</label>
                 <select value={form.duration} onChange={set('duration')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
+                  style={{ backgroundColor:'white', color:'var(--dm-deep)' }}>
                   {[1,3,6,12,24].map(n => <option key={n} value={n}>{n} month{n>1?'s':''}</option>)}
                 </select>
               </div>
@@ -197,7 +197,7 @@ function InterestModal({ rental, onClose }) {
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Message (optional)</label>
               <textarea value={form.message} onChange={set('message')} rows={3}
                 placeholder="Tell the landlord about yourself..."
-                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                className="input resize-none text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
             </div>
 
             <button onClick={handleSend} disabled={sending || !form.name || !form.phone}
@@ -231,7 +231,7 @@ function RentalCard({ rental, onInterest }) {
       transition={{ duration: 0.35 }}
       whileHover={{ y: -4 }}
       className="rounded-3xl overflow-hidden"
-      style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}
+      style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}
     >
       <div className="h-48 relative">
         {img
@@ -240,12 +240,12 @@ function RentalCard({ rental, onInterest }) {
         }
         {rental.hostVerified && (
           <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
-            style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
+            style={{ backgroundColor: 'var(--dm-terracotta)', color: 'white' }}>
             Verified Host
           </div>
         )}
         <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-          style={{ backgroundColor: 'rgba(26,20,16,0.6)', color:'#FFFFFF', backdropFilter: 'blur(4px)' }}>
+          style={{ backgroundColor: 'rgba(26,20,16,0.6)', color:'white', backdropFilter: 'blur(4px)' }}>
           {placeBadge(rental)}
         </div>
       </div>
@@ -275,13 +275,13 @@ function RentalCard({ rental, onInterest }) {
         {isSaleListing(rental) ? (
           <Link to={`/property/${rental.id}`}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'var(--dm-terracotta)', color:'white' }}>
             View details
           </Link>
         ) : (
           <button onClick={() => onInterest(rental)}
             className="w-full py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-            style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
+            style={{ backgroundColor:'var(--dm-terracotta)', color:'white' }}>
             <MessageCircle size={14} /> I'm Interested
           </button>
         )}
@@ -378,7 +378,7 @@ export default function RentalsPage() {
             {[['grid','Grid'],['swipe','Swipe']].map(([v,l]) => (
               <button key={v} onClick={() => setViewMode(v)}
                 className="px-3 py-2 text-xs font-semibold transition-all"
-                style={{ backgroundColor: viewMode === v ? '#17211B' : '#FFFFFF', color: viewMode === v ? '#FFFFFF' : '#5C665F' }}>
+                style={{ backgroundColor: viewMode === v ? 'var(--dm-deep)' : 'white', color: viewMode === v ? 'white' : 'var(--dm-warm)' }}>
                 {l}
               </button>
             ))}
@@ -390,7 +390,7 @@ export default function RentalsPage() {
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'var(--dm-warm)' }} />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="What kind of place are you looking for?"
-            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+            className="input pl-11 text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
         </div>
 
         {/* Filters row 1 - kind of place (groups from the database, then subcategories) */}
@@ -401,9 +401,9 @@ export default function RentalsPage() {
                 <button key={g.slug || 'all'} onClick={() => { setKindGroup(g.slug); setKindLeaf('') }}
                   className="px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                   style={{
-                    backgroundColor: kindGroup === g.slug ? '#17211B' : '#FFFFFF',
-                    color:           kindGroup === g.slug ? '#FFFFFF' : '#5C4A3A',
-                    borderColor:     kindGroup === g.slug ? '#17211B' : '#DEDDD6',
+                    backgroundColor: kindGroup === g.slug ? 'var(--dm-deep)' : 'white',
+                    color:           kindGroup === g.slug ? 'white' : '#5C4A3A',
+                    borderColor:     kindGroup === g.slug ? 'var(--dm-deep)' : 'var(--dm-line)',
                   }}>{g.name}</button>
               ))}
             </div>
@@ -413,9 +413,9 @@ export default function RentalsPage() {
                   <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug)}
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                     style={{
-                      backgroundColor: kindLeaf === c.slug ? '#B8511E' : '#FFFFFF',
-                      color:           kindLeaf === c.slug ? '#FFFFFF' : '#5C4A3A',
-                      borderColor:     kindLeaf === c.slug ? '#B8511E' : '#DEDDD6',
+                      backgroundColor: kindLeaf === c.slug ? 'var(--dm-terracotta)' : 'white',
+                      color:           kindLeaf === c.slug ? 'white' : '#5C4A3A',
+                      borderColor:     kindLeaf === c.slug ? 'var(--dm-terracotta)' : 'var(--dm-line)',
                     }}>{c.name}</button>
                 ))}
               </div>
@@ -429,9 +429,9 @@ export default function RentalsPage() {
             <button key={s} onClick={() => setStateF(s)}
               className="px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
-                backgroundColor: stateF === s ? '#17211B' : '#FFFFFF',
-                color:           stateF === s ? '#FFFFFF' : '#5C4A3A',
-                borderColor:     stateF === s ? '#17211B' : '#DEDDD6',
+                backgroundColor: stateF === s ? 'var(--dm-deep)' : 'white',
+                color:           stateF === s ? 'white' : '#5C4A3A',
+                borderColor:     stateF === s ? 'var(--dm-deep)' : 'var(--dm-line)',
               }}>{s}</button>
           ))}
         </div>
@@ -460,7 +460,7 @@ export default function RentalsPage() {
                       <div key={r.id} style={{ position:'absolute', inset:0, transform:`scale(${1 - offset * 0.04}) translateY(${offset * -10}px)`, transformOrigin:'bottom center', zIndex:i, pointerEvents: isTop ? 'auto' : 'none' }}>
                         {isTop
                           ? <SwipeCard property={r} matchScore={null} matchReasons={[]} onSwipe={handleSwipe} />
-                          : <div className="rounded-3xl w-full h-full opacity-50" style={{ backgroundColor:'#FFFAF5', border:'1px solid #DEDDD6' }} />
+                          : <div className="rounded-3xl w-full h-full opacity-50" style={{ backgroundColor:'#FFFAF5', border:'1px solid var(--dm-line)' }} />
                         }
                       </div>
                     )

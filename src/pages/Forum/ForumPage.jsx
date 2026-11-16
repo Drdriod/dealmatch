@@ -71,8 +71,8 @@ function NewThreadForm({ categorySlugPath, onCreated }) {
           <button key={t} onClick={() => setThreadType(t)}
             className="text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{
-              background: threadType === t ? '#B8511E' : '#F7F4ED',
-              color: threadType === t ? '#fff' : '#5C665F',
+              background: threadType === t ? 'var(--dm-terracotta)' : 'var(--dm-cream)',
+              color: threadType === t ? '#fff' : 'var(--dm-warm)',
             }}>
             {t === 'QUESTION' ? 'Ask a question' : 'Start a discussion'}
           </button>
@@ -315,7 +315,7 @@ function ThreadView({ category, breadcrumb, thread, posts, onPosted }) {
       <div className="space-y-4">
         {localPosts.map(p => (
           <div key={p.id} className="p-4 rounded-2xl border" style={{
-            borderColor: p.id === thread.accepted_post_id ? '#7A9E7E' : '#DEDDD6',
+            borderColor: p.id === thread.accepted_post_id ? 'var(--dm-sage)' : 'var(--dm-line)',
             background: p.id === thread.accepted_post_id ? '#F3F8F3' : '#fff',
           }}>
             {p.id === thread.accepted_post_id && (

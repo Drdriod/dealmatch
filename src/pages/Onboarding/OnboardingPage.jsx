@@ -268,7 +268,7 @@ export default function OnboardingPage() {
                 return (
                   <button key={c.id} type="button" onClick={() => chooseIntent(c.id)} aria-pressed={active}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
+                    style={{ borderColor: active ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: active ? 'rgba(200,95,45,0.05)' : 'white' }}>
                     <span className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                       <Icon size={20} style={{ color: 'var(--dm-terracotta)' }} />
                     </span>
@@ -298,7 +298,7 @@ export default function OnboardingPage() {
                 return (
                   <button key={o.id} type="button" onClick={() => togglePick(o.id)} aria-pressed={active}
                     className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? '#B8511E' : '#DEDDD6', backgroundColor: active ? 'rgba(200,95,45,0.05)' : '#FFFFFF' }}>
+                    style={{ borderColor: active ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: active ? 'rgba(200,95,45,0.05)' : 'white' }}>
                     <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                       <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
                     </span>
@@ -321,7 +321,7 @@ export default function OnboardingPage() {
             <div className="flex gap-3 mt-7">
               {usedChooser ? (
                 <button type="button" onClick={() => setStage('intent')} disabled={saving} aria-label="Back"
-                  className="px-5 py-4 rounded-2xl border" style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)', backgroundColor: '#FFFFFF' }}>
+                  className="px-5 py-4 rounded-2xl border" style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)', backgroundColor: 'white' }}>
                   <ArrowLeft size={16} />
                 </button>
               ) : null}

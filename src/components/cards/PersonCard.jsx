@@ -35,7 +35,7 @@ export default function PersonCard({ person }) {
       to={`/provider/${person.id}`}
       {...cardMotion}
       className="group flex-shrink-0 block rounded-[19px] overflow-hidden transition-shadow hover:shadow-card-hover"
-      style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', width: 260 }}
+      style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', width: 260 }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
         {person.avatar ? (
@@ -48,7 +48,7 @@ export default function PersonCard({ person }) {
           </div>
         )}
         <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold"
-          style={{ backgroundColor: person.trusted ? '#234C3A' : 'rgba(23,33,27,0.75)', color: '#FFFFFF', backdropFilter: 'blur(4px)' }}>
+          style={{ backgroundColor: person.trusted ? 'var(--dm-forest)' : 'rgba(23,33,27,0.75)', color: 'white', backdropFilter: 'blur(4px)' }}>
           <ShieldCheck size={11} /> {person.trusted ? 'Trusted' : 'Verified'}
         </div>
       </div>

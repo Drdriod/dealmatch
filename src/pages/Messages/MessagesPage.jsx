@@ -50,7 +50,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
               <button key={n} onClick={() => setRating(n)}
                 onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
                 className="text-4xl transition-transform hover:scale-110">
-                <span style={{ color: n <= (hover || rating) ? '#D4A853' : '#DEDDD6' }}><Star size={16} className="text-gold" /></span>
+                <span style={{ color: n <= (hover || rating) ? 'var(--dm-gold)' : 'var(--dm-line)' }}><Star size={16} className="text-gold" /></span>
               </button>
             ))}
           </div>
@@ -61,7 +61,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
           )}
           <textarea value={text} onChange={e => setText(e.target.value)} rows={3}
             placeholder="Share your experience with this property and landlord..."
-            className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+            className="input resize-none text-sm w-full" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
           <div className="flex gap-3">
             <button onClick={onClose}
               className="flex-1 py-3 rounded-2xl text-sm font-semibold border"
@@ -119,7 +119,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
               {REASONS.map(r => (
                 <button key={r} onClick={() => setReason(r)}
                   className="px-3 py-2 rounded-full text-xs font-medium border-2 transition-all"
-                  style={{ borderColor: reason === r ? '#B8511E' : '#DEDDD6', backgroundColor: reason === r ? '#B8511E' : '#FFFFFF', color: reason === r ? '#FFFFFF' : '#5C4A3A' }}>
+                  style={{ borderColor: reason === r ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: reason === r ? 'var(--dm-terracotta)' : 'white', color: reason === r ? 'white' : '#5C4A3A' }}>
                   {r}
                 </button>
               ))}
@@ -129,7 +129,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Description *</label>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={4}
               placeholder="Describe what happened in detail..."
-              className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+              className="input resize-none text-sm w-full" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
           </div>
           <div className="rounded-xl p-3" style={{ backgroundColor:'rgba(200,95,45,0.08)', border:'1px solid rgba(200,95,45,0.2)' }}>
             <p className="text-xs" style={{ color:'var(--dm-terracotta)' }}>
@@ -140,7 +140,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
             <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-sm font-semibold border" style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>Cancel</button>
             <button onClick={handleSubmit} disabled={saving || !reason || !desc}
               className="flex-1 py-3 rounded-2xl text-sm font-bold"
-              style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF', opacity: (!reason || !desc) ? 0.5 : 1 }}>
+              style={{ backgroundColor:'var(--dm-terracotta)', color:'white', opacity: (!reason || !desc) ? 0.5 : 1 }}>
               {saving ? 'Filing...' : 'File Dispute'}
             </button>
           </div>
@@ -238,14 +238,14 @@ function MessageThread({ thread, currentUserId, onBack }) {
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-sm"
                 style={{
-                  backgroundColor: isMe ? '#B8511E' : '#FFFFFF',
-                  color:           isMe ? '#FFFFFF' : '#17211B',
+                  backgroundColor: isMe ? 'var(--dm-terracotta)' : 'white',
+                  color:           isMe ? 'white' : 'var(--dm-deep)',
                   borderRadius:    isMe ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                  border:          isMe ? 'none' : '1px solid #DEDDD6',
+                  border:          isMe ? 'none' : '1px solid var(--dm-line)',
                 }}>
                 {!isMe && <p className="text-[10px] font-semibold mb-0.5" style={{ color:'var(--dm-terracotta)' }}>{msg.sender_name}</p>}
                 <p className="leading-relaxed">{msg.content}</p>
-                <p className="text-[10px] mt-1 text-right" style={{ color: isMe ? 'rgba(255,255,255,0.6)' : '#5C665F' }}>
+                <p className="text-[10px] mt-1 text-right" style={{ color: isMe ? 'rgba(255,255,255,0.6)' : 'var(--dm-warm)' }}>
                   {new Date(msg.created_at).toLocaleTimeString('en-NG',{ hour:'2-digit', minute:'2-digit' })}
                 </p>
               </div>
@@ -261,10 +261,10 @@ function MessageThread({ thread, currentUserId, onBack }) {
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
           placeholder="Write a message"
           className="flex-1 px-4 py-3 rounded-2xl border text-sm outline-none"
-          style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)', borderColor:'var(--dm-line)' }} />
+          style={{ backgroundColor:'white', color:'var(--dm-deep)', borderColor:'var(--dm-line)' }} />
         <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
           className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all"
-          style={{ backgroundColor: newMsg.trim() ? '#B8511E' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? '#FFFFFF' : '#5C665F' }}>
+          style={{ backgroundColor: newMsg.trim() ? 'var(--dm-terracotta)' : 'rgba(23,33,27,0.08)', color: newMsg.trim() ? 'white' : 'var(--dm-warm)' }}>
           <Send size={16} />
         </button>
       </div>
@@ -388,7 +388,7 @@ export default function MessagesPage() {
             {threads.map(t => (
               <button key={t.id} onClick={() => setActiveThread(t)}
                 className="w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:-translate-y-0.5"
-                style={{ backgroundColor: t.unread ? 'rgba(200,95,45,0.04)' : '#FFFAF5', borderColor: t.unread ? 'rgba(200,95,45,0.25)' : '#DEDDD6' }}>
+                style={{ backgroundColor: t.unread ? 'rgba(200,95,45,0.04)' : '#FFFAF5', borderColor: t.unread ? 'rgba(200,95,45,0.25)' : 'var(--dm-line)' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-black text-lg"
                   style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'var(--dm-terracotta)' }}>
                   {t.other_user_name[0] || '?'}
@@ -403,7 +403,7 @@ export default function MessagesPage() {
                     </p>
                   </div>
                   <p className="text-xs truncate" style={{ color:'var(--dm-warm)' }}>{t.property_title}</p>
-                  <p className="text-xs truncate mt-0.5" style={{ color: t.unread ? '#17211B' : '#5C665F', fontWeight: t.unread ? 600 : 400 }}>
+                  <p className="text-xs truncate mt-0.5" style={{ color: t.unread ? 'var(--dm-deep)' : 'var(--dm-warm)', fontWeight: t.unread ? 600 : 400 }}>
                     {t.last_message}
                   </p>
                 </div>

@@ -8,7 +8,7 @@ const ease = [0.22, 1, 0.36, 1]
 // role="status" so they do not interrupt.
 const VARIANTS = {
   info: {
-    icon: Info, role: 'status', tone: '#17211B',
+    icon: Info, role: 'status', tone: 'var(--dm-deep)',
     bg: 'rgba(23,33,27,0.04)', border: 'rgba(23,33,27,0.14)',
   },
   success: {
@@ -20,7 +20,7 @@ const VARIANTS = {
     bg: 'rgba(214,160,60,0.14)', border: 'rgba(214,160,60,0.45)',
   },
   error: {
-    icon: XCircle, role: 'alert', tone: '#A8441D',
+    icon: XCircle, role: 'alert', tone: 'var(--dm-terracotta-dark)',
     bg: 'rgba(200,95,45,0.10)', border: 'rgba(200,95,45,0.4)',
   },
 }

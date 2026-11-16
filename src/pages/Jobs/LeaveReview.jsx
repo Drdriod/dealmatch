@@ -45,12 +45,12 @@ export default function LeaveReview({ transactionId, providerId, reviewerId }) {
   }
 
   return (
-    <div className="mt-6 rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+    <div className="mt-6 rounded-2xl p-5" style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
       <p className="text-sm font-semibold mb-3" style={{ color: 'var(--dm-deep)' }}>How did it go?</p>
       <div className="flex gap-1 mb-3" role="radiogroup" aria-label="Rating">
         {[1, 2, 3, 4, 5].map(n => (
           <button key={n} type="button" role="radio" aria-checked={rating === n} onClick={() => setRating(n)}
-            className="text-2xl leading-none" style={{ color: n <= rating ? '#D4A853' : '#D8C9B8' }}
+            className="text-2xl leading-none" style={{ color: n <= rating ? 'var(--dm-gold)' : '#D8C9B8' }}
             aria-label={`${n} star${n === 1 ? '' : 's'}`}>★</button>
         ))}
       </div>

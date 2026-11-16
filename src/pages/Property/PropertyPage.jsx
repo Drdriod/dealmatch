@@ -127,10 +127,10 @@ export default function PropertyPage() {
 
       {/* Back & share bar */}
       <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3"
-        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
+        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--dm-line)' }}>
         <button onClick={() => navigate(-1)}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: 'white' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
         <span className="font-display font-black text-base capitalize" style={{ color: 'var(--dm-deep)' }}>
@@ -138,7 +138,7 @@ export default function PropertyPage() {
         </span>
         <button onClick={handleShare}
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: 'white' }}>
           <Share2 size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
       </div>
@@ -175,21 +175,21 @@ export default function PropertyPage() {
         {/* Key stats */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {property.bedrooms  && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <Bed size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
               <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.bedrooms}</p>
               <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Bedrooms</p>
             </div>
           )}
           {property.bathrooms && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <Bath size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
               <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.bathrooms}</p>
               <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Bathrooms</p>
             </div>
           )}
           {property.size_sqm  && (
-            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <Maximize size={18} className="mx-auto mb-1" style={{ color: 'var(--dm-terracotta)' }} />
               <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{property.size_sqm}</p>
               <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>sqm</p>
@@ -199,7 +199,7 @@ export default function PropertyPage() {
 
         {/* Description */}
         {property.description && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <h3 className="font-display font-black text-base mb-2" style={{ color: 'var(--dm-deep)' }}>Overview</h3>
             <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{property.description}</p>
           </div>
@@ -207,7 +207,7 @@ export default function PropertyPage() {
 
         {/* Features */}
         {property.features?.length > 0 && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>Details</h3>
             <div className="flex flex-wrap gap-2">
               {property.features.map(f => (
@@ -222,7 +222,7 @@ export default function PropertyPage() {
 
         {/* Documents */}
         {property.documents?.length > 0 && (
-          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+          <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <h3 className="font-display font-black text-base mb-3" style={{ color: 'var(--dm-deep)' }}>Documents available</h3>
             <div className="space-y-2">
               {property.documents.map(d => (
@@ -243,7 +243,7 @@ export default function PropertyPage() {
         {/* Seller */}
         {property.profiles && (
           <div className="rounded-2xl p-4 mb-5 border flex items-center gap-3"
-            style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
               {property.profiles.avatar_url
@@ -261,16 +261,16 @@ export default function PropertyPage() {
 
       {/* Fixed bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-20 p-4"
-        style={{ backgroundColor: 'rgba(255,250,245,0.97)', backdropFilter: 'blur(10px)', borderTop: '1px solid #DEDDD6' }}>
+        style={{ backgroundColor: 'rgba(255,250,245,0.97)', backdropFilter: 'blur(10px)', borderTop: '1px solid var(--dm-line)' }}>
         <div className="max-w-2xl mx-auto flex gap-3">
           <button onClick={handleLike} disabled={liked} aria-label="Save Listing"
             className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all flex-shrink-0"
             style={{
-              borderColor:     liked ? '#7A9E7E' : '#DEDDD6',
-              backgroundColor: liked ? 'rgba(122,158,126,0.1)' : '#FFFFFF',
-              color:           liked ? '#7A9E7E' : '#B8511E',
+              borderColor:     liked ? 'var(--dm-sage)' : 'var(--dm-line)',
+              backgroundColor: liked ? 'rgba(122,158,126,0.1)' : 'white',
+              color:           liked ? 'var(--dm-sage)' : 'var(--dm-terracotta)',
             }}>
-            <Heart size={18} fill={liked ? '#7A9E7E' : 'none'} />
+            <Heart size={18} fill={liked ? 'var(--dm-sage)' : 'none'} />
           </button>
           <button onClick={handleContact} className="btn-primary flex-1 py-3.5 flex items-center justify-center gap-2">
             {contact?.phone

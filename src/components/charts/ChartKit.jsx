@@ -14,10 +14,10 @@ export const CHART = {
   grid: 'rgba(255,255,255,0.07)',
   axis: 'rgba(255,255,255,0.38)',
   crosshair: 'rgba(212,168,83,0.55)',
-  indicator: '#D4A853',
-  surface: '#17211B',
+  indicator: 'var(--dm-gold)',
+  surface: 'var(--dm-deep)',
   text: '#FFFAF5',
-  palette: ['#7A9E7E', '#D4A853', '#B8511E', '#F3C96A', '#4A7A4E', '#F0D4BE'],
+  palette: ['var(--dm-sage)', 'var(--dm-gold)', 'var(--dm-terracotta)', '#F3C96A', '#4A7A4E', '#F0D4BE'],
 }
 
 export const fmtNum = (n) => {
@@ -317,7 +317,7 @@ export function KpiTile({ label, value, delta, deltaLabel, spark, color = CHART.
       <div className="flex items-end justify-between gap-2">
         <p className="text-2xl font-bold text-white leading-none">{value}</p>
         {delta !== undefined && delta !== null && (
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: up ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)', color: up ? '#7A9E7E' : '#B8511E' }}>
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: up ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)', color: up ? 'var(--dm-sage)' : 'var(--dm-terracotta)' }}>
             {up ? '+' : ''}{delta}%{deltaLabel ? ` ${deltaLabel}` : ''}
           </span>
         )}

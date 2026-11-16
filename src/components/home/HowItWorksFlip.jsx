@@ -49,7 +49,7 @@ export default function HowItWorksFlip() {
                 {j.steps.map((s, i) => (
                   <li key={s.title} className="flex gap-4">
                     <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--dm-terracotta)' }}>
-                      <s.icon size={19} color="#FFFFFF" />
+                      <s.icon size={19} color="white" />
                     </span>
                     <div>
                       <p className="font-bold text-white text-sm"><span style={{ color: '#F3C96A' }}>{i + 1}.</span> {s.title}</p>

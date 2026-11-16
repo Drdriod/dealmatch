@@ -14,10 +14,10 @@ import toast from 'react-hot-toast'
 const AGENT_ROLES = ['agent', 'admin']
 
 const STATUS_FLOW = {
-  pending_review:      { label:'Awaiting Verification', color:'#D4A853', bg:'rgba(212,168,83,0.12)', next:'under_verification' },
+  pending_review:      { label:'Awaiting Verification', color:'var(--dm-gold)', bg:'rgba(212,168,83,0.12)', next:'under_verification' },
   under_verification:  { label:'Agent Assigned',        color:'#5B8DEF', bg:'rgba(91,141,239,0.12)', next:'active' },
   active:              { label:'Verified & Live',        color:'#5C8060', bg:'rgba(122,158,126,0.12)', next:null },
-  rejected:            { label:'Rejected',               color:'#B8511E', bg:'rgba(200,95,45,0.12)', next:null },
+  rejected:            { label:'Rejected',               color:'var(--dm-terracotta)', bg:'rgba(200,95,45,0.12)', next:null },
 }
 
 export default function VerificationPage() {
@@ -105,7 +105,7 @@ export default function VerificationPage() {
           <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Verification Workflow</p>
           <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'var(--dm-warm)' }}>
             {['Landlord Submits','→','Agent Visits Location','→','Agent Verifies / Rejects','→','Property Goes Live'].map((s,i) => (
-              <span key={i} style={{ color: s === '→' ? '#B8511E' : undefined }}>{s}</span>
+              <span key={i} style={{ color: s === '→' ? 'var(--dm-terracotta)' : undefined }}>{s}</span>
             ))}
           </div>
         </div>
@@ -118,9 +118,9 @@ export default function VerificationPage() {
               <button key={f.key} onClick={() => setFilter(f.key)}
                 className="px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                 style={{
-                  backgroundColor: filter === f.key ? '#17211B' : '#FFFFFF',
-                  color:           filter === f.key ? '#FFFFFF'  : '#5C4A3A',
-                  borderColor:     filter === f.key ? '#17211B'  : '#DEDDD6',
+                  backgroundColor: filter === f.key ? 'var(--dm-deep)' : 'white',
+                  color:           filter === f.key ? 'white'  : '#5C4A3A',
+                  borderColor:     filter === f.key ? 'var(--dm-deep)'  : 'var(--dm-line)',
                 }}>
                 {f.label}
               </button>
@@ -145,7 +145,7 @@ export default function VerificationPage() {
               return (
                 <motion.div key={listing.id} layout
                   className="rounded-2xl border overflow-hidden cursor-pointer transition-all"
-                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? '#B8511E' : '#DEDDD6' }}
+                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? 'var(--dm-terracotta)' : 'var(--dm-line)' }}
                   onClick={() => setSelected(isSelected ? null : listing)}>
 
                   <div className="flex gap-0">
@@ -221,7 +221,7 @@ export default function VerificationPage() {
                         </label>
                         <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
                           placeholder="Add any notes from the site visit"
-                          className="input resize-none text-sm w-full" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                          className="input resize-none text-sm w-full" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
                       </div>
 
                       {/* Action buttons */}

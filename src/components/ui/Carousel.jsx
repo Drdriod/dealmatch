@@ -100,7 +100,7 @@ export default function Carousel({ items, renderItem, perPage = 3, autoPlayMs = 
         <div className="flex items-center justify-center gap-4 mt-4">
           <button onClick={prev} aria-label="Previous"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
+            style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}>
             <ChevronLeft size={15} />
           </button>
           <div className="flex items-center gap-1.5">
@@ -109,13 +109,13 @@ export default function Carousel({ items, renderItem, perPage = 3, autoPlayMs = 
                 className="rounded-full transition-all"
                 style={{
                   width: i === page ? 18 : 6, height: 6,
-                  backgroundColor: i === page ? '#B8511E' : '#DEDDD6',
+                  backgroundColor: i === page ? 'var(--dm-terracotta)' : 'var(--dm-line)',
                 }} />
             ))}
           </div>
           <button onClick={next} aria-label="Next"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
+            style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}>
             <ChevronRight size={15} />
           </button>
         </div>

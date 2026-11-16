@@ -52,8 +52,8 @@ export default function MobileTabBar() {
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch"
         style={{
-          backgroundColor: '#F7F4ED',
-          borderTop: '1px solid #DEDDD6',
+          backgroundColor: 'var(--dm-cream)',
+          borderTop: '1px solid var(--dm-line)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
@@ -62,7 +62,7 @@ export default function MobileTabBar() {
           const Icon = pillar.slug === 'place' ? Building2 : User
           return (
             <Link key={pillar.slug} to={pillar.route} className={linkClass}
-              style={{ color: active ? '#B8511E' : '#5C665F' }}>
+              style={{ color: active ? 'var(--dm-terracotta)' : 'var(--dm-warm)' }}>
               {active && <TabPill />}
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">{pillar.name}</span>
@@ -78,8 +78,8 @@ export default function MobileTabBar() {
             className="absolute flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
             style={{
               width: 52, height: 52, top: -20,
-              backgroundColor: '#B8511E', color: '#FFFFFF',
-              border: '4px solid #F7F4ED',
+              backgroundColor: 'var(--dm-terracotta)', color: 'white',
+              border: '4px solid var(--dm-cream)',
             }}>
             <Plus size={24} strokeWidth={2.5} />
           </button>
@@ -89,13 +89,13 @@ export default function MobileTabBar() {
         {isAuthenticated ? (
           <>
             <Link to="/messages" className={linkClass}
-              style={{ color: isActivePath('/messages') ? '#B8511E' : '#5C665F' }}>
+              style={{ color: isActivePath('/messages') ? 'var(--dm-terracotta)' : 'var(--dm-warm)' }}>
               {isActivePath('/messages') && <TabPill />}
               <Inbox size={20} strokeWidth={isActivePath('/messages') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Inbox</span>
             </Link>
             <Link to="/profile" className={linkClass}
-              style={{ color: isActivePath('/profile') ? '#B8511E' : '#5C665F' }}>
+              style={{ color: isActivePath('/profile') ? 'var(--dm-terracotta)' : 'var(--dm-warm)' }}>
               {isActivePath('/profile') && <TabPill />}
               <User size={20} strokeWidth={isActivePath('/profile') ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">Profile</span>
@@ -103,7 +103,7 @@ export default function MobileTabBar() {
           </>
         ) : (
           <Link to="/auth" className={linkClass}
-            style={{ color: isActivePath('/auth') ? '#B8511E' : '#5C665F' }}>
+            style={{ color: isActivePath('/auth') ? 'var(--dm-terracotta)' : 'var(--dm-warm)' }}>
             {isActivePath('/auth') && <TabPill />}
             <User size={20} strokeWidth={isActivePath('/auth') ? 2.5 : 2} />
             <span className="text-[10px] font-semibold">Sign In</span>
@@ -124,7 +124,7 @@ export default function MobileTabBar() {
               transition={{ duration: 0.24, ease }}
               className="md:hidden fixed left-0 right-0 bottom-0 z-[61] rounded-t-3xl px-5 pt-4"
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'white',
                 paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
               }}>
               <div className="flex items-center justify-between mb-4">
@@ -139,7 +139,7 @@ export default function MobileTabBar() {
                   return (
                     <button key={choice.to} onClick={() => goTo(choice.to)}
                       className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left"
-                      style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6' }}>
+                      style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid var(--dm-line)' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
                         <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
                       </div>

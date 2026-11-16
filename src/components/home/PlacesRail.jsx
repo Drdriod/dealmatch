@@ -29,7 +29,7 @@ export default function PlacesRail() {
         {places === null ? (
           <div className="flex gap-4 overflow-hidden">
             {[0, 1, 2].map(i => (
-              <div key={i} className="flex-shrink-0 rounded-3xl overflow-hidden animate-pulse" style={{ width: 260, backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+              <div key={i} className="flex-shrink-0 rounded-3xl overflow-hidden animate-pulse" style={{ width: 260, backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
                 <div style={{ aspectRatio: '4 / 3', backgroundColor: '#EFE6D8' }} />
                 <div className="p-4 space-y-2">
                   <div className="h-3 w-2/3 rounded" style={{ backgroundColor: '#EFE6D8' }} />
