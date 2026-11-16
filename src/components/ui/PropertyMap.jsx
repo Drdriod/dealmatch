@@ -14,7 +14,7 @@ const LIBRARIES = ['places', 'geometry']
 
 const MAP_STYLES = [
   { elementType: 'geometry', stylers: [{ color: 'var(--dm-cream)' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-charcoal)' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: 'var(--dm-cream)' }] },
   { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-terracotta)' }] },
   { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-warm)' }] },
@@ -33,7 +33,7 @@ const AMENITY_TYPES = [
   { type: 'school',        label: 'Schools',   icon: <GraduationCap size={14} className="text-white" />, color: 'var(--dm-sage)' },
   { type: 'hospital',      label: 'Hospitals', icon: <Building2 size={14} className="text-white" />, color: 'var(--dm-terracotta)' },
   { type: 'shopping_mall', label: 'Shopping',  icon: <ShoppingBag size={14} className="text-white" />, color: 'var(--dm-gold)' },
-  { type: 'bank',          label: 'Banks',     icon: <Landmark size={14} className="text-white" />, color: '#1F2B24' },
+  { type: 'bank',          label: 'Banks',     icon: <Landmark size={14} className="text-white" />, color: 'var(--dm-charcoal)' },
 ]
 
 const formatPrice = (n) => {

@@ -230,7 +230,7 @@ export default function OnboardingPage() {
   const stepNo = stage === 'intent' ? 1 : (usedChooser ? 2 : 1)
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <header className="max-w-md mx-auto flex items-center justify-between px-4 pt-5">
         <Link to="/" className="flex items-center gap-2 font-display text-xl font-black" style={{ color: 'var(--dm-deep)' }}>
           <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />

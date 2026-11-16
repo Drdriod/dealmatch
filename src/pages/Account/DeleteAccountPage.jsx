@@ -7,7 +7,7 @@ import DeleteAccountPanel from '@/components/DeleteAccountPanel'
 export default function DeleteAccountPage() {
   const { user } = useAuth()
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="max-w-2xl mx-auto px-6">
         <h1 className="font-display font-black text-3xl mb-2" style={{ color: 'var(--dm-deep)' }}>Delete your DealMatch account</h1>
         <p className="text-sm mb-6" style={{ color: '#5C4F49' }}>

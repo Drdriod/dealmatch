@@ -16,7 +16,7 @@ export default function BookingReceipt({ booking, onClose }) {
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm rounded-3xl overflow-hidden"
-        style={{ backgroundColor: '#FFFAF5' }}>
+        style={{ backgroundColor: 'var(--dm-paper)' }}>
 
         {/* Header */}
         <div className="p-5 text-center relative" style={{ backgroundColor: 'var(--dm-deep)' }}>
@@ -56,7 +56,7 @@ export default function BookingReceipt({ booking, onClose }) {
         <div className="flex gap-3 px-5 pb-5">
           <button onClick={handleShare}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold border"
-            style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
+            style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)' }}>
             <Share2 size={14} /> Share
           </button>
           <button onClick={onClose} className="btn-primary flex-1 py-3 text-sm">Done</button>

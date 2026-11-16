@@ -121,7 +121,7 @@ export default function SearchPage() {
   const keywordOnly = (results || []).filter(r => !(r.source === 'category_listings' && aiIds.has(r.item_id)))
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#EEE9DE' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-cream-deep)' }}>
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="font-display text-2xl font-black mb-1" style={{ color: 'var(--dm-deep)' }}>What are you looking for?</h1>
         <p className="text-xs mb-5" style={{ color: 'var(--dm-warm)' }}>
@@ -148,7 +148,7 @@ export default function SearchPage() {
         <div className="flex items-center gap-3 mb-6">
           <button type="button" onClick={requestLocation}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: coords ? 'rgba(122,158,126,0.15)' : 'rgba(0,0,0,0.05)', color: coords ? '#4F7A54' : '#5C4A3A' }}>
+            style={{ backgroundColor: coords ? 'rgba(122,158,126,0.15)' : 'rgba(0,0,0,0.05)', color: coords ? '#4F7A54' : 'var(--dm-bark)' }}>
             <MapPin size={12} />
             {coords ? 'Using your location' : locStatus === 'requesting' ? 'Locating...' : 'Search near me'}
           </button>
@@ -192,7 +192,7 @@ export default function SearchPage() {
         {loading && <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Searching...</p>}
 
         {!loading && results !== null && aiResults.length === 0 && keywordOnly.length === 0 && (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
             <p className="font-semibold text-sm mb-1" style={{ color: 'var(--dm-deep)' }}>We couldn't find a match for your search.</p>
             <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>Try different search terms, or widen your search area.</p>
           </div>
@@ -235,7 +235,7 @@ export default function SearchPage() {
                     style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
-                        style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#5C4A3A' }}>
+                        style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--dm-bark)' }}>
                         {SOURCE_LABEL[r.source] || r.category_name}
                       </span>
                     </div>

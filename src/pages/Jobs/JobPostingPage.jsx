@@ -275,7 +275,7 @@ export default function JobPostingPage() {
   }
 
   if (loadingExisting) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading job...</p>
     </div>
   )
@@ -283,7 +283,7 @@ export default function JobPostingPage() {
   const isRequester = transaction && user && transaction.requester_id === user.id
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
         style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--dm-line)' }}>
         <button onClick={() => navigate(-1)} aria-label="Go back"
@@ -427,7 +427,7 @@ export default function JobPostingPage() {
             {isRequester && (transaction.status === 'OPEN' || transaction.status === 'PENDING') && (
               <button onClick={cancelJob} disabled={cancelling}
                 className="w-full py-3 rounded-2xl text-sm font-bold border disabled:opacity-50 mt-3"
-                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: 'white' }}>
+                style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-danger)', backgroundColor: 'white' }}>
                 {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
@@ -437,7 +437,7 @@ export default function JobPostingPage() {
             {transaction.status === 'FUNDED' && (
               <div className="rounded-2xl p-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Lock size={14} style={{ color: '#5C8060' }} />
+                  <Lock size={14} style={{ color: 'var(--dm-moss)' }} />
                   <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Protection funded</p>
                 </div>
 
@@ -473,7 +473,7 @@ export default function JobPostingPage() {
               <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>This request was cancelled.</p>
             )}
             {transaction.status === 'DISPUTED' && (
-              <p className="text-xs text-center py-8" style={{ color: '#C94A3A' }}>
+              <p className="text-xs text-center py-8" style={{ color: 'var(--dm-danger)' }}>
                 A dispute is open on this job. Our team will review within 24 hours.
               </p>
             )}

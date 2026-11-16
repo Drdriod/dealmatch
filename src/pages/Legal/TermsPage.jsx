@@ -13,7 +13,7 @@ export default function TermsPage() {
   const escrowSentence = escrowFeeSentence(fees) ?? pending
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="max-w-2xl mx-auto px-6">
         <h1 className="font-display font-black text-3xl mb-2" style={{ color: 'var(--dm-deep)' }}>Terms of Service</h1>
         <p className="text-xs mb-8" style={{ color: 'var(--dm-warm)' }}>Last updated: {LAST_UPDATED}</p>
@@ -28,7 +28,7 @@ export default function TermsPage() {
         ].map(s => (
           <div key={s.title} className="mb-6">
             <h2 className="font-display font-black text-lg mb-2" style={{ color: 'var(--dm-deep)' }}>{s.title}</h2>
-            <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{s.body}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--dm-bark)' }}>{s.body}</p>
           </div>
         ))}
       </div>

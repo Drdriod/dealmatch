@@ -76,7 +76,7 @@ export default function BrowsePage() {
 
   return (
     <>
-      <div className="min-h-screen pt-20 pb-24" style={{ backgroundColor: '#F5EDE0' }}>
+      <div className="min-h-screen pt-20 pb-24" style={{ backgroundColor: 'var(--dm-sand)' }}>
         <div className="max-w-sm mx-auto px-4">
 
           {/* Header */}
@@ -92,7 +92,7 @@ export default function BrowsePage() {
             <button onClick={loadProperties} aria-label="Refresh places"
               className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-              <RefreshCw size={16} style={{ color: '#5C4A3A' }} />
+              <RefreshCw size={16} style={{ color: 'var(--dm-bark)' }} />
             </button>
           </div>
 
@@ -103,7 +103,7 @@ export default function BrowsePage() {
                 className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border transition-all flex-shrink-0"
                 style={{
                   backgroundColor: filter === f ? 'var(--dm-deep)' : 'white',
-                  color:           filter === f ? 'white'  : '#5C4A3A',
+                  color:           filter === f ? 'white'  : 'var(--dm-bark)',
                   borderColor:     filter === f ? 'var(--dm-deep)'  : 'var(--dm-line)',
                 }}>
                 {f}
@@ -123,7 +123,7 @@ export default function BrowsePage() {
 
           {/* Empty */}
           {!loading && empty && (
-            <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: '#FFFAF5' }}>
+            <div className="rounded-3xl p-10 text-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
               <div className="flex justify-center mb-4">{queue.length === 0 && !hasSeenAny ? <Home size={48} className="text-terracotta" /> : <PartyPopper size={48} className="text-gold" />}</div>
               <h3 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>
                 {hasSeenAny ? "You've seen everything." : 'No listings yet'}

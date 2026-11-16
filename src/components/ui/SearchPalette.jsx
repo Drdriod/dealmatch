@@ -44,7 +44,7 @@ export default function SearchPalette({ isOpen, onClose }) {
           onClick={e => e.target === e.currentTarget && onClose()}>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
             className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl"
-            style={{ backgroundColor: '#FFFAF5' }}>
+            style={{ backgroundColor: 'var(--dm-paper)' }}>
             <div className="flex items-center gap-3 p-4 border-b" style={{ borderColor: 'var(--dm-line)' }}>
               <Search size={18} style={{ color: 'rgba(23,33,27,0.7)', flexShrink: 0 }} />
               <input ref={inputRef} type="text" value={query}
@@ -54,7 +54,7 @@ export default function SearchPalette({ isOpen, onClose }) {
                 style={{ color: 'var(--dm-deep)' }} />
               <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-                <X size={14} style={{ color: '#5C4A3A' }} />
+                <X size={14} style={{ color: 'var(--dm-bark)' }} />
               </button>
             </div>
             <div className="overflow-y-auto" style={{ maxHeight: '60vh' }}>
@@ -66,7 +66,7 @@ export default function SearchPalette({ isOpen, onClose }) {
               )}
               {results.map(p => (
                 <button key={p.id} onClick={() => goTo(p.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 border-b text-left transition-colors hover:bg-[#F5EDE0]"
+                  className="w-full flex items-center gap-3 px-4 py-3 border-b text-left transition-colors hover:bg-sand"
                   style={{ borderColor: 'var(--dm-line)' }}>
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0"
                     style={{ backgroundColor: 'rgba(200,95,45,0.08)' }}>

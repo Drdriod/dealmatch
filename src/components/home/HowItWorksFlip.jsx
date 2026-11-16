@@ -33,17 +33,17 @@ const JOURNEYS = [
 /** "How DealMatch works", split into the searcher and provider journeys. */
 export default function HowItWorksFlip() {
   return (
-    <section className="py-20 px-5 sm:px-7" style={{ backgroundColor: '#173428' }}>
+    <section className="py-20 px-5 sm:px-7" style={{ backgroundColor: 'var(--dm-forest-dark)' }}>
       <div className="max-w-[1184px] mx-auto">
         <div className="text-center mb-12">
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] mb-3" style={{ color: '#F3C96A' }}>How DealMatch works</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] mb-3" style={{ color: 'var(--dm-sun)' }}>How DealMatch works</p>
           <h2 className="font-display text-4xl sm:text-5xl text-white">Two sides, one clear path.</h2>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {JOURNEYS.map(j => (
             <div key={j.key} className="rounded-[22px] p-7 sm:p-9" style={{ backgroundColor: 'var(--dm-forest)' }}>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] mb-2" style={{ color: '#F3C96A' }}>{j.kicker}</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] mb-2" style={{ color: 'var(--dm-sun)' }}>{j.kicker}</p>
               <h3 className="font-display text-2xl sm:text-3xl text-white mb-7">{j.title}</h3>
               <ol className="space-y-5 mb-8">
                 {j.steps.map((s, i) => (
@@ -52,7 +52,7 @@ export default function HowItWorksFlip() {
                       <s.icon size={19} color="white" />
                     </span>
                     <div>
-                      <p className="font-bold text-white text-sm"><span style={{ color: '#F3C96A' }}>{i + 1}.</span> {s.title}</p>
+                      <p className="font-bold text-white text-sm"><span style={{ color: 'var(--dm-sun)' }}>{i + 1}.</span> {s.title}</p>
                       <p className="text-sm leading-relaxed mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{s.body}</p>
                     </div>
                   </li>

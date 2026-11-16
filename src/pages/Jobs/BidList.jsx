@@ -36,7 +36,7 @@ export default function BidList({ bids, onAccept, onCounter }) {
                 ₦{(b.amount_cents / 100).toLocaleString()}
               </p>
               {b.status === 'ACCEPTED' ? (
-                <span className="flex items-center gap-1 text-[11px] font-bold flex-shrink-0" style={{ color: '#5C8060' }}>
+                <span className="flex items-center gap-1 text-[11px] font-bold flex-shrink-0" style={{ color: 'var(--dm-moss)' }}>
                   <Check size={12} /> Accepted
                 </span>
               ) : b.status === 'DECLINED' ? (
@@ -50,7 +50,7 @@ export default function BidList({ bids, onAccept, onCounter }) {
                   </button>
                   <button onClick={() => onCounter(b)}
                     className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border"
-                    style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
+                    style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)' }}>
                     Counter
                   </button>
                 </div>
@@ -62,8 +62,8 @@ export default function BidList({ bids, onAccept, onCounter }) {
 
       <div className="rounded-2xl p-3 flex items-center gap-2"
         style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-        <ShieldCheck size={16} style={{ color: '#5C8060' }} />
-        <p className="text-[11px]" style={{ color: '#5C8060' }}>
+        <ShieldCheck size={16} style={{ color: 'var(--dm-moss)' }} />
+        <p className="text-[11px]" style={{ color: 'var(--dm-moss)' }}>
           Payment is protected. Providers are paid only after you confirm the job is done.
         </p>
       </div>

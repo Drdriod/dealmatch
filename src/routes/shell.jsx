@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component {
       <div style={{
         minHeight:'100vh', display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center',
-        background:'#FFFAF5', padding:'24px', textAlign:'center', gap:'16px',
+        background:'var(--dm-paper)', padding:'24px', textAlign:'center', gap:'16px',
       }}>
         <div style={{ fontSize:56 }}><Home size={24} className="text-terracotta" /></div>
         <h1 style={{ fontWeight:900, fontSize:26, color:'var(--dm-deep)', margin:0 }}>
@@ -113,7 +113,7 @@ export const PageSkeleton = () => (
   <div style={{
     minHeight:'100vh', display:'flex', alignItems:'center', // full height: the footer stays below the fold until the page arrives, so it cannot jump (layout shift)
    
-    justifyContent:'center', background:'#FFFAF5',
+    justifyContent:'center', background:'var(--dm-paper)',
   }}>
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
       <div style={{ position:'relative', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>

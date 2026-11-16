@@ -21,6 +21,12 @@ export default {
         'cream-deep': '#EEE9DE',
         'orange-pale': '#FAE9DF',
         line:       '#DEDDD6',
+        paper:      '#FFFAF5',
+        bark:       '#5C4A3A',
+        sky:        '#5B8DEF',
+        danger:     '#C94A3A',
+        sand:       '#F5EDE0',
+        moss:       '#5C8060',
       },
       fontFamily: {
         display: ['"DM Serif Display"', 'Georgia', 'serif'],

@@ -109,7 +109,7 @@ export default function SkillVerificationPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EEE9DE' }}>
+    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-cream-deep)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--dm-terracotta)', borderTopColor: 'transparent' }} />
     </div>
   }
@@ -123,7 +123,7 @@ export default function SkillVerificationPage() {
   )
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: '#EEE9DE' }}>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--dm-cream-deep)' }}>
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} aria-label="Go back" className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
@@ -177,7 +177,7 @@ export default function SkillVerificationPage() {
 
           <div className="space-y-4">
           {existing?.status === 'rejected' && (
-            <div className="rounded-2xl p-3 text-xs" style={{ backgroundColor: 'rgba(201,74,58,0.08)', color: '#C94A3A' }}>
+            <div className="rounded-2xl p-3 text-xs" style={{ backgroundColor: 'rgba(201,74,58,0.08)', color: 'var(--dm-danger)' }}>
               Your last submission wasn't approved. Add clearer photos or more detail, then submit again below.
             </div>
           )}

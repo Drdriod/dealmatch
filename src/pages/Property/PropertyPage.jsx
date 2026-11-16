@@ -104,7 +104,7 @@ export default function PropertyPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="text-center">
         <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta animate-bounce" /></div>
         <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading the details…</p>
@@ -113,7 +113,7 @@ export default function PropertyPage() {
   )
 
   if (!property) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="text-center">
         <div className="flex justify-center mb-4"><Frown size={40} className="text-muted" /></div>
         <h2 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>We couldn't find this listing</h2>
@@ -123,7 +123,7 @@ export default function PropertyPage() {
   )
 
   return (
-    <div className="min-h-screen pb-32" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--dm-paper)' }}>
 
       {/* Back & share bar */}
       <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3"
@@ -201,7 +201,7 @@ export default function PropertyPage() {
         {property.description && (
           <div className="rounded-2xl p-4 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <h3 className="font-display font-black text-base mb-2" style={{ color: 'var(--dm-deep)' }}>Overview</h3>
-            <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{property.description}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--dm-bark)' }}>{property.description}</p>
           </div>
         )}
 
@@ -212,7 +212,7 @@ export default function PropertyPage() {
             <div className="flex flex-wrap gap-2">
               {property.features.map(f => (
                 <span key={f} className="px-3 py-1.5 rounded-full text-xs font-semibold"
-                  style={{ backgroundColor: 'rgba(122,158,126,0.1)', color: '#5C8060' }}>
+                  style={{ backgroundColor: 'rgba(122,158,126,0.1)', color: 'var(--dm-moss)' }}>
                   {f}
                 </span>
               ))}
@@ -228,7 +228,7 @@ export default function PropertyPage() {
               {property.documents.map(d => (
                 <div key={d} className="flex items-center gap-2 text-sm">
                   <Shield size={13} style={{ color: 'var(--dm-sage)' }} />
-                  <span style={{ color: '#5C4A3A' }}>{d}</span>
+                  <span style={{ color: 'var(--dm-bark)' }}>{d}</span>
                 </div>
               ))}
             </div>
@@ -288,7 +288,7 @@ export default function PropertyPage() {
             `reports`, not the old property-only `complaints` table) */}
         <button onClick={() => setShowComplaint(true)}
           className="w-full mt-2 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
-          style={{ backgroundColor:'rgba(201,74,58,0.05)', color:'#C94A3A', border:'1px solid rgba(201,74,58,0.15)' }}>
+          style={{ backgroundColor:'rgba(201,74,58,0.05)', color:'var(--dm-danger)', border:'1px solid rgba(201,74,58,0.15)' }}>
           <Flag size={13} /> Report this listing
         </button>
       </div>

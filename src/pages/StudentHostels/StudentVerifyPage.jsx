@@ -144,7 +144,7 @@ export default function StudentVerifyPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--dm-terracotta)' }} />
     </div>
   )
@@ -157,13 +157,13 @@ export default function StudentVerifyPage() {
   const statusMeta = existing ? STATUS_META[existing.status] : null
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh', paddingTop: 72 }}>
+    <div style={{ backgroundColor: 'var(--dm-paper)', minHeight: '100vh', paddingTop: 72 }}>
       <div className="max-w-md mx-auto px-5 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: '#F5EDE0' }}>
+            style={{ backgroundColor: 'var(--dm-sand)' }}>
             <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
           </button>
           <div>
@@ -215,7 +215,7 @@ export default function StudentVerifyPage() {
             </p>
             <Link to="/student-hostels"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm"
-              style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
+              style={{ backgroundColor: 'var(--dm-deep)', color: 'var(--dm-paper)' }}>
               Browse Hostels <GraduationCap size={14} />
             </Link>
           </div>
@@ -241,7 +241,7 @@ export default function StudentVerifyPage() {
                   setForm(f => ({ ...f, institution_id: e.target.value, institution_name: inst?.name || '' }))
                 }}
                   className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none pr-9"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: form.institution_id ? 'var(--dm-deep)' : 'var(--dm-warm)' }}>
+                  style={{ backgroundColor: 'var(--dm-sand)', border: '1px solid var(--dm-line)', color: form.institution_id ? 'var(--dm-deep)' : 'var(--dm-warm)' }}>
                   <option value="">Select your institution</option>
                   {institutions.map(i => <option key={i.id} value={i.id}>{i.short_name ? `${i.name} (${i.short_name})` : i.name}</option>)}
                 </select>
@@ -264,7 +264,7 @@ export default function StudentVerifyPage() {
                     onClick={() => setForm(f => ({ ...f, id_type: opt.id }))}
                     className="p-3 rounded-xl text-left transition-all"
                     style={{
-                      backgroundColor: form.id_type === opt.id ? 'rgba(200,95,45,0.08)' : '#F5EDE0',
+                      backgroundColor: form.id_type === opt.id ? 'rgba(200,95,45,0.08)' : 'var(--dm-sand)',
                       border: `1.5px solid ${form.id_type === opt.id ? 'var(--dm-terracotta)' : 'transparent'}`,
                     }}>
                     <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? 'var(--dm-terracotta)' : 'var(--dm-deep)' }}>
@@ -285,7 +285,7 @@ export default function StudentVerifyPage() {
                 <input value={form.matric_number} onChange={set('matric_number')}
                   placeholder="e.g. 190401045" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: 'var(--dm-sand)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number on your student ID card issued by your institution.
                 </p>
@@ -301,7 +301,7 @@ export default function StudentVerifyPage() {
                 <input value={form.jamb_reg_number} onChange={set('jamb_reg_number')}
                   placeholder="e.g. 20376549AB" autoCapitalize="characters" maxLength={12}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: 'var(--dm-sand)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   Found on your JAMB result slip, admission letter, or JAMB profile.
                   You can update to your matric number once your school assigns one.
@@ -318,7 +318,7 @@ export default function StudentVerifyPage() {
                 <input value={form.application_number} onChange={set('application_number')}
                   placeholder="e.g. APP/2024/00123" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: 'var(--dm-sand)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number given to you when you purchased your admission form or registered on your school's portal.
                   Usually found on your acknowledgement slip or email.
@@ -334,7 +334,7 @@ export default function StudentVerifyPage() {
               <input value={form.school_email} onChange={set('school_email')}
                 type="email" placeholder="username@unilag.edu.ng"
                 className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
+                style={{ backgroundColor: 'var(--dm-sand)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
             </div>
 
             {/* Student ID upload */}
@@ -353,12 +353,12 @@ export default function StudentVerifyPage() {
                   </div>
                 ) : form.id_image_url ? (
                   <div className="relative rounded-2xl overflow-hidden flex items-center justify-center"
-                    style={{ height: 160, backgroundColor: '#F5EDE0' }}>
+                    style={{ height: 160, backgroundColor: 'var(--dm-sand)' }}>
                     <span className="text-xs font-semibold" style={{ color: 'var(--dm-warm)' }}>ID photo already uploaded ✓ - click to replace</span>
                   </div>
                 ) : (
                   <div className="border-2 border-dashed rounded-2xl p-8 text-center"
-                    style={{ borderColor: 'var(--dm-line)', backgroundColor: '#F5EDE0' }}>
+                    style={{ borderColor: 'var(--dm-line)', backgroundColor: 'var(--dm-sand)' }}>
                     {uploading ? (
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
@@ -399,7 +399,7 @@ export default function StudentVerifyPage() {
                 (form.id_type === 'application' && !form.application_number.trim())
               }
               className="w-full py-4 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ backgroundColor: 'var(--dm-deep)', color: '#FFFAF5' }}>
+              style={{ backgroundColor: 'var(--dm-deep)', color: 'var(--dm-paper)' }}>
               {saving
                 ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 : <><GraduationCap size={16} /> Submit for Verification - Free</>}

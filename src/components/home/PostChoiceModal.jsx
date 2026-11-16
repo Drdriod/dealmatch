@@ -35,7 +35,7 @@ export default function PostChoiceModal({ open, onClose }) {
           >
             <div className="flex items-center justify-between mb-5">
               <span className="font-display font-black text-lg" style={{ color: 'var(--dm-deep)' }}>What do you want to post?</span>
-              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EEE9DE' }}>
+              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--dm-cream-deep)' }}>
                 <X size={15} style={{ color: 'var(--dm-deep)' }} />
               </button>
             </div>

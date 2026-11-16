@@ -79,19 +79,19 @@ export default function DashboardPage() {
         <section className="rounded-3xl p-5 mb-4"
           style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.18), rgba(255,255,255,0.03) 62%)', border: '1px solid rgba(212,168,83,0.25)' }}>
           <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: CHART.indicator }}>Your journey</p>
-          <h1 className="font-display text-3xl mt-1" style={{ color: '#FFFAF5' }}>Welcome back, {firstName}.</h1>
+          <h1 className="font-display text-3xl mt-1" style={{ color: 'var(--dm-paper)' }}>Welcome back, {firstName}.</h1>
           <p className="text-sm mt-1" style={{ color: MUTED }}>Everything you're looking for, interested in or currently transacting is right here.</p>
 
           <div className="flex items-start justify-around mt-5">
             <div className="flex flex-col items-center gap-2">
               <Radial value={profileDone} max={3} size={104} color={CHART.palette[1]}
                 label={`${Math.round((profileDone / 3) * 100)}%`} sub={`${profileDone} of 3`} />
-              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Profile</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--dm-paper)' }}>Profile</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Radial value={verifyScore} max={2} size={104} color={CHART.palette[0]}
                 label={`${Math.round((verifyScore / 2) * 100)}%`} sub={VERIFY_SUB[verificationLevel]} />
-              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Verification</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--dm-paper)' }}>Verification</p>
             </div>
           </div>
         </section>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             style={{ background: 'rgba(122,158,126,0.14)', border: '1px solid rgba(122,158,126,0.3)', minHeight: 140 }}>
             <Home size={26} style={{ color: CHART.palette[0] }} />
             <div>
-              <p className="font-display text-lg leading-tight" style={{ color: '#FFFAF5' }}>Explore Places</p>
+              <p className="font-display text-lg leading-tight" style={{ color: 'var(--dm-paper)' }}>Explore Places</p>
               <p className="text-xs mt-1" style={{ color: MUTED }}>Shortlets, rentals & housing</p>
             </div>
           </Link>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         {/* Next steps checklist */}
         <section className="rounded-2xl p-5 mb-4" style={CARD}>
           <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Next steps</p>
-          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>
+          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: 'var(--dm-paper)' }}>
             {nextIdx === -1 ? "You're all set" : `${steps.filter(s => s.done).length} of ${steps.length} done`}
           </h2>
           <div className="space-y-2">
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                     : <Circle size={20} style={{ color: CHART.indicator }} />}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold"
-                      style={{ color: s.done ? MUTED : '#FFFAF5', textDecoration: s.done ? 'line-through' : 'none' }}>
+                      style={{ color: s.done ? MUTED : 'var(--dm-paper)', textDecoration: s.done ? 'line-through' : 'none' }}>
                       {s.onClick && becomingProvider ? 'Saving…' : s.title}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: FAINT }}>{s.sub}</p>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
         {/* Horizontal activity timeline */}
         <section className="rounded-2xl p-5 mb-4" style={CARD}>
           <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Timeline</p>
-          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>Recent activity</h2>
+          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: 'var(--dm-paper)' }}>Recent activity</h2>
 
           {loading ? (
             <div className="py-8 flex justify-center">
@@ -186,11 +186,11 @@ export default function DashboardPage() {
           ) : activity.length === 0 ? (
             <div className="py-6 text-center">
               <div className="flex justify-center mb-3"><ClipboardList size={36} className="text-terracotta" /></div>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#FFFAF5' }}>You don't have any activity yet.</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--dm-paper)' }}>You don't have any activity yet.</p>
               <p className="text-xs mb-4" style={{ color: MUTED }}>Tell us what you need or create an offer to get started.</p>
               <div className="flex gap-2 justify-center">
                 <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Find a Match</Link>
-                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#FFFAF5' }}>
+                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'var(--dm-paper)' }}>
                   Create an Offer
                 </Link>
               </div>
@@ -212,12 +212,12 @@ export default function DashboardPage() {
                         <p className="text-[10px] uppercase tracking-wider" style={{ color: FAINT }}>
                           {item.kind === 'listing' ? 'Listing' : 'Request'} · {date}
                         </p>
-                        <p className="text-sm font-semibold truncate mt-1" style={{ color: '#FFFAF5' }}>{item.title}</p>
+                        <p className="text-sm font-semibold truncate mt-1" style={{ color: 'var(--dm-paper)' }}>{item.title}</p>
                         <p className="text-xs mt-0.5 capitalize truncate" style={{ color: MUTED }}>{item.sub}</p>
                         <span className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full mt-3 capitalize"
                           style={{
                             backgroundColor: done ? 'rgba(122,158,126,0.18)' : 'rgba(212,168,83,0.15)',
-                            color: done ? '#A9C7AD' : '#F3C96A',
+                            color: done ? '#A9C7AD' : 'var(--dm-sun)',
                           }}>
                           {item.status?.toLowerCase()}
                         </span>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                   className="w-full flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5 disabled:opacity-60"
                   style={{ ...CARD, minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: 'var(--dm-paper)' }}>
                     {becomingProvider ? 'Saving…' : label}
                   </span>
                 </button>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
                 <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5"
                   style={{ ...CARD, minHeight: 90 }}>
                   {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>{label}</span>
+                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: 'var(--dm-paper)' }}>{label}</span>
                 </Link>
               )}
             </div>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
               {icon}
               <span className="text-xs font-medium flex-1" style={{ color: MUTED }}>{label}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
-                style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: '#F3C96A' }}>Coming Soon</span>
+                style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: 'var(--dm-sun)' }}>Coming Soon</span>
             </div>
           ))}
         </div>
