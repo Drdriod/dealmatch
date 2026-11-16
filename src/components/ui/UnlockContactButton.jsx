@@ -113,7 +113,7 @@ export default function UnlockContactButton({ targetType, targetId, onUnlocked }
               {UNLOCK_CREDIT_PACKS.map(pack => (
                 <button key={pack.credits} onClick={() => handleBuy(pack)} disabled={busy || !(pack.price > 0)}
                   className="w-full flex items-center justify-between p-3.5 rounded-xl border disabled:opacity-50"
-                  style={{ borderColor: pack.badge ? '#B8511E' : '#DEDDD6', backgroundColor: pack.badge ? 'rgba(200,95,45,0.06)' : '#FFF' }}>
+                  style={{ borderColor: pack.badge ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: pack.badge ? 'rgba(200,95,45,0.06)' : '#FFF' }}>
                   <div className="flex items-center gap-2">
                     <Coins size={16} style={{ color: 'var(--dm-terracotta)' }} />
                     <div className="text-left">

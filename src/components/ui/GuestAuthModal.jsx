@@ -127,12 +127,12 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
                 value={name} onChange={e => setName(e.target.value)}
                 placeholder="e.g. Amaka"
                 className="w-full px-4 py-3 rounded-2xl text-sm outline-none"
-                style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
+                style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}
               />
             </div>
             <div>
               <label className="text-xs font-bold block mb-1.5" style={{ color: 'var(--dm-deep)' }}>Phone number *</label>
-              <div className="flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+              <div className="flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)' }}>
                 <Phone size={15} style={{ color: 'var(--dm-warm)' }} />
                 <input
                   value={phone} onChange={e => setPhone(e.target.value)}
@@ -159,7 +159,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
               value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="123456" inputMode="numeric"
               className="w-full px-4 py-3 rounded-2xl text-center text-lg tracking-[0.5em] outline-none font-bold"
-              style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
+              style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}
               onKeyDown={e => e.key === 'Enter' && handleVerifyOtp()}
             />
             <button onClick={handleVerifyOtp} disabled={verifying}

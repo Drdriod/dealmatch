@@ -5,11 +5,11 @@ import { Map as MapIcon } from 'lucide-react'
 const LIBRARIES = ['places']
 
 const MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#F7F4ED' }] },
+  { elementType: 'geometry', stylers: [{ color: 'var(--dm-cream)' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F4ED' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: 'var(--dm-cream)' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-warm)' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: 'white' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C5D8E8' }] },
 ]
 

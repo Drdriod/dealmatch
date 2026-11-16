@@ -18,7 +18,7 @@ function Underline({ id }) {
   return (
     <motion.span
       layoutId={id}
-      className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-[#B8511E]"
+      className="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-terracotta"
       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
     />
   )
@@ -53,7 +53,7 @@ export default function Navbar() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <header className="w-full bg-[#F7F4ED]/95 backdrop-blur-md border-b border-deep/10 sticky top-0 z-50">
+    <header className="w-full bg-cream/95 backdrop-blur-md border-b border-deep/10 sticky top-0 z-50">
       <div className="max-w-[1240px] mx-auto px-5 md:px-7 h-[68px] md:h-[78px] flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-xl font-bold text-[#1A1210]">
           <img src="/brand/dealmatch-icon-transparent.png" width="440" height="440" alt="DealMatch" className="h-7 w-auto" />
@@ -61,13 +61,13 @@ export default function Navbar() {
         </Link>
 
         <LayoutGroup id="desktop-nav">
-          <nav className="hidden md:flex items-center gap-9 text-sm font-semibold text-[#17211B]">
+          <nav className="hidden md:flex items-center gap-9 text-sm font-semibold text-deep">
             {PILLARS.map(pillar => (
               <PillarMenu key={pillar.slug} pillar={pillar}
                 active={isPillarActive(pillar, location.pathname)} />
             ))}
 
-            <Link to={POST_ROUTE} className={`relative py-2 hover:text-[#B8511E] ${postActive ? 'text-[#B8511E]' : ''}`}>
+            <Link to={POST_ROUTE} className={`relative py-2 hover:text-terracotta ${postActive ? 'text-terracotta' : ''}`}>
               Post a Request
               {postActive && <Underline id="nav-underline" />}
             </Link>
@@ -82,7 +82,7 @@ export default function Navbar() {
               </div>
               <div className="hidden md:block relative">
                 <button onClick={() => setProfileOpen(o => !o)}
-                  className="text-sm font-medium text-[#17211B] hover:text-[#B8511E]">
+                  className="text-sm font-medium text-deep hover:text-terracotta">
                   Profile
                 </button>
                 <AnimatePresence>
@@ -92,13 +92,13 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.16, ease }}
-                      className="absolute right-0 top-8 w-48 bg-[#F7F4ED] border border-[#DEDDD6] rounded-xl shadow-lg py-2 text-sm"
+                      className="absolute right-0 top-8 w-48 bg-cream border border-line rounded-xl shadow-lg py-2 text-sm"
                     >
-                      <Link to="/dashboard" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>Dashboard</Link>
-                      <Link to="/wallet" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>My Wallet</Link>
-                      <Link to="/manage-listings" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>My Offers</Link>
-                      <Link to="/profile" className="block px-4 py-2 text-[#17211B] hover:text-[#B8511E]" onClick={() => setProfileOpen(false)}>Account Settings</Link>
-                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-[#B8511E] hover:bg-black/5">Sign Out</button>
+                      <Link to="/dashboard" className="block px-4 py-2 text-deep hover:text-terracotta" onClick={() => setProfileOpen(false)}>Dashboard</Link>
+                      <Link to="/wallet" className="block px-4 py-2 text-deep hover:text-terracotta" onClick={() => setProfileOpen(false)}>My Wallet</Link>
+                      <Link to="/manage-listings" className="block px-4 py-2 text-deep hover:text-terracotta" onClick={() => setProfileOpen(false)}>My Offers</Link>
+                      <Link to="/profile" className="block px-4 py-2 text-deep hover:text-terracotta" onClick={() => setProfileOpen(false)}>Account Settings</Link>
+                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-terracotta hover:bg-black/5">Sign Out</button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -106,7 +106,7 @@ export default function Navbar() {
             </>
           ) : (
             <button onClick={() => navigate('/auth')}
-              className="hidden md:block text-sm font-medium text-[#17211B] hover:text-[#B8511E]">
+              className="hidden md:block text-sm font-medium text-deep hover:text-terracotta">
               Sign In
             </button>
           )}
@@ -114,13 +114,13 @@ export default function Navbar() {
           {!user && (
             <button onClick={() => navigate('/auth')}
               aria-label="Create account"
-              className="whitespace-nowrap bg-[#B8511E] text-white text-[13px] font-bold px-4 md:px-5 py-2.5 rounded-full hover:bg-[#A8441D] hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
+              className="whitespace-nowrap bg-terracotta text-white text-[13px] font-bold px-4 md:px-5 py-2.5 rounded-full hover:bg-terracotta-dark hover:-translate-y-px hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)] transition">
               <span className="md:hidden">Join</span>
               <span className="hidden md:inline">Create Account</span>
             </button>
           )}
 
-          <button className="md:hidden p-2 text-[#17211B]" aria-label="Search people" onClick={() => navigate('/providers')}>
+          <button className="md:hidden p-2 text-deep" aria-label="Search people" onClick={() => navigate('/providers')}>
             <Search className="w-5 h-5" />
           </button>
 
@@ -130,7 +130,7 @@ export default function Navbar() {
             </div>
           )}
 
-          <button className="md:hidden p-2 text-[#17211B]" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(o => !o)}>
+          <button className="md:hidden p-2 text-deep" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(o => !o)}>
             {mobileOpen ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -152,7 +152,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.22, ease }}
-            className="md:hidden overflow-hidden bg-[#F7F4ED] border-t border-[#DEDDD6]"
+            className="md:hidden overflow-hidden bg-cream border-t border-line"
           >
             <div className="px-4 py-4 space-y-1">
               {PILLARS.map(pillar => (
@@ -160,28 +160,28 @@ export default function Navbar() {
                   active={isPillarActive(pillar, location.pathname)}
                   onNavigate={() => setMobileOpen(false)} />
               ))}
-              <Link to={POST_ROUTE} className="block text-[#17211B] font-semibold py-3" onClick={() => setMobileOpen(false)}>
+              <Link to={POST_ROUTE} className="block text-deep font-semibold py-3" onClick={() => setMobileOpen(false)}>
                 Post a Request
               </Link>
             </div>
 
-            <div className="px-4 pb-4 pt-3 border-t border-[#DEDDD6] flex flex-col gap-2">
+            <div className="px-4 pb-4 pt-3 border-t border-line flex flex-col gap-2">
               {user ? (
                 <>
-                  <Link to="/dashboard" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
-                  <Link to="/wallet" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
-                  <Link to="/manage-listings" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>My Offers</Link>
-                  <Link to="/profile" className="text-[#17211B] font-medium py-2" onClick={() => setMobileOpen(false)}>Account Settings</Link>
-                  <button onClick={handleSignOut} className="w-full text-left text-[#B8511E] font-medium py-2">
+                  <Link to="/dashboard" className="text-deep font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                  <Link to="/wallet" className="text-deep font-medium py-2" onClick={() => setMobileOpen(false)}>My Wallet</Link>
+                  <Link to="/manage-listings" className="text-deep font-medium py-2" onClick={() => setMobileOpen(false)}>My Offers</Link>
+                  <Link to="/profile" className="text-deep font-medium py-2" onClick={() => setMobileOpen(false)}>Account Settings</Link>
+                  <button onClick={handleSignOut} className="w-full text-left text-terracotta font-medium py-2">
                     Sign Out
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-[#17211B] font-medium py-2">
+                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full text-left text-deep font-medium py-2">
                     Sign In
                   </button>
-                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-[#B8511E] text-white font-medium py-2.5 rounded-full">
+                  <button onClick={() => { setMobileOpen(false); navigate('/auth') }} className="w-full bg-terracotta text-white font-medium py-2.5 rounded-full">
                     Create Account
                   </button>
                 </>

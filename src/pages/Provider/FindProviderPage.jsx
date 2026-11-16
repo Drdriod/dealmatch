@@ -183,7 +183,7 @@ export default function FindProviderPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--dm-cream)' }}>
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: 'var(--dm-cream)', borderBottom: '1px solid #DEDDD6' }}>
+      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: 'var(--dm-cream)', borderBottom: '1px solid var(--dm-line)' }}>
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => navigate(-1)} aria-label="Go back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FFF' }}>
             <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
@@ -199,14 +199,14 @@ export default function FindProviderPage() {
             <button key={t.id} onClick={() => setTab(t.id)}
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
               style={tab === t.id
-                ? { backgroundColor: '#17211B', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                ? { backgroundColor: 'var(--dm-deep)', color: '#FFF' }
+                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
               {t.label}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-3" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)' }}>
           <Search size={15} style={{ color: 'var(--dm-warm)' }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Who or what are you looking for?"
             className="flex-1 bg-transparent outline-none text-sm" style={{ color: 'var(--dm-deep)' }} />
@@ -215,7 +215,7 @@ export default function FindProviderPage() {
         <div className="flex gap-2 mb-3">
           <select value={origin?.precise ? '' : (origin?.label || '')} onChange={e => pickState(e.target.value)}
             className="flex-1 px-3 py-2 rounded-full text-xs font-semibold outline-none"
-            style={{ backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}
+            style={{ backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}
             aria-label="Choose a state">
             <option value="">Choose a state</option>
             {NIGERIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -223,8 +223,8 @@ export default function FindProviderPage() {
           <button onClick={useMyLocation} disabled={locating}
             className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 disabled:opacity-60"
             style={origin?.precise
-              ? { backgroundColor: '#B8511E', color: '#FFF' }
-              : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+              ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
+              : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
             <Crosshair size={12} /> {locating ? 'Locating…' : 'Use my location'}
           </button>
         </div>
@@ -236,8 +236,8 @@ export default function FindProviderPage() {
                 <button key={g.slug || 'all'} onClick={() => { setKindGroup(g.slug); setKindLeaf('') }}
                   className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
                   style={kindGroup === g.slug
-                    ? { backgroundColor: '#17211B', color: '#FFF' }
-                    : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                    ? { backgroundColor: 'var(--dm-deep)', color: '#FFF' }
+                    : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
                   {g.name}
                 </button>
               ))}
@@ -248,8 +248,8 @@ export default function FindProviderPage() {
                   <button key={c.slug || 'all'} onClick={() => setKindLeaf(c.slug === kindLeaf ? '' : c.name)}
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
                     style={(c.slug ? kindLeaf === c.name : !kindLeaf)
-                      ? { backgroundColor: '#B8511E', color: '#FFF' }
-                      : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                      ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
+                      : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
                     {c.name}
                   </button>
                 ))}
@@ -266,8 +266,8 @@ export default function FindProviderPage() {
                 title={disabled ? 'Use my location to filter within 5 km' : undefined}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors disabled:opacity-40"
                 style={activeChips.includes(chip.id)
-                  ? { backgroundColor: '#B8511E', color: '#FFF' }
-                  : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid #DEDDD6' }}>
+                  ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
+                  : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
                 {chip.label}
               </button>
             )
@@ -309,7 +309,7 @@ export default function FindProviderPage() {
           <motion.div key={p.id}
             initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
             whileHover={{ y: -4 }} transition={{ duration: 0.35 }}
-            className="rounded-3xl overflow-hidden" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}>
+            className="rounded-3xl overflow-hidden" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}>
             <div className="h-40 relative" style={{ backgroundColor: '#F0D4BE' }}>
               {p.avatar
                 ? <img src={p.avatar} alt="" className="w-full h-full object-cover" />
@@ -317,12 +317,12 @@ export default function FindProviderPage() {
                     <span className="font-display text-3xl font-black" style={{ color: 'var(--dm-terracotta)' }}>{p.name?.[0] || '?'}</span>
                   </div>}
               <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
-                style={{ backgroundColor: '#3D7A45', color: '#FFFFFF' }}>
+                style={{ backgroundColor: '#3D7A45', color: 'white' }}>
                 {p.level >= 3 ? 'Trusted' : p.level === 2 ? 'Skill verified' : 'Identity verified'}
               </div>
               {p.recentlyActive && (
                 <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1"
-                  style={{ backgroundColor: 'rgba(26,20,16,0.55)', color: '#FFFFFF', backdropFilter: 'blur(4px)' }}>
+                  style={{ backgroundColor: 'rgba(26,20,16,0.55)', color: 'white', backdropFilter: 'blur(4px)' }}>
                   <Zap size={9} /> Active
                 </div>
               )}

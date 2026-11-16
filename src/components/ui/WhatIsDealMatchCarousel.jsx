@@ -57,7 +57,7 @@ function FlipCard({ card, photo, index }) {
         {/* Front face - neutral: white card, dark text, no color */}
         <div
           className="absolute inset-0 rounded-3xl p-5 flex flex-col justify-between overflow-hidden"
-          style={{ backfaceVisibility: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}
+          style={{ backfaceVisibility: 'hidden', backgroundColor: 'white', border: '1px solid var(--dm-line)' }}
         >
           <card.icon size={26} style={{ color: 'var(--dm-deep)' }} strokeWidth={1.6} />
           <div>
@@ -66,7 +66,7 @@ function FlipCard({ card, photo, index }) {
             </h3>
             <p className="text-xs max-w-[70%] mb-3" style={{ color: '#536058' }}>{card.desc}</p>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--dm-deep)' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M7 17L17 7M17 7H8M17 7V16" /></svg>
             </div>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function WhatIsDealMatchCarousel({ properties = [] }) {
   })()
 
   return (
-    <section className="py-14 px-6" style={{ backgroundColor: '#FFFFFF' }}>
+    <section className="py-14 px-6" style={{ backgroundColor: 'white' }}>
       <div className="max-w-2xl mx-auto text-center mb-8">
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#536058' }}>
           What's on DealMatch

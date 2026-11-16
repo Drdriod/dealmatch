@@ -150,9 +150,9 @@ export default function StudentVerifyPage() {
   )
 
   const STATUS_META = {
-    pending:  { label: 'Under Review',  color: '#D4A853', bg: 'rgba(212,168,83,0.08)',  border: 'rgba(212,168,83,0.2)',  icon: Clock    },
-    approved: { label: 'Verified',   color: '#7A9E7E', bg: 'rgba(122,158,126,0.08)', border: 'rgba(122,158,126,0.2)', icon: Check    },
-    rejected: { label: 'Rejected',      color: '#B8511E', bg: 'rgba(200,95,45,0.08)',  border: 'rgba(200,95,45,0.2)',  icon: X        },
+    pending:  { label: 'Under Review',  color: 'var(--dm-gold)', bg: 'rgba(212,168,83,0.08)',  border: 'rgba(212,168,83,0.2)',  icon: Clock    },
+    approved: { label: 'Verified',   color: 'var(--dm-sage)', bg: 'rgba(122,158,126,0.08)', border: 'rgba(122,158,126,0.2)', icon: Check    },
+    rejected: { label: 'Rejected',      color: 'var(--dm-terracotta)', bg: 'rgba(200,95,45,0.08)',  border: 'rgba(200,95,45,0.2)',  icon: X        },
   }
   const statusMeta = existing ? STATUS_META[existing.status] : null
 
@@ -241,7 +241,7 @@ export default function StudentVerifyPage() {
                   setForm(f => ({ ...f, institution_id: e.target.value, institution_name: inst?.name || '' }))
                 }}
                   className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none pr-9"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: form.institution_id ? '#17211B' : '#5C665F' }}>
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: form.institution_id ? 'var(--dm-deep)' : 'var(--dm-warm)' }}>
                   <option value="">Select your institution</option>
                   {institutions.map(i => <option key={i.id} value={i.id}>{i.short_name ? `${i.name} (${i.short_name})` : i.name}</option>)}
                 </select>
@@ -265,9 +265,9 @@ export default function StudentVerifyPage() {
                     className="p-3 rounded-xl text-left transition-all"
                     style={{
                       backgroundColor: form.id_type === opt.id ? 'rgba(200,95,45,0.08)' : '#F5EDE0',
-                      border: `1.5px solid ${form.id_type === opt.id ? '#B8511E' : 'transparent'}`,
+                      border: `1.5px solid ${form.id_type === opt.id ? 'var(--dm-terracotta)' : 'transparent'}`,
                     }}>
-                    <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? '#B8511E' : '#17211B' }}>
+                    <div className="text-xs font-bold leading-tight" style={{ color: form.id_type === opt.id ? 'var(--dm-terracotta)' : 'var(--dm-deep)' }}>
                       {opt.label}
                     </div>
                     <div className="text-xs mt-0.5 leading-tight" style={{ color: 'var(--dm-warm)' }}>{opt.sub}</div>
@@ -285,7 +285,7 @@ export default function StudentVerifyPage() {
                 <input value={form.matric_number} onChange={set('matric_number')}
                   placeholder="e.g. 190401045" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number on your student ID card issued by your institution.
                 </p>
@@ -301,7 +301,7 @@ export default function StudentVerifyPage() {
                 <input value={form.jamb_reg_number} onChange={set('jamb_reg_number')}
                   placeholder="e.g. 20376549AB" autoCapitalize="characters" maxLength={12}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   Found on your JAMB result slip, admission letter, or JAMB profile.
                   You can update to your matric number once your school assigns one.
@@ -318,7 +318,7 @@ export default function StudentVerifyPage() {
                 <input value={form.application_number} onChange={set('application_number')}
                   placeholder="e.g. APP/2024/00123" autoCapitalize="characters"
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none font-mono"
-                  style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
                 <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>
                   The number given to you when you purchased your admission form or registered on your school's portal.
                   Usually found on your acknowledgement slip or email.
@@ -334,7 +334,7 @@ export default function StudentVerifyPage() {
               <input value={form.school_email} onChange={set('school_email')}
                 type="email" placeholder="username@unilag.edu.ng"
                 className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ backgroundColor: '#F5EDE0', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                style={{ backgroundColor: '#F5EDE0', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
             </div>
 
             {/* Student ID upload */}

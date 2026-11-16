@@ -73,9 +73,9 @@ export default function MatchesPage() {
             <button key={v} onClick={() => setFilter(v)}
               className="px-4 py-2 rounded-full text-sm font-semibold border transition-all"
               style={{
-                backgroundColor: filter === v ? '#17211B' : '#FFFFFF',
-                color:           filter === v ? '#FFFFFF'  : '#5C4A3A',
-                borderColor:     filter === v ? '#17211B'  : '#DEDDD6',
+                backgroundColor: filter === v ? 'var(--dm-deep)' : 'white',
+                color:           filter === v ? 'white'  : '#5C4A3A',
+                borderColor:     filter === v ? 'var(--dm-deep)'  : 'var(--dm-line)',
               }}>
               {l}
             </button>
@@ -126,7 +126,7 @@ export default function MatchesPage() {
                       )}
                       {match.action === 'super' && (
                         <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                          style={{ backgroundColor: 'var(--dm-gold)', color: '#FFFFFF' }}>
+                          style={{ backgroundColor: 'var(--dm-gold)', color: 'white' }}>
                           ⭐ Super
                         </div>
                       )}
@@ -156,7 +156,7 @@ export default function MatchesPage() {
                   <div className="flex gap-2 px-3 pb-3">
                     <button onClick={() => navigate(`/property/${p?.id}`)}
                       className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{ backgroundColor: 'var(--dm-terracotta)', color: '#FFFFFF' }}>
+                      style={{ backgroundColor: 'var(--dm-terracotta)', color: 'white' }}>
                       View Details
                     </button>
                     <button onClick={() => contactSeller(p)}

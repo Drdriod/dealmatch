@@ -55,7 +55,7 @@ export function ProfessionalsTab() {
         <TableWrap cols={['Name / Company','Type','Fee/mo','Rating','Status','Date','Actions']}>
           {filtered.map(p=>(
             <TR key={p.id}>
-              <td className="px-4 py-3"><div className="font-semibold text-white text-sm">{p.full_name}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{p.company_name||maskEmail(p.email)}</div></td>
+              <td className="px-4 py-3" title={p.bio||undefined}><div className="font-semibold text-white text-sm">{p.full_name}</div><div className="text-xs" style={{color:'rgba(255,255,255,0.35)'}}>{p.company_name||maskEmail(p.email)}</div>{p.years_experience!=null&&<div className="text-xs" style={{color:'rgba(255,255,255,0.5)'}}>{p.years_experience} yr{p.years_experience===1?'':'s'} experience</div>}</td>
               <td className="px-4 py-3 text-xs capitalize" style={{color:'rgba(255,255,255,0.6)'}}>{(p.professional_type||'N/A').replace(/_/g,' ')}</td>
               <td className="px-4 py-3 text-xs text-white">{p.plan_type||'monthly'}</td>
               <td className="px-4 py-3 text-xs" style={{color:'var(--dm-gold)'}}>{p.rating?`${p.rating}`:'N/A'}</td>

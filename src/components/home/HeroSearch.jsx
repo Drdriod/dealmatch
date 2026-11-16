@@ -76,7 +76,7 @@ export default function HeroSearch({ className = '' }) {
             </span>
           </label>
           <button type="submit"
-            className="mt-2 sm:mt-0 sm:ml-2 self-center min-h-[52px] px-6 rounded-full text-sm font-bold inline-flex items-center justify-center gap-1.5 bg-terracotta text-white transition hover:bg-[#A8441D] hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]">
+            className="mt-2 sm:mt-0 sm:ml-2 self-center min-h-[52px] px-6 rounded-full text-sm font-bold inline-flex items-center justify-center gap-1.5 bg-terracotta text-white transition hover:bg-terracotta-dark hover:shadow-[0_10px_25px_rgba(200,95,45,0.23)]">
             {MODES[mode].cta} <ArrowRight size={14} />
           </button>
         </div>

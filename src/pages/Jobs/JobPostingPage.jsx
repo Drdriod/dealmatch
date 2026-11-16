@@ -3,10 +3,10 @@ import { useFormDraft } from '@/hooks/useFormDraft'
 import DraftNotice from '@/components/ui/DraftNotice'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Check, Gavel, Lock, MapPin, ShieldCheck, User, Wallet, Zap } from 'lucide-react'
+import { ArrowLeft, Gavel, Lock, MapPin, Wallet, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
-  fetchReviewForTransaction, insertReview, fetchTransaction, insertTransaction, fetchInvitedProvider,
+  fetchTransaction, insertTransaction, fetchInvitedProvider,
   fetchBidsWithProviders, hasVerifiedPayoutAccount, acceptBidForJob, sendCounterOffer, startEscrowPayment,
   cancelTransaction, confirmTransaction,
 } from '@/data/jobPostingRepository'
@@ -17,6 +17,9 @@ import { fundTransactionEscrow, formatNaira, generateReference } from '@/lib/flu
 import GuestAuthModal from '@/components/ui/GuestAuthModal'
 import toast from 'react-hot-toast'
 import { friendlyDbError } from '@/lib/dbErrors'
+import LeaveReview from './LeaveReview'
+import BidList from './BidList'
+import InvitedProviderPanel from './InvitedProviderPanel'
 
 const MODEL_BY_TOGGLE = {
   book: 'NEAREST_AVAILABLE',       // "I need someone now" -- ADR-009, build now, first
@@ -30,69 +33,6 @@ const STATUS_LABEL = {
   COMPLETED: 'Completed',
   DISPUTED:  'Disputed',
   CANCELLED: 'Cancelled',
-}
-
-// RATE-3: a review is only accepted for a COMPLETED transaction, written by the
-// requester, about that transaction's provider. The database enforces all of
-// this (enforce_review_transaction). The UI just gives the chance to review once.
-function LeaveReview({ transactionId, providerId, reviewerId }) {
-  const [existing, setExisting] = useState(undefined) // undefined = loading
-  const [rating, setRating]     = useState(0)
-  const [comment, setComment]   = useState('')
-  const [saving, setSaving]     = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    fetchReviewForTransaction(transactionId)
-      .then(({ data }) => { if (!cancelled) setExisting(data || null) })
-    return () => { cancelled = true }
-  }, [transactionId])
-
-  const submit = async () => {
-    if (rating < 1) { toast.error('Choose a rating from 1 to 5'); return }
-    setSaving(true)
-    const { data, error } = await insertReview({
-      transactionId,
-      providerId,
-      reviewerId,
-      rating,
-      comment: comment.trim() || null,
-    })
-    setSaving(false)
-    if (error) {
-      toast.error(/REVIEW_/.test(error.message || '')
-        ? 'This job cannot be reviewed.'
-        : 'Could not save your review. Please try again.')
-      return
-    }
-    setExisting(data)
-    toast.success('Thank you. Your review is in.')
-  }
-
-  if (existing === undefined) return null
-  if (existing) {
-    return <p className="text-xs text-center py-4" style={{ color: 'var(--dm-warm)' }}>You rated this job {existing.rating}/5. Thank you.</p>
-  }
-
-  return (
-    <div className="mt-6 rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
-      <p className="text-sm font-semibold mb-3" style={{ color: 'var(--dm-deep)' }}>How did it go?</p>
-      <div className="flex gap-1 mb-3" role="radiogroup" aria-label="Rating">
-        {[1, 2, 3, 4, 5].map(n => (
-          <button key={n} type="button" role="radio" aria-checked={rating === n} onClick={() => setRating(n)}
-            className="text-2xl leading-none" style={{ color: n <= rating ? '#D4A853' : '#D8C9B8' }}
-            aria-label={`${n} star${n === 1 ? '' : 's'}`}>★</button>
-        ))}
-      </div>
-      <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} maxLength={1000}
-        placeholder="Optional: tell others about the work" className="input mb-3" />
-      <button onClick={submit} disabled={saving || rating < 1}
-        className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50"
-        style={{ backgroundColor: 'var(--dm-terracotta)' }}>
-        {saving ? 'Saving…' : 'Submit review'}
-      </button>
-    </div>
-  )
 }
 
 export default function JobPostingPage() {
@@ -345,10 +285,10 @@ export default function JobPostingPage() {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#FFFAF5' }}>
       <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
-        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #DEDDD6' }}>
+        style={{ backgroundColor: 'rgba(255,250,245,0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--dm-line)' }}>
         <button onClick={() => navigate(-1)} aria-label="Go back"
           className="w-9 h-9 rounded-full flex items-center justify-center border"
-          style={{ borderColor: 'var(--dm-line)', backgroundColor: '#FFFFFF' }}>
+          style={{ borderColor: 'var(--dm-line)', backgroundColor: 'white' }}>
           <ArrowLeft size={16} style={{ color: 'var(--dm-deep)' }} />
         </button>
         <span className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>Post a Request</span>
@@ -367,20 +307,20 @@ export default function JobPostingPage() {
         {!transaction && (
           <div className="md:grid md:grid-cols-[1fr,340px] md:gap-8 md:items-start">
           <div>
-            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="flex rounded-2xl p-1 mb-5 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <button onClick={() => setToggle('book')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'book' ? '#B8511E' : 'transparent',
-                  color: toggle === 'book' ? '#FFFFFF' : '#5C665F',
+                  backgroundColor: toggle === 'book' ? 'var(--dm-terracotta)' : 'transparent',
+                  color: toggle === 'book' ? 'white' : 'var(--dm-warm)',
                 }}>
                 <Zap size={14} /> I need someone now
               </button>
               <button onClick={() => setToggle('bid')}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
                 style={{
-                  backgroundColor: toggle === 'bid' ? '#B8511E' : 'transparent',
-                  color: toggle === 'bid' ? '#FFFFFF' : '#5C665F',
+                  backgroundColor: toggle === 'bid' ? 'var(--dm-terracotta)' : 'transparent',
+                  color: toggle === 'bid' ? 'white' : 'var(--dm-warm)',
                 }}>
                 <Gavel size={14} /> Let providers bid
               </button>
@@ -392,19 +332,19 @@ export default function JobPostingPage() {
                 : 'Your job stays open and providers send in price offers. You compare and pick whichever works best for you.'}
             </p>
 
-            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-4 mb-4 border space-y-3" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <div>
                 <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>What do you need? *</p>
                 <input value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="I need a plumber to fix a leaking pipe"
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-bold mb-1" style={{ color: 'var(--dm-deep)' }}>Location *</p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)' }}>
                     <MapPin size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={location} onChange={e => setLocation(e.target.value)}
                       placeholder="e.g. Lekki, Lagos"
@@ -416,7 +356,7 @@ export default function JobPostingPage() {
                     {toggle === 'book' ? 'Your fixed budget' : 'Starting budget (optional)'}
                   </p>
                   <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid #DEDDD6' }}>
+                    style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1.5px solid var(--dm-line)' }}>
                     <Wallet size={13} style={{ color: 'var(--dm-terracotta)' }} />
                     <input value={budget} onChange={e => setBudget(e.target.value)}
                       type="number" placeholder={toggle === 'book' ? 'What you\u2019ll pay' : 'Flexible'}
@@ -438,41 +378,13 @@ export default function JobPostingPage() {
             </button>
           </div>
 
-          {/* Locked-preview panel - mirrors the "phone hidden until you pay"
-              pattern from the reference design. Only ever shows a real
-              invited provider (from a /providers "Request Bid" tap); with
-              no invite, it shows the honest generic state instead of a
-              fabricated name. */}
-          <div className="hidden md:block rounded-3xl overflow-hidden mt-1"
-            style={{ backgroundColor: '#1C1410' }}>
-            <div className="h-44 relative flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.35), rgba(28,20,16,0.9))' }}>
-              {invitedProvider?.avatar_url
-                ? <img src={invitedProvider.avatar_url} alt="" className="w-full h-full object-cover absolute inset-0" />
-                : <User size={40} style={{ color: 'rgba(255,255,255,0.6)' }} />}
-            </div>
-            <div className="p-5">
-              <p className="font-display font-bold text-white text-base mb-1">
-                {invitedProvider
-                  ? `${invitedProvider.full_name?.split(' ')[0] || 'Provider'}${invitedProvider.city ? ` · ${invitedProvider.city}` : ''}`
-                  : 'DealMatch finds the nearest verified person'}
-              </p>
-              <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                <Lock size={11} className="inline mr-1 -mt-0.5" />
-                Phone hidden until protection is confirmed
-              </p>
-              <div className="w-full py-3 rounded-full text-xs font-bold text-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}>
-                Unlocks after you post
-              </div>
-            </div>
-          </div>
+          <InvitedProviderPanel invitedProvider={invitedProvider} />
           </div>
         )}
 
         {transaction && (
           <>
-            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+            <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
               <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>{transaction.attributes?.description}</p>
               <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>{transaction.attributes?.location}</p>
             </div>
@@ -480,68 +392,7 @@ export default function JobPostingPage() {
             {/* OPEN + reverse-bid: bids list */}
             {transaction.status === 'OPEN' && transaction.model === 'MULTI_ATTRIBUTE_REVERSE' && (
               <>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-black text-base" style={{ color: 'var(--dm-deep)' }}>Bids coming in</h3>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: 'var(--dm-terracotta)' }}>
-                    {bids.length} {bids.length === 1 ? 'bid' : 'bids'}
-                  </span>
-                </div>
-
-                {bids.length === 0 ? (
-                  <p className="text-xs text-center py-8" style={{ color: 'rgba(23,33,27,0.7)' }}>Waiting for the first bid...</p>
-                ) : (
-                  <div className="space-y-2 mb-4">
-                    {bids.map(b => (
-                      <div key={b.id} className="rounded-2xl p-3 border flex items-center gap-3"
-                        style={{ backgroundColor: '#FFFFFF', borderColor: b.status === 'ACCEPTED' ? '#7A9E7E' : '#DEDDD6' }}>
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
-                          style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                          {b.providerProfile?.avatar_url
-                            ? <img src={b.providerProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                            : <User size={16} style={{ color: 'var(--dm-terracotta)' }} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold" style={{ color: 'var(--dm-deep)' }}>{b.providerProfile?.full_name || 'Provider'}</p>
-                          {b.attributes?.eta_minutes && (
-                            <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Can start today · {b.attributes.eta_minutes}m ETA</p>
-                          )}
-                        </div>
-                        <p className="font-black text-sm flex-shrink-0" style={{ color: 'var(--dm-deep)' }}>
-                          ₦{(b.amount_cents / 100).toLocaleString()}
-                        </p>
-                        {b.status === 'ACCEPTED' ? (
-                          <span className="flex items-center gap-1 text-[11px] font-bold flex-shrink-0" style={{ color: '#5C8060' }}>
-                            <Check size={12} /> Accepted
-                          </span>
-                        ) : b.status === 'DECLINED' ? (
-                          <span className="text-[11px] flex-shrink-0" style={{ color: 'rgba(23,33,27,0.7)' }}>Declined</span>
-                        ) : (
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            <button onClick={() => acceptBid(b)}
-                              className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-white"
-                              style={{ backgroundColor: 'var(--dm-sage)' }}>
-                              Accept
-                            </button>
-                            <button onClick={() => counterBid(b)}
-                              className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border"
-                              style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A' }}>
-                              Counter
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="rounded-2xl p-3 flex items-center gap-2"
-                  style={{ backgroundColor: 'rgba(122,158,126,0.08)', border: '1px solid rgba(122,158,126,0.2)' }}>
-                  <ShieldCheck size={16} style={{ color: '#5C8060' }} />
-                  <p className="text-[11px]" style={{ color: '#5C8060' }}>
-                    Payment is protected. Providers are paid only after you confirm the job is done.
-                  </p>
-                </div>
+                <BidList bids={bids} onAccept={acceptBid} onCounter={counterBid} />
               </>
             )}
 
@@ -554,7 +405,7 @@ export default function JobPostingPage() {
 
             {/* PENDING: bid/request accepted, awaiting escrow */}
             {transaction.status === 'PENDING' && isRequester && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
                 <p className="text-sm font-semibold mb-1" style={{ color: 'var(--dm-deep)' }}>Accepted - pay for protection to proceed</p>
                 <p className="text-xs mb-3" style={{ color: 'var(--dm-warm)' }}>
                   {formatNaira(transaction.amount_cents ? transaction.amount_cents / 100 : 0)} will be held until you confirm the job is done.
@@ -576,7 +427,7 @@ export default function JobPostingPage() {
             {isRequester && (transaction.status === 'OPEN' || transaction.status === 'PENDING') && (
               <button onClick={cancelJob} disabled={cancelling}
                 className="w-full py-3 rounded-2xl text-sm font-bold border disabled:opacity-50 mt-3"
-                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: '#FFFFFF' }}>
+                style={{ borderColor: 'var(--dm-line)', color: '#C94A3A', backgroundColor: 'white' }}>
                 {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
@@ -584,7 +435,7 @@ export default function JobPostingPage() {
             {/* FUNDED: work in progress, both sides confirm independently,
                 the transaction only reaches COMPLETED once both have. */}
             {transaction.status === 'FUNDED' && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Lock size={14} style={{ color: '#5C8060' }} />
                   <p className="text-sm font-semibold" style={{ color: 'var(--dm-deep)' }}>Protection funded</p>

@@ -140,7 +140,7 @@ export default function CategoryPage() {
     return (
       <Page>
         <Notice variant="warning" title="This category isn't available"
-          action={<Link to="/" className="text-sm font-semibold text-[#B8511E] hover:text-[#A8441D]">Back to home →</Link>}>
+          action={<Link to="/" className="text-sm font-semibold text-terracotta hover:text-terracotta-dark">Back to home →</Link>}>
           It may have been renamed or hidden. Try searching from the home page.
         </Notice>
       </Page>
@@ -152,20 +152,20 @@ export default function CategoryPage() {
   return (
     <Page>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease }}>
-        <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-xs font-semibold text-[#5C665F]">
+        <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-xs font-semibold text-warm">
           {pillar && (
             <>
-              <Link to={pillar.route} className="hover:text-[#B8511E]">{pillar.name}</Link>
+              <Link to={pillar.route} className="hover:text-terracotta">{pillar.name}</Link>
               <ChevronRight size={12} aria-hidden="true" />
             </>
           )}
           {!isRoot && (
             <>
-              <Link to={categoryHref(root.slug)} className="hover:text-[#B8511E]">{root.name}</Link>
+              <Link to={categoryHref(root.slug)} className="hover:text-terracotta">{root.name}</Link>
               <ChevronRight size={12} aria-hidden="true" />
             </>
           )}
-          <span aria-current="page" className="text-[#17211B]">{category.name}</span>
+          <span aria-current="page" className="text-deep">{category.name}</span>
         </nav>
 
         <h1 className="font-display text-3xl sm:text-4xl" style={{ color: 'var(--dm-deep)' }}>{category.name}</h1>
@@ -177,7 +177,7 @@ export default function CategoryPage() {
           {category.children.map(child => (
             <motion.div key={child.id} variants={itemVariants}>
               <Link to={categoryHref(child.slug)}
-                className="inline-flex items-center rounded-full border border-[#DEDDD6] bg-[#FFFDF8] px-4 py-2 text-sm font-semibold text-[#17211B] transition-colors hover:border-[#B8511E] hover:text-[#B8511E]">
+                className="inline-flex items-center rounded-full border border-line bg-[#FFFDF8] px-4 py-2 text-sm font-semibold text-deep transition-colors hover:border-terracotta hover:text-terracotta">
                 <motion.span whileHover={{ x: 2 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
                   {child.name}
                 </motion.span>
@@ -203,7 +203,7 @@ export default function CategoryPage() {
             </Notice>
           ) : places.length === 0 ? (
             <Notice variant="info" title="No places in this group yet"
-              action={<Link to="/places" className="text-sm font-semibold text-[#B8511E] hover:text-[#A8441D]">Browse all places →</Link>}>
+              action={<Link to="/places" className="text-sm font-semibold text-terracotta hover:text-terracotta-dark">Browse all places →</Link>}>
               Places appear here once they are assigned to this group.
             </Notice>
           ) : (
@@ -227,7 +227,7 @@ export default function CategoryPage() {
             </Notice>
           ) : people.length === 0 ? (
             <Notice variant="info" title="No verified providers in this group yet"
-              action={<Link to="/providers" className="text-sm font-semibold text-[#B8511E] hover:text-[#A8441D]">Browse all people →</Link>}>
+              action={<Link to="/providers" className="text-sm font-semibold text-terracotta hover:text-terracotta-dark">Browse all people →</Link>}>
               Providers appear here once they are identity and skill verified for this group.
             </Notice>
           ) : (

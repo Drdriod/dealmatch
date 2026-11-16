@@ -41,7 +41,7 @@ export default function ImageGallery({ images = [], title = '' }) {
                   style={{
                     width: i === activeIdx ? 18 : 6,
                     height: 6,
-                    backgroundColor: i === activeIdx ? '#B8511E' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: i === activeIdx ? 'var(--dm-terracotta)' : 'rgba(255,255,255,0.6)',
                   }} />
               ))}
             </div>
@@ -53,7 +53,7 @@ export default function ImageGallery({ images = [], title = '' }) {
           <Expand size={13} color="white" />
         </button>
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: 'rgba(23,33,27,0.7)', color: '#FFFFFF' }}>
+          style={{ backgroundColor: 'rgba(23,33,27,0.7)', color: 'white' }}>
           {activeIdx + 1} / {filtered.length}
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function ImageGallery({ images = [], title = '' }) {
           {filtered.map((img, i) => (
             <button key={i} onClick={() => setActiveIdx(i)}
               className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all"
-              style={{ borderColor: i === activeIdx ? '#B8511E' : 'transparent' }}>
+              style={{ borderColor: i === activeIdx ? 'var(--dm-terracotta)' : 'transparent' }}>
               <img src={img.url} alt="" className="w-full h-full object-cover" />
             </button>
           ))}

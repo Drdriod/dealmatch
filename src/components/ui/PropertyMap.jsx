@@ -13,26 +13,26 @@ import clsx from 'clsx'
 const LIBRARIES = ['places', 'geometry']
 
 const MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#F7F4ED' }] },
+  { elementType: 'geometry', stylers: [{ color: 'var(--dm-cream)' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#1F2B24' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F4ED' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#B8511E' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: 'var(--dm-cream)' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-terracotta)' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-warm)' }] },
   { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#E8F0E9' }] },
-  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7A9E7E' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-sage)' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: 'white' }] },
   { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#F5EFE8' }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#F5EFE8' }] },
   { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#E8C4A0' }] },
   { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#F5EFE8' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C5D8E8' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#5C665F' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: 'var(--dm-warm)' }] },
 ]
 
 const AMENITY_TYPES = [
-  { type: 'school',        label: 'Schools',   icon: <GraduationCap size={14} className="text-white" />, color: '#7A9E7E' },
-  { type: 'hospital',      label: 'Hospitals', icon: <Building2 size={14} className="text-white" />, color: '#B8511E' },
-  { type: 'shopping_mall', label: 'Shopping',  icon: <ShoppingBag size={14} className="text-white" />, color: '#D4A853' },
+  { type: 'school',        label: 'Schools',   icon: <GraduationCap size={14} className="text-white" />, color: 'var(--dm-sage)' },
+  { type: 'hospital',      label: 'Hospitals', icon: <Building2 size={14} className="text-white" />, color: 'var(--dm-terracotta)' },
+  { type: 'shopping_mall', label: 'Shopping',  icon: <ShoppingBag size={14} className="text-white" />, color: 'var(--dm-gold)' },
   { type: 'bank',          label: 'Banks',     icon: <Landmark size={14} className="text-white" />, color: '#1F2B24' },
 ]
 
@@ -148,9 +148,9 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
             onClick={() => setSelected('property')}
             icon={window.google ? {
               path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: '#B8511E',
+              fillColor: 'var(--dm-terracotta)',
               fillOpacity: 1,
-              strokeColor: '#FFFFFF',
+              strokeColor: 'white',
               strokeWeight: 3,
               scale: 14,
             } : undefined}
@@ -158,15 +158,15 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
         ) : (
           /* Masked: show only a broad area circle, no precise pin */
           <Circle center={center} radius={600} options={{
-            fillColor: '#B8511E', fillOpacity: 0.10,
-            strokeColor: '#B8511E', strokeOpacity: 0.35, strokeWeight: 2,
+            fillColor: 'var(--dm-terracotta)', fillOpacity: 0.10,
+            strokeColor: 'var(--dm-terracotta)', strokeOpacity: 0.35, strokeWeight: 2,
           }} />
         )}
 
         {/* Radius */}
         <Circle center={center} radius={2000} options={{
-          fillColor: '#B8511E', fillOpacity: 0.04,
-          strokeColor: '#B8511E', strokeOpacity: 0.2, strokeWeight: 1,
+          fillColor: 'var(--dm-terracotta)', fillOpacity: 0.04,
+          strokeColor: 'var(--dm-terracotta)', strokeOpacity: 0.2, strokeWeight: 1,
         }} />
 
         {/* Amenity markers */}
@@ -176,9 +176,9 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
             onClick={() => setSelected(place)}
             icon={window.google ? {
               path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: amenityConfig?.color || '#7A9E7E',
+              fillColor: amenityConfig?.color || 'var(--dm-sage)',
               fillOpacity: 0.9,
-              strokeColor: '#FFFFFF',
+              strokeColor: 'white',
               strokeWeight: 2,
               scale: 8,
             } : undefined}
@@ -222,7 +222,7 @@ export function PropertyMap({ property, height = '360px', hasConfirmedInspection
           <span>{property?.city}, {property?.state}</span>
         </div>
         {!hasConfirmedInspection && (
-          <p className="text-xs font-semibold" style={{color:'#B8511E'}}>
+          <p className="text-xs font-semibold" style={{color:'var(--dm-terracotta)'}}>
             Exact address revealed after confirmed inspection
           </p>
         )}
@@ -280,9 +280,9 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
               onClick={() => setSelected(property)}
               icon={window.google ? {
                 path: window.google.maps.SymbolPath.CIRCLE,
-                fillColor: '#B8511E',
+                fillColor: 'var(--dm-terracotta)',
                 fillOpacity: 0.9,
-                strokeColor: '#FFFFFF',
+                strokeColor: 'white',
                 strokeWeight: 2,
                 scale: 10,
               } : undefined}
@@ -307,7 +307,7 @@ export function MapExplorer({ properties = [], onSelectProperty }) {
               <p className="font-bold text-deep text-sm leading-tight">{selected.title}</p>
               <p className="text-terracotta font-black text-base mt-1">{formatPrice(selected.price)}</p>
               <p className="text-xs text-deep/70 mt-0.5">{selected.city}, {selected.state}</p>
-              <div className="mt-2 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full" style={{backgroundColor:"#B8511E", color:"#FFFFFF", display:"inline-flex"}}>
+              <div className="mt-2 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full" style={{backgroundColor:"var(--dm-terracotta)", color:"white", display:"inline-flex"}}>
                 View Property →
               </div>
             </div>

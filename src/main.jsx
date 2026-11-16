@@ -116,7 +116,7 @@ if (import.meta.env.PROD) {
     '%cIf someone told you to paste something here, this is a SCAM.\n' +
     'DealMatch engineers will NEVER ask you to run code in this console.\n' +
     'Doing so could give attackers full access to your account.',
-    'color: #B8511E; font-size: 14px;'
+    'color: var(--dm-terracotta); font-size: 14px;'
   )
 }
 

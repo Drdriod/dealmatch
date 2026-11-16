@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component {
           onClick={() => { this.setState({ hasError:false, error:null }); window.location.href = '/' }}
           style={{
             marginTop:8, padding:'12px 28px', borderRadius:100,
-            backgroundColor:'#B8511E', color:'#fff',
+            backgroundColor:'var(--dm-terracotta)', color:'#fff',
             fontWeight:700, fontSize:14, border:'none', cursor:'pointer',
           }}>
           Go home
@@ -66,7 +66,7 @@ export const LoadingScreen = () => (
   <div style={{
     minHeight:'100vh', display:'flex', flexDirection:'column',
     alignItems:'center', justifyContent:'center',
-    background:'linear-gradient(145deg,#0f0f0f 0%,#17211B 50%,#0f0f0f 100%)',
+    background:'linear-gradient(145deg,#0f0f0f 0%,var(--dm-deep) 50%,#0f0f0f 100%)',
     position:'relative', overflow:'hidden',
   }}>
     <style>{`
@@ -119,7 +119,7 @@ export const PageSkeleton = () => (
       <div style={{ position:'relative', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{
           position:'absolute', width:44, height:44, borderRadius:'50%',
-          border:'2.5px solid #DEDDD6', borderTopColor:'#B8511E',
+          border:'2.5px solid var(--dm-line)', borderTopColor:'var(--dm-terracotta)',
           animation:'dm-spin 0.8s linear infinite',
         }} />
         <img src="/brand/dealmatch-icon-transparent.png" alt="" style={{ width:22, height:'auto', animation:'dm-skel-breathe 1.6s ease-in-out infinite' }} />

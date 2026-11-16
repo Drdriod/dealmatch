@@ -58,7 +58,7 @@ function FAQItem({ item, isOpen, onToggle }) {
   return (
     <div
       className="rounded-2xl overflow-hidden transition-colors"
-      style={{ backgroundColor: isOpen ? '#FFFFFF' : '#F7F4ED', border: `1px solid ${isOpen ? '#DEDDD6' : 'transparent'}` }}
+      style={{ backgroundColor: isOpen ? 'white' : 'var(--dm-cream)', border: `1px solid ${isOpen ? 'var(--dm-line)' : 'transparent'}` }}
     >
       <button
         onClick={onToggle}
@@ -98,7 +98,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section className="py-24 px-6" style={{ backgroundColor: '#FFFFFF' }}>
+    <section className="py-24 px-6" style={{ backgroundColor: 'white' }}>
       <div className="max-w-3xl mx-auto">
         <FadeUp>
           <div className="text-center mb-14">

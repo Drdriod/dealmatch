@@ -19,7 +19,7 @@ export default function TenancyPage() {
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(122,158,126,0.2)' }}>
               <FileText size={28} style={{ color: 'var(--dm-sage)' }} />
             </div>
-            <h1 className="font-display font-black text-3xl mb-3" style={{ color: '#FFFFFF' }}>Tenancy Protection </h1>
+            <h1 className="font-display font-black text-3xl mb-3" style={{ color: 'white' }}>Tenancy Protection </h1>
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
               Rent confidently with DealMatch. Your agreement is secured, your deposit is protected, and your rights are guaranteed.
             </p>
@@ -32,7 +32,7 @@ export default function TenancyPage() {
             {STEPS.map((s, i) => (
               <div key={i} className="flex gap-4">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(23,33,27,0.05)', border: '1px solid #DEDDD6' }}>
+                  style={{ backgroundColor: 'rgba(23,33,27,0.05)', border: '1px solid var(--dm-line)' }}>
                   {s.icon}
                 </div>
                 <div>

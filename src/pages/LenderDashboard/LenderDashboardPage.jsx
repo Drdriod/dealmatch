@@ -10,13 +10,13 @@ import toast from 'react-hot-toast'
 import { CHART, fmtNaira, fmtNum, Funnel, HBars, KpiTile, Panel, Radial } from '@/components/charts/ChartKit'
 
 const STATUS_CONFIG = {
-  pending:    { label: 'New',         color: '#B8511E', bg: 'rgba(200,95,45,0.1)' },
+  pending:    { label: 'New',         color: 'var(--dm-terracotta)', bg: 'rgba(200,95,45,0.1)' },
   processing: { label: 'Processing',  color: '#5B8DEF', bg: 'rgba(91,141,239,0.1)' },
-  reviewing:  { label: 'Reviewing',   color: '#D4A853', bg: 'rgba(212,168,83,0.1)' },
-  approved:   { label: 'Approved',    color: '#7A9E7E', bg: 'rgba(122,158,126,0.1)' },
+  reviewing:  { label: 'Reviewing',   color: 'var(--dm-gold)', bg: 'rgba(212,168,83,0.1)' },
+  approved:   { label: 'Approved',    color: 'var(--dm-sage)', bg: 'rgba(122,158,126,0.1)' },
   declined:   { label: 'Declined',    color: '#E31E25', bg: 'rgba(227,30,37,0.1)' },
-  finished:   { label: 'Finished',    color: '#17211B', bg: 'rgba(23,33,27,0.1)' },
-  on_hold:    { label: 'On Hold',     color: '#5C665F', bg: 'rgba(138,126,120,0.1)' },
+  finished:   { label: 'Finished',    color: 'var(--dm-deep)', bg: 'rgba(23,33,27,0.1)' },
+  on_hold:    { label: 'On Hold',     color: 'var(--dm-warm)', bg: 'rgba(138,126,120,0.1)' },
 }
 
 // Pipeline order for the funnel and the board
@@ -272,9 +272,9 @@ export default function LenderDashboardPage() {
                 <button key={f} onClick={() => setFilter(f)}
                   className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-all"
                   style={{
-                    backgroundColor: active ? '#D4A853' : 'rgba(255,255,255,0.05)',
-                    color: active ? '#17211B' : 'rgba(255,250,245,0.75)',
-                    borderColor: active ? '#D4A853' : 'rgba(255,255,255,0.12)'
+                    backgroundColor: active ? 'var(--dm-gold)' : 'rgba(255,255,255,0.05)',
+                    color: active ? 'var(--dm-deep)' : 'rgba(255,250,245,0.75)',
+                    borderColor: active ? 'var(--dm-gold)' : 'rgba(255,255,255,0.12)'
                   }}>
                   {f === 'all' ? 'All Applications' : STATUS_CONFIG[f]?.label}
                 </button>
@@ -294,12 +294,12 @@ export default function LenderDashboardPage() {
             ) : (
               apps.map(app => (
                 <div key={app.id} className="rounded-2xl border overflow-hidden transition-all bg-white"
-                  style={{ borderColor: selected?.id === app.id ? '#B8511E' : '#DEDDD6' }}>
+                  style={{ borderColor: selected?.id === app.id ? 'var(--dm-terracotta)' : 'var(--dm-line)' }}>
                   <div className="p-5 cursor-pointer" role="button" tabIndex={0} aria-expanded={selected?.id === app.id} onClick={() => setSelected(selected?.id === app.id ? null : app)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(selected?.id === app.id ? null : app) } }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded bg-[#17211B] text-white">
+                          <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded bg-deep text-white">
                             {app.ticket_id}
                           </span>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
@@ -323,7 +323,7 @@ export default function LenderDashboardPage() {
 
                   <AnimatePresence>
                     {selected?.id === app.id && (
-                      <motion.div initial={{ height:0 }} animate={{ height:'auto' }} exit={{ height:0 }} className="overflow-hidden border-t border-[#DEDDD6] bg-[#FFFAF5]">
+                      <motion.div initial={{ height:0 }} animate={{ height:'auto' }} exit={{ height:0 }} className="overflow-hidden border-t border-line bg-[#FFFAF5]">
                         <div className="p-5 space-y-6">
                           {/* Details Grid */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -349,22 +349,22 @@ export default function LenderDashboardPage() {
                             <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Internal Notes / Response</label>
                             <textarea value={note} onChange={e => setNote(e.target.value)}
                               placeholder="Add notes or your response to the applicant..."
-                              className="input min-h-[100px] text-sm py-3" style={{ backgroundColor:'#FFFFFF' }} />
+                              className="input min-h-[100px] text-sm py-3" style={{ backgroundColor:'white' }} />
                           </div>
 
                           {/* Actions */}
                           <div className="flex flex-wrap gap-3">
                             <div className="flex-1 flex gap-2">
-                              <button onClick={() => handleEmail(app)} className="flex-1 py-3 rounded-xl border border-[#DEDDD6] bg-white text-xs font-bold flex items-center justify-center gap-2">
+                              <button onClick={() => handleEmail(app)} className="flex-1 py-3 rounded-xl border border-line bg-white text-xs font-bold flex items-center justify-center gap-2">
                                 <Mail size={14} /> Email Applicant
                               </button>
-                              <button onClick={() => handleMessage(app)} className="flex-1 py-3 rounded-xl border border-[#DEDDD6] bg-white text-xs font-bold flex items-center justify-center gap-2">
+                              <button onClick={() => handleMessage(app)} className="flex-1 py-3 rounded-xl border border-line bg-white text-xs font-bold flex items-center justify-center gap-2">
                                 <MessageSquare size={14} /> In-App Message
                               </button>
                             </div>
                             <div className="w-full md:w-auto flex gap-2">
                               <button onClick={() => handleUpdateStatus(app, 'approved')} disabled={updating}
-                                className="px-6 py-3 rounded-xl bg-[#7A9E7E] text-white text-xs font-bold flex items-center gap-2">
+                                className="px-6 py-3 rounded-xl bg-sage text-white text-xs font-bold flex items-center gap-2">
                                 <Check size={14} /> Approve
                               </button>
                               <button onClick={() => handleUpdateStatus(app, 'declined')} disabled={updating}
@@ -372,7 +372,7 @@ export default function LenderDashboardPage() {
                                 <X size={14} /> Decline
                               </button>
                               <select value={app.status} onChange={(e) => handleUpdateStatus(app, e.target.value)} disabled={updating}
-                                className="px-4 py-3 rounded-xl border border-[#DEDDD6] bg-white text-xs font-bold outline-none">
+                                className="px-4 py-3 rounded-xl border border-line bg-white text-xs font-bold outline-none">
                                 {Object.keys(STATUS_CONFIG).map(s => (
                                   <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
                                 ))}

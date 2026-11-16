@@ -102,9 +102,9 @@ export default function BrowsePage() {
               <button key={f} onClick={() => setFilter(f)}
                 className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border transition-all flex-shrink-0"
                 style={{
-                  backgroundColor: filter === f ? '#17211B' : '#FFFFFF',
-                  color:           filter === f ? '#FFFFFF'  : '#5C4A3A',
-                  borderColor:     filter === f ? '#17211B'  : '#DEDDD6',
+                  backgroundColor: filter === f ? 'var(--dm-deep)' : 'white',
+                  color:           filter === f ? 'white'  : '#5C4A3A',
+                  borderColor:     filter === f ? 'var(--dm-deep)'  : 'var(--dm-line)',
                 }}>
                 {f}
               </button>

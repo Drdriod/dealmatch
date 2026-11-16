@@ -144,7 +144,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Amount (₦)</label>
               {/* The amount is the listed price. The database refuses any other amount. */}
-              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}>
+              <div className="w-full px-4 py-3 rounded-2xl text-sm" style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}>
                 {property?.price ? formatNaira(Number(property.price)) : '—'}
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Preferred move-in date</label>
                 <input type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                  className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
               </div>
             )}
 

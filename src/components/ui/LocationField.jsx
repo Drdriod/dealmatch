@@ -50,13 +50,13 @@ export default function LocationField({
       {open && options.length > 0 && (
         <ul role="listbox"
           className="absolute left-0 right-0 top-full mt-2 z-30 max-h-60 overflow-auto rounded-2xl bg-white shadow-soft py-1"
-          style={{ border: '1px solid #DEDDD6' }}>
+          style={{ border: '1px solid var(--dm-line)' }}>
           {options.map(o => (
             <li key={o.id} role="option" aria-selected="false">
               <button type="button"
                 onMouseDown={e => e.preventDefault()}
                 onClick={() => { onChange(o.label, o); setOpen(false) }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#F7F4ED]"
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-cream"
                 style={{ color: 'var(--dm-deep)' }}>
                 {o.label}
                 {o.postcode && <span className="ml-2 text-xs" style={{ color: 'var(--dm-warm)' }}>{o.postcode}</span>}

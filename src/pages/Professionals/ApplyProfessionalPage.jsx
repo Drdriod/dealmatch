@@ -99,6 +99,7 @@ const planKeyFor = (id) => {
 }
 
 const STEPS = ['Profession', 'Your details', 'Plan and payment']
+const BIO_MAX = 600
 
 const naira = (n) => `₦${Number(n || 0).toLocaleString('en-NG')}`
 const phoneDigits = (v) => String(v).replace(/[^\d+]/g, '')
@@ -114,6 +115,11 @@ function validate(step, form) {
     if (form.full_name.trim().length < 3) e.full_name = 'Enter your full name.'
     if (phoneDigits(form.phone).replace('+', '').length < 10) e.phone = 'Enter a phone number with at least 10 digits.'
     if (!isEmail(form.email)) e.email = 'Enter a valid email address.'
+    if (form.years_experience !== '') {
+      const y = Number(form.years_experience)
+      if (!Number.isInteger(y) || y < 0 || y > 60) e.years_experience = 'Enter a whole number from 0 to 60.'
+    }
+    if (form.bio.length > BIO_MAX) e.bio = `Keep it under ${BIO_MAX} characters.`
   }
   return e
 }
@@ -140,6 +146,8 @@ export default function ApplyProfessionalPage() {
     email:           user?.email || '',
     license_no:      '',
     coverage_areas:  '',
+    years_experience: '',
+    bio:             '',
   })
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -196,6 +204,8 @@ export default function ApplyProfessionalPage() {
       email:             form.email.trim(),
       license_number:    form.license_no.trim() || null,
       coverage_areas:    form.coverage_areas.trim() || null,
+      years_experience:  form.years_experience === '' ? null : Number(form.years_experience),
+      bio:               form.bio.trim() || null,
       plan_type:         planType,
       status:            'pending',
     })
@@ -334,6 +344,18 @@ export default function ApplyProfessionalPage() {
             <Field id="f-coverage_areas" label="Where do you work?" optional hint="Cities or states, separated by commas.">
               <input className={`input ${inputClass}`} type="text" autoComplete="off" placeholder="e.g. Lagos, Abuja, Port Harcourt"
                 value={form.coverage_areas} onChange={set('coverage_areas')} />
+            </Field>
+
+            <Field id="f-years_experience" label="Years of experience" optional error={shown.years_experience}>
+              <input className={`input ${inputClass}`} type="number" inputMode="numeric" min="0" max="60" step="1" placeholder="e.g. 8"
+                value={form.years_experience} onChange={set('years_experience')} />
+            </Field>
+
+            <Field id="f-bio" label="About you" optional error={shown.bio}
+              hint={`A few lines on your work and what clients can expect. ${form.bio.length}/${BIO_MAX}`}>
+              <textarea className={`input ${inputClass} min-h-[110px]`} rows={4} maxLength={BIO_MAX + 50}
+                placeholder="e.g. I have surveyed residential and commercial plots across Lagos for 8 years."
+                value={form.bio} onChange={set('bio')} />
             </Field>
           </div>
         )}

@@ -79,7 +79,7 @@ export function setPropertyStatus(id, { status, adminId }) {
 // ── Professional applications ──
 export function fetchProfessionalApplications(filter) {
   let q = supabase.from('professional_applications')
-    .select('id,full_name,email,phone,professional_type,company_name,plan_type,rating,review_count,status,created_at,coverage_areas')
+    .select('id,full_name,email,phone,professional_type,company_name,plan_type,rating,review_count,status,created_at,coverage_areas,years_experience,bio')
     .order('created_at', { ascending: false }).limit(200)
   if (filter !== 'all') q = q.eq('status', filter)
   return q

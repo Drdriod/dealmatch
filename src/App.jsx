@@ -638,13 +638,13 @@ export default function App() {
               position="bottom-center"
               toastOptions={{
                 style:{
-                  background:'#17211B', color:'#F7F4ED',
+                  background:'var(--dm-deep)', color:'var(--dm-cream)',
                   borderRadius:'16px', padding:'14px 18px', maxWidth:'440px',
                   boxShadow:'0 18px 40px -12px rgba(23,33,27,0.45)',
                   fontSize:'14px', lineHeight:'1.45', fontFamily:"'DM Sans',sans-serif", fontWeight:'500',
                 },
-                success: { iconTheme:{ primary:'#7A9E7E', secondary:'#F7F4ED' } },
-                error:   { iconTheme:{ primary:'#B8511E', secondary:'#F7F4ED' } },
+                success: { iconTheme:{ primary:'var(--dm-sage)', secondary:'var(--dm-cream)' } },
+                error:   { iconTheme:{ primary:'var(--dm-terracotta)', secondary:'var(--dm-cream)' } },
               }}
             />
             <ConfirmProvider>

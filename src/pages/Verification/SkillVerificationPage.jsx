@@ -137,13 +137,13 @@ export default function SkillVerificationPage() {
       <VerifyReminder returnTo="/verify-skill" className="mx-4 mt-2 max-w-4xl md:mx-auto" />
 
       {currentLevel >= 2 ? (
-        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)' }}>
           <Award size={36} className="mx-auto mb-3" style={{ color: 'var(--dm-gold)' }} />
           <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You're Skill Verified{currentLevel >= 3 ? ' & Trusted' : ''}!</p>
           <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>You now appear in Find a Provider search results.</p>
         </div>
       ) : existing?.status === 'pending' ? (
-        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+        <div className="mx-4 mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)' }}>
           <Clock size={32} className="mx-auto mb-3" style={{ color: 'var(--dm-gold)' }} />
           <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>Under review</p>
           <p className="text-xs mt-1" style={{ color: 'var(--dm-warm)' }}>Submitted {new Date(existing.created_at).toLocaleDateString()}. Our team typically reviews within 48 hours.</p>
@@ -154,7 +154,7 @@ export default function SkillVerificationPage() {
           {/* Live photo preview - mirrors the reference design's photo-left
               layout, using the applicant's own uploaded work photos. */}
           <div className="hidden md:block">
-            <div className="rounded-3xl overflow-hidden sticky top-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
+            <div className="rounded-3xl overflow-hidden sticky top-4" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)' }}>
               <div className="aspect-[4/5] relative" style={{ backgroundColor: 'rgba(200,95,45,0.06)' }}>
                 {files[0]
                   ? <img src={files[0].previewUrl} alt="" className="w-full h-full object-cover" />
@@ -191,9 +191,9 @@ export default function SkillVerificationPage() {
                     onClick={() => { setGroupSlug(g.slug); setCategoryType(providerTypeForGroup(g.slug)); setCategory('') }}
                     className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
                     style={{
-                      backgroundColor: groupSlug === g.slug ? '#B8511E' : '#FFF',
-                      color: groupSlug === g.slug ? '#FFF' : '#17211B',
-                      border: '1px solid #DEDDD6',
+                      backgroundColor: groupSlug === g.slug ? 'var(--dm-terracotta)' : '#FFF',
+                      color: groupSlug === g.slug ? '#FFF' : 'var(--dm-deep)',
+                      border: '1px solid var(--dm-line)',
                     }}>
                     {g.name}
                   </button>
@@ -212,9 +212,9 @@ export default function SkillVerificationPage() {
                   <button key={c.slug} type="button" onClick={() => setCategory(c.name)}
                     className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
                     style={{
-                      backgroundColor: category === c.name ? '#17211B' : '#FFF',
-                      color: category === c.name ? '#FFF' : '#17211B',
-                      border: '1px solid #DEDDD6',
+                      backgroundColor: category === c.name ? 'var(--dm-deep)' : '#FFF',
+                      color: category === c.name ? '#FFF' : 'var(--dm-deep)',
+                      border: '1px solid var(--dm-line)',
                     }}>
                     {c.name}
                   </button>
@@ -228,7 +228,7 @@ export default function SkillVerificationPage() {
           <div>
             <NumberedLabel n={3}>Area *</NumberedLabel>
             <input value={area} onChange={e => setArea(e.target.value)} placeholder="e.g. Lekki, Lagos"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+              className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
           </div>
 
           <div>
@@ -236,18 +236,18 @@ export default function SkillVerificationPage() {
             <div className="flex items-center gap-2 mb-2">
               <button type="button" onClick={() => setOpenPrice(true)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: openPrice ? '#B8511E' : '#FFF', color: openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
+                style={{ backgroundColor: openPrice ? 'var(--dm-terracotta)' : '#FFF', color: openPrice ? '#FFF' : 'var(--dm-deep)', border: '1px solid var(--dm-line)' }}>
                 Open price
               </button>
               <button type="button" onClick={() => setOpenPrice(false)}
                 className="px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
-                style={{ backgroundColor: !openPrice ? '#B8511E' : '#FFF', color: !openPrice ? '#FFF' : '#17211B', border: '1px solid #DEDDD6' }}>
+                style={{ backgroundColor: !openPrice ? 'var(--dm-terracotta)' : '#FFF', color: !openPrice ? '#FFF' : 'var(--dm-deep)', border: '1px solid var(--dm-line)' }}>
                 Set a starting price
               </button>
             </div>
             {!openPrice && (
               <input type="number" min="0" value={price} onChange={e => setPrice(e.target.value)} placeholder="e.g. 5000"
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
             )}
           </div>
 
@@ -255,19 +255,19 @@ export default function SkillVerificationPage() {
             <NumberedLabel n={5}>Describe your experience *</NumberedLabel>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4}
               placeholder="What kind of jobs have you done? How long have you been doing this work?"
-              className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+              className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <NumberedLabel n={6}>Years of experience</NumberedLabel>
               <input type="number" min="0" value={yearsExperience} onChange={e => setYearsExperience(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
             </div>
             <div>
               <NumberedLabel n={7}>References</NumberedLabel>
               <input value={references} onChange={e => setReferences(e.target.value)} placeholder="Names or phone numbers"
-                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }} />
+                className="w-full px-4 py-3 rounded-2xl text-sm outline-none" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }} />
             </div>
           </div>
 
@@ -283,7 +283,7 @@ export default function SkillVerificationPage() {
                 </div>
               ))}
               {files.length < 6 && (
-                <label className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer" style={{ backgroundColor: '#FFF', border: '1.5px dashed #DEDDD6' }}>
+                <label className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer" style={{ backgroundColor: '#FFF', border: '1.5px dashed var(--dm-line)' }}>
                   <Camera size={18} style={{ color: 'var(--dm-warm)' }} />
                   <span className="text-[10px] font-semibold" style={{ color: 'var(--dm-warm)' }}>Add</span>
                   <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />

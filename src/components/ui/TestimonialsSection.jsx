@@ -22,8 +22,8 @@ function Stars({ value, onChange, size = 16 }) {
         >
           <Star
             size={size}
-            fill={n <= value ? '#D4A853' : 'transparent'}
-            style={{ color: n <= value ? '#D4A853' : '#C9BEB2' }}
+            fill={n <= value ? 'var(--dm-gold)' : 'transparent'}
+            style={{ color: n <= value ? 'var(--dm-gold)' : '#C9BEB2' }}
           />
         </button>
       ))}
@@ -91,7 +91,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
       style={{ backgroundColor: 'rgba(23,33,27,0.6)' }} onClick={onClose}>
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl p-6" style={{ backgroundColor: '#FFFFFF' }}>
+        className="w-full max-w-md rounded-3xl p-6" style={{ backgroundColor: 'white' }}>
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-display font-black text-xl" style={{ color: 'var(--dm-deep)' }}>Share Your Story</h3>
           <button onClick={onClose}><X size={20} style={{ color: 'var(--dm-warm)' }} /></button>
@@ -112,7 +112,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
             placeholder="e.g. Tenant in Lekki, First-time buyer"
             maxLength={80}
             className="w-full rounded-2xl px-4 py-3 text-sm outline-none"
-            style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
+            style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}
           />
         </div>
 
@@ -125,7 +125,7 @@ function SubmitTestimonialModal({ onClose, onSubmitted }) {
             maxLength={600}
             placeholder="Tell other Nigerians about your experience finding a match with DealMatch..."
             className="w-full rounded-2xl px-4 py-3 text-sm outline-none resize-none"
-            style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid #DEDDD6', color: 'var(--dm-deep)' }}
+            style={{ backgroundColor: 'var(--dm-cream)', border: '1px solid var(--dm-line)', color: 'var(--dm-deep)' }}
           />
           <p className="text-xs mt-1 text-right" style={{ color: '#C9BEB2' }}>{content.length}/600</p>
         </div>
@@ -210,7 +210,7 @@ export default function TestimonialsSection() {
             {testimonials.map(t => (
               <StaggerItem key={t.id}>
                 <div className="rounded-3xl p-6 h-full flex flex-col"
-                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEDDD6' }}>
+                  style={{ backgroundColor: 'white', border: '1px solid var(--dm-line)' }}>
                   <Quote size={22} style={{ color: 'var(--dm-line)' }} className="mb-3" />
                   <Stars value={t.rating} size={14} />
                   <p className="text-sm leading-relaxed mt-3 mb-4 flex-1" style={{ color: 'var(--dm-deep)' }}>

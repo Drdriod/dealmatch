@@ -171,14 +171,14 @@ function BookingModal({ hotel, onClose }) {
                     <button key={c.id} type="button" onClick={() => setForm(f => ({ ...f, room_type: c.name }))}
                       className="p-3 rounded-2xl border-2 text-left transition-all"
                       style={{
-                        borderColor:     form.room_type === c.name ? '#B8511E' : '#DEDDD6',
-                        backgroundColor: form.room_type === c.name ? 'rgba(200,95,45,0.05)' : '#FFFFFF',
+                        borderColor:     form.room_type === c.name ? 'var(--dm-terracotta)' : 'var(--dm-line)',
+                        backgroundColor: form.room_type === c.name ? 'rgba(200,95,45,0.05)' : 'white',
                       }}>
                       <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{c.name}</p>
                       {c.price_per_night && (
                         <p className="text-xs mt-0.5" style={{ color:'var(--dm-terracotta)' }}>₦{Number(c.price_per_night).toLocaleString()}/night</p>
                       )}
-                      <p className="text-[10px] mt-0.5" style={{ color: c.available_rooms > 0 ? '#7A9E7E' : '#B8511E' }}>
+                      <p className="text-[10px] mt-0.5" style={{ color: c.available_rooms > 0 ? 'var(--dm-sage)' : 'var(--dm-terracotta)' }}>
                         {c.available_rooms > 0 ? `${c.available_rooms} available` : 'Fully booked'}
                       </p>
                     </button>
@@ -192,12 +192,12 @@ function BookingModal({ hotel, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Check-in *</label>
                 <input type="date" value={form.checkin} onChange={set('checkin')} min={new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                  className="input text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Check-out *</label>
                 <input type="date" value={form.checkout} onChange={set('checkout')} min={form.checkin || new Date().toISOString().split('T')[0]}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                  className="input text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
               </div>
             </div>
 
@@ -206,14 +206,14 @@ function BookingModal({ hotel, onClose }) {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Guests</label>
                 <select value={form.guests} onChange={setN('guests')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
+                  style={{ backgroundColor:'white', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} guest{n>1?'s':''}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Rooms</label>
                 <select value={form.rooms} onChange={setN('rooms')} className="select text-sm"
-                  style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }}>
+                  style={{ backgroundColor:'white', color:'var(--dm-deep)' }}>
                   {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} room{n>1?'s':''}</option>)}
                 </select>
               </div>
@@ -228,14 +228,14 @@ function BookingModal({ hotel, onClose }) {
               <div key={f.key}>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={set(f.key)} placeholder={f.placeholder}
-                  className="input text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                  className="input text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
               </div>
             ))}
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'rgba(23,33,27,0.7)' }}>Special requests</label>
               <textarea value={form.special} onChange={set('special')} rows={2} placeholder="Anything the hotel should know?"
-                className="input resize-none text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+                className="input resize-none text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
             </div>
 
             {/* Price calculator */}
@@ -286,12 +286,12 @@ function HotelCard({ hotel, onBook }) {
           : <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor:'rgba(200,95,45,0.08)' }}></div>
         }
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-          style={{ backgroundColor: hotel.category === 'hotel' ? '#17211B' : '#B8511E', color:'#FFFFFF' }}>
+          style={{ backgroundColor: hotel.category === 'hotel' ? 'var(--dm-deep)' : 'var(--dm-terracotta)', color:'white' }}>
           {hotel.category === 'hotel' ? 'Hotel' : 'Short-let'}
         </div>
         {!available && (
           <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-            style={{ backgroundColor:'rgba(200,95,45,0.9)', color:'#FFFFFF' }}>Fully booked</div>
+            style={{ backgroundColor:'rgba(200,95,45,0.9)', color:'white' }}>Fully booked</div>
         )}
       </div>
       <div className="p-4">
@@ -319,19 +319,19 @@ function HotelCard({ hotel, onBook }) {
             )}
           </div>
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? '#5C8060' : '#B8511E' }}>
+            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? '#5C8060' : 'var(--dm-terracotta)' }}>
             {available ? 'Available' : 'Fully Booked'}
           </span>
         </div>
         <div className="flex gap-2">
           <Link to={`/property/${hotel.id}`}
             className="flex-1 py-2.5 rounded-xl text-xs font-semibold border text-center transition-all"
-            style={{ borderColor:'var(--dm-line)', color:'#5C4A3A', backgroundColor:'#FFFFFF' }}>
+            style={{ borderColor:'var(--dm-line)', color:'#5C4A3A', backgroundColor:'white' }}>
             View Details
           </Link>
           <button onClick={() => onBook(hotel)} disabled={!available}
             className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
-            style={{ backgroundColor: available ? '#B8511E' : 'rgba(23,33,27,0.06)', color: available ? '#FFFFFF' : '#5C665F' }}>
+            style={{ backgroundColor: available ? 'var(--dm-terracotta)' : 'rgba(23,33,27,0.06)', color: available ? 'white' : 'var(--dm-warm)' }}>
             {available ? 'Book Now' : 'Fully Booked'}
           </button>
         </div>
@@ -378,7 +378,7 @@ export default function HotelsPage() {
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color:'var(--dm-warm)' }} />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search hotels, cities..."
-            className="input pl-11 text-sm" style={{ backgroundColor:'#FFFFFF', color:'var(--dm-deep)' }} />
+            className="input pl-11 text-sm" style={{ backgroundColor:'white', color:'var(--dm-deep)' }} />
         </div>
 
         {/* State filter */}
@@ -387,9 +387,9 @@ export default function HotelsPage() {
             <button key={s} onClick={() => setState(s)}
               className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
-                backgroundColor: state === s ? '#17211B' : '#FFFFFF',
-                color:           state === s ? '#FFFFFF' : '#5C4A3A',
-                borderColor:     state === s ? '#17211B' : '#DEDDD6',
+                backgroundColor: state === s ? 'var(--dm-deep)' : 'white',
+                color:           state === s ? 'white' : '#5C4A3A',
+                borderColor:     state === s ? 'var(--dm-deep)' : 'var(--dm-line)',
               }}>{s}</button>
           ))}
         </div>
@@ -400,9 +400,9 @@ export default function HotelsPage() {
             <button key={t} onClick={() => setTypeFilter(t)}
               className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
-                backgroundColor: typeFilter === t ? '#B8511E' : '#FFFFFF',
-                color:           typeFilter === t ? '#FFFFFF' : '#5C4A3A',
-                borderColor:     typeFilter === t ? '#B8511E' : '#DEDDD6',
+                backgroundColor: typeFilter === t ? 'var(--dm-terracotta)' : 'white',
+                color:           typeFilter === t ? 'white' : '#5C4A3A',
+                borderColor:     typeFilter === t ? 'var(--dm-terracotta)' : 'var(--dm-line)',
               }}>{t}</button>
           ))}
         </div>
