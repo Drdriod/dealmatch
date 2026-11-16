@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Award, Briefcase, Camera, Edit3, HardHat, Heart, Home, LayoutDashboard, LogOut, Save, Shield, ShieldCheck, User } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowRightIcon, ArrowRightOnRectangleIcon, BanknotesIcon, BriefcaseIcon, CameraIcon, CheckBadgeIcon, CheckIcon,
+  ClockIcon, HeartIcon, HomeIcon, PencilSquareIcon, ShieldCheckIcon, ShieldExclamationIcon, Squares2X2Icon, UserIcon, XMarkIcon,
+} from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
 import { uploadAvatar, supabase } from '@/lib/supabase'
 import { markOffersServices } from '@/data/profileRepository'
 import { loadProviderSummary } from '@/data/verificationRepository'
-import { Link, useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
 import DeleteAccountPanel from '@/components/DeleteAccountPanel'
+import { Field, inputClass } from '@/components/ui/WizardKit'
 
 const NIGERIAN_STATES = [
   'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
@@ -16,34 +20,168 @@ const NIGERIAN_STATES = [
   'Zamfara','Abuja (FCT)',
 ]
 
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
+const pillButton = `inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-deep hover:border-deep/30 ${focusRing}`
+
+const personalFrom = (p) => ({
+  full_name: p?.full_name || '', phone: p?.phone || '', bio: p?.bio || '', state: p?.state || '', city: p?.city || '',
+})
+const bankFrom = (p) => ({
+  bank_name: p?.bank_name || '', account_name: p?.account_name || '', account_number: p?.account_number || '', routing_number: p?.routing_number || '',
+})
+
+function validatePersonal(f) {
+  const e = {}
+  if (!f.full_name.trim()) e.full_name = 'Enter your full name'
+  if (f.phone.trim() && f.phone.replace(/\D/g, '').length < 10) e.phone = 'Enter a valid phone number (at least 10 digits)'
+  return e
+}
+function validateBank(f) {
+  const e = {}
+  if (f.account_number && !/^\d{10}$/.test(f.account_number)) e.account_number = 'Your account number should be 10 digits'
+  if (f.account_number && !f.bank_name.trim()) e.bank_name = 'Enter your bank name'
+  if (f.account_number && !f.account_name.trim()) e.account_name = 'Enter the name on the account'
+  return e
+}
+
+// A glass section with its own Edit / Save / Cancel, so each part saves on its own.
+function SectionCard({ title, subtitle, icon: Icon, editing, saving, onEdit, onCancel, onSave, action, children }) {
+  return (
+    <section className="mb-5 rounded-[32px_32px_32px_10px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur-xl sm:p-6">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-[10rem] flex-1">
+          <h2 className="flex items-center gap-2 font-display text-xl">
+            {Icon ? <Icon className="h-5 w-5 flex-shrink-0 text-terracotta" aria-hidden="true" /> : null}
+            {title}
+          </h2>
+          {subtitle ? <p className="mt-0.5 text-xs text-warm">{subtitle}</p> : null}
+        </div>
+        {action || (onEdit ? (
+          editing ? (
+            <div className="ml-auto flex flex-shrink-0 items-center gap-2">
+              <button type="button" onClick={onCancel} disabled={saving} className={pillButton}>
+                <XMarkIcon className="h-4 w-4" aria-hidden="true" /> Cancel
+              </button>
+              <button type="button" onClick={onSave} disabled={saving}
+                className={`inline-flex items-center gap-1.5 rounded-full bg-terracotta px-4 py-2 text-xs font-bold text-white hover:bg-terracotta-dark disabled:opacity-60 ${focusRing}`}>
+                <CheckIcon className="h-4 w-4" aria-hidden="true" /> {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={onEdit} className={`flex-shrink-0 ${pillButton}`}>
+              <PencilSquareIcon className="h-4 w-4" aria-hidden="true" /> Edit
+            </button>
+          )
+        ) : null)}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+// A label and value, for the read-only view of a section.
+function Row({ label, children }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-t border-line/70 py-2.5 first:border-t-0">
+      <dt className="flex-shrink-0 text-xs font-bold uppercase tracking-wider text-warm">{label}</dt>
+      <dd className="min-w-0 break-words text-right text-sm font-semibold text-deep">
+        {children || <span className="font-medium text-warm">Not added</span>}
+      </dd>
+    </div>
+  )
+}
+
+function Badge({ tone, icon: Icon, children }) {
+  const palette = {
+    good: 'bg-forest-pale text-forest-dark',
+    warn: 'bg-sun/30 text-deep',
+    bad: 'bg-orange-pale text-terracotta-dark',
+    quiet: 'bg-white/15 text-white/80',
+  }[tone]
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold ${palette}`}>
+      <Icon className="h-4 w-4" aria-hidden="true" /> {children}
+    </span>
+  )
+}
+
+function VerificationCard({ profile }) {
+  const idStatus = profile?.identity_verification_status
+  const box = 'mb-5 rounded-[28px_28px_28px_8px] border p-5'
+  if (idStatus === 'approved' || profile?.is_live_verified) {
+    return (
+      <div className={`${box} flex items-center gap-3 border-forest/20 bg-forest-pale`}>
+        <ShieldCheckIcon className="h-6 w-6 flex-shrink-0 text-forest" aria-hidden="true" />
+        <p className="text-sm font-bold text-forest-dark">Identity verified</p>
+      </div>
+    )
+  }
+  if (idStatus === 'submitted') {
+    return (
+      <div className={`${box} flex items-start gap-3 border-sun/50 bg-sun/15`}>
+        <ClockIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-deep" aria-hidden="true" />
+        <div>
+          <p className="text-sm font-bold">Verification under review</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-warm">
+            Your ID and selfie have been submitted. Our team will review and notify you here (and by email) within 24-48 hours.
+          </p>
+        </div>
+      </div>
+    )
+  }
+  const rejected = idStatus === 'rejected'
+  return (
+    <div className={`${box} border-terracotta/30 bg-orange-pale`}>
+      <div className="flex items-start gap-3">
+        <ShieldExclamationIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-terracotta" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="text-sm font-bold">{rejected ? 'Verification not approved' : 'Verify your identity'}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-warm">
+            {rejected
+              ? (profile?.identity_rejection_note ? `Reason: ${profile.identity_rejection_note}` : 'Please check your ID photo and selfie, then send them again.')
+              : 'Upload your government-issued ID and take a selfie. Needed before you can complete deals.'}
+          </p>
+        </div>
+      </div>
+      <Link to="/verify-identity" className={`btn-primary mt-4 flex w-full items-center justify-center gap-2 !px-6 !py-3 text-sm ${focusRing}`}>
+        <ShieldCheckIcon className="h-5 w-5" aria-hidden="true" /> {rejected ? 'Resubmit verification' : 'Verify my identity'}
+      </Link>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const { user, profile, updateUserProfile, refreshProfile } = useAuth()
-  const navigate   = useNavigate()
-  const fileRef    = useRef(null)
-  const [editing,   setEditing]   = useState(false)
-  const [saving,    setSaving]    = useState(false)
+  const navigate = useNavigate()
+  const fileRef = useRef(null)
+
+  const [personal, setPersonal] = useState(() => personalFrom(profile))
+  const [bank, setBank] = useState(() => bankFrom(profile))
+  const [editingPersonal, setEditingPersonal] = useState(false)
+  const [editingBank, setEditingBank] = useState(false)
+  const [savingPersonal, setSavingPersonal] = useState(false)
+  const [savingBank, setSavingBank] = useState(false)
+  const [personalErrors, setPersonalErrors] = useState({})
+  const [bankErrors, setBankErrors] = useState({})
   const [uploading, setUploading] = useState(false)
-  const [signingOut,setSigningOut]= useState(false)
+  const [avatarError, setAvatarError] = useState('')
+  const [signingOut, setSigningOut] = useState(false)
   const [becomingProvider, setBecomingProvider] = useState(false)
   const [providerInfo, setProviderInfo] = useState(null) // { level, submission } once loaded
   const [loadingProvider, setLoadingProvider] = useState(true)
 
-  const [form, setForm] = useState({
-    full_name:      profile?.full_name      || '',
-    phone:          profile?.phone          || '',
-    bio:            profile?.bio            || '',
-    state:          profile?.state          || '',
-    city:           profile?.city           || '',
-    bank_name:      profile?.bank_name      || '',
-    account_number: profile?.account_number || '',
-    account_name:   profile?.account_name   || '',
-    routing_number: profile?.routing_number || '',
-  })
+  // Keep the fields in step with the saved profile whenever a section is not being edited.
+  useEffect(() => { if (!editingPersonal) setPersonal(personalFrom(profile)) }, [profile, editingPersonal])
+  useEffect(() => { if (!editingBank) setBank(bankFrom(profile)) }, [profile, editingBank])
 
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+  const setP = (k) => (e) => { setPersonal((f) => ({ ...f, [k]: e.target.value })); setPersonalErrors((er) => (er[k] ? { ...er, [k]: '' } : er)) }
+  const setB = (k) => (e) => {
+    const v = k === 'account_number' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value
+    setBank((f) => ({ ...f, [k]: v })); setBankErrors((er) => (er[k] ? { ...er, [k]: '' } : er))
+  }
 
   // Provider section data: current tier + most recent Skill submission
-  // (approved or otherwise), so someone who's already submitted evidence
+  // (approved or otherwise), so someone who has already submitted evidence
   // sees what they submitted rather than a blank form every time.
   useEffect(() => {
     if (!user?.id || !profile?.offers_services) { setLoadingProvider(false); return }
@@ -54,36 +192,58 @@ export default function ProfilePage() {
     })()
   }, [user?.id, profile?.offers_services])
 
-  const handleAvatarChange = async e => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0]
+    e.target.value = ''
     if (!file) return
+    if (!file.type.startsWith('image/')) { setAvatarError('Please choose an image file.'); return }
+    if (file.size > 5 * 1024 * 1024) { setAvatarError('That photo is over 5 MB. Choose a smaller one.'); return }
+    setAvatarError('')
     setUploading(true)
     const { url, error } = await uploadAvatar(user.id, file)
-    if (error) { toast.error('We couldn\'t upload that: ' + error.message); setUploading(false); return }
+    if (error) { setAvatarError('We couldn\'t upload that: ' + error.message); setUploading(false); return }
     await updateUserProfile({ avatar_url: url })
-    // Note: is_photo_verified is set only by admin after identity review
+    // is_photo_verified is set only by an admin after identity review
     await refreshProfile()
     toast.success('Photo updated.')
     setUploading(false)
   }
 
-  const handleSave = async () => {
-    // Basic validation for bank details if any field is filled
-    if (form.account_number && !/^\d{10}$/.test(form.account_number)) {
-      toast.error('Your account number should be 10 digits. Please check it and try again.');
-      return;
-    }
-
-    setSaving(true)
-    const { error } = await updateUserProfile(form)
-    setSaving(false)
-    if (error) { toast.error('We couldn\'t save that: ' + error.message); return }
-    await refreshProfile()
-    setEditing(false)
-    toast.success('Profile updated.')
+  const focusFirst = (errs) => {
+    const first = Object.keys(errs)[0]
+    document.querySelector(`[data-field="${first}"]`)?.querySelector('input,select,textarea')?.focus()
   }
 
-  // FIX: Robust sign-out: calls supabase directly, then hard-redirect
+  const savePersonal = async () => {
+    const errs = validatePersonal(personal)
+    setPersonalErrors(errs)
+    if (Object.keys(errs).length) return focusFirst(errs)
+    setSavingPersonal(true)
+    const { error } = await updateUserProfile({ ...personal, full_name: personal.full_name.trim() })
+    setSavingPersonal(false)
+    if (error) { toast.error('We couldn\'t save that: ' + error.message); return }
+    await refreshProfile()
+    setEditingPersonal(false)
+    toast.success('Details updated.')
+  }
+
+  const saveBank = async () => {
+    const errs = validateBank(bank)
+    setBankErrors(errs)
+    if (Object.keys(errs).length) return focusFirst(errs)
+    setSavingBank(true)
+    const { error } = await updateUserProfile(bank)
+    setSavingBank(false)
+    if (error) { toast.error('We couldn\'t save that: ' + error.message); return }
+    await refreshProfile()
+    setEditingBank(false)
+    toast.success('Payout details updated.')
+  }
+
+  const cancelPersonal = () => { setEditingPersonal(false); setPersonalErrors({}) }
+  const cancelBank = () => { setEditingBank(false); setBankErrors({}) }
+
+  // Robust sign-out: calls supabase directly, then hard-redirect
   const handleSignOut = async () => {
     setSigningOut(true)
     try {
@@ -93,15 +253,13 @@ export default function ProfilePage() {
       window.location.href = '/'
     } catch (err) {
       console.error('Sign-out error:', err)
-      // Force redirect anyway: worst case the session cookie expires
       window.location.href = '/'
     }
   }
 
   // "Become a Provider" is a real, honest toggle (not inferred from
-  // verification state) -- see 20260813000000_dashboard_profile_spec.sql.
-  // Saying yes here never grants provider status by itself; it opens the
-  // door to actually submitting evidence, which staff then review.
+  // verification state). Saying yes here never grants provider status by
+  // itself; it opens the door to actually submitting evidence, which staff then review.
   const handleBecomeProvider = async () => {
     if (!user) return
     setBecomingProvider(true)
@@ -113,317 +271,191 @@ export default function ProfilePage() {
     navigate('/verify-skill')
   }
 
-  const verificationLevel =
-    profile?.is_live_verified ? 'live' :
-    profile?.avatar_url        ? 'photo' : 'none'
-
+  const verificationLevel = profile?.is_live_verified ? 'live' : profile?.avatar_url ? 'photo' : 'none'
   const isProvider = !!profile?.offers_services
   const skillLevel = providerInfo?.level || 0
   const skillPending = providerInfo?.submission?.status === 'pending'
+  const sub = providerInfo?.submission?.submission_data
+  const maskedAccount = profile?.account_number ? `${'•'.repeat(6)}${profile.account_number.slice(-4)}` : ''
+
+  const quickLinks = [
+    { to: '/dashboard', icon: Squares2X2Icon, label: 'Dashboard' },
+    { to: '/manage-listings', icon: HomeIcon, label: 'My Offers' },
+    { to: '/matches', icon: HeartIcon, label: 'My Matches' },
+  ]
+  const tile = `flex items-center gap-3 rounded-[24px_24px_24px_8px] border border-white/70 bg-white/80 p-4 text-sm font-bold shadow-card backdrop-blur-xl transition-transform hover:-translate-y-0.5 ${focusRing}`
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
-      <div className="max-w-lg mx-auto px-4">
-        <h1 className="font-display font-black text-lg mb-3" style={{ color:'var(--dm-deep)' }}>Account Settings</h1>
+    <div className="min-h-screen bg-cream pb-28 pt-8 text-deep">
+      <div className="mx-auto max-w-2xl px-4">
+        <h1 className="mb-4 font-display text-3xl">Account settings</h1>
 
-        {/* Profile hero card */}
-        <div className="rounded-3xl overflow-hidden mb-5" style={{ backgroundColor:'var(--dm-deep)' }}>
-          <div className="p-6 flex flex-col items-center text-center">
-            {/* Avatar */}
+        {/* Profile hero */}
+        <div className="relative mb-5 overflow-hidden rounded-[40px_40px_40px_12px] bg-forest-dark p-6 text-center text-white shadow-soft">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-[60%_40%_55%_45%] bg-terracotta/40 blur-2xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 -left-10 h-48 w-48 rounded-[45%_55%_40%_60%] bg-forest/60 blur-2xl" />
+          <div className="relative flex flex-col items-center">
             <div className="relative mb-4">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4"
-                style={{ borderColor:'rgba(200,95,45,0.5)' }}>
+              <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white/40 bg-white/10">
                 {uploading ? (
-                  <div className="w-full h-full flex items-center justify-center"
-                    style={{ backgroundColor:'rgba(255,255,255,0.1)' }}>
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="flex h-full w-full items-center justify-center">
+                    <span className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   </div>
                 ) : profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"
-                    style={{ backgroundColor:'rgba(200,95,45,0.2)' }}>
-                    <User size={32} style={{ color:'var(--dm-terracotta)' }} />
+                  <div className="flex h-full w-full items-center justify-center text-white/80">
+                    <UserIcon className="h-10 w-10" aria-hidden="true" />
                   </div>
                 )}
               </div>
-              <button onClick={() => fileRef.current?.click()}
-                className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor:'var(--dm-terracotta)', border:'2px solid #17211B' }}>
-                <Camera size={13} color="white" />
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} aria-label="Change profile photo"
+                className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-forest-dark bg-terracotta text-white hover:bg-terracotta-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <CameraIcon className="h-5 w-5" aria-hidden="true" />
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden"
-                onChange={handleAvatarChange} />
+              <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={handleAvatarChange} />
             </div>
 
-            <h2 className="font-display font-black text-xl text-white mb-0.5">
-              {profile?.full_name || 'Your Name'}
-            </h2>
-            {/* Email on its own line, smaller -- per spec, separate from role */}
-            <p className="text-xs" style={{ color:'rgba(255,255,255,0.6)' }}>{user?.email}</p>
+            <h2 className="font-display text-2xl">{profile?.full_name || 'Your name'}</h2>
+            <p className="mt-0.5 break-all text-xs text-white/70">{user?.email}</p>
+            {profile?.bio ? <p className="mt-2 max-w-xs text-xs text-white/70">{profile.bio}</p> : null}
+            {avatarError ? <p role="alert" className="mt-2 rounded-full bg-orange-pale px-3 py-1 text-xs font-bold text-terracotta-dark">{avatarError}</p> : null}
 
-            {profile?.bio && (
-              <p className="text-xs mt-2 max-w-xs" style={{ color:'rgba(255,255,255,0.55)' }}>{profile.bio}</p>
-            )}
-
-            {/* Verification badges -- Identity always shown; Skill only
-                if the person is a provider, per spec 3.1 */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full"
-                style={{
-                  backgroundColor: verificationLevel === 'live'  ? 'rgba(122,158,126,0.2)'  :
-                                    verificationLevel === 'photo' ? 'rgba(212,168,83,0.2)'   :
-                                    'rgba(200,95,45,0.2)',
-                  color:           verificationLevel === 'live'  ? '#7A9E7E' :
-                                    verificationLevel === 'photo' ? '#D4A853' : '#B8511E',
-                }}>
-                <Shield size={12} />
-                <span className="text-xs font-bold">
-                  {verificationLevel === 'live'  ? 'Identity Verified' :
-                   verificationLevel === 'photo' ? 'Photo Uploaded' : 'Not Verified'}
-                </span>
-              </div>
-
-              {isProvider && (
-                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full"
-                  style={{
-                    backgroundColor: skillLevel >= 2 ? 'rgba(212,168,83,0.2)' : 'rgba(255,255,255,0.1)',
-                    color:           skillLevel >= 2 ? '#D4A853' : 'rgba(255,255,255,0.5)',
-                  }}>
-                  <Award size={12} />
-                  <span className="text-xs font-bold">
-                    {skillLevel >= 3 ? 'Trusted Provider' : skillLevel >= 2 ? 'Skill Verified' : skillPending ? 'Skill: Under Review' : 'Skill Not Verified'}
-                  </span>
-                </div>
-              )}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              {verificationLevel === 'live' ? <Badge tone="good" icon={ShieldCheckIcon}>Identity verified</Badge>
+                : verificationLevel === 'photo' ? <Badge tone="warn" icon={CameraIcon}>Photo uploaded</Badge>
+                : <Badge tone="bad" icon={ShieldExclamationIcon}>Not verified</Badge>}
+              {isProvider ? (
+                skillLevel >= 2
+                  ? <Badge tone="good" icon={CheckBadgeIcon}>{skillLevel >= 3 ? 'Trusted provider' : 'Skill verified'}</Badge>
+                  : <Badge tone="quiet" icon={CheckBadgeIcon}>{skillPending ? 'Skill: under review' : 'Skill not verified'}</Badge>
+              ) : null}
             </div>
           </div>
         </div>
 
-        {/* Identity verification status card */}
-        {(() => {
-          const idStatus = profile?.identity_verification_status
-          if (idStatus === 'approved' || profile?.is_live_verified) {
-            return (
-              <div className="rounded-2xl p-4 mb-5 border flex items-center gap-2"
-                style={{ backgroundColor:'rgba(122,158,126,0.08)', borderColor:'rgba(122,158,126,0.3)' }}>
-                <ShieldCheck size={16} style={{ color:'#5C8060' }} />
-                <p className="font-semibold text-sm" style={{ color:'#5C8060' }}>Identity Verified</p>
+        <VerificationCard profile={profile} />
+
+        {/* Personal details */}
+        <SectionCard title="Your details" icon={UserIcon} editing={editingPersonal} saving={savingPersonal}
+          onEdit={() => setEditingPersonal(true)} onCancel={cancelPersonal} onSave={savePersonal}>
+          {editingPersonal ? (
+            <div className="space-y-4">
+              <Field id="full_name" label="Full name" error={personalErrors.full_name}>
+                <input value={personal.full_name} onChange={setP('full_name')} placeholder="Your full name" autoComplete="name" className={`input ${inputClass}`} />
+              </Field>
+              <Field id="phone" label="Phone" optional error={personalErrors.phone}>
+                <input type="tel" value={personal.phone} onChange={setP('phone')} placeholder="e.g. 08012345678" autoComplete="tel" className={`input ${inputClass}`} />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field id="state" label="State" optional>
+                  <select value={personal.state} onChange={setP('state')} className={`select ${inputClass}`}>
+                    <option value="">Select state…</option>
+                    {NIGERIAN_STATES.map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </Field>
+                <Field id="city" label="City" optional>
+                  <input value={personal.city} onChange={setP('city')} placeholder="Your city" className={`input ${inputClass}`} />
+                </Field>
               </div>
-            )
-          }
-          if (idStatus === 'submitted') {
-            return (
-              <div className="rounded-2xl p-4 mb-5 border"
-                style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color:'#735618' }}>Verification under review</p>
-                <p className="text-xs leading-relaxed" style={{ color:'var(--dm-warm)' }}>
-                  Your ID and selfie have been submitted. Our team will review and notify you here (and by email) within 24-48 hours.
+              <Field id="bio" label="Bio" optional hint="A line or two about you. It shows on your profile.">
+                <textarea value={personal.bio} onChange={setP('bio')} rows={3} placeholder="A short bio…" className={`input ${inputClass} min-h-[88px]`} />
+              </Field>
+            </div>
+          ) : (
+            <dl>
+              <Row label="Name">{profile?.full_name}</Row>
+              <Row label="Phone">{profile?.phone}</Row>
+              <Row label="Location">{[profile?.city, profile?.state].filter(Boolean).join(', ')}</Row>
+              <Row label="Bio">{profile?.bio}</Row>
+            </dl>
+          )}
+        </SectionCard>
+
+        {/* Provider section: only shown if the person offers services */}
+        {isProvider ? (
+          <SectionCard title="Offer details" icon={BriefcaseIcon}
+            action={<Link to="/verify-skill" className={`flex-shrink-0 ${pillButton}`}><PencilSquareIcon className="h-4 w-4" aria-hidden="true" /> {skillLevel >= 2 ? 'Update' : 'Submit'}</Link>}>
+            {loadingProvider ? (
+              <div className="flex justify-center py-4"><span className="h-5 w-5 animate-spin rounded-full border-2 border-terracotta border-t-transparent" /></div>
+            ) : !providerInfo?.submission && skillLevel < 1 ? (
+              <div className="py-2 text-center">
+                <p className="mb-3 text-xs text-warm">
+                  You haven&apos;t submitted proof of your skills yet. Add photos of your work to get Skill Verified and start appearing in Explore People.
                 </p>
-              </div>
-            )
-          }
-          if (idStatus === 'rejected') {
-            return (
-              <div className="rounded-2xl p-4 mb-5 border-2"
-                style={{ backgroundColor:'rgba(200,95,45,0.06)', borderColor:'rgba(200,95,45,0.3)' }}>
-                <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-terracotta)' }}>Verification not approved</p>
-                {profile?.identity_rejection_note && (
-                  <p className="text-xs mb-2 leading-relaxed" style={{ color:'var(--dm-warm)' }}>
-                    Reason: {profile.identity_rejection_note}
-                  </p>
-                )}
-                <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                  style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
-                  <Shield size={14} /> Resubmit Verification
+                <Link to="/verify-skill" className={`btn-primary inline-flex items-center gap-2 !px-6 !py-3 text-sm ${focusRing}`}>
+                  Submit verification <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
-            )
-          }
-          // Not submitted yet
-          return (
-            <div className="rounded-2xl p-4 mb-5 border-2"
-              style={{ backgroundColor:'rgba(212,168,83,0.06)', borderColor:'rgba(212,168,83,0.3)' }}>
-              <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-deep)' }}>Verify your identity</p>
-              <p className="text-xs leading-relaxed mb-3" style={{ color:'var(--dm-warm)' }}>
-                Upload your government-issued ID and take a selfie. Needed before you can complete deals.
-              </p>
-              <Link to="/verify-identity" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
-                <Shield size={14} /> Verify My Identity
-              </Link>
-            </div>
-          )
-        })()}
-
-        {/* Edit form */}
-        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
-          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'var(--dm-line)' }}>
-            <h3 className="font-display font-black text-base" style={{ color:'var(--dm-deep)' }}>Profile Details</h3>
-            {editing ? (
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor:'var(--dm-terracotta)', color:'#FFFFFF' }}>
-                <Save size={12} /> {saving ? 'Saving...' : 'Save'}
-              </button>
             ) : (
-              <button onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border"
-                style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>
-                <Edit3 size={12} /> Edit
-              </button>
+              <>
+                <dl>
+                  {sub?.category ? <Row label="Category">{sub.category}</Row> : null}
+                  {sub?.years_experience != null ? <Row label="Experience">{sub.years_experience} years</Row> : null}
+                  {profile?.city ? <Row label="Service area">{profile.city}{profile.state ? `, ${profile.state}` : ''}</Row> : null}
+                  {sub?.portfolio_paths?.length > 0 ? (
+                    <Row label="Portfolio">{sub.portfolio_paths.length} photo{sub.portfolio_paths.length === 1 ? '' : 's'} submitted</Row>
+                  ) : null}
+                </dl>
+                {skillPending ? <p className="mt-3 rounded-2xl bg-sun/20 px-3 py-2 text-xs font-semibold">Your latest submission is under review.</p> : null}
+              </>
             )}
-          </div>
+          </SectionCard>
+        ) : null}
 
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label:'Full Name',  key:'full_name', type:'text',  placeholder:'Your full name' },
-                { label:'Phone',      key:'phone',     type:'tel',   placeholder:'+234 800 000 0000' },
-              ].map(field => (
-                <div key={field.key}>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color: 'rgba(23,33,27,0.7)' }}>{field.label}</label>
-                  <input type={field.type} value={form[field.key]} onChange={set(field.key)}
-                    disabled={!editing} placeholder={field.placeholder} className="input text-sm"
-                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>State</label>
-                <select value={form.state} onChange={set('state')} disabled={!editing}
-                  className="select text-sm"
-                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }}>
-                  <option value="">Select state...</option>
-                  {NIGERIAN_STATES.map(s => <option key={s}>{s}</option>)}
-                </select>
+        {/* Payout details */}
+        <SectionCard title="Payout details" icon={BanknotesIcon} subtitle="Where we send referral rewards."
+          editing={editingBank} saving={savingBank}
+          onEdit={() => setEditingBank(true)} onCancel={cancelBank} onSave={saveBank}>
+          {editingBank ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field id="bank_name" label="Bank name" error={bankErrors.bank_name}>
+                  <input value={bank.bank_name} onChange={setB('bank_name')} placeholder="e.g. Zenith Bank" className={`input ${inputClass}`} />
+                </Field>
+                <Field id="account_number" label="Account number" error={bankErrors.account_number}>
+                  <input inputMode="numeric" value={bank.account_number} onChange={setB('account_number')} placeholder="10 digits" autoComplete="off" className={`input ${inputClass}`} />
+                </Field>
               </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                  style={{ color: 'rgba(23,33,27,0.7)' }}>City</label>
-                <input type="text" value={form.city} onChange={set('city')}
-                  disabled={!editing} placeholder="Your city" className="input text-sm"
-                  style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
-              </div>
+              <Field id="account_name" label="Name on account" hint="Use the name exactly as your bank shows it." error={bankErrors.account_name}>
+                <input value={bank.account_name} onChange={setB('account_name')} placeholder="Name on account" autoComplete="off" className={`input ${inputClass}`} />
+              </Field>
+              <Field id="routing_number" label="Routing or SWIFT code" optional>
+                <input value={bank.routing_number} onChange={setB('routing_number')} className={`input ${inputClass}`} />
+              </Field>
             </div>
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                style={{ color: 'rgba(23,33,27,0.7)' }}>Bio</label>
-              <textarea value={form.bio} onChange={set('bio')}
-                disabled={!editing} placeholder="A short bio..." className="input text-sm min-h-[80px] py-2"
-                style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
-            </div>
-          </div>
-        </div>
+          ) : (
+            <dl>
+              <Row label="Bank">{profile?.bank_name}</Row>
+              <Row label="Account number">{maskedAccount}</Row>
+              <Row label="Name on account">{profile?.account_name}</Row>
+            </dl>
+          )}
+          <p className="mt-4 rounded-2xl bg-cream-deep p-3 text-xs text-warm">
+            Earning from deals or services? Payouts for those go to your verified payout account.{' '}
+            <Link to="/payout-setup" className="font-bold text-terracotta-dark hover:underline">Set it up</Link>
+          </p>
+        </SectionCard>
 
-        {/* Provider Section -- only shown if the person offers services or
-            wants to. Reuses the most recent Skill submission's data so
-            they see what they already told us, rather than a blank form. */}
-        {isProvider && (
-          <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
-            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor:'var(--dm-line)' }}>
-              <h3 className="font-display font-black text-base flex items-center gap-2" style={{ color:'var(--dm-deep)' }}>
-                <Briefcase size={16} className="text-terracotta" /> Offer Details
-              </h3>
-              <Link to="/verify-skill" className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border"
-                style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>
-                <Edit3 size={12} /> {skillLevel >= 2 ? 'Update' : 'Submit'}
-              </Link>
-            </div>
-            <div className="p-4">
-              {loadingProvider ? (
-                <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--dm-terracotta)' }} /></div>
-              ) : !providerInfo?.submission && skillLevel < 1 ? (
-                <div className="text-center py-3">
-                  <p className="text-xs mb-3" style={{ color:'var(--dm-warm)' }}>
-                    You haven't submitted proof of your skills yet. Add photos of your work to get Skill Verified and start appearing in Explore People.
-                  </p>
-                  <Link to="/verify-skill" className="btn-primary text-sm px-5 py-2.5 inline-flex">Submit Verification →</Link>
-                </div>
-              ) : (
-                <div className="space-y-2 text-sm">
-                  {providerInfo?.submission?.submission_data?.category && (
-                    <div className="flex justify-between"><span style={{ color:'var(--dm-warm)' }}>Category</span><span className="font-semibold" style={{ color:'var(--dm-deep)' }}>{providerInfo.submission.submission_data.category}</span></div>
-                  )}
-                  {providerInfo?.submission?.submission_data?.years_experience != null && (
-                    <div className="flex justify-between"><span style={{ color:'var(--dm-warm)' }}>Experience</span><span className="font-semibold" style={{ color:'var(--dm-deep)' }}>{providerInfo.submission.submission_data.years_experience} years</span></div>
-                  )}
-                  {form.city && (
-                    <div className="flex justify-between"><span style={{ color:'var(--dm-warm)' }}>Service area</span><span className="font-semibold" style={{ color:'var(--dm-deep)' }}>{form.city}{form.state ? `, ${form.state}` : ''}</span></div>
-                  )}
-                  {providerInfo?.submission?.submission_data?.portfolio_paths?.length > 0 && (
-                    <div className="flex justify-between"><span style={{ color:'var(--dm-warm)' }}>Portfolio</span><span className="font-semibold" style={{ color:'var(--dm-deep)' }}>{providerInfo.submission.submission_data.portfolio_paths.length} photo{providerInfo.submission.submission_data.portfolio_paths.length === 1 ? '' : 's'} submitted</span></div>
-                  )}
-                  {skillPending && (
-                    <p className="text-xs mt-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(212,168,83,0.1)', color: '#735618' }}>Your latest submission is under review.</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Bank Details */}
-        <div className="rounded-2xl border mb-5" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
-          <div className="p-4 border-b" style={{ borderColor:'var(--dm-line)' }}>
-            <h3 className="font-display font-black text-base" style={{ color:'var(--dm-deep)' }}>Payout Details</h3>
-            <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>For receiving payments from completed deals</p>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label:'Bank Name',      key:'bank_name',      type:'text', placeholder:'e.g. Zenith Bank' },
-                { label:'Account Name',   key:'account_name',   type:'text', placeholder:'Name on account' },
-                { label:'Account Number', key:'account_number', type:'text', placeholder:'10 digits' },
-                { label:'Routing/SWIFT',  key:'routing_number', type:'text', placeholder:'Optional' },
-              ].map(field => (
-                <div key={field.key}>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block"
-                    style={{ color: 'rgba(23,33,27,0.7)' }}>{field.label}</label>
-                  <input type={field.type} value={form[field.key]} onChange={set(field.key)}
-                    disabled={!editing} placeholder={field.placeholder} className="input text-sm"
-                    style={{ backgroundColor: editing ? '#FFFFFF' : 'rgba(23,33,27,0.03)', color:'var(--dm-deep)' }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Navigation / Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          {[
-            { to:'/dashboard',        icon: <LayoutDashboard size={20} className="text-terracotta" />, label:'Dashboard'          },
-            { to:'/manage-listings',  icon: <Home size={20} className="text-terracotta" />,            label:'My Offers'        },
-            { to:'/matches',          icon: <Heart size={20} className="text-terracotta" />,           label:'My Matches' },
-            ...(isProvider ? [] : [{ onClick: handleBecomeProvider, icon: <Briefcase size={20} className="text-terracotta" />, label: becomingProvider ? 'Saving…' : 'Offer a Service' }]),
-          ].map(({ to, onClick, icon, label }) => (
-            onClick ? (
-              <button key={label} onClick={onClick} disabled={becomingProvider}
-                className="flex items-center gap-2 p-3.5 rounded-2xl border transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
-                <span className="flex-shrink-0">{icon}</span>
-                <span className="text-sm font-semibold" style={{ color:'var(--dm-deep)' }}>{label}</span>
-              </button>
-            ) : (
-              <Link key={to} to={to}
-                className="flex items-center gap-2 p-3.5 rounded-2xl border transition-all hover:-translate-y-0.5"
-                style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
-                <span className="flex-shrink-0">{icon}</span>
-                <span className="text-sm font-semibold" style={{ color:'var(--dm-deep)' }}>{label}</span>
-              </Link>
-            )
+        {/* Shortcuts */}
+        <div className="mb-5 grid grid-cols-2 gap-3">
+          {quickLinks.map(({ to, icon: Icon, label }) => (
+            <Link key={to} to={to} className={tile}>
+              <Icon className="h-6 w-6 flex-shrink-0 text-terracotta" aria-hidden="true" /> {label}
+            </Link>
           ))}
+          {!isProvider ? (
+            <button type="button" onClick={handleBecomeProvider} disabled={becomingProvider} className={`${tile} text-left disabled:opacity-60`}>
+              <BriefcaseIcon className="h-6 w-6 flex-shrink-0 text-terracotta" aria-hidden="true" />
+              {becomingProvider ? 'Saving…' : 'Offer a service'}
+            </button>
+          ) : null}
         </div>
 
-        {/* Sign out button */}
-        <button onClick={handleSignOut} disabled={signingOut}
-          className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold border-2 transition-all"
-          style={{ borderColor:'rgba(200,95,45,0.4)', color:'var(--dm-terracotta)', backgroundColor:'rgba(200,95,45,0.05)' }}>
-          <LogOut size={16} />
-          {signingOut ? 'Signing out...' : 'Sign Out'}
+        <button type="button" onClick={handleSignOut} disabled={signingOut}
+          className={`flex w-full items-center justify-center gap-2 rounded-full border-2 border-terracotta/40 bg-orange-pale/60 py-3.5 text-sm font-bold text-terracotta-dark hover:bg-orange-pale disabled:opacity-60 ${focusRing}`}>
+          <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+          {signingOut ? 'Signing out…' : 'Sign out'}
         </button>
 
         <div className="mt-4"><DeleteAccountPanel /></div>
