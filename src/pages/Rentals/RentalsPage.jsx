@@ -103,7 +103,7 @@ function InterestModal({ rental, onClose }) {
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity:0, y:40 }} animate={{ opacity:1, y:0 }}
         className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col"
-        style={{ backgroundColor:'#FFFAF5', maxHeight:'90vh' }}>
+        style={{ backgroundColor:'var(--dm-paper)', maxHeight:'90vh' }}>
 
         <div className="p-5 border-b flex items-center justify-between" style={{ borderColor:'var(--dm-line)' }}>
           <div>
@@ -112,7 +112,7 @@ function InterestModal({ rental, onClose }) {
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
-            <X size={14} style={{ color:'#5C4A3A' }} />
+            <X size={14} style={{ color:'var(--dm-bark)' }} />
           </button>
         </div>
 
@@ -365,7 +365,7 @@ export default function RentalsPage() {
   }, [user])
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#EEE9DE' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-cream-deep)' }}>
       <div className="max-w-6xl mx-auto px-4">
 
         <div className="flex items-center justify-between mb-5">
@@ -402,7 +402,7 @@ export default function RentalsPage() {
                   className="px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                   style={{
                     backgroundColor: kindGroup === g.slug ? 'var(--dm-deep)' : 'white',
-                    color:           kindGroup === g.slug ? 'white' : '#5C4A3A',
+                    color:           kindGroup === g.slug ? 'white' : 'var(--dm-bark)',
                     borderColor:     kindGroup === g.slug ? 'var(--dm-deep)' : 'var(--dm-line)',
                   }}>{g.name}</button>
               ))}
@@ -414,7 +414,7 @@ export default function RentalsPage() {
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                     style={{
                       backgroundColor: kindLeaf === c.slug ? 'var(--dm-terracotta)' : 'white',
-                      color:           kindLeaf === c.slug ? 'white' : '#5C4A3A',
+                      color:           kindLeaf === c.slug ? 'white' : 'var(--dm-bark)',
                       borderColor:     kindLeaf === c.slug ? 'var(--dm-terracotta)' : 'var(--dm-line)',
                     }}>{c.name}</button>
                 ))}
@@ -430,7 +430,7 @@ export default function RentalsPage() {
               className="px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
                 backgroundColor: stateF === s ? 'var(--dm-deep)' : 'white',
-                color:           stateF === s ? 'white' : '#5C4A3A',
+                color:           stateF === s ? 'white' : 'var(--dm-bark)',
                 borderColor:     stateF === s ? 'var(--dm-deep)' : 'var(--dm-line)',
               }}>{s}</button>
           ))}
@@ -442,7 +442,7 @@ export default function RentalsPage() {
             <p className="text-sm">Finding places...</p>
           </div>
         ) : loadError ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
             <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-deep)' }}>We could not load places right now.</p>
             <p className="text-xs mb-4" style={{ color:'var(--dm-warm)' }}>Check your connection and try again.</p>
             <button onClick={loadRentals} className="btn-primary inline-flex px-6 py-2.5 text-sm">Try again</button>
@@ -460,14 +460,14 @@ export default function RentalsPage() {
                       <div key={r.id} style={{ position:'absolute', inset:0, transform:`scale(${1 - offset * 0.04}) translateY(${offset * -10}px)`, transformOrigin:'bottom center', zIndex:i, pointerEvents: isTop ? 'auto' : 'none' }}>
                         {isTop
                           ? <SwipeCard property={r} matchScore={null} matchReasons={[]} onSwipe={handleSwipe} />
-                          : <div className="rounded-3xl w-full h-full opacity-50" style={{ backgroundColor:'#FFFAF5', border:'1px solid var(--dm-line)' }} />
+                          : <div className="rounded-3xl w-full h-full opacity-50" style={{ backgroundColor:'var(--dm-paper)', border:'1px solid var(--dm-line)' }} />
                         }
                       </div>
                     )
                   })}
                 </div>
               ) : (
-                <div className="rounded-3xl p-10 text-center" style={{ backgroundColor:'#FFFAF5' }}>
+                <div className="rounded-3xl p-10 text-center" style={{ backgroundColor:'var(--dm-paper)' }}>
                   <div className="flex justify-center mb-4"><PartyPopper size={48} className="text-gold" /></div>
                   <h3 className="font-display font-black text-xl mb-2" style={{ color:'var(--dm-deep)' }}>You've seen everything!</h3>
                   <p className="text-xs mb-4" style={{ color:'var(--dm-warm)' }}>Got a place of your own to rent out? List it and reach verified seekers.</p>
@@ -482,7 +482,7 @@ export default function RentalsPage() {
             {/* ── Grid mode ── */}
             {viewMode === 'grid' && (
               filtered.length === 0 ? (
-                <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+                <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
                   <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
                   <p className="font-semibold text-sm mb-1" style={{ color:'var(--dm-deep)' }}>No matching places found yet. Try adjusting your search.</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">

@@ -15,8 +15,8 @@ const AGENT_ROLES = ['agent', 'admin']
 
 const STATUS_FLOW = {
   pending_review:      { label:'Awaiting Verification', color:'var(--dm-gold)', bg:'rgba(212,168,83,0.12)', next:'under_verification' },
-  under_verification:  { label:'Agent Assigned',        color:'#5B8DEF', bg:'rgba(91,141,239,0.12)', next:'active' },
-  active:              { label:'Verified & Live',        color:'#5C8060', bg:'rgba(122,158,126,0.12)', next:null },
+  under_verification:  { label:'Agent Assigned',        color:'var(--dm-sky)', bg:'rgba(91,141,239,0.12)', next:'active' },
+  active:              { label:'Verified & Live',        color:'var(--dm-moss)', bg:'rgba(122,158,126,0.12)', next:null },
   rejected:            { label:'Rejected',               color:'var(--dm-terracotta)', bg:'rgba(200,95,45,0.12)', next:null },
 }
 
@@ -83,7 +83,7 @@ export default function VerificationPage() {
   ]
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-sand)' }}>
       <div className="max-w-3xl mx-auto px-4">
 
         <div className="flex items-center justify-between mb-6">
@@ -96,13 +96,13 @@ export default function VerificationPage() {
           <button onClick={loadListings}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
-            <RefreshCw size={16} style={{ color:'#5C4A3A' }} />
+            <RefreshCw size={16} style={{ color:'var(--dm-bark)' }} />
           </button>
         </div>
 
         {/* Workflow explainer */}
         <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor:'rgba(122,158,126,0.08)', borderColor:'rgba(122,158,126,0.25)' }}>
-          <p className="text-xs font-bold mb-2" style={{ color:'#5C8060' }}>Verification Workflow</p>
+          <p className="text-xs font-bold mb-2" style={{ color:'var(--dm-moss)' }}>Verification Workflow</p>
           <div className="flex items-center gap-2 flex-wrap text-xs" style={{ color:'var(--dm-warm)' }}>
             {['Landlord Submits','→','Agent Visits Location','→','Agent Verifies / Rejects','→','Property Goes Live'].map((s,i) => (
               <span key={i} style={{ color: s === '→' ? 'var(--dm-terracotta)' : undefined }}>{s}</span>
@@ -119,7 +119,7 @@ export default function VerificationPage() {
                 className="px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
                 style={{
                   backgroundColor: filter === f.key ? 'var(--dm-deep)' : 'white',
-                  color:           filter === f.key ? 'white'  : '#5C4A3A',
+                  color:           filter === f.key ? 'white'  : 'var(--dm-bark)',
                   borderColor:     filter === f.key ? 'var(--dm-deep)'  : 'var(--dm-line)',
                 }}>
                 {f.label}
@@ -131,7 +131,7 @@ export default function VerificationPage() {
         {loading ? (
           <div className="text-center py-16" style={{ color:'var(--dm-warm)' }}>Loading listings…</div>
         ) : listings.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
             <div className="flex justify-center mb-3"><CheckCircle size={40} className="text-green-600" /></div>
             <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>No listings in this category</p>
           </div>
@@ -145,7 +145,7 @@ export default function VerificationPage() {
               return (
                 <motion.div key={listing.id} layout
                   className="rounded-2xl border overflow-hidden cursor-pointer transition-all"
-                  style={{ backgroundColor:'#FFFAF5', borderColor: isSelected ? 'var(--dm-terracotta)' : 'var(--dm-line)' }}
+                  style={{ backgroundColor:'var(--dm-paper)', borderColor: isSelected ? 'var(--dm-terracotta)' : 'var(--dm-line)' }}
                   onClick={() => setSelected(isSelected ? null : listing)}>
 
                   <div className="flex gap-0">
@@ -194,7 +194,7 @@ export default function VerificationPage() {
                       )}
 
                       {/* Details */}
-                      <div className="grid grid-cols-2 gap-2 text-xs mb-4" style={{ color:'#5C4A3A' }}>
+                      <div className="grid grid-cols-2 gap-2 text-xs mb-4" style={{ color:'var(--dm-bark)' }}>
                         {[
                           ['Type',     listing.property_type],
                           ['Category', listing.category],
@@ -229,7 +229,7 @@ export default function VerificationPage() {
                         {listing.status !== 'active' && (
                           <button onClick={() => updateStatus(listing, 'active')} disabled={saving}
                             className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                            style={{ backgroundColor:'rgba(122,158,126,0.15)', color:'#5C8060', border:'2px solid rgba(122,158,126,0.3)' }}>
+                            style={{ backgroundColor:'rgba(122,158,126,0.15)', color:'var(--dm-moss)', border:'2px solid rgba(122,158,126,0.3)' }}>
                             <Check size={14} /> Verify & Approve
                           </button>
                         )}
@@ -243,7 +243,7 @@ export default function VerificationPage() {
                         {listing.status === 'pending_review' && (
                           <button onClick={() => updateStatus(listing, 'under_verification')} disabled={saving}
                             className="flex-1 py-3 rounded-xl text-sm font-bold"
-                            style={{ backgroundColor:'rgba(91,141,239,0.1)', color:'#5B8DEF', border:'2px solid rgba(91,141,239,0.25)' }}>
+                            style={{ backgroundColor:'rgba(91,141,239,0.1)', color:'var(--dm-sky)', border:'2px solid rgba(91,141,239,0.25)' }}>
                             Assign to Me
                           </button>
                         )}

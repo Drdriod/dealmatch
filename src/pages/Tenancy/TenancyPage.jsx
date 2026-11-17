@@ -10,7 +10,7 @@ const STEPS = [
 
 export default function TenancyPage() {
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-sand)' }}>
       <div className="max-w-2xl mx-auto px-4">
 
         <div className="rounded-3xl p-8 mb-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--dm-deep)' }}>
@@ -26,7 +26,7 @@ export default function TenancyPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-6 border mb-6" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+        <div className="rounded-2xl p-6 border mb-6" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
           <h2 className="font-display font-black text-xl mb-5" style={{ color: 'var(--dm-deep)' }}>How It Works</h2>
           <div className="space-y-5">
             {STEPS.map((s, i) => (
@@ -50,7 +50,7 @@ export default function TenancyPage() {
           { icon: <CheckCircle size={22} className="text-terracotta" />, title:'Verified Landlords', desc:'Only verified landlords can receive protection payments through DealMatch.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
-            style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+            style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
             <span className="flex-shrink-0">{b.icon}</span>
             <div>
               <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{b.title}</p>

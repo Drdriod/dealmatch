@@ -16,8 +16,8 @@ export const CHART = {
   crosshair: 'rgba(212,168,83,0.55)',
   indicator: 'var(--dm-gold)',
   surface: 'var(--dm-deep)',
-  text: '#FFFAF5',
-  palette: ['var(--dm-sage)', 'var(--dm-gold)', 'var(--dm-terracotta)', '#F3C96A', '#4A7A4E', '#F0D4BE'],
+  text: 'var(--dm-paper)',
+  palette: ['var(--dm-sage)', 'var(--dm-gold)', 'var(--dm-terracotta)', 'var(--dm-sun)', '#4A7A4E', 'var(--dm-blush)'],
 }
 
 export const fmtNum = (n) => {

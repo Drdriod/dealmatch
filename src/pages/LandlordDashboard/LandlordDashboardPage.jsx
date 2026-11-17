@@ -9,16 +9,16 @@ import { BarChart, Donut, KpiTile, Panel, fmtNum, fmtNaira } from '@/components/
 import toast from 'react-hot-toast'
 
 const STATUS_STYLES = {
-  active:         { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Active' },
+  active:         { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)',  label: 'Active' },
   pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#735618',  label: 'Under Review' },
   paused:         { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)',  label: 'Paused' },
   rejected:       { bg: 'rgba(200,95,45,0.12)',  color: 'var(--dm-terracotta)',  label: 'Rejected' },
-  sold:           { bg: 'rgba(122,158,126,0.12)', color: '#5C8060',  label: 'Sold' },
+  sold:           { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)',  label: 'Sold' },
 }
 
 // Badge tones for the portfolio table, which sits on the cream surface.
 const TONES = {
-  good:  { bg: 'rgba(122,158,126,0.12)', color: '#5C8060' },
+  good:  { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)' },
   warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#735618' },
   bad:   { bg: 'rgba(200,95,45,0.12)',   color: 'var(--dm-terracotta)' },
   muted: { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)' },
@@ -107,7 +107,7 @@ export default function LandlordDashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: '#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-sand)' }}>
       <div className="max-w-2xl mx-auto px-4">
 
         {/* Header */}
@@ -121,7 +121,7 @@ export default function LandlordDashboardPage() {
           <button onClick={() => reload()}
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-            <RefreshCw size={16} style={{ color: '#5C4A3A' }} />
+            <RefreshCw size={16} style={{ color: 'var(--dm-bark)' }} />
           </button>
         </div>
 
@@ -136,7 +136,7 @@ export default function LandlordDashboardPage() {
               <div className="flex items-end justify-between px-1 mb-4">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--dm-gold)' }}>Portfolio</p>
-                  <h2 className="font-display text-xl mt-1" style={{ color: '#FFFAF5' }}>Rent and occupancy</h2>
+                  <h2 className="font-display text-xl mt-1" style={{ color: 'var(--dm-paper)' }}>Rent and occupancy</h2>
                 </div>
                 <p className="text-[11px] text-right" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   Last {RENT_MONTHS} months<br />Bookings {fmtNaira(totalRevenue)}
@@ -243,7 +243,7 @@ export default function LandlordDashboardPage() {
                 <h2 className="font-display text-lg font-black" style={{ color: 'var(--dm-deep)' }}>Rental properties</h2>
                 <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{listings.length} listing{listings.length === 1 ? '' : 's'} total</p>
               </div>
-              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
                 {rentals.length === 0 ? (
                   <div className="p-8 text-center">
                     <div className="flex justify-center mb-3"><Key size={36} className="text-terracotta" /></div>
@@ -293,7 +293,7 @@ export default function LandlordDashboardPage() {
                   className="px-5 py-2.5 rounded-full text-sm font-semibold border transition-all"
                   style={{
                     backgroundColor: tab === v ? 'var(--dm-deep)' : 'white',
-                    color:           tab === v ? 'white'  : '#5C4A3A',
+                    color:           tab === v ? 'white'  : 'var(--dm-bark)',
                     borderColor:     tab === v ? 'var(--dm-deep)'  : 'var(--dm-line)',
                   }}>
                   {l}
@@ -307,7 +307,7 @@ export default function LandlordDashboardPage() {
         {!loading && tab === 'listings' && (
           <div className="space-y-3">
             {listings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
                 <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
                 <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You haven't published an offer yet.</p>
                 <Link to="/list" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">Create Your First Offer →</Link>
@@ -316,7 +316,7 @@ export default function LandlordDashboardPage() {
               const s = STATUS_STYLES[l.status] || STATUS_STYLES.paused
               return (
                 <div key={l.id} className="rounded-2xl border p-4"
-                  style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+                  style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm truncate" style={{ color: 'var(--dm-deep)' }}>{l.title}</p>
@@ -332,13 +332,13 @@ export default function LandlordDashboardPage() {
                   <div className="flex gap-2">
                     <Link to={`/property/${l.id}`}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                      style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: 'white' }}>
+                      style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)', backgroundColor: 'white' }}>
                       <Eye size={12} /> View
                     </Link>
                     {(l.status === 'active' || l.status === 'paused') && (
                       <button onClick={() => togglePause(l)}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                        style={{ borderColor: 'var(--dm-line)', color: '#5C4A3A', backgroundColor: 'white' }}>
+                        style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)', backgroundColor: 'white' }}>
                         <Pause size={12} /> {l.status === 'active' ? 'Pause' : 'Activate'}
                       </button>
                     )}
@@ -360,13 +360,13 @@ export default function LandlordDashboardPage() {
         {!loading && tab === 'bookings' && (
           <div className="space-y-3">
             {bookings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
                 <div className="flex justify-center mb-3"><ClipboardList size={40} className="text-terracotta" /></div>
                 <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You don't have any bookings yet.</p>
               </div>
             ) : bookings.map(b => (
               <div key={b.id} className="rounded-2xl border p-4"
-                style={{ backgroundColor: '#FFFAF5', borderColor: 'var(--dm-line)' }}>
+                style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
                     <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{b.guest_name}</p>
@@ -375,7 +375,7 @@ export default function LandlordDashboardPage() {
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0"
                     style={{
                       backgroundColor: b.status === 'confirmed' ? 'rgba(122,158,126,0.12)' : 'rgba(212,168,83,0.12)',
-                      color:           b.status === 'confirmed' ? '#5C8060' : '#735618',
+                      color:           b.status === 'confirmed' ? 'var(--dm-moss)' : '#735618',
                     }}>
                     {b.status}
                   </span>

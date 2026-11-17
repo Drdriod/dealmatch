@@ -115,7 +115,7 @@ export default function AuthCallback() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor:'#FFFAF5'}}>
+    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor:'var(--dm-paper)'}}>
       <div className="flex flex-col items-center gap-4 text-center px-6">
         <div className="flex justify-center"><Home size={48} className="text-terracotta animate-bounce" /></div>
         <p className="font-display text-xl font-black" style={{color:'var(--dm-deep)'}}>

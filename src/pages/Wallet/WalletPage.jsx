@@ -38,42 +38,84 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Wallet as WalletIcon, ShieldCheck, Clock, CheckCircle2, Gift, Star,
-  ChevronRight, ArrowUpRight, ArrowDownLeft, Banknote, RotateCcw, Loader2, Landmark,
-} from 'lucide-react'
+  ArrowDownLeftIcon, ArrowLeftIcon, ArrowPathIcon, ArrowUpRightIcon, BanknotesIcon, BuildingLibraryIcon,
+  CheckCircleIcon, ChevronRightIcon, ClockIcon, GiftIcon, ShieldCheckIcon, WalletIcon,
+} from '@heroicons/react/24/outline'
+import { StarIcon } from '@heroicons/react/24/solid'
 import { loadWalletData, requestWithdrawal } from '@/data/walletRepository'
 import { useAuth } from '@/context/AuthContext'
 import toast from 'react-hot-toast'
 
 const fmt = (n = 0) => '₦' + Number(n || 0).toLocaleString()
 
+// Status chip looks, by tone.
+const TONES = {
+  warn:  'bg-gold/20 text-bark',
+  good:  'bg-sage/20 text-forest',
+  info:  'bg-sky/15 text-deep',
+  bad:   'bg-danger/15 text-danger',
+  quiet: 'bg-warm/15 text-warm',
+}
+
 const ESCROW_STATUS_META = {
-  pending:          { label: 'Awaiting Payment', color: '#D4A853' },
-  awaiting_payment: { label: 'Awaiting Payment', color: '#D4A853' },
-  funded:           { label: 'Payment Confirmed', color: '#7A9E7E' },
-  confirmed:        { label: 'Payment Confirmed', color: '#7A9E7E' },
-  completed:        { label: 'Completed',        color: '#5B8DEF' },
-  disputed:         { label: 'Disputed',         color: '#C94A3A' },
-  cancelled:        { label: 'Cancelled',        color: '#5C665F' },
-  refunded:         { label: 'Refunded',         color: '#5C665F' },
+  pending:          { label: 'Awaiting Payment',  tone: 'warn' },
+  awaiting_payment: { label: 'Awaiting Payment',  tone: 'warn' },
+  funded:           { label: 'Payment Confirmed', tone: 'good' },
+  confirmed:        { label: 'Payment Confirmed', tone: 'good' },
+  completed:        { label: 'Completed',         tone: 'info' },
+  disputed:         { label: 'Disputed',          tone: 'bad' },
+  cancelled:        { label: 'Cancelled',         tone: 'quiet' },
+  refunded:         { label: 'Refunded',          tone: 'quiet' },
 }
 const TX_STATUS_META = {
-  OPEN:      { label: 'Open',            color: '#D4A853' },
-  PENDING:   { label: 'Awaiting Payment', color: '#D4A853' },
-  FUNDED:    { label: 'Payment Confirmed',          color: '#7A9E7E' },
-  COMPLETED: { label: 'Completed',       color: '#5B8DEF' },
-  DISPUTED:  { label: 'Disputed',        color: '#C94A3A' },
-  CANCELLED: { label: 'Cancelled',       color: '#5C665F' },
+  OPEN:      { label: 'Open',              tone: 'warn' },
+  PENDING:   { label: 'Awaiting Payment',  tone: 'warn' },
+  FUNDED:    { label: 'Payment Confirmed', tone: 'good' },
+  COMPLETED: { label: 'Completed',         tone: 'info' },
+  DISPUTED:  { label: 'Disputed',          tone: 'bad' },
+  CANCELLED: { label: 'Cancelled',         tone: 'quiet' },
 }
 // commission_wallet_ledger.entry_type -> feed/section styling. 'released' and
 // 'withdrawn' don't fire in production yet (release_held_payment() is
 // still a stub, see the migration), shown here so the feed and the
 // balance cards are already correct the moment they start arriving.
 const WALLET_ENTRY_META = {
-  held:      { label: 'Held',      icon: Clock,        color: '#D4A853' },
-  released:  { label: 'Released',  icon: CheckCircle2, color: '#7A9E7E' },
-  withdrawn: { label: 'Withdrawn', icon: Banknote,      color: '#5B8DEF' },
-  reversed:  { label: 'Reversed',  icon: RotateCcw,     color: '#C94A3A' },
+  held:      { label: 'Held',      tone: 'warn' },
+  released:  { label: 'Released',  tone: 'good' },
+  withdrawn: { label: 'Withdrawn', tone: 'info' },
+  reversed:  { label: 'Reversed',  tone: 'bad' },
+}
+
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
+const glass = 'border border-white/70 bg-white/80 shadow-card backdrop-blur-xl'
+
+// One small figure tile.
+function Tile({ icon: Icon, iconClass, label, value, loading, onClick, warm = false, wide = false }) {
+  const Tag = onClick ? 'button' : 'div'
+  return (
+    <Tag type={onClick ? 'button' : undefined} onClick={onClick}
+      className={`rounded-[24px_24px_24px_8px] p-4 text-left ${wide ? 'col-span-2' : ''} ${warm ? 'border border-blush bg-blush/60' : glass} ${onClick ? `transition-transform hover:-translate-y-0.5 ${focusRing}` : ''}`}>
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className={`h-4 w-4 flex-shrink-0 ${iconClass}`} aria-hidden="true" />
+        <p className="text-[11px] font-bold text-warm">{label}</p>
+      </div>
+      <p className="font-display text-xl text-deep">{loading ? '–' : value}</p>
+    </Tag>
+  )
+}
+
+// A full-width link row (loyalty points, payout account).
+function LinkRow({ icon: Icon, iconClass, onClick, children }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`mb-3 flex w-full items-center justify-between gap-3 rounded-[22px_22px_22px_8px] p-3.5 text-left transition-transform hover:-translate-y-0.5 ${glass} ${focusRing}`}>
+      <span className="flex min-w-0 flex-wrap items-center gap-2">
+        <Icon className={`h-5 w-5 flex-shrink-0 ${iconClass}`} aria-hidden="true" />
+        {children}
+      </span>
+      <ChevronRightIcon className="h-4 w-4 flex-shrink-0 text-warm" aria-hidden="true" />
+    </button>
+  )
 }
 
 export default function WalletPage() {
@@ -153,14 +195,14 @@ export default function WalletPage() {
       kind: 'escrow', id: e.id, at: e.confirmed_at,
       title: e.transaction_type === 'sale' ? 'Property sale protection' : e.transaction_type === 'hotel' ? 'Shortlet booking protection' : 'Rental protection',
       amount: e.gross_amount, direction: e.seller_id === user?.id ? 'in' : 'out',
-      status: ESCROW_STATUS_META[e.status] || { label: e.status, color: '#5C665F' },
+      status: ESCROW_STATUS_META[e.status] || { label: e.status, tone: 'quiet' },
       link: '/escrow',
     }))
     const b = jobTxns.map(t => ({
       kind: 'job', id: t.id, at: t.created_at,
       title: t.model === 'MULTI_ATTRIBUTE_REVERSE' ? 'Job bid' : 'Service request',
       amount: t.amount_cents ? t.amount_cents / 100 : null, direction: t.provider_id === user?.id ? 'in' : 'out',
-      status: TX_STATUS_META[t.status] || { label: t.status, color: '#5C665F' },
+      status: TX_STATUS_META[t.status] || { label: t.status, tone: 'quiet' },
       link: `/jobs/${t.id}`,
     }))
     const c = ledger.map(e => {
@@ -172,7 +214,7 @@ export default function WalletPage() {
           : 'Job payment',
         amount: e.amount_cents / 100,
         direction: e.entry_type === 'withdrawn' || e.entry_type === 'reversed' ? 'out' : 'in',
-        status: { label: meta.label, color: meta.color },
+        status: { label: meta.label, tone: meta.tone },
         link: e.transaction_id ? `/jobs/${e.transaction_id}` : '/wallet',
       }
     })
@@ -190,161 +232,152 @@ export default function WalletPage() {
     return [...groups.entries()]
   }, [combinedFeed])
 
+  const payoutTone = payoutAccount?.status === 'verified' ? 'good' : payoutAccount?.status === 'rejected' ? 'bad' : 'warn'
+  const payoutLabel = payoutAccount?.status === 'verified' ? 'Verified' : payoutAccount?.status === 'rejected' ? 'Needs changes' : 'Under review'
+  const showEarnings = !loading && walletTotals.hasActivity
+
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: '#F7F4ED' }}>
-      <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF' }}>
-          <ArrowLeft size={16} style={{ color: '#17211B' }} />
-        </button>
-        <h1 className="font-display text-lg font-black" style={{ color: '#17211B' }}>Wallet</h1>
+    <div className="relative min-h-screen overflow-hidden bg-cream pb-28 text-deep">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-20 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/10 blur-3xl" />
+        <div className="absolute -right-20 top-[28rem] h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/15 blur-3xl" />
       </div>
 
-      {/* Balance cards */}
-      <div className="px-4 grid grid-cols-2 gap-3 mb-4">
-        <div className="rounded-2xl p-4" style={{ backgroundColor: '#17211B' }}>
-          <div className="flex items-center gap-2 mb-2"><ShieldCheck size={14} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>Held under Protection</p></div>
-          <p className="font-display text-xl font-black text-white">{loading ? ' - ' : fmt(summary.heldInEscrow)}</p>
+      <div className="relative mx-auto max-w-2xl px-4 pt-6">
+        <div className="mb-5 flex items-center gap-3">
+          <button type="button" onClick={() => navigate(-1)} aria-label="Go back"
+            className={`flex h-10 w-10 items-center justify-center rounded-full ${glass} ${focusRing}`}>
+            <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <h1 className="font-display text-3xl">Wallet</h1>
         </div>
-        <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-          <div className="flex items-center gap-2 mb-2"><ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>You're receiving</p></div>
-          <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(summary.iAmReceiving)}</p>
-        </div>
-        <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-          <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={14} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Jobs earned</p></div>
-          <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(summary.jobsEarned)}</p>
-        </div>
-        <button onClick={() => navigate('/referral')} className="rounded-2xl p-4 text-left" style={{ backgroundColor: '#F0D4BE' }}>
-          <div className="flex items-center gap-2 mb-2"><Gift size={14} style={{ color: '#B8511E' }} /><p className="text-[11px] font-semibold" style={{ color: '#8B5E3C' }}>Referral earnings</p></div>
-          <p className="font-display text-xl font-black" style={{ color: '#17211B' }}>{loading ? ' - ' : fmt(referralTotal)}</p>
-        </button>
-      </div>
 
-      <button onClick={() => navigate('/referral')}
-        className="mx-4 mb-5 w-[calc(100%-2rem)] rounded-2xl p-3.5 flex items-center justify-between"
-        style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-        <div className="flex items-center gap-2">
-          <Star size={15} style={{ color: '#D4A853' }} className="fill-current" />
-          <span className="text-sm font-semibold" style={{ color: '#17211B' }}>{points?.balance || 0} loyalty points</span>
-        </div>
-        <ChevronRight size={15} style={{ color: '#5C665F' }} />
-      </button>
+        {/* Main balance: what you can withdraw once you have earnings, otherwise what is held for you */}
+        <section className="relative mb-4 overflow-hidden rounded-[36px_36px_36px_12px] bg-deep p-6 text-white shadow-soft" aria-label="Main balance">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-[60%_40%_55%_45%] bg-terracotta/40 blur-2xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-[45%_55%_40%_60%] bg-forest/60 blur-2xl" />
+          <div className="relative">
+            <p className="mb-1 flex items-center gap-2 text-xs font-bold text-white/70">
+              {showEarnings
+                ? <><WalletIcon className="h-4 w-4 text-gold" aria-hidden="true" /> Available to withdraw</>
+                : <><ShieldCheckIcon className="h-4 w-4 text-gold" aria-hidden="true" /> Held under Protection</>}
+            </p>
+            <p className="font-display text-4xl">
+              {loading ? '–' : fmt(showEarnings ? walletTotals.availableBalance : summary.heldInEscrow)}
+            </p>
 
-      {/* Always visible, not gated on ledger activity -- a provider needs
-          this before they can ever get a bid accepted, so it has to be
-          findable before they have any earnings yet. */}
-      <button onClick={() => navigate('/payout-setup')}
-        className="mx-4 mb-5 w-[calc(100%-2rem)] rounded-2xl p-3.5 flex items-center justify-between"
-        style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-        <div className="flex items-center gap-2">
-          <Landmark size={15} style={{ color: '#B8511E' }} />
-          <span className="text-sm font-semibold" style={{ color: '#17211B' }}>
-            {payoutAccount ? payoutAccount.bank_name : 'Payout account'}
-          </span>
-          {payoutAccount && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{
-              backgroundColor: (payoutAccount.status === 'verified' ? '#7A9E7E' : payoutAccount.status === 'rejected' ? '#C94A3A' : '#D4A853') + '22',
-              color: payoutAccount.status === 'verified' ? '#7A9E7E' : payoutAccount.status === 'rejected' ? '#C94A3A' : '#D4A853',
-            }}>
-              {payoutAccount.status === 'verified' ? 'Verified' : payoutAccount.status === 'rejected' ? 'Needs changes' : 'Under review'}
-            </span>
-          )}
-        </div>
-        <ChevronRight size={15} style={{ color: '#5C665F' }} />
-      </button>
-
-      {/* Provider earnings: held / available / withdrawn from commission_wallet_ledger.
-          Shown once there's ledger activity, so a pure buyer/tenant profile
-          with no provider history isn't shown an empty payouts section. */}
-      {!loading && walletTotals.hasActivity && (
-        <div className="px-4 mb-5">
-          <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#5C665F' }}>Provider earnings</h2>
-
-          <div className="rounded-2xl p-4 mb-3" style={{ backgroundColor: '#17211B' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <WalletIcon size={14} style={{ color: '#D4A853' }} />
-              <p className="text-[11px] font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>Available to withdraw</p>
-            </div>
-            <p className="font-display text-2xl font-black text-white">{fmt(walletTotals.availableBalance)}</p>
-
-            {walletTotals.availableBalance === 0 && walletTotals.heldBalance > 0 && !pendingWithdrawal && (
-              <p className="text-xs mt-2" style={{ color: '#5C665F' }}>
-                Payouts aren't switched on yet. Your confirmed earnings sit in "Held" below until they are.
+            {showEarnings && walletTotals.availableBalance === 0 && walletTotals.heldBalance > 0 && !pendingWithdrawal ? (
+              <p className="mt-2 text-xs text-white/70">
+                Payouts aren&apos;t switched on yet. Your confirmed earnings sit in &quot;Held&quot; below until they are.
               </p>
-            )}
+            ) : null}
 
-            {pendingWithdrawal ? (
-              <div className="mt-3 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#D8C9B8' }}>
-                {fmt(pendingWithdrawal.amount_cents / 100)} requested {new Date(pendingWithdrawal.requested_at).toLocaleDateString()} · pending review
-              </div>
-            ) : (
-              <button
-                onClick={handleRequestWithdrawal}
-                disabled={walletTotals.availableBalance <= 0 || requesting}
-                className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold disabled:opacity-40"
-                style={{ backgroundColor: '#FFF', color: '#17211B' }}
-              >
-                {requesting ? <Loader2 size={14} className="animate-spin" /> : <Banknote size={14} />}
-                {requesting ? 'Submitting…' : 'Request withdrawal'}
-              </button>
-            )}
+            {showEarnings ? (
+              pendingWithdrawal ? (
+                <div role="status" className="mt-4 rounded-2xl bg-white/10 px-3.5 py-2.5 text-xs text-white/80">
+                  {fmt(pendingWithdrawal.amount_cents / 100)} requested {new Date(pendingWithdrawal.requested_at).toLocaleDateString()} · pending review
+                </div>
+              ) : (
+                <button type="button" onClick={handleRequestWithdrawal}
+                  disabled={walletTotals.availableBalance <= 0 || requesting}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-deep transition-colors hover:bg-cream disabled:opacity-40">
+                  {requesting ? <ArrowPathIcon className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BanknotesIcon className="h-4 w-4" aria-hidden="true" />}
+                  {requesting ? 'Submitting…' : 'Request withdrawal'}
+                </button>
+              )
+            ) : null}
           </div>
+        </section>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-              <div className="flex items-center gap-2 mb-2"><Clock size={13} style={{ color: '#D4A853' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Held</p></div>
-              <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.heldBalance)}</p>
-              <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>Confirmed, release pending</p>
-            </div>
-            <div className="rounded-2xl p-4" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-              <div className="flex items-center gap-2 mb-2"><Banknote size={13} style={{ color: '#5B8DEF' }} /><p className="text-[11px] font-semibold" style={{ color: '#5C665F' }}>Withdrawn</p></div>
-              <p className="font-display text-lg font-black" style={{ color: '#17211B' }}>{fmt(walletTotals.withdrawn)}</p>
-              <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>Paid to your bank, lifetime</p>
-            </div>
-          </div>
+        {/* Figures */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          {showEarnings ? (
+            <Tile icon={ShieldCheckIcon} iconClass="text-gold" label="Held under Protection" value={fmt(summary.heldInEscrow)} loading={loading} />
+          ) : null}
+          <Tile icon={ArrowDownLeftIcon} iconClass="text-sage" label="You're receiving" value={fmt(summary.iAmReceiving)} loading={loading} />
+          <Tile icon={CheckCircleIcon} iconClass="text-sky" label="Jobs earned" value={fmt(summary.jobsEarned)} loading={loading} />
+          <Tile icon={GiftIcon} iconClass="text-terracotta" label="Referral earnings" value={fmt(referralTotal)} loading={loading} warm wide={!showEarnings} onClick={() => navigate('/referral')} />
         </div>
-      )}
 
-      {/* Activity feed, grouped by month */}
-      <div className="px-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#5C665F' }}>Transaction history</h2>
-        {loading ? (
-          <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ backgroundColor: '#F0E5D8' }} />)}</div>
-        ) : feedByMonth.length === 0 ? (
-          <div className="text-center py-12">
-            <WalletIcon size={32} className="mx-auto mb-3" style={{ color: '#D8C9B8' }} />
-            <p className="text-sm font-semibold" style={{ color: '#17211B' }}>You don't have any transactions yet.</p>
-            <p className="text-xs mt-1" style={{ color: '#5C665F' }}>Find a match to see your payments and activity here.</p>
-          </div>
-        ) : (
-          feedByMonth.map(([month, items]) => (
-            <div key={month} className="mb-5">
-              <p className="text-[11px] font-bold mb-2 px-1" style={{ color: 'rgba(23,33,27,0.7)' }}>{month}</p>
-              <div className="space-y-2">
-                {items.map(item => (
-                  <button key={item.kind + item.id} onClick={() => navigate(item.link)}
-                    className="w-full flex items-center gap-3 rounded-2xl p-3.5 text-left" style={{ backgroundColor: '#FFF', border: '1px solid #DEDDD6' }}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: item.direction === 'in' ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.1)' }}>
-                      {item.direction === 'in' ? <ArrowDownLeft size={14} style={{ color: '#7A9E7E' }} /> : <ArrowUpRight size={14} style={{ color: '#B8511E' }} />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#17211B' }}>{item.title}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: item.status.color + '22', color: item.status.color }}>{item.status.label}</span>
-                        <span className="text-[10px]" style={{ color: 'rgba(23,33,27,0.7)' }}>{new Date(item.at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    {item.amount != null && (
-                      <p className="text-sm font-bold flex-shrink-0" style={{ color: item.direction === 'in' ? '#7A9E7E' : '#17211B' }}>
-                        {item.direction === 'in' ? '+' : ''}{fmt(item.amount)}
-                      </p>
-                    )}
-                  </button>
-                ))}
+        <LinkRow icon={StarIcon} iconClass="text-gold" onClick={() => navigate('/referral')}>
+          <span className="text-sm font-bold">{points?.balance || 0} loyalty points</span>
+        </LinkRow>
+
+        {/* Always visible, not gated on ledger activity -- a provider needs
+            this before they can ever get a bid accepted, so it has to be
+            findable before they have any earnings yet. */}
+        <LinkRow icon={BuildingLibraryIcon} iconClass="text-terracotta" onClick={() => navigate('/payout-setup')}>
+          <span className="text-sm font-bold">{payoutAccount ? payoutAccount.bank_name : 'Payout account'}</span>
+          {payoutAccount ? (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TONES[payoutTone]}`}>{payoutLabel}</span>
+          ) : <span className="text-xs text-warm">Add one to get paid</span>}
+        </LinkRow>
+
+        {/* Provider earnings: held / withdrawn from commission_wallet_ledger.
+            Shown once there's ledger activity, so a pure buyer/tenant profile
+            with no provider history isn't shown an empty payouts section. */}
+        {showEarnings ? (
+          <section className="mb-6" aria-label="Provider earnings">
+            <h2 className="mb-3 mt-5 text-xs font-bold uppercase tracking-wider text-warm">Provider earnings</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+                <div className="mb-2 flex items-center gap-2"><ClockIcon className="h-4 w-4 text-gold" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">Held</p></div>
+                <p className="font-display text-xl">{fmt(walletTotals.heldBalance)}</p>
+                <p className="mt-1 text-[11px] text-warm">Confirmed, release pending</p>
+              </div>
+              <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+                <div className="mb-2 flex items-center gap-2"><BanknotesIcon className="h-4 w-4 text-sky" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">Withdrawn</p></div>
+                <p className="font-display text-xl">{fmt(walletTotals.withdrawn)}</p>
+                <p className="mt-1 text-[11px] text-warm">Paid to your bank, lifetime</p>
               </div>
             </div>
-          ))
-        )}
+          </section>
+        ) : null}
+
+        {/* Activity feed, grouped by month */}
+        <section aria-label="Transaction history" className="mt-5">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-warm">Transaction history</h2>
+          {loading ? (
+            <div className="space-y-2" aria-busy="true">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-[22px_22px_22px_8px] bg-sand" />)}</div>
+          ) : feedByMonth.length === 0 ? (
+            <div className={`rounded-[28px_28px_28px_10px] px-6 py-10 text-center ${glass}`}>
+              <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[20px_20px_20px_6px] bg-orange-pale text-terracotta">
+                <WalletIcon className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <p className="text-sm font-bold">You don&apos;t have any transactions yet.</p>
+              <p className="mt-1 text-xs text-warm">Find a match to see your payments and activity here.</p>
+            </div>
+          ) : (
+            feedByMonth.map(([month, items]) => (
+              <div key={month} className="mb-5">
+                <p className="mb-2 px-1 text-[11px] font-bold text-warm">{month}</p>
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <button key={item.kind + item.id} type="button" onClick={() => navigate(item.link)}
+                      className={`flex w-full items-center gap-3 rounded-[22px_22px_22px_8px] p-3.5 text-left transition-transform hover:-translate-y-0.5 ${glass} ${focusRing}`}>
+                      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${item.direction === 'in' ? 'bg-sage/20 text-forest' : 'bg-orange-pale text-terracotta'}`}>
+                        {item.direction === 'in' ? <ArrowDownLeftIcon className="h-5 w-5" aria-hidden="true" /> : <ArrowUpRightIcon className="h-5 w-5" aria-hidden="true" />}
+                        <span className="sr-only">{item.direction === 'in' ? 'Money in' : 'Money out'}</span>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-bold">{item.title}</span>
+                        <span className="mt-0.5 flex items-center gap-1.5">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TONES[item.status.tone] || TONES.quiet}`}>{item.status.label}</span>
+                          <span className="text-[10px] text-warm">{new Date(item.at).toLocaleDateString()}</span>
+                        </span>
+                      </span>
+                      {item.amount != null ? (
+                        <span className={`flex-shrink-0 text-sm font-bold ${item.direction === 'in' ? 'text-forest' : 'text-deep'}`}>
+                          {item.direction === 'in' ? '+' : ''}{fmt(item.amount)}
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
       </div>
     </div>
   )

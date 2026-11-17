@@ -97,11 +97,11 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style={{ backgroundColor: 'rgba(23,33,27,0.55)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 pb-8" style={{ backgroundColor: '#FFFAF5', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 pb-8" style={{ backgroundColor: 'var(--dm-paper)', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="w-10 h-1 rounded-full mx-auto mb-5 sm:hidden" style={{ backgroundColor: 'var(--dm-line)' }} />
 
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F0D4BE' }}>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--dm-blush)' }}>
             <ShieldCheck size={18} style={{ color: 'var(--dm-terracotta)' }} />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function GuestAuthModal({ onClose, onSuccess, title = 'Continue',
 
         {unsupported ? (
           <div className="text-center py-4">
-            <p className="text-sm mb-4" style={{ color: '#1F2B24' }}>
+            <p className="text-sm mb-4" style={{ color: 'var(--dm-charcoal)' }}>
               Phone sign-in isn't available right now. Please continue with email instead - it only takes a minute.
             </p>
             <a href="/auth" className="block w-full text-center py-3 rounded-2xl font-bold text-sm text-white" style={{ backgroundColor: 'var(--dm-terracotta)' }}>

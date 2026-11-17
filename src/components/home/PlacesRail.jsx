@@ -14,7 +14,7 @@ export default function PlacesRail() {
   if (places !== null && places.length === 0) return null
 
   return (
-    <section className="py-10 px-6" style={{ backgroundColor: '#EEE9DE' }}>
+    <section className="py-10 px-6" style={{ backgroundColor: 'var(--dm-cream-deep)' }}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-end justify-between mb-5">
           <div>

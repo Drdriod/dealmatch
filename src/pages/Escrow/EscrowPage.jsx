@@ -72,7 +72,7 @@ export default function EscrowPage() {
     : 'Loading the current fee…'
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-sand)' }}>
       <div className="max-w-2xl mx-auto px-4">
 
         {/* Hero */}
@@ -102,7 +102,7 @@ export default function EscrowPage() {
         <ActiveEscrowSection />
 
         {/* How it works */}
-        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+        <div className="rounded-2xl p-6 mb-6 border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
           <h2 className="font-display font-black text-xl mb-5" style={{ color:'var(--dm-deep)' }}>How it works</h2>
           <div className="space-y-4">
             {HOW_IT_WORKS.map((s, i) => (
@@ -128,7 +128,7 @@ export default function EscrowPage() {
           { icon: <Zap size={22} className="text-terracotta" />, title:'Release on move-in',        desc:'Once you confirm move-in, the funds are released to the landlord.' },
         ].map(b => (
           <div key={b.title} className="rounded-2xl p-4 border flex gap-3 mb-3"
-            style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+            style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
             <span className="flex-shrink-0">{b.icon}</span>
             <div>
               <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>{b.title}</p>

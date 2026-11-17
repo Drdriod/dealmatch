@@ -8,7 +8,7 @@ export default function LoadNotice({ error, issues = [], onRetry, what = 'this p
   if (!error && issues.length === 0) return null
   const failed = !!error
   return (
-    <div className={`rounded-2xl ${className}`} style={{ backgroundColor: '#FFFAF5' }}>
+    <div className={`rounded-2xl ${className}`} style={{ backgroundColor: 'var(--dm-paper)' }}>
       <Notice
         variant={failed ? 'error' : 'warning'}
         title={failed ? `We couldn't load ${what}` : 'Some figures could not be loaded'}

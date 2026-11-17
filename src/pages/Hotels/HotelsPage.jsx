@@ -132,7 +132,7 @@ function BookingModal({ hotel, onClose }) {
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity:0, y:40 }} animate={{ opacity:1, y:0 }}
         className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col"
-        style={{ backgroundColor:'#FFFAF5', maxHeight:'92vh' }}>
+        style={{ backgroundColor:'var(--dm-paper)', maxHeight:'92vh' }}>
 
         {/* Header */}
         <div className="p-5 border-b flex items-start justify-between" style={{ borderColor:'var(--dm-line)' }}>
@@ -142,7 +142,7 @@ function BookingModal({ hotel, onClose }) {
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor:'rgba(23,33,27,0.08)' }}>
-            <X size={14} style={{ color:'#5C4A3A' }} />
+            <X size={14} style={{ color:'var(--dm-bark)' }} />
           </button>
         </div>
 
@@ -279,7 +279,7 @@ function HotelCard({ hotel, onBook }) {
 
   return (
     <div className="rounded-2xl overflow-hidden border"
-      style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)', boxShadow:'0 2px 12px rgba(23,33,27,0.05)' }}>
+      style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)', boxShadow:'0 2px 12px rgba(23,33,27,0.05)' }}>
       <div className="relative h-48">
         {img
           ? <img src={img} alt={hotel.title} className="w-full h-full object-cover" />
@@ -304,7 +304,7 @@ function HotelCard({ hotel, onBook }) {
           <div className="flex flex-wrap gap-1 mb-3">
             {hotel.features.slice(0, 3).map(f => (
               <span key={f} className="px-2 py-0.5 rounded-full text-[10px] font-medium"
-                style={{ backgroundColor:'rgba(23,33,27,0.06)', color:'#5C4A3A' }}>{f}</span>
+                style={{ backgroundColor:'rgba(23,33,27,0.06)', color:'var(--dm-bark)' }}>{f}</span>
             ))}
           </div>
         )}
@@ -319,14 +319,14 @@ function HotelCard({ hotel, onBook }) {
             )}
           </div>
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? '#5C8060' : 'var(--dm-terracotta)' }}>
+            style={{ backgroundColor: available ? 'rgba(122,158,126,0.1)' : 'rgba(200,95,45,0.1)', color: available ? 'var(--dm-moss)' : 'var(--dm-terracotta)' }}>
             {available ? 'Available' : 'Fully Booked'}
           </span>
         </div>
         <div className="flex gap-2">
           <Link to={`/property/${hotel.id}`}
             className="flex-1 py-2.5 rounded-xl text-xs font-semibold border text-center transition-all"
-            style={{ borderColor:'var(--dm-line)', color:'#5C4A3A', backgroundColor:'white' }}>
+            style={{ borderColor:'var(--dm-line)', color:'var(--dm-bark)', backgroundColor:'white' }}>
             View Details
           </Link>
           <button onClick={() => onBook(hotel)} disabled={!available}
@@ -365,7 +365,7 @@ export default function HotelsPage() {
   })
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-sand)' }}>
       <div className="max-w-2xl mx-auto px-4">
 
         <div className="mb-6">
@@ -388,7 +388,7 @@ export default function HotelsPage() {
               className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
                 backgroundColor: state === s ? 'var(--dm-deep)' : 'white',
-                color:           state === s ? 'white' : '#5C4A3A',
+                color:           state === s ? 'white' : 'var(--dm-bark)',
                 borderColor:     state === s ? 'var(--dm-deep)' : 'var(--dm-line)',
               }}>{s}</button>
           ))}
@@ -401,7 +401,7 @@ export default function HotelsPage() {
               className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap border flex-shrink-0 transition-all"
               style={{
                 backgroundColor: typeFilter === t ? 'var(--dm-terracotta)' : 'white',
-                color:           typeFilter === t ? 'white' : '#5C4A3A',
+                color:           typeFilter === t ? 'white' : 'var(--dm-bark)',
                 borderColor:     typeFilter === t ? 'var(--dm-terracotta)' : 'var(--dm-line)',
               }}>{t}</button>
           ))}
@@ -413,7 +413,7 @@ export default function HotelsPage() {
             <p className="text-sm">Loading hotels…</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
             <div className="flex justify-center mb-3"><Hotel size={40} className="text-terracotta" /></div>
             <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>No matching hotels found yet. Try adjusting your search.</p>
             <p className="text-xs mt-1" style={{ color:'var(--dm-warm)' }}>Try a different location or type of stay.</p>

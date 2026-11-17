@@ -200,7 +200,7 @@ export default function FindProviderPage() {
               className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
               style={tab === t.id
                 ? { backgroundColor: 'var(--dm-deep)', color: '#FFF' }
-                : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
+                : { backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}>
               {t.label}
             </button>
           ))}
@@ -215,7 +215,7 @@ export default function FindProviderPage() {
         <div className="flex gap-2 mb-3">
           <select value={origin?.precise ? '' : (origin?.label || '')} onChange={e => pickState(e.target.value)}
             className="flex-1 px-3 py-2 rounded-full text-xs font-semibold outline-none"
-            style={{ backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}
+            style={{ backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}
             aria-label="Choose a state">
             <option value="">Choose a state</option>
             {NIGERIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -224,7 +224,7 @@ export default function FindProviderPage() {
             className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 disabled:opacity-60"
             style={origin?.precise
               ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
-              : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
+              : { backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}>
             <Crosshair size={12} /> {locating ? 'Locating…' : 'Use my location'}
           </button>
         </div>
@@ -237,7 +237,7 @@ export default function FindProviderPage() {
                   className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
                   style={kindGroup === g.slug
                     ? { backgroundColor: 'var(--dm-deep)', color: '#FFF' }
-                    : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
+                    : { backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}>
                   {g.name}
                 </button>
               ))}
@@ -249,7 +249,7 @@ export default function FindProviderPage() {
                     className="px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-colors"
                     style={(c.slug ? kindLeaf === c.name : !kindLeaf)
                       ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
-                      : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
+                      : { backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}>
                     {c.name}
                   </button>
                 ))}
@@ -267,7 +267,7 @@ export default function FindProviderPage() {
                 className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors disabled:opacity-40"
                 style={activeChips.includes(chip.id)
                   ? { backgroundColor: 'var(--dm-terracotta)', color: '#FFF' }
-                  : { backgroundColor: '#FFF', color: '#5C4A3A', border: '1px solid var(--dm-line)' }}>
+                  : { backgroundColor: '#FFF', color: 'var(--dm-bark)', border: '1px solid var(--dm-line)' }}>
                 {chip.label}
               </button>
             )
@@ -310,7 +310,7 @@ export default function FindProviderPage() {
             initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
             whileHover={{ y: -4 }} transition={{ duration: 0.35 }}
             className="rounded-3xl overflow-hidden" style={{ backgroundColor: '#FFF', border: '1px solid var(--dm-line)', boxShadow: '0 4px 24px rgba(23,33,27,0.06)' }}>
-            <div className="h-40 relative" style={{ backgroundColor: '#F0D4BE' }}>
+            <div className="h-40 relative" style={{ backgroundColor: 'var(--dm-blush)' }}>
               {p.avatar
                 ? <img src={p.avatar} alt="" className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(200,95,45,0.15), rgba(122,158,126,0.15))' }}>

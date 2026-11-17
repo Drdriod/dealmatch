@@ -103,13 +103,13 @@ export default function ProviderProfilePage() {
   const portfolioUrls = levelData?.portfolio_urls || []
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <p className="text-sm" style={{ color: 'var(--dm-warm)' }}>Loading profile…</p>
     </div>
   )
 
   if (!profile) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="text-center">
         <div className="flex justify-center mb-4"><Frown size={40} style={{ color: 'var(--dm-warm)' }} /></div>
         <h2 className="font-display font-black text-xl mb-2" style={{ color: 'var(--dm-deep)' }}>We couldn't find this profile</h2>
@@ -120,7 +120,7 @@ export default function ProviderProfilePage() {
   const lastActiveLabel = ago(profile.last_active_at)
 
   return (
-    <div className="min-h-screen pb-32" style={{ backgroundColor: '#FFFAF5' }}>
+    <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--dm-paper)' }}>
       <div className="max-w-2xl mx-auto px-4 pt-6">
 
         {/* Header: avatar, name, category, badges */}
@@ -163,7 +163,7 @@ export default function ProviderProfilePage() {
           <div className="flex gap-2">
             {level >= 1 && (
               <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold"
-                style={{ backgroundColor: 'rgba(122,158,126,0.12)', color: '#5C8060' }}>
+                style={{ backgroundColor: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)' }}>
                 <ShieldCheck size={12} /> Identity
               </span>
             )}
@@ -191,7 +191,7 @@ export default function ProviderProfilePage() {
             <div className="flex items-center flex-wrap gap-1.5 mt-3 pt-3 border-t" style={{ borderColor: '#F0E8DC' }}>
               {(businessPage.categories || []).map((c) => (
                 <span key={c} className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                  style={{ backgroundColor: 'rgba(23,33,27,0.04)', color: '#5C4A3A' }}>{c}</span>
+                  style={{ backgroundColor: 'rgba(23,33,27,0.04)', color: 'var(--dm-bark)' }}>{c}</span>
               ))}
               {memberSince(businessPage.created_at) && (
                 <span className="text-[10px] ml-auto" style={{ color: 'rgba(23,33,27,0.7)' }}>
@@ -227,7 +227,7 @@ export default function ProviderProfilePage() {
         <div className={`grid gap-3 mb-4 ${businessPage ? 'grid-cols-4' : 'grid-cols-3'}`}>
           {businessPage && (
             <div className="rounded-2xl p-3 text-center border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
-              <CheckCircle2 size={14} className="mx-auto mb-0.5" style={{ color: '#5C8060' }} />
+              <CheckCircle2 size={14} className="mx-auto mb-0.5" style={{ color: 'var(--dm-moss)' }} />
               <p className="font-black text-lg" style={{ color: 'var(--dm-deep)' }}>{stats?.completed_count ?? 0}</p>
               <p className="text-[11px]" style={{ color: 'var(--dm-warm)' }}>Deals done</p>
             </div>
@@ -303,7 +303,7 @@ export default function ProviderProfilePage() {
         {(businessPage?.bio || profile.bio) && (
           <div className="rounded-2xl p-4 mb-4 border" style={{ backgroundColor: 'white', borderColor: 'var(--dm-line)' }}>
             <h3 className="font-display font-black text-base mb-2" style={{ color: 'var(--dm-deep)' }}>About</h3>
-            <p className="text-sm leading-relaxed" style={{ color: '#5C4A3A' }}>{businessPage?.bio || profile.bio}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--dm-bark)' }}>{businessPage?.bio || profile.bio}</p>
           </div>
         )}
 
@@ -346,7 +346,7 @@ export default function ProviderProfilePage() {
                       <Star key={i} size={11} fill={i < r.rating ? 'var(--dm-gold)' : 'none'} style={{ color: 'var(--dm-gold)' }} />
                     ))}
                   </div>
-                  <p className="text-xs" style={{ color: '#5C4A3A' }}>"{r.comment}"</p>
+                  <p className="text-xs" style={{ color: 'var(--dm-bark)' }}>"{r.comment}"</p>
                   <p className="text-[10px] mt-1" style={{ color: 'rgba(23,33,27,0.7)' }}>
                     {r.reviewerName || 'DealMatch user'} · Completed on DealMatch
                   </p>
@@ -358,7 +358,7 @@ export default function ProviderProfilePage() {
 
         <button onClick={() => setShowReport(true)}
           className="w-full py-2.5 rounded-2xl text-xs font-semibold mb-4"
-          style={{ backgroundColor: 'rgba(201,74,58,0.05)', color: '#C94A3A', border: '1px solid rgba(201,74,58,0.15)' }}>
+          style={{ backgroundColor: 'rgba(201,74,58,0.05)', color: 'var(--dm-danger)', border: '1px solid rgba(201,74,58,0.15)' }}>
           Report this provider
         </button>
       </div>

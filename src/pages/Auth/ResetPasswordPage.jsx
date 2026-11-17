@@ -15,16 +15,20 @@
  *   • Password strength enforced: min 8 chars, upper+lower+number+special
  *   • Confirm password match check before submit
  *   • Token is consumed on use - page is useless after first successful reset
- *   • No password ever logged or stored client-side
+ *   • No password ever logged or stored client-side (and no draft is kept on this page)
+ *
+ * Staff see the same page in a dark theme.
  */
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Check, Eye, EyeOff, Lock, Shield, User, X } from 'lucide-react'
+import {
+  CheckCircleIcon, CheckIcon, ExclamationCircleIcon, ExclamationTriangleIcon, EyeIcon, EyeSlashIcon, LockClosedIcon, XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase'
 import { isStaff } from '@/lib/adminAccess'
 import { fetchProfileRole } from '@/data/profileRepository'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import toast from 'react-hot-toast'
 
 // ── Password strength rules ───────────────────────────────────────────────────
@@ -37,12 +41,75 @@ const RULES = [
 ]
 
 function strength(p) {
-  const passed = RULES.filter(r => r.test(p)).length
-  if (passed <= 1) return { score: 1, label: 'Very weak',  color: '#B8511E' }
-  if (passed === 2) return { score: 2, label: 'Weak',       color: '#E07B39' }
-  if (passed === 3) return { score: 3, label: 'Fair',       color: '#D4A853' }
-  if (passed === 4) return { score: 4, label: 'Strong',     color: '#7A9E7E' }
-  return              { score: 5, label: 'Very strong', color: '#5B8DEF' }
+  const passed = RULES.filter((r) => r.test(p)).length
+  if (passed <= 1) return { score: 1, label: 'Very weak',   bar: 'bg-danger',     text: 'text-danger' }
+  if (passed === 2) return { score: 2, label: 'Weak',       bar: 'bg-terracotta', text: 'text-terracotta' }
+  if (passed === 3) return { score: 3, label: 'Fair',       bar: 'bg-gold',       text: 'text-gold' }
+  if (passed === 4) return { score: 4, label: 'Strong',     bar: 'bg-sage',       text: 'text-sage' }
+  return              { score: 5, label: 'Very strong', bar: 'bg-sky',        text: 'text-sky' }
+}
+
+// Look of the page: light glass for members, dark glass for staff.
+const THEMES = {
+  user: {
+    page: 'bg-cream text-deep',
+    card: 'border-white/70 bg-white/80 shadow-soft',
+    sub: 'text-warm',
+    label: 'text-deep',
+    input: 'border-line bg-white text-deep placeholder:text-warm/70 focus:border-terracotta',
+    eye: 'text-warm hover:text-deep',
+    track: 'bg-deep/10',
+    badge: 'bg-orange-pale text-terracotta',
+    button: 'bg-terracotta text-white hover:bg-terracotta-dark',
+    link: 'text-terracotta-dark',
+    err: 'text-terracotta-dark',
+    alert: 'border-terracotta/30 bg-orange-pale text-terracotta-dark',
+    ok: 'text-forest',
+    bad: 'text-terracotta',
+    spin: 'border-t-terracotta',
+  },
+  admin: {
+    page: 'bg-deep text-white',
+    card: 'border-white/10 bg-white/5 shadow-none',
+    sub: 'text-white/60',
+    label: 'text-white/80',
+    input: 'border-white/15 bg-white/10 text-white placeholder:text-white/40 focus:border-gold',
+    eye: 'text-white/60 hover:text-white',
+    track: 'bg-white/10',
+    badge: 'bg-gold/15 text-gold',
+    button: 'bg-gold text-deep hover:bg-sun',
+    link: 'text-gold',
+    err: 'text-sun',
+    alert: 'border-gold/30 bg-gold/10 text-sun',
+    ok: 'text-sage',
+    bad: 'text-sun',
+    spin: 'border-t-gold',
+  },
+}
+
+// A password input with a show/hide toggle and a message underneath.
+function PasswordField({ id, label, theme, value, onChange, shown, onToggle, placeholder, error, children }) {
+  return (
+    <div data-field={id}>
+      <label htmlFor={id} className={`mb-1.5 block text-sm font-bold ${theme.label}`}>{label}</label>
+      <div className="relative">
+        <input id={id} type={shown ? 'text' : 'password'} value={value} onChange={onChange}
+          placeholder={placeholder} autoComplete="new-password"
+          aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined}
+          className={`w-full rounded-2xl border py-3.5 pl-4 pr-12 text-[15px] outline-none transition-colors ${theme.input} ${error ? '!border-terracotta' : ''}`} />
+        <button type="button" onClick={onToggle} aria-label={shown ? 'Hide password' : 'Show password'}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta ${theme.eye}`}>
+          {shown ? <EyeSlashIcon className="h-5 w-5" aria-hidden="true" /> : <EyeIcon className="h-5 w-5" aria-hidden="true" />}
+        </button>
+      </div>
+      {error ? (
+        <p id={`${id}-err`} role="alert" className={`mt-1.5 flex items-start gap-1 text-xs font-semibold ${theme.err}`}>
+          <ExclamationCircleIcon className="mt-px h-4 w-4 flex-shrink-0" aria-hidden="true" /> {error}
+        </p>
+      ) : null}
+      {children}
+    </div>
+  )
 }
 
 export default function ResetPasswordPage() {
@@ -58,10 +125,14 @@ export default function ResetPasswordPage() {
   const [showConf,  setShowConf]  = useState(false)
   const [saving,    setSaving]    = useState(false)
   const [errMsg,    setErrMsg]    = useState('')
+  const [errors,    setErrors]    = useState({})
+  const [formError, setFormError] = useState('')
 
   const pw        = strength(password)
-  const allPassed = RULES.every(r => r.test(password))
+  const allPassed = RULES.every((r) => r.test(password))
   const matches   = password.length > 0 && password === confirm
+  const theme     = isAdmin ? THEMES.admin : THEMES.user
+  const home      = isAdmin ? '/staff-gate-7f3k' : '/auth'
 
   // ── Step 1: Exchange the reset code for a session ─────────────────────────
   // Supabase PKCE sends ?code=… in the URL. We must call exchangeCodeForSession
@@ -114,9 +185,17 @@ export default function ResetPasswordPage() {
   // ── Step 2: Update password ───────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setFormError('')
 
-    if (!allPassed) { toast.error('Your password doesn\'t meet all the requirements yet'); return }
-    if (!matches)   { toast.error('Passwords do not match'); return }
+    const errs = {}
+    if (!allPassed) errs.password = 'Your password doesn\'t meet all the requirements yet.'
+    if (!confirm) errs.confirm = 'Re-enter your new password.'
+    else if (!matches) errs.confirm = 'Passwords do not match.'
+    setErrors(errs)
+    if (errs.password || errs.confirm) {
+      document.getElementById(errs.password ? 'rp-password' : 'rp-confirm')?.focus()
+      return
+    }
 
     setSaving(true)
     try {
@@ -125,13 +204,13 @@ export default function ResetPasswordPage() {
         // Common errors:
         // "New password should be different from the old password"
         // "Auth session missing" → code wasn't exchanged
-        if (error.message?.toLowerCase().includes('same password') ||
-            error.message?.toLowerCase().includes('different from')) {
-          toast.error('New password must be different from your current password.')
-        } else if (error.message?.toLowerCase().includes('session missing')) {
-          toast.error('Your session has expired. Request a new reset link.')
+        const m = error.message?.toLowerCase() || ''
+        if (m.includes('same password') || m.includes('different from')) {
+          setFormError('New password must be different from your current password.')
+        } else if (m.includes('session missing')) {
+          setFormError('Your session has expired. Request a new reset link.')
         } else {
-          toast.error(error.message || 'We couldn\'t update your password. Please try again.')
+          setFormError(error.message || 'We couldn\'t update your password. Please try again.')
         }
         setSaving(false)
         return
@@ -144,65 +223,51 @@ export default function ResetPasswordPage() {
       await supabase.auth.signOut()
 
       setTimeout(() => {
-        navigate(isAdmin ? '/staff-gate-7f3k' : '/auth', { replace: true })
+        navigate(home, { replace: true })
       }, 2500)
     } catch (err) {
       console.error('[ResetPassword] updateUser error:', err)
-      toast.error('Something went wrong. Please try again.')
+      setFormError('Something went wrong. Please try again.')
       setSaving(false)
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-  const bgColor = isAdmin ? '#17211B' : '#FFFAF5'
-  const accent  = isAdmin ? '#D4A853' : '#B8511E'
-  const textPri = isAdmin ? '#FFFFFF' : '#17211B'
-  const textSub = isAdmin ? 'rgba(255,255,255,0.5)' : '#5C665F'
-  const inputBg = isAdmin ? 'rgba(255,255,255,0.07)' : '#FFFFFF'
-  const inputBd = isAdmin ? 'rgba(255,255,255,0.12)' : '#DEDDD6'
+  const badge = (Icon, extra = '') => (
+    <span className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[22px_22px_22px_8px] ${theme.badge} ${extra}`}>
+      <Icon className="h-8 w-8" aria-hidden="true" />
+    </span>
+  )
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 py-10"
-      style={{ backgroundColor: bgColor }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
-      >
+    <div className={`relative flex min-h-svh items-center justify-center px-4 pb-28 pt-10 md:pb-10 ${theme.page}`}>
+      {!isAdmin ? (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-24 top-10 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/15 blur-3xl" />
+          <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/20 blur-3xl" />
+        </div>
+      ) : null}
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className={`relative w-full max-w-sm rounded-[40px_40px_40px_12px] border p-7 backdrop-blur-xl sm:p-9 ${theme.card}`}>
+
         {/* ── Loading ── */}
         {stage === 'loading' && (
-          <div className="flex flex-col items-center justify-center py-16 gap-4">
-            <div
-              className="w-10 h-10 rounded-full border-2 border-transparent animate-spin"
-              style={{ borderTopColor: accent }}
-            />
-            <p className="text-sm" style={{ color: textSub }}>Verifying reset link…</p>
+          <div role="status" className="flex flex-col items-center justify-center gap-4 py-12">
+            <div className={`h-10 w-10 animate-spin rounded-full border-2 border-transparent ${theme.spin}`} />
+            <p className={`text-sm ${theme.sub}`}>Verifying reset link…</p>
           </div>
         )}
 
         {/* ── Error ── */}
         {stage === 'error' && (
           <div className="text-center">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: 'rgba(200,95,45,0.12)', border: `1px solid rgba(200,95,45,0.25)` }}
-            >
-              <AlertTriangle size={28} style={{ color: '#B8511E' }} />
-            </div>
-            <h2 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
-              This link has expired
-            </h2>
-            <p className="text-sm mb-6 leading-relaxed" style={{ color: textSub }}>
-              {errMsg}
-            </p>
-            <button
-              onClick={() => navigate(isAdmin ? '/staff-gate-7f3k' : '/auth', { replace: true })}
-              className="w-full py-4 rounded-2xl text-sm font-bold"
-              style={{ backgroundColor: accent, color: isAdmin ? '#17211B' : '#FFFFFF' }}
-            >
-              Request New Link
+            {badge(ExclamationTriangleIcon)}
+            <h1 className="mb-3 font-display text-3xl">This link has expired</h1>
+            <p className={`mb-6 text-sm leading-relaxed ${theme.sub}`}>{errMsg}</p>
+            <button type="button" onClick={() => navigate(home, { replace: true })}
+              className={`w-full rounded-full py-3.5 text-[15px] font-bold transition-colors ${theme.button}`}>
+              Request a new link
             </button>
           </div>
         )}
@@ -210,169 +275,74 @@ export default function ResetPasswordPage() {
         {/* ── Ready: Set new password ── */}
         {stage === 'ready' && (
           <>
-            <div className="text-center mb-8">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{
-                  backgroundColor: `${accent}18`,
-                  border: `1px solid ${accent}33`,
-                }}
-              >
-                <Lock size={26} style={{ color: accent }} />
-              </div>
-              <h1 className="font-display font-black text-2xl mb-2" style={{ color: textPri }}>
-                Let's get you back in.
-              </h1>
-              <p className="text-sm" style={{ color: textSub }}>
+            <div className="mb-6 text-center">
+              {badge(LockClosedIcon)}
+              <h1 className="mb-2 font-display text-3xl">Let&apos;s get you back in.</h1>
+              <p className={`text-sm ${theme.sub}`}>
                 {isAdmin
                   ? 'Choose a strong password for your admin account.'
                   : 'Choose a new password to get back into your DealMatch account.'}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* New password */}
-              <div>
-                <label
-                  className="text-xs font-semibold mb-1.5 block"
-                  style={{ color: textSub }}
-                >
-                  New Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPass ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="Enter new password"
-                    autoComplete="new-password"
-                    className="w-full rounded-2xl px-4 py-3.5 text-sm outline-none pr-11"
-                    style={{
-                      backgroundColor: inputBg,
-                      border: `1px solid ${inputBd}`,
-                      color: textPri,
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(v => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: textSub }}
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-
-                {/* Strength bar */}
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <PasswordField id="rp-password" label="New password" theme={theme}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((er) => ({ ...er, password: '' })); setFormError('') }}
+                shown={showPass} onToggle={() => setShowPass((v) => !v)}
+                placeholder="Enter new password" error={errors.password}>
                 {password.length > 0 && (
-                  <div className="mt-2">
-                    <div
-                      className="h-1.5 rounded-full overflow-hidden mb-1.5"
-                      style={{ backgroundColor: isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(23,33,27,0.08)' }}
-                    >
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width: `${(pw.score / 5) * 100}%`,
-                          backgroundColor: pw.color,
-                        }}
-                      />
+                  <div className="mt-3">
+                    <div className={`mb-1.5 h-1.5 overflow-hidden rounded-full ${theme.track}`}>
+                      <div className={`h-full rounded-full transition-all duration-300 ${pw.bar}`} style={{ width: `${(pw.score / 5) * 100}%` }} />
                     </div>
-                    <p className="text-xs font-semibold" style={{ color: pw.color }}>
-                      {pw.label}
-                    </p>
+                    <p className={`text-xs font-bold ${pw.text}`}>{pw.label}</p>
+                    <ul className="mt-2 space-y-1">
+                      {RULES.map((r) => {
+                        const ok = r.test(password)
+                        const Icon = ok ? CheckIcon : XMarkIcon
+                        return (
+                          <li key={r.id} className={`flex items-center gap-2 text-xs ${ok ? theme.ok : theme.sub}`}>
+                            <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${ok ? '' : theme.bad}`} aria-hidden="true" />
+                            <span>{r.label}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   </div>
                 )}
+              </PasswordField>
 
-                {/* Rules checklist */}
-                {password.length > 0 && (
-                  <ul className="mt-2 space-y-1">
-                    {RULES.map(r => {
-                      const ok = r.test(password)
-                      return (
-                        <li key={r.id} className="flex items-center gap-2 text-xs">
-                          {ok
-                            ? <Check size={11} style={{ color: '#7A9E7E', flexShrink: 0 }} />
-                            : <X size={11} style={{ color: '#B8511E', flexShrink: 0 }} />
-                          }
-                          <span style={{ color: ok ? '#7A9E7E' : textSub }}>{r.label}</span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-              </div>
-
-              {/* Confirm password */}
-              <div>
-                <label
-                  className="text-xs font-semibold mb-1.5 block"
-                  style={{ color: textSub }}
-                >
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConf ? 'text' : 'password'}
-                    value={confirm}
-                    onChange={e => setConfirm(e.target.value)}
-                    placeholder="Re-enter new password"
-                    autoComplete="new-password"
-                    className="w-full rounded-2xl px-4 py-3.5 text-sm outline-none pr-11"
-                    style={{
-                      backgroundColor: inputBg,
-                      border: `1px solid ${
-                        confirm.length > 0
-                          ? matches ? '#7A9E7E' : '#B8511E'
-                          : inputBd
-                      }`,
-                      color: textPri,
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConf(v => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: textSub }}
-                  >
-                    {showConf ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {confirm.length > 0 && !matches && (
-                  <p className="text-xs mt-1" style={{ color: '#B8511E' }}>
-                    Passwords do not match
+              <PasswordField id="rp-confirm" label="Confirm password" theme={theme}
+                value={confirm}
+                onChange={(e) => { setConfirm(e.target.value); setErrors((er) => ({ ...er, confirm: '' })); setFormError('') }}
+                shown={showConf} onToggle={() => setShowConf((v) => !v)}
+                placeholder="Re-enter new password"
+                error={errors.confirm || (confirm.length > 0 && !matches ? 'Passwords do not match.' : '')}>
+                {matches ? (
+                  <p role="status" className={`mt-1.5 flex items-center gap-1 text-xs font-semibold ${theme.ok}`}>
+                    <CheckCircleIcon className="h-4 w-4" aria-hidden="true" /> Passwords match
                   </p>
-                )}
-              </div>
+                ) : null}
+              </PasswordField>
 
-              <button
-                type="submit"
-                disabled={saving || !allPassed || !matches}
-                className="w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 mt-2"
-                style={{
-                  backgroundColor: (!allPassed || !matches || saving)
-                    ? isAdmin ? 'rgba(255,255,255,0.08)' : 'rgba(23,33,27,0.08)'
-                    : accent,
-                  color: (!allPassed || !matches || saving)
-                    ? isAdmin ? 'rgba(255,255,255,0.3)' : 'rgba(23,33,27,0.3)'
-                    : isAdmin ? '#17211B' : '#FFFFFF',
-                  cursor: (!allPassed || !matches) ? 'not-allowed' : 'pointer',
-                }}
-              >
+              {formError ? (
+                <div role="alert" className={`flex items-start gap-2.5 rounded-2xl border p-3.5 text-sm font-semibold ${theme.alert}`}>
+                  <ExclamationCircleIcon className="mt-px h-5 w-5 flex-shrink-0" aria-hidden="true" /> <span>{formError}</span>
+                </div>
+              ) : null}
+
+              <button type="submit" disabled={saving}
+                className={`mt-2 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-[15px] font-bold transition-colors disabled:opacity-60 ${theme.button}`}>
                 {saving
-                  ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  : <><Lock size={14} /> Reset Password</>
-                }
+                  ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  : <><LockClosedIcon className="h-4 w-4" aria-hidden="true" /> Reset password</>}
               </button>
             </form>
 
-            <p className="text-xs text-center mt-5" style={{ color: textSub }}>
+            <p className={`mt-5 text-center text-xs ${theme.sub}`}>
               Remembered your password?{' '}
-              <button
-                onClick={() => navigate(isAdmin ? '/staff-gate-7f3k' : '/auth', { replace: true })}
-                className="font-semibold underline"
-                style={{ color: accent }}
-              >
+              <button type="button" onClick={() => navigate(home, { replace: true })} className={`font-bold underline ${theme.link}`}>
                 Sign in
               </button>
             </p>
@@ -381,30 +351,13 @@ export default function ResetPasswordPage() {
 
         {/* ── Success ── */}
         {stage === 'success' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center"
-          >
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor: 'rgba(122,158,126,0.15)', border: '2px solid rgba(122,158,126,0.4)' }}
-            >
-              <Check size={36} style={{ color: '#7A9E7E' }} />
-            </div>
-            <h1 className="font-display font-black text-2xl mb-3" style={{ color: textPri }}>
-              Password updated.
-            </h1>
-            <p className="text-sm leading-relaxed" style={{ color: textSub }}>
-              Your password has been changed. Taking you to{' '}
-              {isAdmin ? 'the admin portal' : 'sign in'}…
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center" role="status">
+            {badge(CheckCircleIcon)}
+            <h1 className="mb-3 font-display text-3xl">Password updated.</h1>
+            <p className={`text-sm leading-relaxed ${theme.sub}`}>
+              Your password has been changed. Taking you to {isAdmin ? 'the admin portal' : 'sign in'}…
             </p>
-            <div className="mt-4">
-              <div
-                className="w-6 h-6 border-2 border-transparent rounded-full animate-spin mx-auto"
-                style={{ borderTopColor: accent }}
-              />
-            </div>
+            <div className={`mx-auto mt-5 h-6 w-6 animate-spin rounded-full border-2 border-transparent ${theme.spin}`} />
           </motion.div>
         )}
       </motion.div>

@@ -5,7 +5,7 @@ import { Clock, ArrowLeft } from 'lucide-react'
 export default function ComingSoon({ title = 'Coming Soon', message }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
-      style={{ backgroundColor:'#FFFAF5' }}>
+      style={{ backgroundColor:'var(--dm-paper)' }}>
       <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
         style={{ backgroundColor:'rgba(212,168,83,0.1)' }}>
         <Clock size={32} style={{ color:'var(--dm-gold)' }} />

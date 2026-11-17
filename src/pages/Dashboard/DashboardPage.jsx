@@ -1,17 +1,53 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Award, Briefcase, Building2, CheckCircle2, Circle, ClipboardList, GraduationCap, HardHat, Heart, Home, Landmark, Wallet } from 'lucide-react'
+import {
+  AcademicCapIcon, ArrowRightIcon, BanknotesIcon, BriefcaseIcon, BuildingLibraryIcon, BuildingOffice2Icon,
+  CheckCircleIcon, ClipboardDocumentListIcon, HeartIcon, HomeModernIcon, TrophyIcon, WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import { useAuth } from '@/context/AuthContext'
 import { markOfferingServices } from '@/data/dashboardRepository'
 import { useUserDashboard } from '@/hooks/useUserDashboard'
 import LoadNotice from '@/components/ui/LoadNotice'
-import { CHART, Radial, KpiTile } from '@/components/charts/ChartKit'
+import { Sparkline } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
 
 const ACTIVE_STATUSES = ['active', 'ACTIVE', 'completed', 'COMPLETED']
-const CARD = { background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.07)' }
-const MUTED = 'rgba(255,255,255,0.55)'
-const FAINT = 'rgba(255,255,255,0.4)'
+
+const glass = 'border border-white/70 bg-white/80 shadow-card backdrop-blur-xl'
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
+
+// Progress ring on a light surface. Colours are token variables so they follow the brand.
+function Ring({ value, max, label, sub, stroke }) {
+  const size = 104, t = 10, r = size / 2 - t / 2, c = 2 * Math.PI * r
+  const pct = Math.min(Math.max(value / (max || 1), 0), 1)
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}
+      role="img" aria-label={`${label}, ${sub}`}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }} aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--dm-sand)" strokeWidth={t} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={stroke} strokeWidth={t} strokeLinecap="round"
+          strokeDasharray={`${pct * c} ${c}`} style={{ transition: 'stroke-dasharray 700ms ease' }} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <p className="text-lg font-bold leading-none text-deep">{label}</p>
+        <p className="mt-1 text-[10px] text-warm">{sub}</p>
+      </div>
+    </div>
+  )
+}
+
+function Stat({ to, icon: Icon, iconClass, sparkColor, label, value, spark }) {
+  return (
+    <Link to={to} className={`block rounded-[24px_24px_24px_8px] p-4 transition-transform hover:-translate-y-0.5 ${glass} ${focusRing}`}>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[11px] font-bold text-warm">{label}</p>
+        <Icon className={`h-4 w-4 ${iconClass}`} aria-hidden="true" />
+      </div>
+      <p className="font-display text-2xl text-deep">{value}</p>
+      {spark ? <div className="mt-2"><Sparkline values={spark} color={sparkColor} height={32} /></div> : null}
+    </Link>
+  )
+}
 
 export default function DashboardPage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -42,14 +78,14 @@ export default function DashboardPage() {
   }
 
   const QUICK_LINKS = [
-    { to: '/rentals',       icon: <Building2 size={22} className="text-terracotta" />, label: 'Explore Places',    active: true },
-    { to: '/find-provider', icon: <HardHat size={22} className="text-terracotta" />,  label: 'Explore People',    active: true },
-    { to: '/request',       icon: <ClipboardList size={22} className="text-terracotta" />, label: 'Post a Request', active: true },
-    { to: '/matches',       icon: <Heart size={22} className="text-terracotta" />,    label: 'My Matches',        active: true },
+    { to: '/matches',         icon: HeartIcon,                  label: 'My Matches' },
+    { to: '/request',         icon: ClipboardDocumentListIcon,  label: 'Post a Request' },
+    { to: '/manage-listings', icon: HomeModernIcon,             label: 'My Offers' },
+    { to: '/wallet',          icon: BanknotesIcon,              label: 'Wallet' },
     isProvider
-      ? { to: '/verify-skill', icon: <Award size={22} className="text-terracotta" />, label: 'My Provider Status', active: true }
-      : { to: null, icon: <Briefcase size={22} className="text-terracotta" />, label: 'Become a Provider', active: true, onClick: handleBecomeProvider },
-    { to: '/manage-listings', icon: <Home size={22} className="text-terracotta" />,    label: 'My Offers',         active: true },
+      ? { to: '/verify-skill', icon: TrophyIcon, label: 'My Provider Status' }
+      : { to: null, icon: BriefcaseIcon, label: 'Become a Provider', onClick: handleBecomeProvider },
+    { to: '/rentals',         icon: BuildingOffice2Icon,        label: 'Explore Places' },
   ]
 
   // Derived from fields this page already reads: name, photo, and whether
@@ -69,58 +105,60 @@ export default function DashboardPage() {
   ]
   const nextIdx = steps.findIndex(s => !s.done)
 
-  return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-deep)' }}>
-      <div className="max-w-2xl mx-auto px-4">
+  const doneCount = steps.filter(x => x.done).length
 
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-cream pb-28 pt-20 text-deep">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-24 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/10 blur-3xl" />
+        <div className="absolute -right-20 top-[34rem] h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/15 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-2xl px-4">
         <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
 
-        {/* Journey hero: greeting plus two progress rings */}
-        <section className="rounded-3xl p-5 mb-4"
-          style={{ background: 'linear-gradient(135deg, rgba(212,168,83,0.18), rgba(255,255,255,0.03) 62%)', border: '1px solid rgba(212,168,83,0.25)' }}>
-          <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: CHART.indicator }}>Your journey</p>
-          <h1 className="font-display text-3xl mt-1" style={{ color: '#FFFAF5' }}>Welcome back, {firstName}.</h1>
-          <p className="text-sm mt-1" style={{ color: MUTED }}>Everything you're looking for, interested in or currently transacting is right here.</p>
-
-          <div className="flex items-start justify-around mt-5">
+        {/* Greeting and two progress rings */}
+        <section className={`mb-4 rounded-[36px_36px_36px_12px] p-6 ${glass}`}>
+          <p className="text-xs font-bold uppercase tracking-wider text-terracotta-dark">Your journey</p>
+          <h1 className="mt-1 font-display text-3xl">Welcome back, {firstName}.</h1>
+          <p className="mt-1 text-sm text-warm">Everything you&apos;re looking for, interested in or currently transacting is right here.</p>
+          <div className="mt-5 flex items-start justify-around">
             <div className="flex flex-col items-center gap-2">
-              <Radial value={profileDone} max={3} size={104} color={CHART.palette[1]}
+              <Ring value={profileDone} max={3} stroke="var(--dm-forest)"
                 label={`${Math.round((profileDone / 3) * 100)}%`} sub={`${profileDone} of 3`} />
-              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Profile</p>
+              <p className="text-xs font-bold">Profile</p>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <Radial value={verifyScore} max={2} size={104} color={CHART.palette[0]}
+              <Ring value={verifyScore} max={2} stroke="var(--dm-terracotta)"
                 label={`${Math.round((verifyScore / 2) * 100)}%`} sub={VERIFY_SUB[verificationLevel]} />
-              <p className="text-xs font-semibold" style={{ color: '#FFFAF5' }}>Verification</p>
+              <p className="text-xs font-bold">Verification</p>
             </div>
           </div>
         </section>
 
         {/* Primary entry points */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Link to="/rentals" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ background: 'rgba(122,158,126,0.14)', border: '1px solid rgba(122,158,126,0.3)', minHeight: 140 }}>
-            <Home size={26} style={{ color: CHART.palette[0] }} />
-            <div>
-              <p className="font-display text-lg leading-tight" style={{ color: '#FFFAF5' }}>Explore Places</p>
-              <p className="text-xs mt-1" style={{ color: MUTED }}>Shortlets, rentals & housing</p>
-            </div>
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <Link to="/rentals" className={`flex min-h-[140px] flex-col justify-between rounded-[28px_28px_28px_10px] bg-forest p-5 text-white shadow-card transition-transform hover:-translate-y-0.5 ${focusRing}`}>
+            <HomeModernIcon className="h-7 w-7" aria-hidden="true" />
+            <span>
+              <span className="block font-display text-lg leading-tight">Explore Places</span>
+              <span className="mt-1 block text-xs text-white/80">Shortlets, rentals &amp; housing</span>
+            </span>
           </Link>
-          <Link to="/find-provider" className="rounded-3xl p-5 flex flex-col justify-between transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: 'var(--dm-terracotta)', minHeight: 140 }}>
-            <HardHat size={26} className="text-white" />
-            <div>
-              <p className="font-display text-lg leading-tight text-white">Explore People</p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>Skilled people & services</p>
-            </div>
+          <Link to="/find-provider" className={`flex min-h-[140px] flex-col justify-between rounded-[28px_28px_28px_10px] bg-terracotta-dark p-5 text-white shadow-card transition-transform hover:-translate-y-0.5 ${focusRing}`}>
+            <WrenchScrewdriverIcon className="h-7 w-7" aria-hidden="true" />
+            <span>
+              <span className="block font-display text-lg leading-tight">Explore People</span>
+              <span className="mt-1 block text-xs text-white/85">Skilled people &amp; services</span>
+            </span>
           </Link>
         </div>
 
-        {/* Next steps checklist */}
-        <section className="rounded-2xl p-5 mb-4" style={CARD}>
-          <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Next steps</p>
-          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>
-            {nextIdx === -1 ? "You're all set" : `${steps.filter(s => s.done).length} of ${steps.length} done`}
+        {/* Next steps */}
+        <section className={`mb-4 rounded-[32px_32px_32px_10px] p-5 ${glass}`} aria-label="Next steps">
+          <p className="text-xs font-bold uppercase tracking-wider text-warm">Next steps</p>
+          <h2 className="mb-4 mt-0.5 font-display text-xl">
+            {nextIdx === -1 ? "You're all set" : `${doneCount} of ${steps.length} done`}
           </h2>
           <div className="space-y-2">
             {steps.map((s, i) => {
@@ -128,97 +166,75 @@ export default function DashboardPage() {
               const inner = (
                 <>
                   {s.done
-                    ? <CheckCircle2 size={20} style={{ color: CHART.palette[0] }} />
-                    : <Circle size={20} style={{ color: CHART.indicator }} />}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold"
-                      style={{ color: s.done ? MUTED : '#FFFAF5', textDecoration: s.done ? 'line-through' : 'none' }}>
+                    ? <CheckCircleIcon className="h-6 w-6 flex-shrink-0 text-forest" aria-hidden="true" />
+                    : <span className={`h-6 w-6 flex-shrink-0 rounded-full border-2 ${isNext ? 'border-terracotta' : 'border-line'}`} aria-hidden="true" />}
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-sm font-bold ${s.done ? 'text-warm line-through' : ''}`}>
                       {s.onClick && becomingProvider ? 'Saving…' : s.title}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: FAINT }}>{s.sub}</p>
-                  </div>
-                  <ArrowRight size={16} style={{ color: FAINT }} />
+                    </span>
+                    <span className="mt-0.5 block text-xs text-warm">{s.sub}</span>
+                  </span>
+                  <ArrowRightIcon className="h-4 w-4 flex-shrink-0 text-warm" aria-hidden="true" />
                 </>
               )
-              const rowClass = 'w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all disabled:opacity-60'
-              const rowStyle = {
-                border: isNext ? '1px solid rgba(212,168,83,0.45)' : '1px solid rgba(255,255,255,0.06)',
-                background: isNext ? 'rgba(212,168,83,0.08)' : 'transparent',
-              }
+              const rowClass = `flex w-full items-center gap-3 rounded-[20px_20px_20px_8px] border p-3 text-left transition-colors disabled:opacity-60 ${isNext ? 'border-terracotta/50 bg-orange-pale' : 'border-line bg-white/60'} ${focusRing}`
               return s.onClick ? (
-                <button key={s.key} type="button" onClick={s.onClick} disabled={becomingProvider} className={rowClass} style={rowStyle}>
-                  {inner}
-                </button>
+                <button key={s.key} type="button" onClick={s.onClick} disabled={becomingProvider} className={rowClass}>{inner}</button>
               ) : (
-                <Link key={s.key} to={s.to} className={rowClass} style={rowStyle}>
-                  {inner}
-                </Link>
+                <Link key={s.key} to={s.to} className={rowClass}>{inner}</Link>
               )
             })}
           </div>
         </section>
 
-        {/* Sparkline KPI tiles. Saved items have no data source in this page, so no tile. */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Link to="/manage-listings" className="block rounded-2xl transition-all hover:-translate-y-0.5">
-            <KpiTile label="Listings" value={loading ? '–' : myListingsCount} icon={Home} color={CHART.palette[0]} spark={listingTrend} />
-          </Link>
-          <Link to="/request" className="block rounded-2xl transition-all hover:-translate-y-0.5">
-            <KpiTile label="Enquiries" value={loading ? '–' : myRequestsCount} icon={ClipboardList} color={CHART.palette[1]} spark={enquiryTrend} />
-          </Link>
-          <Link to="/matches" className="block rounded-2xl transition-all hover:-translate-y-0.5">
-            <KpiTile label="Matches" value={loading ? '–' : myMatches} icon={Heart} color={CHART.palette[2]} />
-          </Link>
-          <Link to="/wallet" className="block rounded-2xl transition-all hover:-translate-y-0.5">
-            <KpiTile label="Completed" value={loading ? '–' : completedDeals} icon={Wallet} color={CHART.palette[3]} />
-          </Link>
+        {/* Figures. Saved items have no data source in this page, so no tile. */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <Stat to="/manage-listings" icon={HomeModernIcon} iconClass="text-forest" sparkColor="var(--dm-forest)" label="Listings" value={loading ? '–' : myListingsCount} spark={listingTrend} />
+          <Stat to="/request" icon={ClipboardDocumentListIcon} iconClass="text-gold" sparkColor="var(--dm-gold)" label="Enquiries" value={loading ? '–' : myRequestsCount} spark={enquiryTrend} />
+          <Stat to="/matches" icon={HeartIcon} iconClass="text-terracotta" sparkColor="var(--dm-terracotta)" label="Matches" value={loading ? '–' : myMatches} />
+          <Stat to="/wallet" icon={BanknotesIcon} iconClass="text-sky" sparkColor="var(--dm-sky)" label="Completed" value={loading ? '–' : completedDeals} />
         </div>
 
-        {/* Horizontal activity timeline */}
-        <section className="rounded-2xl p-5 mb-4" style={CARD}>
-          <p className="text-[11px] uppercase tracking-wider" style={{ color: CHART.indicator }}>Timeline</p>
-          <h2 className="font-display text-xl mt-0.5 mb-4" style={{ color: '#FFFAF5' }}>Recent activity</h2>
+        {/* Recent activity */}
+        <section className={`mb-4 rounded-[32px_32px_32px_10px] p-5 ${glass}`} aria-label="Recent activity">
+          <p className="text-xs font-bold uppercase tracking-wider text-warm">Timeline</p>
+          <h2 className="mb-4 mt-0.5 font-display text-xl">Recent activity</h2>
 
           {loading ? (
-            <div className="py-8 flex justify-center">
-              <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--dm-gold)' }} />
+            <div className="flex justify-center py-8" role="status" aria-label="Loading">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent" />
             </div>
           ) : activity.length === 0 ? (
-            <div className="py-6 text-center">
-              <div className="flex justify-center mb-3"><ClipboardList size={36} className="text-terracotta" /></div>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#FFFAF5' }}>You don't have any activity yet.</p>
-              <p className="text-xs mb-4" style={{ color: MUTED }}>Tell us what you need or create an offer to get started.</p>
-              <div className="flex gap-2 justify-center">
-                <Link to="/request" className="btn-primary text-sm px-5 py-2.5">Find a Match</Link>
-                <Link to="/list" className="px-5 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#FFFAF5' }}>
-                  Create an Offer
-                </Link>
+            <div className="py-4 text-center">
+              <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[20px_20px_20px_6px] bg-orange-pale text-terracotta">
+                <ClipboardDocumentListIcon className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <p className="mb-1 text-sm font-bold">You don&apos;t have any activity yet.</p>
+              <p className="mb-4 text-xs text-warm">Tell us what you need or create an offer to get started.</p>
+              <div className="flex justify-center gap-2">
+                <Link to="/request" className="btn-primary px-5 py-2.5 text-sm">Find a Match</Link>
+                <Link to="/list" className={`rounded-full border border-line bg-white px-5 py-2.5 text-sm font-bold ${focusRing}`}>Create an Offer</Link>
               </div>
             </div>
           ) : (
-            <div className="-mx-5 px-5 pb-2 overflow-x-auto" style={{ scrollSnapType: 'x mandatory' }}>
-              <div className="relative flex gap-3 min-w-max">
-                <div className="absolute top-[5px] left-0 right-0 h-px" style={{ background: 'rgba(212,168,83,0.3)' }} />
+            <div className="-mx-5 overflow-x-auto px-5 pb-2" style={{ scrollSnapType: 'x mandatory' }}>
+              <div className="relative flex min-w-max gap-3">
+                <div className="absolute left-0 right-0 top-[5px] h-px bg-gold/40" aria-hidden="true" />
                 {activity.map(item => {
                   const done = ACTIVE_STATUSES.includes(item.status)
                   const Wrapper = item.link ? Link : 'div'
                   const date = new Date(item.at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })
                   return (
-                    <div key={item.kind + item.id} className="relative shrink-0 w-56 pt-6" style={{ scrollSnapAlign: 'start' }}>
-                      <span className="absolute top-0 left-0 w-2.5 h-2.5 rounded-full"
-                        style={{ background: done ? CHART.palette[0] : CHART.indicator }} />
+                    <div key={item.kind + item.id} className="relative w-56 shrink-0 pt-6" style={{ scrollSnapAlign: 'start' }}>
+                      <span className={`absolute left-0 top-0 h-2.5 w-2.5 rounded-full ${done ? 'bg-forest' : 'bg-gold'}`} aria-hidden="true" />
                       <Wrapper {...(item.link ? { to: item.link } : {})}
-                        className="block h-full rounded-2xl p-3.5 transition-all hover:-translate-y-0.5" style={CARD}>
-                        <p className="text-[10px] uppercase tracking-wider" style={{ color: FAINT }}>
+                        className={`block h-full rounded-[20px_20px_20px_8px] border border-line bg-white/70 p-3.5 transition-transform hover:-translate-y-0.5 ${item.link ? focusRing : ''}`}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-warm">
                           {item.kind === 'listing' ? 'Listing' : 'Request'} · {date}
                         </p>
-                        <p className="text-sm font-semibold truncate mt-1" style={{ color: '#FFFAF5' }}>{item.title}</p>
-                        <p className="text-xs mt-0.5 capitalize truncate" style={{ color: MUTED }}>{item.sub}</p>
-                        <span className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full mt-3 capitalize"
-                          style={{
-                            backgroundColor: done ? 'rgba(122,158,126,0.18)' : 'rgba(212,168,83,0.15)',
-                            color: done ? '#A9C7AD' : '#F3C96A',
-                          }}>
+                        <p className="mt-1 truncate text-sm font-bold">{item.title}</p>
+                        <p className="mt-0.5 truncate text-xs capitalize text-warm">{item.sub}</p>
+                        <span className={`mt-3 inline-block rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ${done ? 'bg-sage/20 text-forest' : 'bg-gold/20 text-bark'}`}>
                           {item.status?.toLowerCase()}
                         </span>
                       </Wrapper>
@@ -230,42 +246,29 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Quick Links */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {QUICK_LINKS.map(({ to, icon, label, onClick }) => (
-            <div key={label}>
-              {onClick ? (
-                <button onClick={onClick} disabled={becomingProvider}
-                  className="w-full flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                  style={{ ...CARD, minHeight: 90 }}>
-                  {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>
-                    {becomingProvider ? 'Saving…' : label}
-                  </span>
-                </button>
-              ) : (
-                <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:-translate-y-0.5"
-                  style={{ ...CARD, minHeight: 90 }}>
-                  {icon}
-                  <span className="text-xs font-semibold mt-1.5 text-center" style={{ color: '#FFFAF5' }}>{label}</span>
-                </Link>
-              )}
-            </div>
-          ))}
+        {/* Quick links */}
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          {QUICK_LINKS.map(({ to, icon: Icon, label, onClick }) => {
+            const cls = `flex min-h-[92px] w-full flex-col items-center justify-center rounded-[24px_24px_24px_8px] p-4 transition-transform hover:-translate-y-0.5 disabled:opacity-60 ${glass} ${focusRing}`
+            const body = (
+              <>
+                <Icon className="h-6 w-6 text-terracotta" aria-hidden="true" />
+                <span className="mt-1.5 text-center text-xs font-bold">{onClick && becomingProvider ? 'Saving…' : label}</span>
+              </>
+            )
+            return onClick
+              ? <button key={label} type="button" onClick={onClick} disabled={becomingProvider} className={cls}>{body}</button>
+              : <Link key={label} to={to} className={cls}>{body}</Link>
+          })}
         </div>
 
-        {/* Coming Soon -- quieter, lower priority, doesn't compete with the main actions above */}
+        {/* Coming soon: quieter, doesn't compete with the main actions */}
         <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: <GraduationCap size={18} style={{ color: FAINT }} />, label: 'Student Hostels' },
-            { icon: <Landmark size={18} style={{ color: FAINT }} />,      label: 'Mortgages' },
-          ].map(({ icon, label }) => (
-            <div key={label} className="flex items-center gap-2 p-3 rounded-2xl border border-dashed opacity-60"
-              style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.12)' }}>
-              {icon}
-              <span className="text-xs font-medium flex-1" style={{ color: MUTED }}>{label}</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0"
-                style={{ backgroundColor: 'rgba(212,168,83,0.15)', color: '#F3C96A' }}>Coming Soon</span>
+          {[{ icon: AcademicCapIcon, label: 'Student Hostels' }, { icon: BuildingLibraryIcon, label: 'Mortgages' }].map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-2 rounded-[20px_20px_20px_8px] border border-dashed border-line bg-white/40 p-3">
+              <Icon className="h-5 w-5 flex-shrink-0 text-warm" aria-hidden="true" />
+              <span className="flex-1 text-xs font-bold text-warm">{label}</span>
+              <span className="flex-shrink-0 rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-bark">Coming Soon</span>
             </div>
           ))}
         </div>

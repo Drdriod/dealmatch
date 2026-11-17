@@ -9,6 +9,9 @@
   :root {
     --dm-cream: #F7F4ED; --dm-deep: #17211B; --dm-terracotta: #B8511E; --dm-terracotta-dark: #A8441D;
     --dm-forest: #234C3A; --dm-gold: #D4A853; --dm-sage: #7A9E7E; --dm-warm: #5C665F; --dm-line: #DEDDD6;
+    --dm-forest-dark: #173428; --dm-forest-pale: #E6EEE9; --dm-sun: #F3C96A; --dm-cream-deep: #EEE9DE;
+    --dm-orange-pale: #FAE9DF; --dm-blush: #F0D4BE; --dm-charcoal: #1F2B24;
+    --dm-paper: #FFFAF5; --dm-bark: #5C4A3A; --dm-sky: #5B8DEF; --dm-danger: #C94A3A; --dm-sand: #F5EDE0; --dm-moss: #5C8060;
   }
 
   * {

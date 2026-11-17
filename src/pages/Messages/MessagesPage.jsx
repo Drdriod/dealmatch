@@ -38,7 +38,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity:0, y:40 }} animate={{ opacity:1, y:0 }}
         className="w-full max-w-md rounded-3xl overflow-hidden"
-        style={{ backgroundColor:'#FFFAF5' }}>
+        style={{ backgroundColor:'var(--dm-paper)' }}>
         <div className="p-5 border-b" style={{ borderColor:'var(--dm-line)' }}>
           <h3 className="font-display font-black text-lg" style={{ color:'var(--dm-deep)' }}>Leave a Review ⭐</h3>
           <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>Rate this property and landlord</p>
@@ -65,7 +65,7 @@ function ReviewModal({ propertyId, landlordId, onClose, onSubmit }) {
           <div className="flex gap-3">
             <button onClick={onClose}
               className="flex-1 py-3 rounded-2xl text-sm font-semibold border"
-              style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>
+              style={{ borderColor:'var(--dm-line)', color:'var(--dm-bark)' }}>
               Cancel
             </button>
             <button onClick={handleSubmit} disabled={saving || !rating}
@@ -107,7 +107,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
       onClick={e => e.target === e.currentTarget && onClose()}>
       <motion.div initial={{ opacity:0, y:40 }} animate={{ opacity:1, y:0 }}
         className="w-full max-w-md rounded-3xl overflow-hidden"
-        style={{ backgroundColor:'#FFFAF5', maxHeight:'90vh', overflowY:'auto' }}>
+        style={{ backgroundColor:'var(--dm-paper)', maxHeight:'90vh', overflowY:'auto' }}>
         <div className="p-5 border-b" style={{ borderColor:'var(--dm-line)' }}>
           <h3 className="font-display font-black text-lg" style={{ color:'var(--dm-terracotta)' }}>File a Dispute</h3>
           <p className="text-xs mt-0.5" style={{ color:'var(--dm-warm)' }}>DealMatch team will investigate within 48 hours</p>
@@ -119,7 +119,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
               {REASONS.map(r => (
                 <button key={r} onClick={() => setReason(r)}
                   className="px-3 py-2 rounded-full text-xs font-medium border-2 transition-all"
-                  style={{ borderColor: reason === r ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: reason === r ? 'var(--dm-terracotta)' : 'white', color: reason === r ? 'white' : '#5C4A3A' }}>
+                  style={{ borderColor: reason === r ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: reason === r ? 'var(--dm-terracotta)' : 'white', color: reason === r ? 'white' : 'var(--dm-bark)' }}>
                   {r}
                 </button>
               ))}
@@ -137,7 +137,7 @@ function DisputeModal({ propertyId, againstId, bookingId, onClose }) {
             </p>
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-sm font-semibold border" style={{ borderColor:'var(--dm-line)', color:'#5C4A3A' }}>Cancel</button>
+            <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-sm font-semibold border" style={{ borderColor:'var(--dm-line)', color:'var(--dm-bark)' }}>Cancel</button>
             <button onClick={handleSubmit} disabled={saving || !reason || !desc}
               className="flex-1 py-3 rounded-2xl text-sm font-bold"
               style={{ backgroundColor:'var(--dm-terracotta)', color:'white', opacity: (!reason || !desc) ? 0.5 : 1 }}>
@@ -199,10 +199,10 @@ function MessageThread({ thread, currentUserId, onBack }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0"
-        style={{ borderColor:'var(--dm-line)', backgroundColor:'#FFFAF5' }}>
+        style={{ borderColor:'var(--dm-line)', backgroundColor:'var(--dm-paper)' }}>
         <button onClick={onBack} className="w-8 h-8 rounded-full flex items-center justify-center"
           style={{ backgroundColor:'rgba(23,33,27,0.06)' }}>
-          <ArrowLeft size={15} style={{ color:'#5C4A3A' }} />
+          <ArrowLeft size={15} style={{ color:'var(--dm-bark)' }} />
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate" style={{ color:'var(--dm-deep)' }}>{thread.other_user_name}</p>
@@ -256,7 +256,7 @@ function MessageThread({ thread, currentUserId, onBack }) {
       </div>
 
       {/* Input */}
-      <div className="flex items-center gap-2 p-4 border-t" style={{ borderColor:'var(--dm-line)', backgroundColor:'#FFFAF5' }}>
+      <div className="flex items-center gap-2 p-4 border-t" style={{ borderColor:'var(--dm-line)', backgroundColor:'var(--dm-paper)' }}>
         <input type="text" value={newMsg} onChange={e => setNewMsg(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
           placeholder="Write a message"
@@ -367,7 +367,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-sand)' }}>
       <div className="max-w-lg mx-auto px-4">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-black" style={{ color:'var(--dm-deep)' }}>Messages</h1>
@@ -377,7 +377,7 @@ export default function MessagesPage() {
         {loading ? (
           <div className="text-center py-16" style={{ color:'var(--dm-warm)' }}>Loading messages…</div>
         ) : threads.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'#FFFAF5', borderColor:'var(--dm-line)' }}>
+          <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor:'var(--dm-paper)', borderColor:'var(--dm-line)' }}>
             <div className="flex justify-center mb-3"><MessageCircle size={40} className="text-terracotta" /></div>
             <p className="font-semibold text-sm" style={{ color:'var(--dm-deep)' }}>No messages yet</p>
             <p className="text-xs mt-1 mb-4" style={{ color:'var(--dm-warm)' }}>When you connect with someone, your conversation appears here.</p>
@@ -388,7 +388,7 @@ export default function MessagesPage() {
             {threads.map(t => (
               <button key={t.id} onClick={() => setActiveThread(t)}
                 className="w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:-translate-y-0.5"
-                style={{ backgroundColor: t.unread ? 'rgba(200,95,45,0.04)' : '#FFFAF5', borderColor: t.unread ? 'rgba(200,95,45,0.25)' : 'var(--dm-line)' }}>
+                style={{ backgroundColor: t.unread ? 'rgba(200,95,45,0.04)' : 'var(--dm-paper)', borderColor: t.unread ? 'rgba(200,95,45,0.25)' : 'var(--dm-line)' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-black text-lg"
                   style={{ backgroundColor:'rgba(200,95,45,0.1)', color:'var(--dm-terracotta)' }}>
                   {t.other_user_name[0] || '?'}

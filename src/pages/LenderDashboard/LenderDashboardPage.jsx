@@ -11,7 +11,7 @@ import { CHART, fmtNaira, fmtNum, Funnel, HBars, KpiTile, Panel, Radial } from '
 
 const STATUS_CONFIG = {
   pending:    { label: 'New',         color: 'var(--dm-terracotta)', bg: 'rgba(200,95,45,0.1)' },
-  processing: { label: 'Processing',  color: '#5B8DEF', bg: 'rgba(91,141,239,0.1)' },
+  processing: { label: 'Processing',  color: 'var(--dm-sky)', bg: 'rgba(91,141,239,0.1)' },
   reviewing:  { label: 'Reviewing',   color: 'var(--dm-gold)', bg: 'rgba(212,168,83,0.1)' },
   approved:   { label: 'Approved',    color: 'var(--dm-sage)', bg: 'rgba(122,158,126,0.1)' },
   declined:   { label: 'Declined',    color: '#E31E25', bg: 'rgba(227,30,37,0.1)' },
@@ -22,7 +22,7 @@ const STATUS_CONFIG = {
 // Pipeline order for the funnel and the board
 const PIPELINE_ORDER = ['pending', 'processing', 'reviewing', 'on_hold', 'approved', 'finished', 'declined']
 // Status colours that would disappear on the dark surface get a lighter accent
-const ACCENT_OVERRIDE = { finished: '#F0D4BE', on_hold: '#A8B3AC' }
+const ACCENT_OVERRIDE = { finished: 'var(--dm-blush)', on_hold: '#A8B3AC' }
 const OPEN_STATUSES = ['pending', 'processing', 'reviewing', 'on_hold']
 const BOARD_CARD_LIMIT = 6
 const WEEKS = 8
@@ -151,19 +151,19 @@ export default function LenderDashboardPage() {
   const pendingNote = pipelineLoading ? 'Loading...' : 'No applications yet'
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-deep)', color:'#FFFAF5' }}>
+    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor:'var(--dm-deep)', color:'var(--dm-paper)' }}>
       <div className="max-w-6xl mx-auto px-4">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color:'var(--dm-gold)' }}>Pipeline</p>
-            <h1 className="font-display text-3xl font-black" style={{ color:'#FFFAF5' }}>Lender Dashboard</h1>
+            <h1 className="font-display text-3xl font-black" style={{ color:'var(--dm-paper)' }}>Lender Dashboard</h1>
             <p className="text-sm mt-1" style={{ color:'rgba(255,250,245,0.5)' }}>Manage mortgage applications and deals</p>
           </div>
           <button onClick={refreshAll} aria-label="Refresh applications"
             className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border"
-            style={{ background:'rgba(255,255,255,0.05)', borderColor:'rgba(255,255,255,0.12)', color:'#FFFAF5' }}>
+            style={{ background:'rgba(255,255,255,0.05)', borderColor:'rgba(255,255,255,0.12)', color:'var(--dm-paper)' }}>
             <RefreshCw size={18} className={loading || pipelineLoading ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -224,10 +224,10 @@ export default function LenderDashboardPage() {
                     <div className="flex items-center justify-between gap-2 pb-2" style={{ borderBottom:`2px solid ${accent}` }}>
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }} />
-                        <p className="text-xs font-semibold truncate" style={{ color:'#FFFAF5' }}>{cfg.label}</p>
+                        <p className="text-xs font-semibold truncate" style={{ color:'var(--dm-paper)' }}>{cfg.label}</p>
                       </div>
                       <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                        style={{ background:'rgba(255,255,255,0.08)', color:'#FFFAF5' }}>{items.length}</span>
+                        style={{ background:'rgba(255,255,255,0.08)', color:'var(--dm-paper)' }}>{items.length}</span>
                     </div>
 
                     {items.length === 0 ? (
@@ -239,7 +239,7 @@ export default function LenderDashboardPage() {
                             className="text-left rounded-xl p-3 min-w-0 transition-colors hover:bg-white/10"
                             style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
                             <p className="text-[10px] font-black tracking-widest truncate" style={{ color:'var(--dm-gold)' }}>{a.ticket_id}</p>
-                            <p className="text-xs font-semibold truncate mt-0.5" style={{ color:'#FFFAF5' }}>{a.full_name}</p>
+                            <p className="text-xs font-semibold truncate mt-0.5" style={{ color:'var(--dm-paper)' }}>{a.full_name}</p>
                             <p className="text-[11px] mt-1 truncate" style={{ color:'var(--dm-sage)' }}>{fmtNaira(loanOf(a))}</p>
                           </button>
                         ))}
@@ -260,7 +260,7 @@ export default function LenderDashboardPage() {
         {/* Applications list */}
         <section id="applications-list" className="scroll-mt-24">
           <div className="mb-4">
-            <h2 className="font-display text-2xl" style={{ color:'#FFFAF5' }}>Applications</h2>
+            <h2 className="font-display text-2xl" style={{ color:'var(--dm-paper)' }}>Applications</h2>
             <p className="text-xs mt-1" style={{ color:'rgba(255,250,245,0.5)' }}>Open an application to review, message or update its status</p>
           </div>
 
@@ -288,7 +288,7 @@ export default function LenderDashboardPage() {
               <div className="p-12 text-center text-sm" style={{ color:'rgba(255,250,245,0.5)' }}>Loading applications...</div>
             ) : apps.length === 0 ? (
               <div className="p-12 text-center rounded-3xl border border-dashed" style={{ borderColor:'rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.02)' }}>
-                <FileText size={48} className="mx-auto mb-4 opacity-20" style={{ color:'#FFFAF5' }} />
+                <FileText size={48} className="mx-auto mb-4 opacity-20" style={{ color:'var(--dm-paper)' }} />
                 <p className="text-sm font-semibold" style={{ color:'rgba(255,250,245,0.5)' }}>No applications found in this category</p>
               </div>
             ) : (
@@ -323,7 +323,7 @@ export default function LenderDashboardPage() {
 
                   <AnimatePresence>
                     {selected?.id === app.id && (
-                      <motion.div initial={{ height:0 }} animate={{ height:'auto' }} exit={{ height:0 }} className="overflow-hidden border-t border-line bg-[#FFFAF5]">
+                      <motion.div initial={{ height:0 }} animate={{ height:'auto' }} exit={{ height:0 }} className="overflow-hidden border-t border-line bg-paper">
                         <div className="p-5 space-y-6">
                           {/* Details Grid */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

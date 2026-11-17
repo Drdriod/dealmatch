@@ -109,7 +109,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4"
       style={{ backgroundColor: 'rgba(23,33,27,0.6)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col" style={{ backgroundColor: '#FFFAF5', maxHeight: '92vh' }}>
+      <div className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col" style={{ backgroundColor: 'var(--dm-paper)', maxHeight: '92vh' }}>
         <div className="p-5 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: 'var(--dm-line)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(122,158,126,0.15)' }}>
@@ -121,7 +121,7 @@ export default function PropertyReserveModal({ property, onClose, onFunded }) {
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-            <X size={14} style={{ color: '#5C4A3A' }} />
+            <X size={14} style={{ color: 'var(--dm-bark)' }} />
           </button>
         </div>
 

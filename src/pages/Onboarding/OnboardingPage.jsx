@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, ArrowRight, Award, BookOpen, Building2, Check, ConciergeBell, GraduationCap,
-  HardHat, Home, Key, ShieldCheck, Users, Wrench,
-} from 'lucide-react'
+  AcademicCapIcon, ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, BuildingOffice2Icon, CheckIcon, EllipsisHorizontalCircleIcon,
+  ExclamationCircleIcon, HomeIcon, HomeModernIcon, KeyIcon, MoonIcon, PlusCircleIcon, ShieldCheckIcon, UsersIcon,
+  WrenchIcon, WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import { saveOnboardingProfile } from '@/data/profileRepository'
 import { useAuth } from '@/context/AuthContext'
 import { analytics } from '@/lib/posthog'
@@ -11,11 +12,6 @@ import { clearIntent, resolveIntent } from '@/lib/intent'
 import { parseLocation } from '@/lib/location'
 import LocationField from '@/components/ui/LocationField'
 import toast from 'react-hot-toast'
-import { EllipsisHorizontalCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
-import { heroIcon } from '@/components/ui/heroIcon'
-
-const MoreMark = heroIcon(EllipsisHorizontalCircleIcon)
-const OtherSkillMark = heroIcon(PlusCircleIcon)
 
 /**
  * Onboarding
@@ -42,10 +38,10 @@ const OtherSkillMark = heroIcon(PlusCircleIcon)
 const DRAFT_KEY = 'dm_onboarding_draft'
 
 const INTENT_CARDS = [
-  { id: 'find_place',  icon: Home,      title: 'Find a place',        desc: 'Shortlets, rentals and student housing' },
-  { id: 'find_person', icon: Users,     title: 'Find a professional', desc: 'Artisans, tutors and home services' },
-  { id: 'offer_place', icon: Building2, title: 'List a place',        desc: 'Rent out a home, shortlet or hostel' },
-  { id: 'offer_skill', icon: Award,     title: 'Offer a skill',       desc: 'Get hired for the work you do' },
+  { id: 'find_place',  icon: HomeIcon,      title: 'Find a place',        desc: 'Shortlets, rentals and student housing' },
+  { id: 'find_person', icon: UsersIcon,     title: 'Find a professional', desc: 'Artisans, tutors and home services' },
+  { id: 'offer_place', icon: BuildingOffice2Icon, title: 'List a place',        desc: 'Rent out a home, shortlet or hostel' },
+  { id: 'offer_skill', icon: WrenchScrewdriverIcon,     title: 'Offer a skill',       desc: 'Get hired for the work you do' },
 ]
 
 // role/goal map each option onto the existing profile columns.
@@ -59,9 +55,9 @@ const DETAIL = {
     wherePlaceholder: 'City or area, e.g. Lekki, Lagos',
     cta: 'Show me places',
     options: [
-      { id: 'short_stay', icon: ConciergeBell, label: 'Short stay',     desc: 'Shortlets and hotels',                    role: 'renter',  goal: 'short_term',     words: 'shortlet' },
-      { id: 'rent',       icon: Key,           label: 'Long-term rent', desc: 'Flats and houses to rent',                role: 'renter',  goal: 'long_term',      words: 'rent' },
-      { id: 'student',    icon: GraduationCap, label: 'Student housing', desc: 'Hostels near school. Student verification is free', role: 'student', goal: 'student_hostel', words: 'student hostel' },
+      { id: 'short_stay', icon: MoonIcon, label: 'Short stay',     desc: 'Shortlets and hotels',                    role: 'renter',  goal: 'short_term',     words: 'shortlet' },
+      { id: 'rent',       icon: KeyIcon,           label: 'Long-term rent', desc: 'Flats and houses to rent',                role: 'renter',  goal: 'long_term',      words: 'rent' },
+      { id: 'student',    icon: AcademicCapIcon, label: 'Student housing', desc: 'Hostels near school. Student verification is free', role: 'student', goal: 'student_hostel', words: 'student hostel' },
     ],
   },
   find_person: {
@@ -73,10 +69,10 @@ const DETAIL = {
     wherePlaceholder: 'City or area, e.g. Ikeja, Lagos',
     cta: 'Find professionals',
     options: [
-      { id: 'trades',       icon: HardHat,  label: 'Repairs and trades', desc: 'Electrician, plumber, builder',  words: 'repairs' },
-      { id: 'home_service', icon: Home,     label: 'Home services',      desc: 'Cleaning, laundry, moving',      words: 'home service' },
-      { id: 'tutor',        icon: BookOpen, label: 'Tutoring and lessons', desc: 'Home lessons and exam prep',   words: 'tutor' },
-      { id: 'other',        icon: MoreMark, label: 'Something else',     desc: 'Tell us in the search',          words: '' },
+      { id: 'trades',       icon: WrenchScrewdriverIcon,  label: 'Repairs and trades', desc: 'Electrician, plumber, builder',  words: 'repairs' },
+      { id: 'home_service', icon: HomeModernIcon,     label: 'Home services',      desc: 'Cleaning, laundry, moving',      words: 'home service' },
+      { id: 'tutor',        icon: BookOpenIcon, label: 'Tutoring and lessons', desc: 'Home lessons and exam prep',   words: 'tutor' },
+      { id: 'other',        icon: EllipsisHorizontalCircleIcon, label: 'Something else',     desc: 'Tell us in the search',          words: '' },
     ],
   },
   offer_place: {
@@ -88,9 +84,9 @@ const DETAIL = {
     wherePlaceholder: 'City or area, e.g. Lekki, Lagos',
     cta: 'Start my listing',
     options: [
-      { id: 'short_stay', icon: ConciergeBell, label: 'Short stay or hotel', desc: 'Shortlet, hotel or guest house', role: 'landlord', goal: 'hotel_income' },
-      { id: 'rent',       icon: Key,           label: 'Home to rent',        desc: 'Flat, house or room',            role: 'landlord', goal: 'rental_income' },
-      { id: 'student',    icon: GraduationCap, label: 'Student hostel',      desc: 'Rooms for students',             role: 'landlord', goal: 'rental_income' },
+      { id: 'short_stay', icon: MoonIcon, label: 'Short stay or hotel', desc: 'Shortlet, hotel or guest house', role: 'landlord', goal: 'hotel_income' },
+      { id: 'rent',       icon: KeyIcon,           label: 'Home to rent',        desc: 'Flat, house or room',            role: 'landlord', goal: 'rental_income' },
+      { id: 'student',    icon: AcademicCapIcon, label: 'Student hostel',      desc: 'Rooms for students',             role: 'landlord', goal: 'rental_income' },
     ],
   },
   offer_skill: {
@@ -102,10 +98,10 @@ const DETAIL = {
     wherePlaceholder: 'City or area, e.g. Yaba, Lagos',
     cta: 'Set up my profile',
     options: [
-      { id: 'artisan',      icon: Wrench,   label: 'Artisan or trade', desc: 'Electrician, plumber, carpenter' },
-      { id: 'home_service', icon: Home,     label: 'Home service',     desc: 'Cleaning, laundry, moving' },
-      { id: 'tutor',        icon: BookOpen, label: 'Tutor',            desc: 'Lessons and coaching' },
-      { id: 'other_skill',  icon: OtherSkillMark, label: 'Other skill',      desc: 'Anything else you are good at' },
+      { id: 'artisan',      icon: WrenchIcon,   label: 'Artisan or trade', desc: 'Electrician, plumber, carpenter' },
+      { id: 'home_service', icon: HomeModernIcon,     label: 'Home service',     desc: 'Cleaning, laundry, moving' },
+      { id: 'tutor',        icon: BookOpenIcon, label: 'Tutor',            desc: 'Lessons and coaching' },
+      { id: 'other_skill',  icon: PlusCircleIcon, label: 'Other skill',      desc: 'Anything else you are good at' },
     ],
   },
 }
@@ -145,6 +141,7 @@ export default function OnboardingPage() {
   const [picks, setPicks]   = useState(draft?.picks || (startIntent ? validKinds(startIntent, known?.kinds) : []))
   const [where, setWhere]   = useState(draft?.where ?? known?.where ?? '')
   const [saving, setSaving] = useState(false)
+  const [pickError, setPickError] = useState('')
 
   useEffect(() => {
     try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ intent, picks, where })) } catch { /* ignore */ }
@@ -161,12 +158,13 @@ export default function OnboardingPage() {
   }
 
   const togglePick = (id) => {
+    setPickError('')
     if (!cfg.multi) { setPicks([id]); return }
     setPicks(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]))
   }
 
   const finish = async ({ skip = false } = {}) => {
-    if (!skip && !valid) { toast.error('Choose one to continue'); return }
+    if (!skip && !valid) { setPickError('Choose one to continue.'); return }
     if (!user?.id) { toast.error('You are signed out. Sign in again to continue.'); return }
 
     const chosen = skip || !cfg ? [] : cfg.options.filter(o => picks.includes(o.id))
@@ -229,28 +227,34 @@ export default function OnboardingPage() {
   const totalSteps = usedChooser ? 2 : 1
   const stepNo = stage === 'intent' ? 1 : (usedChooser ? 2 : 1)
 
+  const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-paper'
+  const card = (active) => `flex w-full items-center gap-4 rounded-[28px_28px_28px_10px] border-2 p-4 text-left backdrop-blur-xl transition-all ${focusRing} ${
+    active ? 'border-terracotta bg-orange-pale/80 shadow-card' : 'border-white/70 bg-white/80 shadow-card hover:-translate-y-0.5 hover:border-deep/20'}`
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFFAF5' }}>
-      <header className="max-w-md mx-auto flex items-center justify-between px-4 pt-5">
-        <Link to="/" className="flex items-center gap-2 font-display text-xl font-black" style={{ color: 'var(--dm-deep)' }}>
+    <div className="relative min-h-screen bg-paper text-deep">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-24 top-24 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/10 blur-3xl" />
+        <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/15 blur-3xl" />
+      </div>
+
+      <header className="relative mx-auto flex max-w-md items-center justify-between px-4 pt-5">
+        <Link to="/" className="flex items-center gap-2 font-display text-xl font-black">
           <img src="/brand/dealmatch-icon-transparent.png" alt="" className="h-7 w-auto" />
-          Deal<span style={{ color: '#C96A3A' }}>Match</span>
+          Deal<span className="text-[#C96A3A]">Match</span>
         </Link>
         <button type="button" onClick={() => finish({ skip: true })} disabled={saving}
-          className="text-sm font-semibold px-2 py-1" style={{ color: 'var(--dm-warm)' }}>
+          className={`rounded-full px-3 py-1.5 text-sm font-semibold text-warm hover:text-deep disabled:opacity-60 ${focusRing}`}>
           Skip for now
         </button>
       </header>
 
-      <main className="max-w-md mx-auto px-4 pt-8 pb-10">
+      <main className="relative mx-auto max-w-md px-4 pb-10 pt-8">
         {totalSteps > 1 && (
-          <div className="mb-7">
-            <div className="flex items-center justify-between text-xs mb-2.5" style={{ color: 'var(--dm-warm)' }}>
-              <span>Step {stepNo} of {totalSteps}</span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-              <div className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${(stepNo / totalSteps) * 100}%`, backgroundColor: 'var(--dm-terracotta)' }} />
+          <div className="mb-7" role="progressbar" aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={stepNo} aria-label={`Step ${stepNo} of ${totalSteps}`}>
+            <p className="mb-2.5 text-xs font-semibold text-warm">Step {stepNo} of {totalSteps}</p>
+            <div className="h-1.5 overflow-hidden rounded-full bg-deep/10">
+              <div className="h-full rounded-full bg-terracotta transition-all duration-500" style={{ width: `${(stepNo / totalSteps) * 100}%` }} />
             </div>
           </div>
         )}
@@ -258,25 +262,23 @@ export default function OnboardingPage() {
         {stage === 'intent' && (
           <section>
             <div className="mb-6">
-              <h1 className="font-display text-3xl" style={{ color: 'var(--dm-deep)' }}>Welcome to DealMatch.</h1>
-              <p className="text-sm mt-1.5" style={{ color: 'var(--dm-warm)' }}>What are you here to do?</p>
+              <h1 className="font-display text-3xl">Welcome to DealMatch.</h1>
+              <p className="mt-1.5 text-sm text-warm">What are you here to do?</p>
             </div>
             <div className="space-y-3">
-              {INTENT_CARDS.map(c => {
+              {INTENT_CARDS.map((c) => {
                 const Icon = c.icon
                 const active = intent === c.id
                 return (
-                  <button key={c.id} type="button" onClick={() => chooseIntent(c.id)} aria-pressed={active}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: active ? 'rgba(200,95,45,0.05)' : 'white' }}>
-                    <span className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={20} style={{ color: 'var(--dm-terracotta)' }} />
+                  <button key={c.id} type="button" onClick={() => chooseIntent(c.id)} aria-pressed={active} className={card(active)}>
+                    <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[18px_18px_18px_6px] bg-orange-pale text-terracotta">
+                      <Icon className="h-6 w-6" aria-hidden="true" />
                     </span>
                     <span className="flex-1">
-                      <span className="block font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{c.title}</span>
-                      <span className="block text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{c.desc}</span>
+                      <span className="block text-[15px] font-bold">{c.title}</span>
+                      <span className="mt-0.5 block text-xs text-warm">{c.desc}</span>
                     </span>
-                    <ArrowRight size={16} style={{ color: 'var(--dm-warm)' }} />
+                    <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-warm" aria-hidden="true" />
                   </button>
                 )
               })}
@@ -287,60 +289,66 @@ export default function OnboardingPage() {
         {stage === 'details' && cfg && (
           <section>
             <div className="mb-6">
-              <h1 className="font-display text-3xl" style={{ color: 'var(--dm-deep)' }}>{cfg.title}</h1>
-              <p className="text-sm mt-1.5" style={{ color: 'var(--dm-warm)' }}>{cfg.sub}</p>
+              <h1 className="font-display text-3xl">{cfg.title}</h1>
+              <p className="mt-1.5 text-sm text-warm">{cfg.sub}</p>
             </div>
 
-            <div className="space-y-2.5">
-              {cfg.options.map(o => {
+            <div role={cfg.multi ? 'group' : 'radiogroup'} aria-label={cfg.title} className="space-y-2.5">
+              {cfg.options.map((o) => {
                 const Icon = o.icon
                 const active = picks.includes(o.id)
                 return (
-                  <button key={o.id} type="button" onClick={() => togglePick(o.id)} aria-pressed={active}
-                    className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border-2 text-left transition-all"
-                    style={{ borderColor: active ? 'var(--dm-terracotta)' : 'var(--dm-line)', backgroundColor: active ? 'rgba(200,95,45,0.05)' : 'white' }}>
-                    <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>
-                      <Icon size={18} style={{ color: 'var(--dm-terracotta)' }} />
+                  <button key={o.id} type="button" onClick={() => togglePick(o.id)}
+                    role={cfg.multi ? undefined : 'radio'} aria-checked={cfg.multi ? undefined : active} aria-pressed={cfg.multi ? active : undefined}
+                    className={card(active)}>
+                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[16px_16px_16px_6px] bg-orange-pale text-terracotta">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="flex-1">
-                      <span className="block font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{o.label}</span>
-                      <span className="block text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{o.desc}</span>
+                      <span className="block text-sm font-bold">{o.label}</span>
+                      <span className="mt-0.5 block text-xs text-warm">{o.desc}</span>
                     </span>
-                    {active && <Check size={16} style={{ color: 'var(--dm-terracotta)' }} />}
+                    <span aria-hidden="true" className={`flex h-6 w-6 flex-shrink-0 items-center justify-center border-2 ${cfg.multi ? 'rounded-lg' : 'rounded-full'} ${active ? 'border-terracotta bg-terracotta text-white' : 'border-line bg-white'}`}>
+                      {active ? <CheckIcon className="h-4 w-4" strokeWidth={3} /> : null}
+                    </span>
                   </button>
                 )
               })}
             </div>
+            {pickError ? (
+              <p role="alert" className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-terracotta-dark">
+                <ExclamationCircleIcon className="h-4 w-4" aria-hidden="true" /> {pickError}
+              </p>
+            ) : null}
 
-            <label className="block mt-6">
-              <span className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--dm-deep)' }}>{cfg.whereLabel}</span>
+            <label className="mt-6 block">
+              <span className="mb-2 block text-xs font-bold uppercase tracking-wider">{cfg.whereLabel}</span>
               <LocationField value={where} onChange={setWhere} placeholder={cfg.wherePlaceholder}
-                className="input w-full text-sm" ariaLabel={cfg.whereLabel} />
+                className="input w-full !bg-white text-sm" ariaLabel={cfg.whereLabel} />
             </label>
 
-            <div className="flex gap-3 mt-7">
+            <div className="mt-7 flex gap-3">
               {usedChooser ? (
                 <button type="button" onClick={() => setStage('intent')} disabled={saving} aria-label="Back"
-                  className="px-5 py-4 rounded-2xl border" style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-warm)', backgroundColor: 'white' }}>
-                  <ArrowLeft size={16} />
+                  className={`rounded-full border border-line bg-white px-5 text-warm hover:text-deep ${focusRing}`}>
+                  <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               ) : null}
-              <button type="button" onClick={() => finish()} disabled={saving || !valid}
-                className="btn-primary flex-1 py-4 flex items-center justify-center gap-2"
-                style={{ opacity: valid ? 1 : 0.5 }}>
-                {saving ? 'Saving...' : <><span>{cfg.cta}</span> <ArrowRight size={15} /></>}
+              <button type="button" onClick={() => finish()} disabled={saving}
+                className="btn-primary flex flex-1 items-center justify-center gap-2 !py-4">
+                {saving ? 'Saving…' : <><span>{cfg.cta}</span> <ArrowRightIcon className="h-4 w-4" aria-hidden="true" /></>}
               </button>
             </div>
 
             {!usedChooser && (
               <button type="button" onClick={() => { setUsedChooser(true); setStage('intent') }}
-                className="block mx-auto mt-4 text-xs font-semibold underline" style={{ color: 'var(--dm-warm)' }}>
+                className="mx-auto mt-4 block text-xs font-semibold text-warm underline hover:text-deep">
                 Not what you are after? Change
               </button>
             )}
 
-            <p className="flex items-start gap-2 mt-6 text-xs leading-relaxed" style={{ color: 'var(--dm-warm)' }}>
-              <ShieldCheck size={15} className="flex-shrink-0 mt-px" style={{ color: 'var(--dm-forest)' }} />
+            <p className="mt-6 flex items-start gap-2 text-xs leading-relaxed text-warm">
+              <ShieldCheckIcon className="mt-px h-4 w-4 flex-shrink-0 text-forest" aria-hidden="true" />
               <span>Verifying your identity is optional for now. You will only need it before a booking, payment or agreement.</span>
             </p>
           </section>

@@ -8,7 +8,7 @@ export default function ComingSoonPage({
   icon: Icon = Home,
 }) {
   return (
-    <div className="min-h-screen pt-20 pb-16 flex items-center justify-center" style={{ backgroundColor: '#F5EDE0' }}>
+    <div className="min-h-screen pt-20 pb-16 flex items-center justify-center" style={{ backgroundColor: 'var(--dm-sand)' }}>
       <div className="max-w-sm mx-auto px-4 text-center">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
           style={{ backgroundColor: 'rgba(200,95,45,0.1)' }}>

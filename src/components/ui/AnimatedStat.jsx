@@ -11,7 +11,7 @@ export default function AnimatedStat({ value, suffix = '', prefix = '', label, c
     <div ref={ref} className="text-center px-0.5 sm:px-2">
       <p className="font-display font-black" style={{
         fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
-        color: '#F3C96A',
+        color: 'var(--dm-sun)',
         lineHeight: 1.1,
         letterSpacing: '-0.02em',
       }}>

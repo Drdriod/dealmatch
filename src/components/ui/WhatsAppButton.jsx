@@ -30,7 +30,7 @@ export default function WhatsAppButton() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             className="rounded-2xl overflow-hidden shadow-2xl w-64"
-            style={{ backgroundColor: '#FFFAF5', border: '1px solid var(--dm-line)' }}
+            style={{ backgroundColor: 'var(--dm-paper)', border: '1px solid var(--dm-line)' }}
           >
             <div className="p-4 flex items-center gap-3" style={{ backgroundColor: '#25D366' }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-sm"

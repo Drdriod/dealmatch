@@ -84,7 +84,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10" style={{ backgroundColor: '#FFFAF5', maxHeight: '85vh', overflowY: 'auto' }}>
+      <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10" style={{ backgroundColor: 'var(--dm-paper)', maxHeight: '85vh', overflowY: 'auto' }}>
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ backgroundColor: 'var(--dm-line)' }} />
         <h3 className="font-display text-lg font-black mb-1" style={{ color: 'var(--dm-deep)' }}>Report a Problem</h3>
         <p className="text-xs mb-4" style={{ color: 'var(--dm-warm)' }}>
@@ -99,10 +99,10 @@ export default function ReportModal({ entityType, entityId, listingSource = null
               className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all"
               style={{
                 backgroundColor: form.category === cat.id ? 'rgba(201,74,58,0.06)' : 'rgba(23,33,27,0.03)',
-                border: `1.5px solid ${form.category === cat.id ? '#C94A3A' : 'var(--dm-line)'}`,
+                border: `1.5px solid ${form.category === cat.id ? 'var(--dm-danger)' : 'var(--dm-line)'}`,
               }}>
               <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
-                style={{ border: `2px solid ${form.category === cat.id ? '#C94A3A' : 'var(--dm-line)'}`, backgroundColor: form.category === cat.id ? '#C94A3A' : 'transparent' }}>
+                style={{ border: `2px solid ${form.category === cat.id ? 'var(--dm-danger)' : 'var(--dm-line)'}`, backgroundColor: form.category === cat.id ? 'var(--dm-danger)' : 'transparent' }}>
                 {form.category === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
               <span className="text-xs" style={{ color: 'var(--dm-deep)' }}>{cat.label}</span>
@@ -122,7 +122,7 @@ export default function ReportModal({ entityType, entityId, listingSource = null
 
         <button onClick={submit} disabled={filing || !form.category || !form.description.trim()}
           className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
-          style={{ backgroundColor: '#C94A3A', color: 'white' }}>
+          style={{ backgroundColor: 'var(--dm-danger)', color: 'white' }}>
           <Flag size={16} />
           {filing ? 'Submitting...' : 'Submit Report'}
         </button>
