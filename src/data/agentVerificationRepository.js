@@ -65,3 +65,23 @@ export function upsertAgentVerification(svc, row) {
 export function markPropertyUnderVerification(svc, propertyId) {
   return svc.from('properties').update({ status: 'under_verification' }).eq('id', propertyId)
 }
+
+// The owner of a property (who may see the visit code).
+export function findPropertyOwner(svc, propertyId) {
+  return svc.from('properties').select('id, seller_id').eq('id', propertyId).single()
+}
+
+// The newest visit still open for a property.
+export function findActiveSessionForProperty(svc, propertyId) {
+  return svc.from('verification_sessions')
+    .select('id, expires_at')
+    .eq('property_id', propertyId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+}
+
+export function downloadVerificationPhoto(svc, path) {
+  return svc.storage.from('verification-photos').download(path)
+}

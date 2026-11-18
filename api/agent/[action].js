@@ -7,9 +7,13 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import exifr from 'exifr'
 import { redisRateLimit } from '../../src/lib/redis.js'
 import {
-  findPropertyForStart, insertVerificationSession, findSession, setSessionStatus, claimSessionAttempt,
+  visitCodeFor, visitCodeMatches, photoPathsAreOwn, evaluatePhotoEvidence, distanceMeters, MAX_PHOTOS_CHECKED,
+} from '../../src/lib/visitEvidence.js'
+import {
+  findPropertyForStart, findPropertyOwner, findActiveSessionForProperty, downloadVerificationPhoto, insertVerificationSession, findSession, setSessionStatus, claimSessionAttempt,
   consumeActiveSession, findPropertyForSubmit, upsertAgentVerification, markPropertyUnderVerification,
 } from '../../src/data/agentVerificationRepository.js'
 
@@ -28,13 +32,6 @@ function getServiceClient() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 }
-function distanceMeters(lat1, lon1, lat2, lon2) {
-  const R = 6371000
-  const toRad = d => (d * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1)
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2
-  return 2 * R * Math.asin(Math.sqrt(a))
-}
 function canonicalPayload({ session_id, latitude, longitude, gps_accuracy_m, monotonic_elapsed_ms, is_mock_location, platform, photos }) {
   return [
     session_id, Number(latitude).toFixed(7), Number(longitude).toFixed(7),
@@ -50,8 +47,8 @@ async function handleStart(req, res, user) {
     return res.status(500).json({ error: 'Server misconfiguration' })
   }
   const { property_id, platform } = req.body || {}
-  if (!property_id || !['android', 'ios'].includes(platform)) {
-    return res.status(400).json({ error: 'property_id and valid platform (android|ios) required' })
+  if (!property_id || !['android', 'ios', 'web'].includes(platform)) {
+    return res.status(400).json({ error: 'property_id and valid platform (android|ios|web) required' })
   }
 
   const svc = getServiceClient()
@@ -76,8 +73,26 @@ async function handleStart(req, res, user) {
 
   return res.status(200).json({
     session_id: session.id, server_t0: serverT0.toISOString(), expires_at: expiresAt.toISOString(),
-    session_key: sessionKey, lifetime_ms: SESSION_LIFETIME_MS,
+    session_key: sessionKey, lifetime_ms: SESSION_LIFETIME_MS, requires_visit_code: true,
   })
+}
+
+// ─── /api/agent/code ────────────────────────────────────────────────────
+// The property owner asks for the visit code of the current visit and gives it to the
+// agent in person. The agent's phone never receives it, so a dishonest agent cannot
+// submit a visit they did not make.
+async function handleCode(req, res, user) {
+  if (!process.env.VERIFICATION_MASTER_SECRET) return res.status(500).json({ error: 'Server misconfiguration' })
+  const { property_id } = req.body || {}
+  if (!property_id) return res.status(400).json({ error: 'property_id required' })
+  const svc = getServiceClient()
+  const { data: owner } = await findPropertyOwner(svc, property_id)
+  if (!owner || owner.seller_id !== user.id) return res.status(403).json({ error: 'Only the property owner can see the visit code' })
+  const { data: session } = await findActiveSessionForProperty(svc, property_id)
+  if (!session || new Date() > new Date(session.expires_at)) {
+    return res.status(404).json({ error: 'No visit is in progress for this property' })
+  }
+  return res.status(200).json({ code: visitCodeFor(session.id, process.env.VERIFICATION_MASTER_SECRET), expires_at: session.expires_at })
 }
 
 // ─── /api/agent/submit ──────────────────────────────────────────────────
@@ -89,7 +104,7 @@ async function handleSubmit(req, res, user) {
 
   const {
     session_id, latitude, longitude, gps_accuracy_m, monotonic_elapsed_ms,
-    is_mock_location, platform, hmac, photos, checklist, verdict, rejection_reason,
+    is_mock_location, platform, hmac, photos, checklist, verdict, rejection_reason, visit_code,
   } = req.body || {}
 
   if (!session_id || latitude == null || longitude == null || gps_accuracy_m == null ||
@@ -133,6 +148,10 @@ async function handleSubmit(req, res, user) {
     return res.status(403).json({ error: 'Mock/simulated location detected on this device' })
   }
 
+  if (!visitCodeMatches(session_id, process.env.VERIFICATION_MASTER_SECRET, visit_code)) {
+    return res.status(403).json({ error: 'The visit code is missing or wrong. Ask the property owner for the code shown in their My Offers page.' })
+  }
+
   if (gps_accuracy_m > MAX_GPS_ACCURACY_M) {
     return res.status(422).json({ error: `GPS accuracy too low (${Math.round(gps_accuracy_m)}m) - move to an open area and retry` })
   }
@@ -153,6 +172,25 @@ async function handleSubmit(req, res, user) {
     return res.status(422).json({ error: `You appear to be ${Math.round(varianceM)}m from the property address (max ${MAX_VARIANCE_M}m allowed)`, variance_m: Math.round(varianceM) })
   }
 
+  if (!photoPathsAreOwn(photos, user.id, session.property_id)) {
+    await setSessionStatus(svc, session_id, 'rejected')
+    return res.status(400).json({ error: 'Photos must be uploaded from this visit' })
+  }
+  const tags = []
+  for (const path of photos.slice(0, MAX_PHOTOS_CHECKED)) {
+    try {
+      const { data: blob } = await downloadVerificationPhoto(svc, path)
+      if (!blob) { tags.push(null); continue }
+      const out = await exifr.parse(Buffer.from(await blob.arrayBuffer()), { gps: true, pick: ['DateTimeOriginal', 'latitude', 'longitude'] })
+      tags.push(out ? { latitude: out.latitude ?? null, longitude: out.longitude ?? null, takenAt: out.DateTimeOriginal || null } : { latitude: null, longitude: null, takenAt: null })
+    } catch { tags.push(null) }
+  }
+  const evidence = evaluatePhotoEvidence(tags, property, session)
+  if (evidence.reject) {
+    await setSessionStatus(svc, session_id, 'rejected')
+    return res.status(422).json({ error: evidence.reason })
+  }
+
   // Consume only if still active. Two submits racing on one session: the second one
   // finds nothing to update and is refused here, instead of both writing a verification.
   const { data: consumed, error: consumeErr } = await consumeActiveSession(svc, session_id)
@@ -168,6 +206,7 @@ async function handleSubmit(req, res, user) {
     visited_at: capturedAt.toISOString(), session_id, monotonic_elapsed_ms,
     captured_at: capturedAt.toISOString(), is_mock_location: false, platform,
     hmac_verified: true, gps_variance_m: Math.round(varianceM),
+    visit_code_verified: true, photo_checks: evidence.checks,
   })
 
   if (upsertErr) return res.status(500).json({ error: upsertErr.message })
@@ -199,5 +238,6 @@ export default async function handler(req, res) {
   const { action } = req.query
   if (action === 'start')  return handleStart(req, res, user)
   if (action === 'submit') return handleSubmit(req, res, user)
+  if (action === 'code')   return handleCode(req, res, user)
   return res.status(404).json({ error: 'Unknown action' })
 }
