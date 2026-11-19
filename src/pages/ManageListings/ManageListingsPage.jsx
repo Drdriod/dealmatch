@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchMyProperties, setPropertyStatus } from '@/data/manageListingsRepository'
 import { listMyListings, updateListingStatus } from '@/modules/listings/listingsService'
 import { useAuth } from '@/context/AuthContext'
+import VisitCodeCard from './VisitCodeCard'
 import toast from 'react-hot-toast'
 
 const TONES = {
@@ -210,6 +211,7 @@ export default function ManageListingsPage() {
                   </button>
                 </div>
               </div>
+              {item.kind === 'property' && ['pending_review', 'pending', 'under_verification'].includes(item.status) ? <VisitCodeCard propertyId={item.id} /> : null}
             </div>
           ))}
         </div>

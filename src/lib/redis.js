@@ -1,3 +1,5 @@
+import { log } from './logger.js'
+
 /**
  * Upstash Redis client: caching + server-side rate limiting
  * Used in Vercel API routes (server-side only)
@@ -40,7 +42,8 @@ export async function redisRateLimit(req, key, max = 20, windowSec = 60, include
     }
     if (denyOnFailure) {
       console.error('[RATE LIMIT] Upstash unconfigured on a fail-closed route')
-      return { allowed: false, remaining: 0, message: 'Service temporarily unavailable. Please retry.' }
+      log.error('ratelimit.redis_down', { route: key.split(':')[0], reason: 'unconfigured' })
+      return { allowed: false, unavailable: true, remaining: 0, message: 'Service temporarily unavailable. Please retry.' }
     }
     return { allowed: true, remaining: max }
   }
@@ -87,7 +90,8 @@ export async function redisRateLimit(req, key, max = 20, windowSec = 60, include
     console.error('[RATE LIMIT] Redis error:', err?.message)
     if (memoryFallback) return memoryLimit(rKey, max, windowSec)
     if (denyOnFailure) {
-      return { allowed: false, remaining: 0, message: 'Rate limit check failed. Please retry.' }
+      log.error('ratelimit.redis_down', { route: key.split(':')[0], reason: 'error' })
+      return { allowed: false, unavailable: true, remaining: 0, message: 'Rate limit check failed. Please retry.' }
     }
     return { allowed: true, remaining: max }
   }
