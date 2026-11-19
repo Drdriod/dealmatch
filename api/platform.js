@@ -24,6 +24,15 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { validateAttributes } from '../src/lib/schemaValidation.js'
 import { redisRateLimit } from '../src/lib/redis.js'
+
+// A denied rate-limit check. When the limiter itself is down we say so (503 with a code the
+// browser reports to Sentry) instead of pretending the person made too many requests.
+function rateLimited(res, rl) {
+  if (rl.unavailable) {
+    return res.status(503).json({ error: 'Payments are briefly unavailable. Please try again in a minute.', code: 'rate_limit_unavailable' })
+  }
+  return res.status(429).json({ error: rl.message || 'Too many requests' })
+}
 import { identityHmac, IdentityHashError } from '../src/lib/identityHash.js'
 import { alnum, flutterwaveConfigured, isFlutterwaveSandbox } from '../src/lib/flutterwaveServer.js'
 import { paymentGateway } from '../src/lib/paymentGateway.js'
@@ -222,7 +231,7 @@ const jsonResources = {
     if (authError) return res.status(401).json({ error: authError })
 
     const rl = await redisRateLimit(req, 'pay_va', 10, 60, true, { failClosed: true })
-    if (!rl.allowed) return res.status(429).json({ error: 'Too many requests' })
+    if (!rl.allowed) return rateLimited(res, rl)
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !flutterwaveConfigured()) {
       return res.status(503).json({ error: 'Payment service not configured' })
@@ -415,7 +424,7 @@ const jsonResources = {
 
     // Fail closed: this route creates identity links, so Redis trouble must deny, not allow.
     const rl = await redisRateLimit(req, `identity-submit:${user.id}`, 5, 60 * 60, false, { failClosed: true })
-    if (!rl.allowed) return res.status(429).json({ error: rl.message || 'Too many attempts. Try again later.' })
+    if (!rl.allowed) return rateLimited(res, rl)
 
     if (!process.env.IDENTITY_HMAC_KEY) {
       console.error('identity-submit: IDENTITY_HMAC_KEY is not set')

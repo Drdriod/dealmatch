@@ -10,6 +10,7 @@
 import { describeCheck, MESSAGES as TRANSFER_CHECK_MESSAGES } from './transferCheck.js'
 import { supabase } from '@/lib/supabase'
 import { feeValue, formatPlatformFee } from '@/lib/platformFees'
+import { captureMessage } from '@/lib/sentry'
 
 // Every amount in this module comes from the platform_fees registry (the
 // super admin Monetisation tab). The constants below hold names, features and
@@ -412,7 +413,10 @@ export const initializeFlutterwavePayment = async ({
       body: JSON.stringify({ reference: ref, purpose, subject }),
     })
     const json = await r.json().catch(() => null)
-    if (!r.ok) throw new Error(json?.error || 'Could not start payment')
+    if (!r.ok) {
+      if (json?.code === 'rate_limit_unavailable') captureMessage('Payment rate limiter (Redis) is unavailable', 'error')
+      throw new Error(json?.error || 'Could not start payment')
+    }
     account = json
   } catch (err) {
     openTransferModal({ error: err.message || 'Could not start payment. Please try again.', onClose })

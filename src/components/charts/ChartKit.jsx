@@ -7,7 +7,7 @@
 // surfaces. Everything is plain SVG and sized from its container, so there are
 // no third-party chart dependencies to install or keep in sync.
 // ============================================================================
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { createContext, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 // ── Tokens ──────────────────────────────────────────────────────────────────
 export const CHART = {
@@ -19,6 +19,18 @@ export const CHART = {
   text: 'var(--dm-paper)',
   palette: ['var(--dm-sage)', 'var(--dm-gold)', 'var(--dm-terracotta)', 'var(--dm-sun)', '#4A7A4E', 'var(--dm-blush)'],
 }
+
+// Two looks: 'dark' (staff dashboards, the default) and 'light' (member dashboards on the cream glass
+// surface). Wrap a dashboard in <ChartTheme tone="light"> to switch every chart inside it.
+const TONES = {
+  dark:  { grid: CHART.grid, axis: CHART.axis, crosshair: CHART.crosshair, surface: CHART.surface, text: 'var(--dm-paper)', soft: 'rgba(255,255,255,0.6)', faint: 'rgba(255,255,255,0.45)', card: 'rgba(255,255,255,0.035)', cardBorder: 'rgba(255,255,255,0.07)', row: 'rgba(255,255,255,0.03)', tipBg: 'rgba(23,33,27,0.96)', tipBorder: 'rgba(255,255,255,0.1)' },
+  light: { grid: 'rgba(23,33,27,0.10)', axis: 'rgba(23,33,27,0.62)', crosshair: 'rgba(184,81,30,0.5)', surface: 'var(--dm-paper)', text: 'var(--dm-deep)', soft: 'rgba(23,33,27,0.68)', faint: 'rgba(23,33,27,0.6)', card: 'rgba(255,255,255,0.7)', cardBorder: 'rgba(23,33,27,0.08)', row: 'rgba(23,33,27,0.04)', tipBg: 'rgba(255,255,255,0.97)', tipBorder: 'rgba(23,33,27,0.12)' },
+}
+const ChartTone = createContext('dark')
+export function ChartTheme({ tone = 'dark', children }) {
+  return <ChartTone.Provider value={tone}>{children}</ChartTone.Provider>
+}
+const useTone = () => TONES[useContext(ChartTone)] || TONES.dark
 
 export const fmtNum = (n) => {
   const v = Number(n) || 0
@@ -79,6 +91,7 @@ export function Sparkline({ values = [], color = CHART.palette[0], height = 36 }
 // ── Area / line chart with crosshair tooltip ────────────────────────────────
 // data: [{ label, [seriesKey]: number }]; series: [{ key, label, color }]
 export function AreaChart({ data = [], series = [], height = 240, format = fmtNum, stacked = false }) {
+  const C = useTone()
   const ref = useRef(null)
   const w = useWidth(ref)
   const [hover, setHover] = useState(null)
@@ -122,12 +135,12 @@ export function AreaChart({ data = [], series = [], height = 240, format = fmtNu
         <svg width={w} height={height} onMouseMove={onMove} onMouseLeave={() => setHover(null)} onTouchMove={(e) => onMove(e.touches[0])} onTouchEnd={() => setHover(null)}>
           {ticks.map((t, i) => (
             <g key={i}>
-              <line x1={pad.l} x2={w - pad.r} y1={y(t)} y2={y(t)} stroke={CHART.grid} strokeDasharray={i === 0 ? '0' : '3 4'} />
-              <text x={pad.l - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fill={CHART.axis}>{format(t)}</text>
+              <line x1={pad.l} x2={w - pad.r} y1={y(t)} y2={y(t)} stroke={C.grid} strokeDasharray={i === 0 ? '0' : '3 4'} />
+              <text x={pad.l - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fill={C.axis}>{format(t)}</text>
             </g>
           ))}
           {data.map((d, i) => i % labelEvery === 0 && (
-            <text key={i} x={x(i)} y={height - 8} textAnchor="middle" fontSize="10" fill={CHART.axis}>{d.label}</text>
+            <text key={i} x={x(i)} y={height - 8} textAnchor="middle" fontSize="10" fill={C.axis}>{d.label}</text>
           ))}
           {paths.map((p) => (
             <g key={p.key}>
@@ -137,11 +150,11 @@ export function AreaChart({ data = [], series = [], height = 240, format = fmtNu
           ))}
           {hover !== null && (
             <g>
-              <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={pad.t + innerH} stroke={CHART.crosshair} strokeWidth="1" />
+              <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={pad.t + innerH} stroke={C.crosshair} strokeWidth="1" />
               {series.map((se, si) => {
                 const v = Number(data[hover][se.key]) || 0
                 const base = stacked ? series.slice(0, si).reduce((s, q) => s + (Number(data[hover][q.key]) || 0), 0) : 0
-                return <circle key={se.key} cx={x(hover)} cy={y(base + v)} r="4" fill={CHART.surface} stroke={se.color || CHART.palette[si]} strokeWidth="2" />
+                return <circle key={se.key} cx={x(hover)} cy={y(base + v)} r="4" fill={C.surface} stroke={se.color || CHART.palette[si]} strokeWidth="2" />
               })}
             </g>
           )}
@@ -149,7 +162,7 @@ export function AreaChart({ data = [], series = [], height = 240, format = fmtNu
       )}
       {hover !== null && data[hover] && (
         <div className="pointer-events-none absolute top-2 rounded-xl px-3 py-2 text-[11px]"
-          style={{ left: Math.min(Math.max(x(hover) - 70, 0), Math.max(w - 150, 0)), background: 'rgba(23,33,27,0.96)', border: '1px solid rgba(255,255,255,0.1)', color: CHART.text, minWidth: 140 }}>
+          style={{ left: Math.min(Math.max(x(hover) - 70, 0), Math.max(w - 150, 0)), background: C.tipBg, border: `1px solid ${C.tipBorder}`, color: C.text, minWidth: 140 }}>
           <p className="font-semibold mb-1">{data[hover].label}</p>
           {series.map((se, si) => (
             <p key={se.key} className="flex justify-between gap-3">
@@ -165,6 +178,7 @@ export function AreaChart({ data = [], series = [], height = 240, format = fmtNu
 
 // ── Grouped / stacked bars ──────────────────────────────────────────────────
 export function BarChart({ data = [], series = [], height = 220, format = fmtNum, stacked = false }) {
+  const C = useTone()
   const ref = useRef(null)
   const w = useWidth(ref)
   const [hover, setHover] = useState(null)
@@ -183,8 +197,8 @@ export function BarChart({ data = [], series = [], height = 220, format = fmtNum
         <svg width={w} height={height} onMouseLeave={() => setHover(null)}>
           {[0, 0.5, 1].map((t, i) => (
             <g key={i}>
-              <line x1={pad.l} x2={w - pad.r} y1={y(t * yMax)} y2={y(t * yMax)} stroke={CHART.grid} strokeDasharray={i ? '3 4' : '0'} />
-              <text x={pad.l - 6} y={y(t * yMax) + 4} textAnchor="end" fontSize="10" fill={CHART.axis}>{format(t * yMax)}</text>
+              <line x1={pad.l} x2={w - pad.r} y1={y(t * yMax)} y2={y(t * yMax)} stroke={C.grid} strokeDasharray={i ? '3 4' : '0'} />
+              <text x={pad.l - 6} y={y(t * yMax) + 4} textAnchor="end" fontSize="10" fill={C.axis}>{format(t * yMax)}</text>
             </g>
           ))}
           {data.map((d, i) => {
@@ -203,14 +217,14 @@ export function BarChart({ data = [], series = [], height = 220, format = fmtNum
                   const sw = barW / series.length
                   return <rect key={se.key} x={cx - barW / 2 + si * sw} y={top} width={Math.max(sw - 2, 2)} height={Math.max(bottom - top, 0)} rx="4" fill={color} opacity={hover === null || hover === i ? 1 : 0.45} />
                 })}
-                <text x={cx} y={height - 8} textAnchor="middle" fontSize="10" fill={CHART.axis}>{d.label}</text>
+                <text x={cx} y={height - 8} textAnchor="middle" fontSize="10" fill={C.axis}>{d.label}</text>
               </g>
             )
           })}
         </svg>
       )}
       {hover !== null && data[hover] && (
-        <div className="pointer-events-none absolute top-1 right-1 rounded-xl px-3 py-2 text-[11px]" style={{ background: 'rgba(23,33,27,0.96)', border: '1px solid rgba(255,255,255,0.1)', color: CHART.text }}>
+        <div className="pointer-events-none absolute top-1 right-1 rounded-xl px-3 py-2 text-[11px]" style={{ background: C.tipBg, border: `1px solid ${C.tipBorder}`, color: C.text }}>
           <p className="font-semibold mb-1">{data[hover].label}</p>
           {series.map((se, si) => <p key={se.key} style={{ color: se.color || CHART.palette[si] }}>{se.label}: {format(Number(data[hover][se.key]) || 0)}</p>)}
         </div>
@@ -221,6 +235,7 @@ export function BarChart({ data = [], series = [], height = 220, format = fmtNum
 
 // ── Donut ───────────────────────────────────────────────────────────────────
 export function Donut({ slices = [], size = 160, thickness = 22, center, centerSub }) {
+  const C = useTone()
   const total = slices.reduce((s, x) => s + (Number(x.value) || 0), 0) || 1
   const r = size / 2 - thickness / 2
   const c = 2 * Math.PI * r
@@ -228,7 +243,7 @@ export function Donut({ slices = [], size = 160, thickness = 22, center, centerS
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={CHART.grid} strokeWidth={thickness} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.grid} strokeWidth={thickness} />
         {slices.map((s, i) => {
           const len = (Number(s.value) || 0) / total * c
           const el = (
@@ -240,8 +255,8 @@ export function Donut({ slices = [], size = 160, thickness = 22, center, centerS
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        {center && <p className="text-xl font-bold text-white leading-none">{center}</p>}
-        {centerSub && <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>{centerSub}</p>}
+        {center && <p className="text-xl font-bold leading-none" style={{ color: C.text }}>{center}</p>}
+        {centerSub && <p className="text-[10px] mt-1" style={{ color: C.faint }}>{centerSub}</p>}
       </div>
     </div>
   )
@@ -249,18 +264,19 @@ export function Donut({ slices = [], size = 160, thickness = 22, center, centerS
 
 // ── Radial progress ring ────────────────────────────────────────────────────
 export function Radial({ value = 0, max = 100, size = 120, color = CHART.palette[0], label, sub }) {
+  const C = useTone()
   const pct = Math.min(Math.max(value / (max || 1), 0), 1)
   const t = 10, r = size / 2 - t / 2, c = 2 * Math.PI * r
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={CHART.grid} strokeWidth={t} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.grid} strokeWidth={t} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={t} strokeLinecap="round"
           strokeDasharray={`${pct * c} ${c}`} style={{ transition: 'stroke-dasharray 700ms ease' }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <p className="text-lg font-bold text-white leading-none">{label ?? `${Math.round(pct * 100)}%`}</p>
-        {sub && <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>{sub}</p>}
+        <p className="text-lg font-bold leading-none" style={{ color: C.text }}>{label ?? `${Math.round(pct * 100)}%`}</p>
+        {sub && <p className="text-[10px] mt-1" style={{ color: C.faint }}>{sub}</p>}
       </div>
     </div>
   )
@@ -268,16 +284,17 @@ export function Radial({ value = 0, max = 100, size = 120, color = CHART.palette
 
 // ── Ranked horizontal bars (leaderboards, breakdowns) ───────────────────────
 export function HBars({ items = [], format = fmtNum }) {
+  const C = useTone()
   const max = Math.max(...items.map((i) => Number(i.value) || 0), 1)
   return (
     <div className="space-y-3">
       {items.map((it, i) => (
         <div key={it.label}>
           <div className="flex justify-between text-xs mb-1.5">
-            <span className="text-white truncate pr-3">{it.label}</span>
-            <span style={{ color: 'rgba(255,255,255,0.6)' }}>{format(it.value)}</span>
+            <span className="truncate pr-3" style={{ color: C.text }}>{it.label}</span>
+            <span style={{ color: C.soft }}>{format(it.value)}</span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: CHART.grid }}>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: C.grid }}>
             <div className="h-full rounded-full" style={{ width: `${((Number(it.value) || 0) / max) * 100}%`, background: it.color || CHART.palette[i % CHART.palette.length], transition: 'width 600ms ease' }} />
           </div>
         </div>
@@ -288,16 +305,17 @@ export function HBars({ items = [], format = fmtNum }) {
 
 // ── Funnel (pipeline stages) ────────────────────────────────────────────────
 export function Funnel({ stages = [] }) {
+  const C = useTone()
   const max = Math.max(...stages.map((s) => Number(s.value) || 0), 1)
   return (
     <div className="space-y-2">
       {stages.map((s, i) => {
         const pct = (Number(s.value) || 0) / max
         return (
-          <div key={s.label} className="relative h-11 rounded-xl overflow-hidden flex items-center justify-between px-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div key={s.label} className="relative h-11 rounded-xl overflow-hidden flex items-center justify-between px-4" style={{ background: C.row }}>
             <div className="absolute inset-y-0 left-0 rounded-xl" style={{ width: `${Math.max(pct * 100, 6)}%`, background: CHART.palette[i % CHART.palette.length], opacity: 0.22 }} />
-            <span className="relative text-xs text-white">{s.label}</span>
-            <span className="relative text-xs font-bold text-white">{fmtNum(s.value)}</span>
+            <span className="relative text-xs" style={{ color: C.text }}>{s.label}</span>
+            <span className="relative text-xs font-bold" style={{ color: C.text }}>{fmtNum(s.value)}</span>
           </div>
         )
       })}
@@ -307,15 +325,16 @@ export function Funnel({ stages = [] }) {
 
 // ── KPI tile ────────────────────────────────────────────────────────────────
 export function KpiTile({ label, value, delta, deltaLabel, spark, color = CHART.palette[0], icon: Icon }) {
+  const C = useTone()
   const up = Number(delta) >= 0
   return (
-    <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ background: C.card, border: `1px solid ${C.cardBorder}` }}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</p>
+        <p className="text-[11px] uppercase tracking-wider" style={{ color: C.faint }}>{label}</p>
         {Icon && <Icon size={15} style={{ color }} />}
       </div>
       <div className="flex items-end justify-between gap-2">
-        <p className="text-2xl font-bold text-white leading-none">{value}</p>
+        <p className="text-2xl font-bold leading-none" style={{ color: C.text }}>{value}</p>
         {delta !== undefined && delta !== null && (
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: up ? 'rgba(122,158,126,0.15)' : 'rgba(200,95,45,0.15)', color: up ? 'var(--dm-sage)' : 'var(--dm-terracotta)' }}>
             {up ? '+' : ''}{delta}%{deltaLabel ? ` ${deltaLabel}` : ''}
@@ -329,13 +348,14 @@ export function KpiTile({ label, value, delta, deltaLabel, spark, color = CHART.
 
 // ── Panel shell used by every dashboard ─────────────────────────────────────
 export function Panel({ title, sub, action, children, className = '' }) {
+  const C = useTone()
   return (
-    <section className={`rounded-2xl p-5 ${className}`} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <section className={`rounded-2xl p-5 ${className}`} style={{ background: C.row, border: `1px solid ${C.cardBorder}` }}>
       {(title || action) && (
         <header className="flex items-start justify-between gap-3 mb-4">
           <div>
-            {title && <h3 className="text-sm font-semibold text-white">{title}</h3>}
-            {sub && <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{sub}</p>}
+            {title && <h3 className="text-sm font-semibold" style={{ color: C.text }}>{title}</h3>}
+            {sub && <p className="text-[11px] mt-0.5" style={{ color: C.soft }}>{sub}</p>}
           </div>
           {action}
         </header>

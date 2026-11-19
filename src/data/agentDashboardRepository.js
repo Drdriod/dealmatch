@@ -39,19 +39,6 @@ export function fetchAgentComplaints(agentId) {
     .order('created_at', { ascending: false })
 }
 
-// Saves the site-visit evidence. One record per agent per property, so a second submission
-// replaces the first. The caller supplies the whole row.
-export function saveAgentVerification(row) {
-  return supabase
-    .from('agent_verifications')
-    .upsert(row, { onConflict: 'property_id,agent_id' })
-}
-
-// Records the agent's verdict on the property itself. The caller supplies the fields.
-export function recordPropertyVerdict(propertyId, fields) {
-  return supabase.from('properties').update(fields).eq('id', propertyId)
-}
-
 // The agent's written reply to a complaint, which moves it to under_review.
 export function respondToComplaint(complaintId, responseText) {
   return supabase.from('complaints')

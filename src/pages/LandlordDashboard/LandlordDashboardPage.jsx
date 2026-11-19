@@ -1,27 +1,30 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList, Eye, Home, Hotel, Key, Pause, RefreshCw } from 'lucide-react'
+import {
+  ArrowPathIcon, BuildingOffice2Icon, ClipboardDocumentListIcon, EyeIcon, HomeModernIcon, KeyIcon, PauseIcon, PlayIcon,
+} from '@heroicons/react/24/outline'
 import { setListingStatus } from '@/data/landlordRepository'
 import { useLandlordDashboard } from '@/hooks/useLandlordDashboard'
 import LoadNotice from '@/components/ui/LoadNotice'
 import { useAuth } from '@/context/AuthContext'
-import { BarChart, Donut, KpiTile, Panel, fmtNum, fmtNaira } from '@/components/charts/ChartKit'
+import { BarChart, ChartTheme, Donut, KpiTile, Panel, fmtNum, fmtNaira } from '@/components/charts/ChartKit'
 import toast from 'react-hot-toast'
 
-const STATUS_STYLES = {
-  active:         { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)',  label: 'Active' },
-  pending_review: { bg: 'rgba(212,168,83,0.12)',  color: '#735618',  label: 'Under Review' },
-  paused:         { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)',  label: 'Paused' },
-  rejected:       { bg: 'rgba(200,95,45,0.12)',  color: 'var(--dm-terracotta)',  label: 'Rejected' },
-  sold:           { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)',  label: 'Sold' },
-}
+const glass = 'border border-white/70 bg-white/80 shadow-card backdrop-blur-xl'
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
 
-// Badge tones for the portfolio table, which sits on the cream surface.
 const TONES = {
-  good:  { bg: 'rgba(122,158,126,0.12)', color: 'var(--dm-moss)' },
-  warn:  { bg: 'rgba(212,168,83,0.12)',  color: '#735618' },
-  bad:   { bg: 'rgba(200,95,45,0.12)',   color: 'var(--dm-terracotta)' },
-  muted: { bg: 'rgba(23,33,27,0.08)',    color: 'var(--dm-warm)' },
+  good:  'bg-sage/20 text-forest',
+  warn:  'bg-gold/20 text-bark',
+  bad:   'bg-terracotta/15 text-terracotta-dark',
+  muted: 'bg-warm/15 text-warm',
+}
+const STATUS_STYLES = {
+  active:         { tone: 'good',  label: 'Active' },
+  pending_review: { tone: 'warn',  label: 'Under Review' },
+  paused:         { tone: 'muted', label: 'Paused' },
+  rejected:       { tone: 'bad',   label: 'Rejected' },
+  sold:           { tone: 'good',  label: 'Sold' },
 }
 
 const RENT_MONTHS = 6
@@ -101,118 +104,90 @@ export default function LandlordDashboardPage() {
   const occupiedCount = rentals.filter(p => p.status !== 'pending_review' && p.occupancy_status === 'occupied').length
   const vacantCount   = rentals.filter(p => p.status !== 'pending_review' && p.occupancy_status !== 'occupied').length
   const occupancySlices = [
-    { label: 'Occupied',       value: occupiedCount,  color: 'var(--dm-sage)' },
+    { label: 'Occupied',       value: occupiedCount,  color: 'var(--dm-forest)' },
     { label: 'Vacant',         value: vacantCount,    color: 'var(--dm-terracotta)' },
     { label: 'Pending review', value: pendingReview,  color: 'var(--dm-gold)' },
   ]
 
   return (
-    <div className="min-h-screen pt-20 pb-16" style={{ backgroundColor: 'var(--dm-sand)' }}>
-      <div className="max-w-2xl mx-auto px-4">
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+    <div className="relative min-h-screen overflow-hidden bg-cream pb-28 pt-20 text-deep">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-24 h-72 w-72 rounded-[60%_40%_55%_45%] bg-forest/10 blur-3xl" />
+        <div className="absolute -right-20 top-[34rem] h-80 w-80 rounded-[45%_55%_40%_60%] bg-terracotta/15 blur-3xl" />
+      </div>
+      <ChartTheme tone="light">
+      <div className="relative mx-auto max-w-2xl px-4">
+        <div className="mb-6 flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-black" style={{ color: 'var(--dm-deep)' }}>
-              Manage your offers. Track your deals.
-            </h1>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>Keep your offers organised, monitor interest and manage your transactions from one place.</p>
+            <h1 className="font-display text-2xl">Manage your offers. Track your deals.</h1>
+            <p className="mt-0.5 text-xs text-warm">Keep your offers organised, monitor interest and manage your transactions from one place.</p>
           </div>
-          <button onClick={() => reload()}
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(23,33,27,0.08)' }}>
-            <RefreshCw size={16} style={{ color: 'var(--dm-bark)' }} />
+          <button type="button" onClick={() => reload()} aria-label="Refresh" className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${glass} ${focusRing}`}>
+            <ArrowPathIcon className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
         <LoadNotice error={error} issues={issues} onRetry={reload} what="your dashboard" className="mb-4" />
 
-        {loading && <div className="text-center py-12" style={{ color: 'var(--dm-warm)' }}>Loading your dashboard…</div>}
+        {loading ? <div className="py-12 text-center text-warm" role="status">Loading your dashboard…</div> : null}
 
         {!loading && (
           <>
-            {/* Portfolio */}
-            <section className="rounded-3xl p-4 mb-6" style={{ backgroundColor: 'var(--dm-deep)' }}>
-              <div className="flex items-end justify-between px-1 mb-4">
+            <section className={`mb-6 rounded-[36px_36px_36px_12px] p-4 ${glass}`} aria-label="Portfolio">
+              <div className="mb-4 flex items-end justify-between px-1">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--dm-gold)' }}>Portfolio</p>
-                  <h2 className="font-display text-xl mt-1" style={{ color: 'var(--dm-paper)' }}>Rent and occupancy</h2>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-terracotta-dark">Portfolio</p>
+                  <h2 className="mt-1 font-display text-xl">Rent and occupancy</h2>
                 </div>
-                <p className="text-[11px] text-right" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  Last {RENT_MONTHS} months<br />Bookings {fmtNaira(totalRevenue)}
-                </p>
+                <p className="text-right text-[11px] text-warm">Last {RENT_MONTHS} months<br />Bookings {fmtNaira(totalRevenue)}</p>
               </div>
 
-              {/* KPI row */}
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="mb-3 grid grid-cols-2 gap-3">
                 <KpiTile label="Rent collected" value={fmtNaira(collected6m)} spark={collectedByMonth} color="var(--dm-gold)" />
-                <KpiTile label="Active listings" value={activeCount} spark={listingsByMonth} color="var(--dm-sage)" />
+                <KpiTile label="Active listings" value={activeCount} spark={listingsByMonth} color="var(--dm-forest)" />
                 <div className="col-span-2">
                   <KpiTile label="Enquiries" value={enquiries.length} spark={enquiriesByMonth} color="var(--dm-terracotta)" />
                 </div>
               </div>
 
-              {/* Rent collected vs due */}
               <Panel title="Rent collected vs due" sub={`Monthly, ${pool.length === rentals.length ? 'all rental properties' : 'selected property'} · due = current rent on occupied units`} className="mb-3">
                 {rentals.length === 0 ? (
-                  <p className="text-xs py-8 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    Create a rental offer to start tracking rent against it.
-                  </p>
+                  <p className="py-8 text-center text-xs text-warm">Create a rental offer to start tracking rent against it.</p>
                 ) : (
                   <>
-                    <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
-                      {[{ id: 'all', title: 'All properties' }, ...rentals.map(p => ({ id: p.id, title: p.title }))].map(c => {
-                        const on = selectedProp === c.id
-                        return (
-                          <button key={c.id} onClick={() => setSelectedProp(c.id)}
-                            className="flex-shrink-0 max-w-[10rem] truncate px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
-                            style={{
-                              backgroundColor: on ? 'var(--dm-gold)' : 'rgba(255,255,255,0.06)',
-                              color:           on ? 'var(--dm-deep)' : 'rgba(255,255,255,0.7)',
-                            }}>
-                            {c.title}
-                          </button>
-                        )
-                      })}
+                    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-3" style={{ scrollbarWidth: 'none' }}>
+                      {[{ id: 'all', title: 'All properties' }, ...rentals.map(p => ({ id: p.id, title: p.title }))].map(c => (
+                        <button key={c.id} type="button" onClick={() => setSelectedProp(c.id)} aria-pressed={selectedProp === c.id}
+                          className={`max-w-[10rem] flex-shrink-0 truncate rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${focusRing} ${selectedProp === c.id ? 'bg-terracotta-dark text-white' : 'border border-line bg-white/80 text-bark'}`}>
+                          {c.title}
+                        </button>
+                      ))}
                     </div>
-                    <BarChart
-                      data={rentSeries}
-                      stacked
-                      format={fmtNum}
-                      height={200}
+                    <BarChart data={rentSeries} stacked format={fmtNum} height={200}
                       series={[
-                        { key: 'collected',   label: 'Collected',   color: 'var(--dm-sage)' },
+                        { key: 'collected',   label: 'Collected',   color: 'var(--dm-forest)' },
                         { key: 'outstanding', label: 'Outstanding', color: 'var(--dm-terracotta)' },
-                      ]}
-                    />
-                    <div className="flex items-center gap-4 mt-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                      <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ background: 'var(--dm-sage)' }} />Collected</span>
-                      <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ background: 'var(--dm-terracotta)' }} />Outstanding</span>
+                      ]} />
+                    <div className="mt-3 flex items-center gap-4 text-[11px] text-warm">
+                      <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-forest" />Collected</span>
+                      <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-terracotta" />Outstanding</span>
                     </div>
-                    {!rentPeriodHasData && (
-                      <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                        No rent due or collected in the last {RENT_MONTHS} months.
-                      </p>
-                    )}
+                    {!rentPeriodHasData ? <p className="mt-2 text-[11px] text-warm">No rent due or collected in the last {RENT_MONTHS} months.</p> : null}
                   </>
                 )}
               </Panel>
 
-              {/* Occupancy */}
               <Panel title="Occupancy" sub="Rental listings by current state">
                 {rentals.length === 0 ? (
-                  <p className="text-xs py-6 text-center" style={{ color: 'rgba(255,255,255,0.45)' }}>You haven't published a rental offer yet.</p>
+                  <p className="py-6 text-center text-xs text-warm">You haven&apos;t published a rental offer yet.</p>
                 ) : (
                   <div className="flex items-center gap-5">
                     <Donut slices={occupancySlices} size={136} thickness={18} center={rentals.length} centerSub="rentals" />
-                    <div className="flex-1 min-w-0 space-y-3">
-                      {occupancySlices.map(s => (
-                        <div key={s.label} className="flex items-center justify-between gap-2 text-xs">
-                          <span className="flex items-center gap-2 min-w-0" style={{ color: 'rgba(255,255,255,0.75)' }}>
-                            <i className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-                            <span className="truncate">{s.label}</span>
-                          </span>
-                          <span className="font-bold text-white">{s.value}</span>
+                    <div className="min-w-0 flex-1 space-y-3">
+                      {occupancySlices.map(sl => (
+                        <div key={sl.label} className="flex items-center justify-between gap-2 text-xs">
+                          <span className="flex min-w-0 items-center gap-2 text-bark"><i className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: sl.color }} /><span className="truncate">{sl.label}</span></span>
+                          <span className="font-bold">{sl.value}</span>
                         </div>
                       ))}
                     </div>
@@ -221,63 +196,48 @@ export default function LandlordDashboardPage() {
               </Panel>
             </section>
 
-            {/* Add listing shortcuts */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-3 gap-3">
               {[
-                { to: '/list',             label: 'For Sale',  icon: <Home size={24} className="text-terracotta" /> },
-                { to: '/list-rental',      label: 'Rental',    icon: <Key size={24} className="text-terracotta" /> },
-                { to: '/list-rental?type=hotel', label: 'Hotel', icon: <Hotel size={24} className="text-terracotta" /> },
-              ].map(l => (
-                <Link key={l.to} to={l.to}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-dashed transition-all"
-                  style={{ borderColor: 'rgba(200,95,45,0.3)', color: 'var(--dm-terracotta)', backgroundColor: 'rgba(200,95,45,0.03)' }}>
-                  <span>{l.icon}</span>
-                  <span className="text-xs font-semibold">+ {l.label}</span>
+                { to: '/list', label: 'For Sale', icon: HomeModernIcon },
+                { to: '/list-rental', label: 'Rental', icon: KeyIcon },
+                { to: '/list-rental?type=hotel', label: 'Hotel', icon: BuildingOffice2Icon },
+              ].map(({ to, label, icon: Icon }) => (
+                <Link key={to} to={to} className={`flex flex-col items-center gap-2 rounded-[24px_24px_24px_8px] border-2 border-dashed border-terracotta/35 bg-orange-pale p-4 text-terracotta-dark transition-transform hover:-translate-y-0.5 ${focusRing}`}>
+                  <Icon className="h-6 w-6" aria-hidden="true" />
+                  <span className="text-xs font-semibold">+ {label}</span>
                 </Link>
               ))}
             </div>
 
-            {/* Property table */}
-            <section className="mb-6">
-              <div className="flex items-baseline justify-between mb-3 px-1">
-                <h2 className="font-display text-lg font-black" style={{ color: 'var(--dm-deep)' }}>Rental properties</h2>
-                <p className="text-xs" style={{ color: 'var(--dm-warm)' }}>{listings.length} listing{listings.length === 1 ? '' : 's'} total</p>
+            <section className="mb-6" aria-label="Rental properties">
+              <div className="mb-3 flex items-baseline justify-between px-1">
+                <h2 className="font-display text-lg">Rental properties</h2>
+                <p className="text-xs text-warm">{listings.length} listing{listings.length === 1 ? '' : 's'} total</p>
               </div>
-              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
+              <div className={`overflow-hidden rounded-[28px_28px_28px_10px] ${glass}`}>
                 {rentals.length === 0 ? (
                   <div className="p-8 text-center">
-                    <div className="flex justify-center mb-3"><Key size={36} className="text-terracotta" /></div>
-                    <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You haven't published a rental offer yet.</p>
-                    <Link to="/list-rental" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">Create Your First Offer →</Link>
+                    <KeyIcon className="mx-auto mb-3 h-9 w-9 text-terracotta" aria-hidden="true" />
+                    <p className="text-sm font-semibold">You haven&apos;t published a rental offer yet.</p>
+                    <Link to="/list-rental" className="btn-primary mt-4 inline-flex px-6 py-2.5 text-sm">Create Your First Offer →</Link>
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2.5 text-[10px] uppercase tracking-wider"
-                      style={{ color: 'var(--dm-warm)', borderBottom: '1px solid var(--dm-line)' }}>
-                      <span>Property</span>
-                      <span>Occupancy</span>
-                      <span>This month</span>
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-line px-4 py-2.5 text-[10px] uppercase tracking-wider text-warm">
+                      <span>Property</span><span>Occupancy</span><span>This month</span>
                     </div>
                     {rentals.map(p => {
                       const occ  = occupancyBadge(p)
                       const paid = paidFor(currentKey, new Set([p.id]))
                       const rent = rentBadge(p, paid)
                       return (
-                        <Link key={p.id} to={`/property/${p.id}`}
-                          className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-3"
-                          style={{ borderBottom: '1px solid var(--dm-line)' }}>
+                        <Link key={p.id} to={`/property/${p.id}`} className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-line px-4 py-3 last:border-b-0 ${focusRing}`}>
                           <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate" style={{ color: 'var(--dm-deep)' }}>{p.title}</p>
-                            <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--dm-warm)' }}>
-                              {p.city}, {p.state} · {fmtNaira(monthlyRent(p))}{p.price_period === 'year' ? '/yr' : '/mo'}
-                            </p>
+                            <p className="truncate text-sm font-semibold">{p.title}</p>
+                            <p className="mt-0.5 truncate text-[11px] text-warm">{p.city}, {p.state} · {fmtNaira(monthlyRent(p))}{p.price_period === 'year' ? '/yr' : '/mo'}</p>
                           </div>
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ backgroundColor: TONES[occ.tone].bg, color: TONES[occ.tone].color }}>{occ.text}</span>
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap flex items-center gap-1"
-                            style={{ backgroundColor: TONES[rent.tone].bg, color: TONES[rent.tone].color }}>
-                            {rent.text}
-                          </span>
+                          <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${TONES[occ.tone]}`}>{occ.text}</span>
+                          <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${TONES[rent.tone]}`}>{rent.text}</span>
                         </Link>
                       )
                     })}
@@ -286,66 +246,46 @@ export default function LandlordDashboardPage() {
               </div>
             </section>
 
-            {/* Tabs */}
-            <div className="flex gap-2 mb-5">
-              {[['listings','My Offers'],['bookings','Bookings']].map(([v,l]) => (
-                <button key={v} onClick={() => setTab(v)}
-                  className="px-5 py-2.5 rounded-full text-sm font-semibold border transition-all"
-                  style={{
-                    backgroundColor: tab === v ? 'var(--dm-deep)' : 'white',
-                    color:           tab === v ? 'white'  : 'var(--dm-bark)',
-                    borderColor:     tab === v ? 'var(--dm-deep)'  : 'var(--dm-line)',
-                  }}>
-                  {l}
-                </button>
+            <div className="mb-5 flex gap-2" role="tablist" aria-label="Offers or bookings">
+              {[['listings', 'My Offers'], ['bookings', 'Bookings']].map(([v, l]) => (
+                <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
+                  className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${focusRing} ${tab === v ? 'border-deep bg-deep text-white' : 'border-line bg-white/80 text-bark'}`}>{l}</button>
               ))}
             </div>
           </>
         )}
 
-        {/* Listings tab */}
         {!loading && tab === 'listings' && (
           <div className="space-y-3">
             {listings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
-                <div className="flex justify-center mb-3"><Home size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You haven't published an offer yet.</p>
-                <Link to="/list" className="btn-primary text-sm px-6 py-2.5 inline-flex mt-4">Create Your First Offer →</Link>
+              <div className={`rounded-[28px_28px_28px_10px] p-10 text-center ${glass}`}>
+                <HomeModernIcon className="mx-auto mb-3 h-10 w-10 text-terracotta" aria-hidden="true" />
+                <p className="text-sm font-semibold">You haven&apos;t published an offer yet.</p>
+                <Link to="/list" className="btn-primary mt-4 inline-flex px-6 py-2.5 text-sm">Create Your First Offer →</Link>
               </div>
             ) : listings.map(l => {
-              const s = STATUS_STYLES[l.status] || STATUS_STYLES.paused
+              const st = STATUS_STYLES[l.status] || STATUS_STYLES.paused
               return (
-                <div key={l.id} className="rounded-2xl border p-4"
-                  style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate" style={{ color: 'var(--dm-deep)' }}>{l.title}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>
-                        {l.city}, {l.state} · ₦{Number(l.price).toLocaleString()}
-                      </p>
+                <div key={l.id} className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{l.title}</p>
+                      <p className="mt-0.5 text-xs text-warm">{l.city}, {l.state} · ₦{Number(l.price).toLocaleString()}</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: s.bg, color: s.color }}>
-                      {s.label}
-                    </span>
+                    <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${TONES[st.tone]}`}>{st.label}</span>
                   </div>
                   <div className="flex gap-2">
-                    <Link to={`/property/${l.id}`}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                      style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)', backgroundColor: 'white' }}>
-                      <Eye size={12} /> View
+                    <Link to={`/property/${l.id}`} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-bark ${focusRing}`}>
+                      <EyeIcon className="h-3.5 w-3.5" aria-hidden="true" /> View
                     </Link>
                     {(l.status === 'active' || l.status === 'paused') && (
-                      <button onClick={() => togglePause(l)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border flex-1 justify-center"
-                        style={{ borderColor: 'var(--dm-line)', color: 'var(--dm-bark)', backgroundColor: 'white' }}>
-                        <Pause size={12} /> {l.status === 'active' ? 'Pause' : 'Activate'}
+                      <button type="button" onClick={() => togglePause(l)} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-bark ${focusRing}`}>
+                        {l.status === 'active' ? <PauseIcon className="h-3.5 w-3.5" aria-hidden="true" /> : <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+                        {l.status === 'active' ? 'Pause' : 'Activate'}
                       </button>
                     )}
                     {(l.category === 'hotel' || l.category === 'shortlet' || l.category === 'rental') && (
-                      <Link to="/availability"
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border"
-                        style={{ borderColor: 'var(--dm-terracotta)', color: 'var(--dm-terracotta)', backgroundColor: 'rgba(200,95,45,0.04)' }}>
+                      <Link to="/availability" className={`flex items-center gap-1.5 rounded-xl border border-terracotta bg-orange-pale px-3 py-2 text-xs font-semibold text-terracotta-dark ${focusRing}`}>
                         {l.category === 'rental' ? 'Occupancy' : 'Rooms'}
                       </Link>
                     )}
@@ -356,31 +296,23 @@ export default function LandlordDashboardPage() {
           </div>
         )}
 
-        {/* Bookings tab */}
         {!loading && tab === 'bookings' && (
           <div className="space-y-3">
             {bookings.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center border" style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
-                <div className="flex justify-center mb-3"><ClipboardList size={40} className="text-terracotta" /></div>
-                <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>You don't have any bookings yet.</p>
+              <div className={`rounded-[28px_28px_28px_10px] p-10 text-center ${glass}`}>
+                <ClipboardDocumentListIcon className="mx-auto mb-3 h-10 w-10 text-terracotta" aria-hidden="true" />
+                <p className="text-sm font-semibold">You don&apos;t have any bookings yet.</p>
               </div>
             ) : bookings.map(b => (
-              <div key={b.id} className="rounded-2xl border p-4"
-                style={{ backgroundColor: 'var(--dm-paper)', borderColor: 'var(--dm-line)' }}>
-                <div className="flex items-start justify-between gap-3 mb-2">
+              <div key={b.id} className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+                <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-sm" style={{ color: 'var(--dm-deep)' }}>{b.guest_name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--dm-warm)' }}>{b.properties?.title}</p>
+                    <p className="text-sm font-semibold">{b.guest_name}</p>
+                    <p className="mt-0.5 text-xs text-warm">{b.properties?.title}</p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0"
-                    style={{
-                      backgroundColor: b.status === 'confirmed' ? 'rgba(122,158,126,0.12)' : 'rgba(212,168,83,0.12)',
-                      color:           b.status === 'confirmed' ? 'var(--dm-moss)' : '#735618',
-                    }}>
-                    {b.status}
-                  </span>
+                  <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${b.status === 'confirmed' ? TONES.good : TONES.warn}`}>{b.status}</span>
                 </div>
-                <div className="text-xs" style={{ color: 'var(--dm-warm)' }}>
+                <div className="text-xs text-warm">
                   {b.checkin_date} → {b.checkout_date} · {b.guest_phone}
                   {b.total_amount ? ` · ₦${Number(b.total_amount).toLocaleString()}` : ''}
                 </div>
@@ -389,6 +321,7 @@ export default function LandlordDashboardPage() {
           </div>
         )}
       </div>
+      </ChartTheme>
     </div>
   )
 }
