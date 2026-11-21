@@ -308,6 +308,7 @@ export const NAV_ITEMS=[
   {path:'payouts',  label:'Payouts',         icon:Landmark},
   {path:'monetisation',label:'Monetisation',  icon:Percent},
   {path:'fees',     label:'Commission Schedules', icon:Percent},
+  {path:'finance',  label:'Finance',        icon:BarChart2},
   {path:'tax',      label:'Tax',             icon:FileText},
   {path:'referral-settings',label:'Referral Settings',icon:Award},
   {path:'mortgage', label:'Mortgage',        icon:FileText},
