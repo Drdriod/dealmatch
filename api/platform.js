@@ -47,7 +47,8 @@ import { findDeletionBlockers, eraseAccountData, findIdentityStatus, saveIdentit
 import { sweepOrphanIdentityDocs, findDuePurges, recordPurgeFailure, markPurged } from '../src/data/identityDocsRepository.js'
 import { findVirtualAccountByReference, findCustomerIdForEmail, insertVirtualAccount, findPaymentStatus } from '../src/data/paymentVirtualAccountRepository.js'
 import { takeVerifySlot } from '../src/data/webhookRepository.js'
-import { verifyOwnPayment, reconcileVirtualAccounts } from '../src/lib/chargePipeline.js'
+import { verifyOwnPayment, reconcileVirtualAccounts, vatKoboOf } from '../src/lib/chargePipeline.js'
+import { addVat, currentVatRate } from '../src/lib/vat.js'
 import {
   findPendingPayouts, incrementPayoutAttempts, findPayoutTransaction, findVerifiedPayoutAccount,
   saveRecipientCode, saveTransactionPayoutRef, saveFailureReason, markTransactionPayoutFailed,
@@ -272,8 +273,16 @@ const jsonResources = {
       console.error('payment-virtual-account: could not price payment:', err.message)
       return res.status(500).json({ error: 'Could not start payment. Please try again.' })
     }
-    const metadata = plan.metadata
-    const amountKobo = Math.round(plan.amountNaira * 100)
+    // VAT (when switched on in Admin > Tax) is added on top of DealMatch's own fee. The account is
+    // opened for price + VAT; the webhook grants the item at the price and records the VAT.
+    let vatRate = 0
+    try {
+      vatRate = await currentVatRate(svc)
+    } catch (err) {
+      console.error('payment-virtual-account: could not read the VAT rate:', err.message)
+      return res.status(500).json({ error: 'Could not start payment. Please try again.' })
+    }
+    const { totalKobo: amountKobo, metadata } = addVat(plan, vatRate)
     if (!Number.isFinite(amountKobo) || amountKobo <= 0 || amountKobo > 1e12) {
       return res.status(409).json({ error: 'This payment has no valid amount' })
     }
@@ -1162,7 +1171,10 @@ function publicVirtualAccount(row) {
     reference: row.reference,
     accountNumber: row.account_number,
     bankName: row.bank_name,
-    amountNaira: Number(row.expected_kobo) / 100,
+    amountNaira: Number(row.expected_kobo) / 100, // the total to pay, VAT included
+    vatNaira: vatKoboOf(row.metadata) / 100,
+    vatRatePct: vatKoboOf(row.metadata) > 0 ? Number(row.metadata?.vat_rate) || 0 : 0,
+    priceNaira: (Number(row.expected_kobo) - vatKoboOf(row.metadata)) / 100,
     expiresAt: row.expires_at,
     status: row.status,
     // Lets the page open the record this payment created (a hotel booking).

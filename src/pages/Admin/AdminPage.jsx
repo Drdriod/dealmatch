@@ -28,6 +28,8 @@ import { TransactionsTab } from './tabs/TransactionsTab'
 import { PayoutsTab } from './tabs/PayoutsTab'
 import { PlatformFeesTab } from './tabs/PlatformFeesTab'
 import { MonetisationTab } from './tabs/MonetisationTab'
+import { TaxTab } from './tabs/TaxTab'
+import { ReferralSettingsTab } from './tabs/ReferralSettingsTab'
 import { ProfessionalsTab } from './tabs/ProfessionalsTab'
 import { MortgageTab } from './tabs/MortgageTab'
 import { EnquiriesTab } from './tabs/EnquiriesTab'
@@ -128,6 +130,8 @@ export default function AdminPage() {
             <Route path="payouts"                 element={<PayoutsTab/>}/>
             <Route path="monetisation"            element={<MonetisationTab/>}/>
             <Route path="fees"                    element={<PlatformFeesTab/>}/>
+            <Route path="tax"                     element={<TaxTab isSuperAdmin={isSuperAdmin}/>}/>
+            <Route path="referral-settings"       element={<ReferralSettingsTab/>}/>
             <Route path="mortgage"                element={<MortgageTab/>}/>
             <Route path="enquiries"               element={<EnquiriesTab/>}/>
             <Route path="professionals"           element={<ProfessionalsTab/>}/>

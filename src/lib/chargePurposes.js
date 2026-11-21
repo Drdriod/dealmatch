@@ -250,7 +250,7 @@ async function contactUnlockCredits(svc, { reference, amount, customer, metadata
 async function escrowPayment(svc, { reference, amount, amountNgn, customer }) {
   const { data: matchedEscrow, error: escrowErr } = await svc
     .from('escrow_transactions')
-    .select('id, tenant_id, platform_amount, gross_amount, status')
+    .select('id, tenant_id, seller_id, agent_id, platform_amount, gross_amount, status')
     .eq('payment_ref', reference)
     .single()
 

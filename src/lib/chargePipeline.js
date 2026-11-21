@@ -10,42 +10,14 @@
 // only for the first run that records the payment. A paid account that was not fulfilled (the
 // handler failed) is finished by the next caller that takes its lease.
 import { paymentGateway } from './paymentGateway.js'
-import { insertNotification } from './notificationFactory.js'
 import { recordMoneyToReturn, runChargePurpose } from './chargePurposes.js'
 import {
-  findInviterOf, insertReferralTransaction, addLoyaltyPoints, upsertPaymentRecord,
+  recordReferralRewards, insertTaxLedgerRow, upsertPaymentRecord,
   findVirtualAccountByNumber, markVirtualAccountUnderpaid, markVirtualAccountPaid,
   resolveUnderpaidRefunds, claimVirtualAccountFulfilment, markVirtualAccountFulfilled,
   releaseVirtualAccountClaim, paymentRecordExists, listUnfulfilledPaidAccounts,
   listOpenVirtualAccounts,
 } from '../data/webhookRepository.js'
-
-// ── Referral configuration (kept in sync with src/lib/referral.js) ──
-const CASH_RATES = { 1: 0.08, 2: 0.04, 3: 0.02 }
-const FULL_CHAIN_THRESHOLD = 50000
-const FLAT_TIER_THRESHOLD  = 5000
-const FLAT_REFERRAL_AMOUNT = 500
-const POINTS_PER_LEVEL = { 1: 15, 2: 10, 3: 5, 4: 60, 5: 40, 6: 25, 7: 15, 8: 10, 9: 5, 10: 2 }
-const POINTS_DEFAULT = 2
-
-const getReferralTier = (dmCommission) => {
-  if (dmCommission >= FULL_CHAIN_THRESHOLD) return 'full'
-  if (dmCommission >= FLAT_TIER_THRESHOLD)  return 'flat'
-  return 'points_only'
-}
-
-const calcCashReferral = (dmCommission, level) => {
-  if (level > 3) return 0
-  const tier = getReferralTier(dmCommission)
-  if (tier === 'full') {
-    const rate = CASH_RATES[level]
-    return rate ? Math.round(dmCommission * rate) : 0
-  }
-  if (tier === 'flat') return FLAT_REFERRAL_AMOUNT
-  return 0
-}
-
-const calcPoints = (level) => POINTS_PER_LEVEL[level] || POINTS_DEFAULT
 
 // Map payment_type metadata to a DealMatch transaction type + fee rate
 //
@@ -68,86 +40,26 @@ const TYPE_MAP = {
 }
 
 /**
- * Walk the referral chain for a user and pay out cash + points
- * automatically, creating a notification for every earner along the way.
+ * Record the referral rewards for one captured payment. The rules (levels, rates, caps, holds,
+ * who qualifies) live in the database and are edited in Admin > Referral settings; this only
+ * hands over the facts. `dmCommission` is DealMatch's commission BEFORE VAT. Safe to repeat: the
+ * database ignores a payment it has already rewarded.
  */
-export async function processReferralChain(supabase, buyerUserId, dmCommission, paymentRef, txnType, dealAmount) {
-  if (!buyerUserId || !dmCommission || dmCommission <= 0) return
-
-  const chain = []
-  let currentId = buyerUserId
-  let level = 1
-  const seen = new Set([buyerUserId]) // prevents self-referral / circular invite loops from paying out
-
-  while (currentId && level <= 10) {
-    const { data } = await findInviterOf(supabase, currentId)
-
-    if (!data?.invited_by) break
-    if (seen.has(data.invited_by)) break // would be a self-referral or a loop - stop walking
-    seen.add(data.invited_by)
-    chain.push({ userId: data.invited_by, level })
-    currentId = data.invited_by
-    level++
-  }
-
-  if (!chain.length) return
-
-  const tier = getReferralTier(dmCommission)
-
-  // The row we insert is the gate. referral_transactions has a unique index on
-  // (payment_id, referrer_id, referral_level), so a repeated or racing run for the same payment
-  // gets error 23505 on its insert and stops there: points and notifications go out only for the
-  // run whose insert succeeded, never twice.
-  const base = {
-    buyer_id:         buyerUserId,
-    referee_id:       buyerUserId,
-    payment_id:       String(paymentRef),
+export async function processReferralChain(supabase, refereeId, dmCommission, paymentRef, txnType, dealAmount, partyIds = []) {
+  if (!refereeId || !dmCommission || dmCommission <= 0) return 0
+  const { data, error } = await recordReferralRewards(supabase, {
+    payment_id: String(paymentRef),
+    referee_id: refereeId,
     transaction_type: txnType,
-    deal_amount:      Number(dealAmount) || dmCommission,
-    platform_fee:     dmCommission,
-    dm_commission:    dmCommission,
+    commission_naira: Math.round(dmCommission * 100) / 100,
+    deal_amount: Number(dealAmount) || 0,
+    party_ids: [...new Set([refereeId, ...partyIds].filter(Boolean))],
+  })
+  if (error) {
+    console.error('Referral rewards failed:', error.message)
+    return 0
   }
-
-  for (const { userId, level: lvl } of chain) {
-    if (lvl <= 3 && tier !== 'points_only') {
-      const amount = calcCashReferral(dmCommission, lvl)
-      if (amount <= 0) continue
-
-      const { error } = await insertReferralTransaction(supabase, {
-        ...base,
-        referrer_id:      userId,
-        referral_level:   lvl,
-        referral_rate:    amount / dmCommission,
-        payout_type:      'cash',
-        referral_earning: amount,
-        status:           'pending',
-      })
-      if (error) {
-        if (error.code !== '23505') console.error('Referral cash insert failed:', error.message)
-        continue
-      }
-      await insertNotification(supabase, 'referral_cash', userId, { amount, level: lvl })
-    } else {
-      const points = calcPoints(lvl)
-
-      const { error } = await insertReferralTransaction(supabase, {
-        ...base,
-        referrer_id:      userId,
-        referral_level:   lvl,
-        referral_rate:    0,
-        payout_type:      'points',
-        points_awarded:   points,
-        referral_earning: 0,
-        status:           'confirmed',
-      })
-      if (error) {
-        if (error.code !== '23505') console.error('Referral points insert failed:', error.message)
-        continue
-      }
-      await addLoyaltyPoints(supabase, userId, points)
-      await insertNotification(supabase, 'referral_points', userId, { points, level: lvl })
-    }
-  }
+  return Number(data) || 0
 }
 
 // A customer paid by bank transfer into one of our virtual accounts. `charge` is a charge the
@@ -218,13 +130,22 @@ export async function creditToEvent(svc, charge) {
   return buildEvent(row, expectedKobo)
 }
 
+// What the payer was charged on top of the price (VAT on DealMatch's fee), in kobo.
+export const vatKoboOf = (metadata) => {
+  const v = Number(metadata?.vat_kobo)
+  return Number.isFinite(v) && v > 0 ? Math.round(v) : 0
+}
+
 function buildEvent(row, expectedKobo) {
+  // VAT is collected for the tax authority, not earned: the item, the revenue and the referral
+  // commission are all worked out on the price without it.
+  const priceKobo = expectedKobo - vatKoboOf(row.metadata)
   return {
     event: 'charge.success',
     virtualAccountReference: row.reference,
     data: {
       reference: row.reference,
-      amount: expectedKobo, // the price the item costs, which is what was granted
+      amount: priceKobo, // the price the item costs (VAT excluded), which is what was granted
       customer: { email: row.email },
       metadata: row.metadata || {},
     },
@@ -263,6 +184,20 @@ export async function applyChargeSuccess(supabase, { reference, amount, customer
 
   // Money that was not applied to anything is on the refund list and earns no referral.
   if (purpose.paymentStatus === 'unapplied') return { outcome: 'unapplied' }
+
+  // VAT collected on this payment goes into the tax ledger (one row per payment, so a repeat is
+  // ignored). A failed write throws, so the caller retries and the tax is never silently lost.
+  const vatKobo = vatKoboOf(metadata)
+  if (vatKobo > 0) {
+    const { error: taxErr } = await insertTaxLedgerRow(supabase, {
+      reference, kind: 'vat', purpose: metadata?.type || null,
+      base_kobo: Number(metadata?.vat_base_kobo) || 0,
+      rate_pct: Number(metadata?.vat_rate) || 0,
+      tax_kobo: vatKobo, profile_id: metadata?.user_id || null,
+    })
+    if (taxErr) throw new Error('could not record VAT: ' + taxErr.message)
+  }
+
   // Referral payout has no unique key, so it runs only for the first run that recorded the payment.
   if (alreadyRecorded) return { outcome: 'repeat' }
 
@@ -288,7 +223,10 @@ export async function applyChargeSuccess(supabase, { reference, amount, customer
           : amountNgn * mapping.feeRate      // percentage products: commission is a cut of the deal
 
       if (dmCommission > 0) {
-        await processReferralChain(supabase, referralUserId, dmCommission, reference, mapping.txnType, amountNgn)
+        const parties = metadata?.type === 'escrow_payment'
+          ? [escrowRow?.tenant_id, escrowRow?.seller_id, escrowRow?.agent_id]
+          : []
+        await processReferralChain(supabase, referralUserId, dmCommission, reference, mapping.txnType, amountNgn, parties)
       }
     }
     // transaction_escrow is intentionally absent from TYPE_MAP (see the comment above it).

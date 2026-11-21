@@ -8,7 +8,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { fakeSupabase } from './testing/fakeSupabase.mjs'
 import {
-  creditToEvent, fulfilEvent, processCharge, reconcileVirtualAccounts, verifyOwnPayment, processReferralChain,
+  creditToEvent, fulfilEvent, processCharge, reconcileVirtualAccounts, verifyOwnPayment, processReferralChain, vatKoboOf,
 } from './chargePipeline.js'
 
 const quiet = () => {
@@ -225,58 +225,57 @@ test('fulfilEvent gives the lease back and rethrows when the handler fails', asy
   } finally { restore() }
 })
 
-// ── Referral chain (audit F-001 / F-002) ──────────────────────────────────────
-// referral_transactions has a unique index on (payment_id, referrer_id, referral_level) and NOT NULL
-// referee_id / deal_amount / platform_fee. The fake below enforces both, so a missing column or a
-// second run for the same payment fails the way the real database does.
-function referralFake(inviters) {
-  const rows = []
-  const points = []
-  const notes = []
-  const svc = {
-    rows, points, notes,
-    from(table) {
-      const q = { table, filters: {} }
-      const chain = {
-        select() { return chain },
-        eq(col, val) { q.filters[col] = val; return chain },
-        single() {
-          if (table === 'profiles') return Promise.resolve({ data: { id: q.filters.id, invited_by: inviters[q.filters.id] || null } })
-          if (table === 'loyalty_points') return Promise.resolve({ data: null })
-          return Promise.resolve({ data: null })
-        },
-        insert(row) {
-          if (table === 'referral_transactions') {
-            for (const c of ['referrer_id', 'referee_id', 'deal_amount', 'platform_fee', 'transaction_type']) {
-              if (row[c] == null) return Promise.resolve({ error: { code: '23502', message: c + ' null' } })
-            }
-            if (rows.some(r => r.payment_id === row.payment_id && r.referrer_id === row.referrer_id && r.referral_level === row.referral_level)) {
-              return Promise.resolve({ error: { code: '23505', message: 'duplicate' } })
-            }
-            rows.push(row)
-          } else if (table === 'loyalty_points') points.push(row)
-          else if (table === 'notifications') notes.push(row)
-          return Promise.resolve({ error: null })
-        },
-      }
-      return chain
-    },
-  }
-  return svc
-}
-
-test('referral chain: rows carry the required columns and a second run for the same payment pays nobody twice', async () => {
+// ── Referral rewards: the rules live in the database now (record_referral_rewards) ──────────────
+test('referral: the pipeline hands the database the commission before VAT and the people in the deal', async () => {
   const restore = quiet()
   try {
-    const svc = referralFake({ buyer: 'ref1', ref1: 'ref2' })
-    await processReferralChain(svc, 'buyer', 100000, 'pay-1', 'property_sale', 6000000)
-    assert.equal(svc.rows.length, 2)
-    assert.equal(svc.rows[0].payment_id, 'pay-1')
-    assert.equal(svc.rows[0].referee_id, 'buyer')
-    assert.equal(svc.rows[0].deal_amount, 6000000)
-    const notesAfterFirst = svc.notes.length
-    await processReferralChain(svc, 'buyer', 100000, 'pay-1', 'property_sale', 6000000)
-    assert.equal(svc.rows.length, 2, 'the retry inserted nothing')
-    assert.equal(svc.notes.length, notesAfterFirst, 'the retry notified nobody')
+    const calls = []
+    const svc = { rpc: async (name, args) => { calls.push({ name, args }); return { data: 3, error: null } } }
+    const made = await processReferralChain(svc, 'buyer', 1000.456, 'pay-1', 'escrow', 60000, ['seller', 'buyer', null])
+    assert.equal(made, 3)
+    assert.equal(calls[0].name, 'record_referral_rewards')
+    assert.equal(calls[0].args.p_payment_id, 'pay-1')
+    assert.equal(calls[0].args.p_referee_id, 'buyer')
+    assert.equal(calls[0].args.p_commission_naira, 1000.46)
+    assert.deepEqual(calls[0].args.p_party_ids.sort(), ['buyer', 'seller'])
+  } finally { restore() }
+})
+
+test('referral: a database error is logged and never thrown, and no commission means no call', async () => {
+  const restore = quiet()
+  try {
+    const svc = { rpc: async () => ({ data: null, error: { message: 'boom' } }) }
+    assert.equal(await processReferralChain(svc, 'buyer', 500, 'pay-2', 'escrow', 1), 0)
+    let called = false
+    const svc2 = { rpc: async () => { called = true; return { data: 1 } } }
+    await processReferralChain(svc2, 'buyer', 0, 'pay-3', 'escrow', 1)
+    await processReferralChain(svc2, null, 500, 'pay-3', 'escrow', 1)
+    assert.equal(called, false)
+  } finally { restore() }
+})
+
+// ── VAT: charged on top of the price, never part of what is granted or earned ─────────────────────
+test('VAT: the event carries the price without VAT, and vatKoboOf reads the stored amount', async () => {
+  const restore = quiet()
+  try {
+    const { svc, charge, row } = setup({ extra: { expected_kobo: 537500, metadata: { type: 'transaction_escrow', vat_kobo: '37500', vat_rate: '7.5' } } })
+    const event = await creditToEvent(svc, charge('c-vat', 5375))
+    assert.ok(event)
+    assert.equal(event.data.amount, 500000, 'granted at the price, VAT excluded')
+    assert.equal(row().status, 'paid')
+    assert.equal(vatKoboOf({ vat_kobo: '37500' }), 37500)
+    assert.equal(vatKoboOf({}), 0)
+    assert.equal(vatKoboOf({ vat_kobo: 'abc' }), 0)
+    assert.equal(vatKoboOf({ vat_kobo: '-5' }), 0)
+  } finally { restore() }
+})
+
+test('VAT: paying only the price (without VAT) is a short payment', async () => {
+  const restore = quiet()
+  try {
+    const { svc, charge, row } = setup({ extra: { expected_kobo: 537500, metadata: { type: 'transaction_escrow', vat_kobo: '37500', vat_rate: '7.5' } } })
+    const event = await creditToEvent(svc, charge('c-short', 5000))
+    assert.equal(event, null)
+    assert.equal(row().status, 'underpaid')
   } finally { restore() }
 })
