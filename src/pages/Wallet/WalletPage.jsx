@@ -139,8 +139,9 @@ export default function WalletPage() {
     const [escrowRes, txRes, refRes, ptsRes, ledgerRes, withdrawalRes, payoutRes] = await loadWalletData(user.id)
     setEscrows(escrowRes.data || [])
     setJobTxns(txRes.data || [])
-    setReferralTotal((refRes.data || []).reduce((s, r) => s + Number(r.amount || 0), 0))
-    setPoints(ptsRes.data || { balance: 0 })
+    // Referral cash that has reached the wallet, after any withholding tax. Rewards still on hold are on the Referral page.
+    setReferralTotal((refRes.data || []).filter(r => r.status !== 'pending').reduce((s, r) => s + Number(r.net_amount ?? r.referral_earning ?? 0), 0))
+    setPoints({ balance: Number(ptsRes.data) || 0 })
     setLedger(ledgerRes.data || [])
     setPendingWithdrawal((withdrawalRes.data || [])[0] || null)
     setPayoutAccount(payoutRes.data || null)
@@ -300,7 +301,7 @@ export default function WalletPage() {
         </div>
 
         <LinkRow icon={StarIcon} iconClass="text-gold" onClick={() => navigate('/referral')}>
-          <span className="text-sm font-bold">{points?.balance || 0} loyalty points</span>
+          <span className="text-sm font-bold">{points?.balance || 0} unlock credits</span>
         </LinkRow>
 
         {/* Always visible, not gated on ledger activity -- a provider needs
