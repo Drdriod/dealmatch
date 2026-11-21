@@ -42,12 +42,13 @@ async function platformFeeNaira(svc, key) {
 // start_property_escrow_payment with this reference, for this buyer.
 async function escrowPayment(svc, { subject: _subject, reference, user }) {
   const { data: esc } = await svc.from('escrow_transactions')
-    .select('id, property_id, gross_amount, status, buyer_id')
+    .select('id, property_id, gross_amount, fee_from_tenant, status, buyer_id')
     .eq('payment_ref', reference).maybeSingle()
   if (!esc || esc.buyer_id !== user.id) throw new PaymentError('Reservation not found', 404)
   if (esc.status !== 'awaiting_payment') throw new PaymentError('This reservation is no longer waiting for payment', 409)
   return {
     amountNaira: Number(esc.gross_amount),
+    feeNaira: Number(esc.fee_from_tenant) || 0, // the buyer's half of DealMatch's fee
     metadata: { type: 'escrow_payment', user_id: user.id, escrow_id: esc.id, property_id: esc.property_id },
   }
 }
@@ -61,6 +62,7 @@ async function transactionEscrow(svc, { reference, user }) {
   if (tx.status !== 'PENDING') throw new PaymentError('This job is not waiting for payment', 409)
   return {
     amountNaira: Number(tx.amount_cents) / 100,
+    feeNaira: 0, // the commission is taken from the provider's payout when the job is released
     metadata: { type: 'transaction_escrow', user_id: user.id, transaction_id: tx.id },
   }
 }
@@ -71,8 +73,10 @@ async function professionalSubscription(svc, { subject, user }) {
     .select('id, user_id, professional_type')
     .eq('id', clean(subject.application_id, 64)).maybeSingle()
   if (error || !app || app.user_id !== user.id) throw new PaymentError('Application not found', 404)
+  const amountNaira = await platformFeeNaira(svc, PRO_PLAN_FEE[planType])
   return {
-    amountNaira: await platformFeeNaira(svc, PRO_PLAN_FEE[planType]),
+    amountNaira,
+    feeNaira: amountNaira, // the whole subscription is DealMatch's fee
     metadata: {
       type: 'professional_subscription', user_id: user.id, application_id: app.id,
       professional_type: app.professional_type || '', plan_type: planType,
@@ -93,6 +97,7 @@ async function hostelListingFee(svc, { subject, reference, user }) {
   if (payErr) throw new PaymentError('Could not start the listing payment. Please try again.', 500)
   return {
     amountNaira,
+    feeNaira: amountNaira,
     metadata: { type: 'hostel_listing_fee', user_id: user.id, hostel_id: hostel.id, plan, listing_type: 'student_hostel' },
   }
 }
@@ -100,8 +105,10 @@ async function hostelListingFee(svc, { subject, reference, user }) {
 async function contactUnlockCredits(svc, { subject, user }) {
   const pack = clean(subject.pack, 64)
   if (!Object.prototype.hasOwnProperty.call(UNLOCK_PACKS, pack)) throw new PaymentError('Unknown unlock pack', 400)
+  const amountNaira = await platformFeeNaira(svc, pack)
   return {
-    amountNaira: await platformFeeNaira(svc, pack),
+    amountNaira,
+    feeNaira: amountNaira,
     metadata: { type: 'contact_unlock_credits', user_id: user.id, credits: String(UNLOCK_PACKS[pack]), pack },
   }
 }
@@ -179,6 +186,7 @@ async function hotelBooking(svc, { subject, reference, user }) {
 
   return {
     amountNaira: total,
+    feeNaira: fee, // only the fee is DealMatch's; the room charge belongs to the hotel
     metadata: { type: 'hotel_booking', user_id: user.id, booking_id: booking.id, platform_fee_ngn: String(fee) },
   }
 }
@@ -191,7 +199,7 @@ export const PAYMENT_TEST_NAIRA = 100
 async function paymentTest(svc, { user }) {
   const { data: profile } = await svc.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!profile || profile.role !== 'superadmin') throw new PaymentError('Not available', 403)
-  return { amountNaira: PAYMENT_TEST_NAIRA, metadata: { type: 'payment_test', user_id: user.id } }
+  return { amountNaira: PAYMENT_TEST_NAIRA, feeNaira: 0, metadata: { type: 'payment_test', user_id: user.id } }
 }
 
 // ─── Registry ───────────────────────────────────────────────────────────────

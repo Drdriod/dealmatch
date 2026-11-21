@@ -293,7 +293,12 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     })
 
     const bankLine = line('Bank', account.bankName || 'Shown in your bank app')
-    const amountLine = line('Amount', formatNaira(account.amountNaira))
+    // When VAT applies, show the price, the VAT and the total, so the payer sees exactly what the
+    // tax is before sending money. The total is what must be sent.
+    const hasVat = Number(account.vatNaira) > 0
+    const priceLine = hasVat ? line('Price', formatNaira(account.priceNaira)) : null
+    const vatLine = hasVat ? line(`VAT (${Number(account.vatRatePct)}%) on DealMatch's fee`, formatNaira(account.vatNaira)) : null
+    const amountLine = line(hasVat ? 'Total to send' : 'Amount', formatNaira(account.amountNaira))
     const expiryLine = line('Account valid until', account.expiresAt ? new Date(account.expiresAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) : 'See your payment')
 
     Object.assign(status.style, { color: '#17211B', fontWeight: '600' })
@@ -332,7 +337,7 @@ function openTransferModal({ account, error, onPaid, onClose }) {
     })
     actions.insertBefore(checkBtn, closeBtn)
 
-    card.append(title, intro, numberLine.wrap, bankLine.wrap, amountLine.wrap, expiryLine.wrap, status, note, actions)
+    card.append(title, intro, numberLine.wrap, bankLine.wrap, ...(hasVat ? [priceLine.wrap, vatLine.wrap] : []), amountLine.wrap, expiryLine.wrap, status, note, actions)
 
     const expiresMs = account.expiresAt ? new Date(account.expiresAt).getTime() : Infinity
     let tick = 0

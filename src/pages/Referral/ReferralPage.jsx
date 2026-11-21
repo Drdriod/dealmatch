@@ -1,62 +1,66 @@
 /**
  * ReferralPage - /referral
- * 3-level cash chain + loyalty points system
- * Level 1: 8% | Level 2: 4% | Level 3: 2% | Level 4+: Points
- * 100 points = ₦10,000 cash
+ *
+ * Shows a person what they have earned from the people they invited, what is still on hold, what
+ * tax was held back, and exactly how the programme pays. Every rate on this page is read from the
+ * live referral settings (Admin > Referral Settings), never written into the page.
  */
-import { useState, useEffect } from 'react'
-import { Check, ChevronRight, Copy, Gift, Home, Hotel, Share2, Star, TrendingUp, Users, Zap } from 'lucide-react'
-import { saveInviteCode, loadReferralSummary } from '@/data/referralRepository'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  ArrowLeftIcon, BanknotesIcon, CheckCircleIcon, ClipboardDocumentIcon, ClockIcon, GiftIcon,
+  ShareIcon, SparklesIcon, UserGroupIcon,
+} from '@heroicons/react/24/outline'
+import { saveInviteCode, loadReferralOverview } from '@/data/referralRepository'
 import { useAuth } from '@/context/AuthContext'
-import { pointsToCash, MIN_REDEEM_POINTS, redeemPoints, POINTS_CASH_VALUE, POINTS_TO_CASH_RATE } from '@/lib/referral'
 import toast from 'react-hot-toast'
 
-const fmt = (n = 0) => 'N' + Number(n || 0).toLocaleString()
-
-const LEVEL_CONFIG = [
-  { level: 1, rate: '8%',  type: 'cash',   color: '#B8511E', label: 'Direct Referral' },
-  { level: 2, rate: '4%',  type: 'cash',   color: '#D4A853', label: 'Level 2' },
-  { level: 3, rate: '2%',  type: 'cash',   color: '#7A9E7E', label: 'Level 3' },
-  { level: 4, rate: '60pts', type: 'points', color: '#5B8DEF', label: 'Level 4+' },
-]
-
-const STATUS_META = {
-  pending:          { label: 'Pending',   color: '#D4A853' },
-  confirmed:        { label: 'Confirmed', color: '#7A9E7E' },
-  paid_out:         { label: 'Paid Out',  color: '#5B8DEF' },
-  cancelled:        { label: 'Cancelled', color: '#888' },
-}
+const naira = (n = 0) => '₦' + Number(n || 0).toLocaleString('en-NG', { maximumFractionDigits: 2 })
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
+const glass = 'border border-white/70 bg-white/80 shadow-card backdrop-blur-xl'
 
 const TYPE_LABELS = {
-  property_sale:    'Property Sale',
-  rental:           'Rental',
-  hotel:            'Hotel/Short-let',
-  escrow:           'Protection Fee',
-  subscription:     'Pro Subscription',
-  points_redemption:'Points Redeemed',
+  property_sale: 'Property sale',
+  rental: 'Rental',
+  hotel: 'Hotel or short-let',
+  escrow: 'Protected payment',
+  subscription: 'Professional subscription',
+}
+
+const TONES = {
+  warn: 'bg-gold/20 text-bark',
+  good: 'bg-sage/20 text-forest',
+  quiet: 'bg-warm/15 text-warm',
+}
+
+// What to tell the person about one reward row.
+function describe(r) {
+  if (r.payout_type === 'points') return { label: `${r.points_awarded || 1} unlock credit${r.points_awarded > 1 ? 's' : ''}`, tone: 'good', note: 'Added to your unlock credits' }
+  if (r.status === 'cancelled') return { label: 'Cancelled', tone: 'quiet', note: 'The payment was refunded or reversed' }
+  if (r.status === 'confirmed' || r.status === 'paid_out') return { label: 'In your wallet', tone: 'good', note: r.released_at ? `Released ${new Date(r.released_at).toLocaleDateString('en-NG')}` : '' }
+  if (r.needs_review) return { label: 'Under review', tone: 'warn', note: 'Over the monthly limit, a team member is checking it' }
+  const when = r.eligible_at ? new Date(r.eligible_at).toLocaleDateString('en-NG') : ''
+  return { label: 'On hold', tone: 'warn', note: when ? `Releases from ${when} if you are verified and have a payout account` : 'Waiting for the dispute period to end' }
 }
 
 export default function ReferralPage() {
+  const navigate = useNavigate()
   const { user, profile } = useAuth()
-  const [tab, setTab]           = useState('earn')
-  const [earnings, setEarnings] = useState([])
-  const [points, setPoints]     = useState({ balance: 0, lifetime: 0, redeemed: 0 })
-  const [stats, setStats]       = useState({ total: 0, pending: 0, paid_out: 0, referees: 0 })
-  const [loading, setLoading]   = useState(true)
-  const [copied, setCopied]     = useState(false)
-  const [redeemAmt, setRedeemAmt] = useState(100)
-  const [redeeming, setRedeeming] = useState(false)
+  const [rows, setRows] = useState([])
+  const [invited, setInvited] = useState(0)
+  const [cfg, setCfg] = useState({})
+  const [founding, setFounding] = useState(null)
+  const [credits, setCredits] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [inviteCode, setInviteCode] = useState(profile?.invite_code || '')
 
-  const baseUrl   = 'https://www.dealmatch.com.ng'
-  const inviteUrl = baseUrl + '/auth?ref=' + inviteCode
+  const inviteUrl = 'https://www.dealmatch.com.ng/auth?ref=' + inviteCode
 
-  useEffect(() => { if (user?.id) loadData() }, [user?.id])
+  useEffect(() => { if (user?.id) load() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadData = async () => {
+  const load = async () => {
     setLoading(true)
     try {
-      // Ensure invite code exists
       let code = profile?.invite_code
       if (!code) {
         const newCode = 'DM' + Math.random().toString(36).slice(2, 8).toUpperCase()
@@ -64,433 +68,144 @@ export default function ReferralPage() {
         code = data?.invite_code || newCode
       }
       setInviteCode(code)
-
-      const [txnsRes, countRes, ptsRes] = await loadReferralSummary(user.id)
-
-      const list = txnsRes.data || []
-      setEarnings(list)
-      setStats({
-        total:    list.filter(t => t.status !== 'cancelled' && t.payout_type !== 'points')
-                      .reduce((s, t) => s + (t.referral_earning || 0), 0),
-        pending:  list.filter(t => t.status === 'pending' && t.payout_type === 'cash')
-                      .reduce((s, t) => s + (t.referral_earning || 0), 0),
-        paid_out: list.filter(t => t.status === 'paid_out')
-                      .reduce((s, t) => s + (t.referral_earning || 0), 0),
-        referees: countRes.count || 0,
-      })
-
-      if (ptsRes.data) {
-        setPoints({
-          balance:  ptsRes.data.points_balance || 0,
-          lifetime: ptsRes.data.points_lifetime || 0,
-          redeemed: ptsRes.data.points_redeemed || 0,
-        })
-      }
+      const [rewardsRes, countRes, cfgRes, foundingRes, creditRes] = await loadReferralOverview(user.id)
+      setRows(rewardsRes.data || [])
+      setInvited(countRes.count || 0)
+      setCfg(Object.fromEntries((cfgRes.data || []).map(s => [s.key, Number(s.value)])))
+      setFounding(foundingRes.data || null)
+      setCredits(Number(creditRes.data) || 0)
     } catch (e) { console.error(e) }
     setLoading(false)
   }
 
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(inviteUrl)
-    setCopied(true)
-    toast.success('Invite link copied.')
-    setTimeout(() => setCopied(false), 2500)
-  }
+  const totals = useMemo(() => {
+    const cash = rows.filter(r => r.payout_type === 'cash')
+    const sum = (list, f) => list.reduce((s, r) => s + Number(f(r) || 0), 0)
+    return {
+      inWallet: sum(cash.filter(r => r.status === 'confirmed' || r.status === 'paid_out'), r => r.net_amount ?? r.referral_earning),
+      onHold: sum(cash.filter(r => r.status === 'pending'), r => r.referral_earning),
+      tax: sum(cash.filter(r => r.status === 'confirmed' || r.status === 'paid_out'), r => r.wht_amount),
+    }
+  }, [rows])
 
+  // Active referrals: people you invited who paid for something in the last 90 days.
+  const active = useMemo(() => {
+    const since = Date.now() - 90 * 86400000
+    return new Set(rows.filter(r => r.referral_level === 1 && r.status !== 'cancelled' && new Date(r.created_at).getTime() > since).map(r => r.referee_id)).size
+  }, [rows])
+
+  const tier = useMemo(() => {
+    const foundingOn = founding?.until && new Date(founding.until) > new Date()
+    let name = 'Starter'; let pct = cfg.l1_pct || 0; let next = cfg.builder_min_active; let nextName = 'Builder'
+    if (active >= cfg.champion_min_active) { name = 'Champion'; pct = cfg.champion_l1_pct; next = null }
+    else if (active >= cfg.builder_min_active) { name = 'Builder'; pct = cfg.builder_l1_pct; next = cfg.champion_min_active; nextName = 'Champion' }
+    if (foundingOn && cfg.founding_l1_pct > pct) { name = name + ' · Founding Ambassador'; pct = cfg.founding_l1_pct }
+    return { name, pct, toNext: next ? Math.max(next - active, 0) : null, nextName }
+  }, [active, cfg, founding])
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(inviteUrl); toast.success('Invite link copied.') }
+    catch { toast.error('Could not copy. Select the link and copy it by hand.') }
+  }
   const shareLink = async () => {
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Join DealMatch',
-          text: 'Find verified properties in Nigeria. Use my link:',
-          url: inviteUrl,
-        })
-      } catch { copyLink() }
+      try { await navigator.share({ title: 'Join DealMatch', text: 'Find verified places and people you can trust. Use my link:', url: inviteUrl }) } catch { copyLink() }
     } else { copyLink() }
   }
 
-  const handleRedeem = async () => {
-    if (redeemAmt < MIN_REDEEM_POINTS) {
-      toast.error('Minimum redemption is 100 points')
-      return
-    }
-    if (redeemAmt > points.balance) {
-      toast.error('You don\'t have enough points for that yet')
-      return
-    }
-    setRedeeming(true)
-    const result = await redeemPoints(user.id, redeemAmt)
-    setRedeeming(false)
-    if (result.success) {
-      toast.success('Redemption request submitted! ' + fmt(result.cashValue) + ' will be paid within 3-5 days.')
-      loadData()
-    } else {
-      toast.error(result.error || 'We couldn\'t complete that redemption. Please try again.')
-    }
-  }
-
-  const ago = (ts) => {
-    if (!ts) return ''
-    const s = (Date.now() - new Date(ts)) / 1000
-    if (s < 3600) return Math.floor(s / 60) + 'm ago'
-    if (s < 86400) return Math.floor(s / 3600) + 'h ago'
-    return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-  }
-
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh', paddingTop: 72, paddingBottom: 40 }}>
-      <div className="max-w-lg mx-auto px-4">
+    <div className="min-h-screen bg-cream pb-24">
+      <div className="mx-auto max-w-2xl px-4 pt-6">
+        <button type="button" onClick={() => navigate(-1)} className={`mb-4 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold text-warm ${focusRing}`}>
+          <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" /> Back
+        </button>
 
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="font-display font-black text-2xl mb-1" style={{ color: '#17211B' }}>
-            Earn with DealMatch
-          </h1>
-          <p className="text-sm" style={{ color: '#5C665F' }}>
-            Share your link. Earn cash and points when your network closes deals.
-          </p>
-        </div>
-
-        {/* Invite card */}
-        <div className="rounded-2xl p-5 mb-5" style={{ backgroundColor: '#17211B' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Gift size={14} style={{ color: '#D4A853' }} />
-            <p className="text-xs font-bold" style={{ color: '#D4A853' }}>YOUR INVITE LINK</p>
-          </div>
-          <p className="text-xs mb-4 font-mono break-all" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            {inviteCode ? inviteUrl : 'Generating...'}
-          </p>
+        <div className={`mb-4 rounded-[40px_40px_40px_12px] p-5 ${glass}`}>
+          <div className="mb-1 flex items-center gap-2"><GiftIcon className="h-5 w-5 text-terracotta" aria-hidden="true" /><h1 className="font-display text-2xl text-deep">Invite and earn</h1></div>
+          <p className="mb-4 text-sm text-warm">When someone you invite pays DealMatch a fee, you earn a share of what DealMatch earns. Never from their deal price.</p>
+          <div className="mb-3 break-all rounded-2xl bg-cream px-3 py-3 text-sm font-semibold text-deep" data-testid="invite-link">{inviteUrl}</div>
           <div className="flex gap-2">
-            <button onClick={copyLink}
-              className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-              style={{ backgroundColor: copied ? '#7A9E7E' : '#B8511E', color: '#fff' }}>
-              {copied ? <><Check size={14} />Copied!</> : <><Copy size={14} />Copy Link</>}
+            <button type="button" onClick={copyLink} className={`flex flex-1 items-center justify-center gap-2 rounded-full bg-deep px-4 py-3 text-sm font-bold text-white ${focusRing}`}>
+              <ClipboardDocumentIcon className="h-4 w-4" aria-hidden="true" /> Copy link
             </button>
-            <button onClick={shareLink}
-              className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
-              <Share2 size={14} /> Share
+            <button type="button" onClick={shareLink} className={`flex flex-1 items-center justify-center gap-2 rounded-full bg-terracotta px-4 py-3 text-sm font-bold text-white ${focusRing}`}>
+              <ShareIcon className="h-4 w-4" aria-hidden="true" /> Share
             </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          {[
-            { label: 'Cash Earned',    value: fmt(stats.total),    icon: TrendingUp, color: '#7A9E7E' },
-            { label: 'Pending Cash',   value: fmt(stats.pending),  icon: Zap,        color: '#D4A853' },
-            { label: 'Points Balance', value: points.balance + ' pts', icon: Star,   color: '#B8511E' },
-            { label: 'People Invited', value: stats.referees,      icon: Users,      color: '#5B8DEF' },
-          ].map(s => (
-            <div key={s.label} className="rounded-2xl p-4"
-              style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px solid #DEDDD6' }}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <s.icon size={13} style={{ color: s.color }} />
-                <span className="text-xs font-semibold" style={{ color: 'rgba(23,33,27,0.7)' }}>{s.label}</span>
-              </div>
-              <p className="font-black text-xl" style={{ color: '#17211B' }}>{s.value}</p>
-            </div>
-          ))}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+            <div className="mb-1 flex items-center gap-2"><BanknotesIcon className="h-4 w-4 text-forest" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">In your wallet</p></div>
+            <p className="font-display text-xl text-deep">{loading ? '–' : naira(totals.inWallet)}</p>
+            {totals.tax > 0 && <p className="mt-1 text-[11px] text-warm">After {naira(totals.tax)} withholding tax</p>}
+          </div>
+          <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+            <div className="mb-1 flex items-center gap-2"><ClockIcon className="h-4 w-4 text-gold" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">On hold</p></div>
+            <p className="font-display text-xl text-deep">{loading ? '–' : naira(totals.onHold)}</p>
+            <p className="mt-1 text-[11px] text-warm">Before tax</p>
+          </div>
+          <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+            <div className="mb-1 flex items-center gap-2"><UserGroupIcon className="h-4 w-4 text-terracotta" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">People invited</p></div>
+            <p className="font-display text-xl text-deep">{loading ? '–' : invited}</p>
+            <p className="mt-1 text-[11px] text-warm">{active} active in the last 90 days</p>
+          </div>
+          <div className={`rounded-[24px_24px_24px_8px] p-4 ${glass}`}>
+            <div className="mb-1 flex items-center gap-2"><SparklesIcon className="h-4 w-4 text-gold" aria-hidden="true" /><p className="text-[11px] font-bold text-warm">Unlock credits</p></div>
+            <p className="font-display text-xl text-deep">{loading ? '–' : credits}</p>
+            <p className="mt-1 text-[11px] text-warm">Use them to unlock contacts</p>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-5">
-          {[
-            { id: 'earn',   label: 'How to Earn' },
-            { id: 'points', label: 'My Points' },
-            { id: 'history',label: 'History' },
-          ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all"
-              style={{
-                backgroundColor: tab === t.id ? '#17211B' : '#FFFFFF',
-                color: tab === t.id ? '#FFFFFF' : '#5C4A3A',
-                borderColor: tab === t.id ? '#17211B' : '#DEDDD6',
-              }}>
-              {t.label}
-            </button>
-          ))}
+        {cfg.l1_pct != null && (
+          <div className={`mb-4 rounded-[32px_32px_32px_10px] p-5 ${glass}`}>
+            <p className="mb-1 text-xs font-bold uppercase tracking-wide text-warm">Your level</p>
+            <p className="font-display text-lg text-deep">{tier.name}: you earn {tier.pct}% on people you invite</p>
+            {tier.toNext != null && <p className="mt-1 text-sm text-warm">{tier.toNext} more active referral{tier.toNext === 1 ? '' : 's'} to reach {tier.nextName}.</p>}
+          </div>
+        )}
+
+        {cfg.l1_pct != null && (
+          <div className={`mb-4 rounded-[32px_32px_32px_10px] p-5 ${glass}`}>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-warm">How you earn</p>
+            <ul className="space-y-2.5 text-sm text-deep">
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>You earn {cfg.l1_pct}% of DealMatch&apos;s fee when someone you invited pays, {cfg.l2_pct}% when someone they invited pays, and {cfg.l3_pct}% one level further.</span></li>
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>You and the person you invite each get {cfg.activation_credits} unlock credits when their identity is verified.</span></li>
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>Rewards stay on hold for {cfg.hold_days} days in case of a refund or dispute, then go to your wallet. You need to be identity-verified and have a verified payout account.</span></li>
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>Smaller deals (DealMatch fee under {naira(cfg.small_deal_naira)}) earn you {cfg.small_deal_credits} unlock credit instead of cash. Cash rewards below {naira(cfg.min_payout_naira)} are not paid.</span></li>
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>Rewards run for {cfg.attribution_months} months after the person joins, and for {cfg.subscription_months} months on a professional subscription.</span></li>
+              <li className="flex gap-2"><CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-sage" aria-hidden="true" /><span>No reward when you are one of the people in the deal. If a payment is refunded, its reward is cancelled.</span></li>
+            </ul>
+          </div>
+        )}
+
+        <div className={`rounded-[32px_32px_32px_10px] p-5 ${glass}`}>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-warm">Your rewards</p>
+          {!loading && rows.length === 0 && <p className="text-sm text-warm">Nothing yet. Share your link, and rewards appear here when the people you invite pay.</p>}
+          <div className="divide-y divide-warm/10">
+            {rows.map(r => {
+              const d = describe(r)
+              const isCash = r.payout_type === 'cash'
+              return (
+                <div key={r.id} className="flex items-start justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-deep">{TYPE_LABELS[r.transaction_type] || 'Payment'} · Level {r.referral_level}</p>
+                    <p className="text-[11px] text-warm">{d.note}</p>
+                    {isCash && Number(r.wht_amount) > 0 && <p className="text-[11px] text-warm">{naira(r.referral_earning)} less {naira(r.wht_amount)} withholding tax</p>}
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    {isCash && <p className="text-sm font-bold text-deep">{naira(r.net_amount ?? r.referral_earning)}</p>}
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${TONES[d.tone]}`}>{d.label}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
-        {/* HOW TO EARN TAB */}
-        {tab === 'earn' && (
-          <div className="space-y-3">
-            {/* Chain explanation */}
-            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(200,95,45,0.05)', border: '1px solid rgba(200,95,45,0.15)' }}>
-              <p className="text-xs font-bold mb-3" style={{ color: '#B8511E' }}>
-                HOW THE EARNING CHAIN WORKS
-              </p>
-              <div className="space-y-3">
-                {LEVEL_CONFIG.map(cfg => (
-                  <div key={cfg.level} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
-                      style={{ backgroundColor: cfg.color + '20', color: cfg.color }}>
-                      L{cfg.level}{cfg.level === 4 ? '+' : ''}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold" style={{ color: '#17211B' }}>{cfg.label}</p>
-                      <p className="text-xs" style={{ color: '#5C665F' }}>
-                        {cfg.type === 'cash'
-                          ? cfg.rate + ' of DealMatch commission - paid as cash'
-                          : 'Loyalty points - convert to cash anytime'}
-                      </p>
-                    </div>
-                    <span className="text-sm font-black" style={{ color: cfg.color }}>{cfg.rate}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Example */}
-            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px solid #DEDDD6' }}>
-              <p className="text-xs font-bold mb-3" style={{ color: '#17211B' }}>
-                EXAMPLE: One N60M Property Sale
-              </p>
-              <p className="text-xs mb-3" style={{ color: '#5C665F' }}>
-                DealMatch earns N900,000 commission. Here is what your chain earns:
-              </p>
-              {[
-                { who: 'You (Level 1)',         earns: 'N72,000 cash' },
-                { who: 'Person who referred you (L2)', earns: 'N36,000 cash' },
-                { who: 'Their referrer (L3)',   earns: 'N18,000 cash' },
-                { who: 'L4 referrer',           earns: '60 points = N6,000' },
-                { who: 'L5 referrer',           earns: '40 points = N4,000' },
-                { who: 'L6+ referrers',         earns: '25pts down to 2pts' },
-              ].map((r, i) => (
-                <div key={i} className="flex justify-between py-1.5" style={{ borderBottom: '1px solid rgba(23,33,27,0.05)' }}>
-                  <span className="text-xs" style={{ color: '#5C4A3A' }}>{r.who}</span>
-                  <span className="text-xs font-bold" style={{ color: '#B8511E' }}>{r.earns}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Tiered payout explanation - why small deals pay differently */}
-            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(212,168,83,0.07)', border: '1px solid rgba(212,168,83,0.25)' }}>
-              <p className="text-xs font-bold mb-2" style={{ color: '#A8853F' }}>
-                CASH OR POINTS? IT DEPENDS ON THE DEAL SIZE
-              </p>
-              <p className="text-xs leading-relaxed mb-3" style={{ color: '#5C4A3A' }}>
-                Your payout type is based on how much DealMatch itself earns from the deal,
-                not the price of the property or booking. Bigger deals mean a bigger DealMatch
-                commission, which means cash for you. Smaller deals still reward you, just in points.
-              </p>
-              <div className="space-y-2">
-                {[
-                  { range: 'DealMatch earns N50,000+',        result: 'Full cash chain: 8% / 4% / 2%' },
-                  { range: 'DealMatch earns N5,000 – N49,999', result: 'Flat N500 cash for L1, L2, L3' },
-                  { range: 'DealMatch earns under N5,000',     result: 'Points only - no cash, but it adds up' },
-                ].map((row, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-xl"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
-                    <span className="text-xs" style={{ color: '#5C4A3A' }}>{row.range}</span>
-                    <span className="text-xs font-bold text-right" style={{ color: '#A8853F', maxWidth: '50%' }}>{row.result}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs mt-3" style={{ color: '#5C665F' }}>
-                Example: a hotel booking usually earns DealMatch a small commission, so it pays
-                points. A property sale or large rental earns DealMatch much more, so it pays full cash.
-              </p>
-            </div>
-
-            {/* Points explanation */}
-            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(91,141,239,0.05)', border: '1px solid rgba(91,141,239,0.2)' }}>
-              <p className="text-xs font-bold mb-2" style={{ color: '#5B8DEF' }}>
-                HOW POINTS CONVERT TO CASH
-              </p>
-              <p className="text-xs leading-relaxed" style={{ color: '#5C4A3A' }}>
-                Every deal closed in your deep network (Level 4+) earns you points automatically.
-                Points accumulate in your wallet. When you reach 100 points, you can redeem
-                them for N10,000 cash paid to your bank account.
-              </p>
-              <div className="mt-3 flex items-center gap-2 p-2 rounded-xl"
-                style={{ backgroundColor: 'rgba(91,141,239,0.08)' }}>
-                <Star size={12} style={{ color: '#5B8DEF' }} />
-                <p className="text-xs font-bold" style={{ color: '#5B8DEF' }}>
-                  100 points = N10,000 cash. No expiry. Accumulates forever.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px solid #DEDDD6' }}>
-              <p className="text-xs font-bold mb-1" style={{ color: '#17211B' }}>
-                IMPORTANT
-              </p>
-              <p className="text-xs" style={{ color: '#5C665F' }}>
-                You earn nothing just from sign-ups. All earnings are triggered only when a referred
-                user completes a real, paying transaction on DealMatch. No deal, no payment.
-              </p>
-            </div>
-          </div>
-        )}
-
-
-        {/* POINTS TAB */}
-        {tab === 'points' && (
-          <div className="space-y-4">
-            {/* Balance card */}
-            <div className="rounded-2xl p-5 text-center" style={{ backgroundColor: '#17211B' }}>
-              <p className="text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                POINTS BALANCE
-              </p>
-              <p className="font-display font-black text-5xl mb-1" style={{ color: '#D4A853' }}>
-                {points.balance}
-              </p>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                points available
-              </p>
-              <div className="mt-4 flex justify-center gap-6">
-                <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Lifetime</p>
-                  <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    {points.lifetime} pts
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Redeemed</p>
-                  <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    {points.redeemed} pts
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>Cash Value</p>
-                  <p className="font-bold text-sm" style={{ color: '#7A9E7E' }}>
-                    {fmt(pointsToCash(points.balance))}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Redeem */}
-            {points.balance >= MIN_REDEEM_POINTS ? (
-              <div className="rounded-2xl p-4" style={{ border: '1px solid #DEDDD6', backgroundColor: '#FFFAF5' }}>
-                <p className="text-sm font-bold mb-3" style={{ color: '#17211B' }}>
-                  Redeem Points for Cash
-                </p>
-                <p className="text-xs mb-4" style={{ color: '#5C665F' }}>
-                  Choose how many points to redeem. Must be in multiples of 100.
-                  Each 100 points = N10,000 cash to your bank account.
-                </p>
-                <div className="flex items-center gap-3 mb-4">
-                  <button
-                    onClick={() => setRedeemAmt(Math.max(100, redeemAmt - 100))}
-                    className="w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(23,33,27,0.06)', color: '#17211B' }}>
-                    -
-                  </button>
-                  <div className="flex-1 text-center">
-                    <p className="font-black text-2xl" style={{ color: '#B8511E' }}>
-                      {redeemAmt} pts
-                    </p>
-                    <p className="text-xs" style={{ color: '#5C665F' }}>
-                      = {fmt(pointsToCash(redeemAmt))} cash
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setRedeemAmt(Math.min(points.balance, redeemAmt + 100))}
-                    className="w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(200,95,45,0.1)', color: '#B8511E' }}>
-                    +
-                  </button>
-                </div>
-                <button
-                  onClick={handleRedeem}
-                  disabled={redeeming || redeemAmt > points.balance}
-                  className="w-full py-3.5 rounded-xl text-sm font-bold"
-                  style={{
-                    backgroundColor: redeeming ? 'rgba(23,33,27,0.08)' : '#B8511E',
-                    color: redeeming ? '#5C665F' : '#fff',
-                  }}>
-                  {redeeming ? 'Processing...' : 'Redeem ' + redeemAmt + ' pts for ' + fmt(pointsToCash(redeemAmt))}
-                </button>
-                <p className="text-xs text-center mt-2" style={{ color: '#5C665F' }}>
-                  Paid to your bank account within 3-5 business days
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-2xl p-4 text-center" style={{ border: '1px dashed #DEDDD6' }}>
-                <Star size={24} style={{ color: '#D4A853', margin: '0 auto 8px' }} />
-                <p className="text-sm font-bold mb-1" style={{ color: '#17211B' }}>
-                  {MIN_REDEEM_POINTS - points.balance} more points to redeem
-                </p>
-                <p className="text-xs" style={{ color: '#5C665F' }}>
-                  Minimum redemption is 100 points (N10,000).
-                  Keep building your network to earn more.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* HISTORY TAB */}
-        {tab === 'history' && (
-          <div>
-            {loading ? (
-              <div className="py-10 text-center">
-                <div className="w-6 h-6 rounded-full border-2 border-transparent animate-spin mx-auto"
-                  style={{ borderTopColor: '#B8511E' }} />
-              </div>
-            ) : earnings.length === 0 ? (
-              <div className="rounded-2xl p-8 text-center"
-                style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px dashed #DEDDD6' }}>
-                <div className="flex justify-center mb-2"><Home size={32} className="text-terracotta" /></div>
-                <p className="text-sm font-bold mb-1" style={{ color: '#17211B' }}>No earnings yet</p>
-                <p className="text-xs" style={{ color: '#5C665F' }}>
-                  Share your link. Earnings appear here when referred users close deals.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {earnings.map(t => {
-                  const meta = STATUS_META[t.status] || { label: t.status, color: '#888' }
-                  const isPoints = t.payout_type === 'points'
-                  return (
-                    <div key={t.id} className="rounded-2xl p-4 flex items-center justify-between"
-                      style={{ backgroundColor: 'rgba(23,33,27,0.03)', border: '1px solid #DEDDD6' }}>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: '#17211B' }}>
-                          {TYPE_LABELS[t.transaction_type] || t.transaction_type}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs px-2 py-0.5 rounded-full font-bold"
-                            style={{ backgroundColor: meta.color + '15', color: meta.color }}>
-                            {meta.label}
-                          </span>
-                          {t.referral_level && (
-                            <span className="text-xs" style={{ color: '#5C665F' }}>
-                              Level {t.referral_level}
-                            </span>
-                          )}
-                          <span className="text-xs" style={{ color: '#5C665F' }}>
-                            {ago(t.created_at)}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="font-black text-lg" style={{ color: isPoints ? '#5B8DEF' : '#17211B' }}>
-                        {isPoints
-                          ? '+' + t.points_awarded + ' pts'
-                          : fmt(t.referral_earning)}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* Payout note */}
-            <div className="mt-5 rounded-2xl p-4"
-              style={{ backgroundColor: 'rgba(91,141,239,0.05)', border: '1px solid rgba(91,141,239,0.15)' }}>
-              <p className="text-xs font-bold mb-1" style={{ color: '#5B8DEF' }}>Payouts</p>
-              <p className="text-xs" style={{ color: '#5C665F' }}>
-                Minimum cash payout: N5,000. Points minimum: 100 pts (N10,000).
-                Paid to your registered bank account within 3-5 business days.
-                Wondering why a transaction paid points instead of cash? Smaller deals earn
-                DealMatch a smaller commission, so they pay points instead of cash. See
-                "How to Earn" for the full breakdown.
-              </p>
-            </div>
-          </div>
-        )}
+        <button type="button" onClick={() => navigate('/wallet')} className={`mt-4 w-full rounded-full border border-deep/15 px-4 py-3 text-sm font-bold text-deep ${focusRing}`}>
+          Go to my wallet
+        </button>
       </div>
     </div>
   )

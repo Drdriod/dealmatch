@@ -10,6 +10,19 @@ export function findInviterOf(svc, userId) {
   return svc.from('profiles').select('id, invited_by').eq('id', userId).single()
 }
 
+// The referral rules run inside the database (record_referral_rewards).
+export function recordReferralRewards(svc, a) {
+  return svc.rpc('record_referral_rewards', {
+    p_payment_id: a.payment_id, p_referee_id: a.referee_id, p_transaction_type: a.transaction_type,
+    p_commission_naira: a.commission_naira, p_deal_amount: a.deal_amount, p_party_ids: a.party_ids,
+  })
+}
+
+// One tax row per payment and kind; a repeat is ignored.
+export function insertTaxLedgerRow(svc, row) {
+  return svc.from('tax_ledger').upsert(row, { onConflict: 'reference,kind', ignoreDuplicates: true })
+}
+
 export function insertReferralTransaction(svc, row) {
   return svc.from('referral_transactions').insert(row)
 }

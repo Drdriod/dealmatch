@@ -18,10 +18,11 @@ export function loadWalletData(userId) {
       .order('created_at', { ascending: false })
       .limit(50),
     supabase.from('referral_transactions')
-      .select('amount, status')
+      .select('referral_earning, net_amount, wht_amount, status, payout_type')
       .eq('referrer_id', userId)
-      .in('status', ['confirmed', 'paid_out']),
-    supabase.from('loyalty_points').select('balance').eq('user_id', userId).single(),
+      .eq('payout_type', 'cash')
+      .in('status', ['pending', 'confirmed', 'paid_out']),
+    supabase.rpc('get_unlock_credit_balance'),
     supabase.from('commission_wallet_ledger')
       .select('id, transaction_id, entry_type, amount_cents, occurred_at, transactions(description)')
       .eq('profile_id', userId)
