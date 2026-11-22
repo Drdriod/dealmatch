@@ -84,3 +84,20 @@ test('a row that is no longer processing or paid is left alone on failure', asyn
   assert.equal(tables.payout_queue[0].status, 'pending')
   assert.equal(tables.notifications.length, 0)
 })
+
+test('paid: the transfer fee is recorded as a gateway cost, and a failure to record it does not stop settlement', async () => {
+  const mk = () => ({
+    payout_queue: [queued()], transactions: [{ id: 3, payout_status: 'queued' }],
+    commission_wallet_ledger: [], notifications: [],
+  })
+  const t1 = mk(); const svc = fakeSvc(t1); const calls = []
+  svc.rpc = async (name, args) => { calls.push({ name, args }); return { data: null, error: null } }
+  assert.equal(await settlePayout(svc, queued(), 'paid'), true)
+  assert.deepEqual(calls.map((c) => [c.name, c.args.p_kind, c.args.p_reference, c.args.p_base_kobo]), [['record_gateway_cost', 'payout', 'payout:7', 500000]])
+
+  const t2 = mk(); const svc2 = fakeSvc(t2)
+  svc2.rpc = async () => ({ data: null, error: { message: 'down' } })
+  const orig = console.error; console.error = () => {}
+  try { assert.equal(await settlePayout(svc2, queued(), 'paid'), true) } finally { console.error = orig }
+  assert.equal(t2.payout_queue[0].status, 'paid')
+})

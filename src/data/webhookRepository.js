@@ -18,6 +18,12 @@ export function recordReferralRewards(svc, a) {
   })
 }
 
+// Estimated gateway fee for money received or sent (the database applies the editable rates).
+// One row per reference and kind, so a repeat is ignored.
+export function recordGatewayCost(svc, { reference, kind, base_kobo }) {
+  return svc.rpc('record_gateway_cost', { p_reference: reference, p_kind: kind, p_base_kobo: Math.round(base_kobo) })
+}
+
 // One tax row per payment and kind; a repeat is ignored.
 export function insertTaxLedgerRow(svc, row) {
   return svc.from('tax_ledger').upsert(row, { onConflict: 'reference,kind', ignoreDuplicates: true })

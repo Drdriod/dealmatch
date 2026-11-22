@@ -5,6 +5,7 @@
 // Server only: takes a service-role Supabase client.
 import { movePayout } from './payoutStates.js'
 import { insertNotification } from './notificationFactory.js'
+import { recordGatewayCost } from '../data/webhookRepository.js'
 
 // outcome: 'paid' | 'failed'. Returns true only when this call made the change,
 // so a webhook retry racing the reconciliation pass cannot double-count the money.
@@ -28,6 +29,14 @@ export async function settlePayout(svc, queueRow, outcome, reason = null) {
         gateway: 'flutterwave',
         gateway_ref: queueRow.gateway_ref,
       })
+    }
+
+    // The transfer costs us a gateway fee. Estimate only, never blocks settlement.
+    try {
+      const { error: gwError } = await recordGatewayCost(svc, { reference: 'payout:' + queueRow.id, kind: 'payout', base_kobo: queueRow.amount_cents })
+      if (gwError) throw gwError
+    } catch (gwErr) {
+      console.error('Gateway cost not recorded (non-fatal):', gwErr.message)
     }
 
     await insertNotification(svc, 'payout_paid', queueRow.profile_id, { amountCents: queueRow.amount_cents })

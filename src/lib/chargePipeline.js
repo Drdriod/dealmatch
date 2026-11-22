@@ -12,7 +12,7 @@
 import { paymentGateway } from './paymentGateway.js'
 import { recordMoneyToReturn, runChargePurpose } from './chargePurposes.js'
 import {
-  recordReferralRewards, insertTaxLedgerRow, upsertPaymentRecord,
+  recordReferralRewards, insertTaxLedgerRow, recordGatewayCost, upsertPaymentRecord,
   findVirtualAccountByNumber, markVirtualAccountUnderpaid, markVirtualAccountPaid,
   resolveUnderpaidRefunds, claimVirtualAccountFulfilment, markVirtualAccountFulfilled,
   releaseVirtualAccountClaim, paymentRecordExists, listUnfulfilledPaidAccounts,
@@ -181,6 +181,17 @@ export async function applyChargeSuccess(supabase, { reference, amount, customer
     status:            purpose.paymentStatus || 'success',
     user_id:           metadata?.user_id || null,
   })
+
+  // The gateway charged us a fee on everything it collected, applied or not. Recorded as an
+  // estimate from the editable gateway rates. Never blocks the payment.
+  try {
+    const { error: gwError } = await recordGatewayCost(supabase, {
+      reference, kind: 'collection', base_kobo: Math.round(amountNgn * 100) + vatKoboOf(metadata),
+    })
+    if (gwError) throw gwError
+  } catch (gwErr) {
+    console.error('Gateway cost not recorded (non-fatal):', gwErr.message)
+  }
 
   // Money that was not applied to anything is on the refund list and earns no referral.
   if (purpose.paymentStatus === 'unapplied') return { outcome: 'unapplied' }
