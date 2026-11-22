@@ -5,8 +5,9 @@
  * cannot show a profit that is not real.
  */
 import React, { useState, useEffect, useCallback } from 'react'
-import { fetchFinanceSummary } from '@/data/financeRepository'
-import { Spinner } from '../shared'
+import toast from 'react-hot-toast'
+import { fetchFinanceSummary, fetchFinanceGateway, fetchGatewaySettings, setGatewaySetting } from '@/data/financeRepository'
+import { Spinner, FEE_INPUT_STYLE } from '../shared'
 
 const naira = (kobo) => '₦' + (Number(kobo || 0) / 100).toLocaleString('en-NG', { maximumFractionDigits: 0 })
 const muted = { color: 'rgba(255,255,255,0.45)' }
@@ -30,17 +31,27 @@ function Figure({ label, value, note, tone }) {
   )
 }
 
-export function FinanceTab() {
+export function FinanceTab({ isSuperAdmin }) {
   const [period, setPeriod] = useState('30')
   const [data, setData] = useState(null)
+  const [gw, setGw] = useState(null)
+  const [gwRates, setGwRates] = useState([])
+  const [gwDrafts, setGwDrafts] = useState({})
+  const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     const p = PERIODS.find(x => x.id === period)
-    const { data: d, error: e } = await fetchFinanceSummary(p.from(), new Date(Date.now() + 60000))
+    const to = new Date(Date.now() + 60000)
+    const [{ data: d, error: e }, { data: g }, { data: rates }] = await Promise.all([
+      fetchFinanceSummary(p.from(), to), fetchFinanceGateway(p.from(), to), fetchGatewaySettings(),
+    ])
     if (e) setError(e.message); else setData(d)
+    setGw(g || null)
+    setGwRates(rates || [])
+    setGwDrafts(Object.fromEntries((rates || []).map(r => [r.key, String(r.value)])))
     setLoading(false)
   }, [period])
   useEffect(() => { load() }, [load])
@@ -48,6 +59,18 @@ export function FinanceTab() {
   if (loading && !data) return <Spinner />
   if (error) return <p className="text-xs" style={{ color: 'var(--dm-terracotta)' }}>Could not load finance figures: {error}</p>
   if (!data) return null
+  const gwFee = Number(gw?.fee_total_kobo || 0)
+  const contribution = Number(data.contribution_estimate_kobo) - gwFee
+  const saveRate = async (r) => {
+    const v = Number(gwDrafts[r.key])
+    if (!Number.isFinite(v) || v < 0 || (r.unit === 'percent' && v > 100)) return toast.error('Enter a valid number')
+    setBusy(r.key)
+    const { error: e } = await setGatewaySetting({ key: r.key, value: v })
+    setBusy(null)
+    if (e) return toast.error(e.message)
+    toast.success('Saved. It applies to new payments only; earlier estimates keep their rates.')
+    load()
+  }
   const c = data.control || {}
   const attention = [
     c.refunds_to_return_count > 0 && `${c.refunds_to_return_count} refund${c.refunds_to_return_count === 1 ? '' : 's'} to send back (${naira(c.refunds_to_return_kobo)})`,
@@ -84,9 +107,10 @@ export function FinanceTab() {
           note={`Subscriptions, listings and credits ${naira(data.revenue_parts.subscriptions_listings_credits)} + hotel booking fees ${naira(data.revenue_parts.hotel_booking_fee)} + job commission ${naira(data.revenue_parts.job_commission)}. VAT is excluded.`} />
         <Figure label="Referral rewards" value={naira(data.referral_cost_kobo)}
           note={`${naira(data.referral_parts.released)} released, ${naira(data.referral_parts.on_hold)} on hold, plus ${data.referral_parts.credits_awarded} unlock credits. Cancelled rewards are not counted.`} />
-        <Figure label="Contribution (estimate)" value={naira(data.contribution_estimate_kobo)} tone="var(--dm-sage)"
-          note="Revenue minus referral rewards. Gateway fees and running costs are not taken off yet, so this is higher than real profit." />
-        <Figure label="Gateway fees" value="Not recorded" note="Flutterwave charges are not captured in the system yet. They are real costs, so contribution above is overstated by them." />
+        <Figure label="Gateway fees (estimate)" value={naira(gwFee)}
+          note={gw ? `${naira(gw.collection_fee_kobo)} on ${gw.collections} payment${gw.collections === 1 ? '' : 's'} received (${naira(gw.received_kobo)} collected) + ${naira(gw.payout_fee_kobo)} on ${gw.payouts} payout${gw.payouts === 1 ? '' : 's'}. Estimated from the rates below, not from Flutterwave's statement. Plus ${naira(gw.vat_on_fees_kobo)} VAT on those fees, which only comes back if DealMatch is VAT-registered.` : 'Not available.'} />
+        <Figure label="Contribution (estimate)" value={naira(contribution)} tone="var(--dm-sage)"
+          note="Revenue minus referral rewards minus estimated gateway fees. Running costs are not taken off, so real profit is lower." />
         <Figure label="Operating profit" value="Not available" note="Needs running costs (salaries, hosting, marketing) to be recorded. Nothing is estimated here." />
         <Figure label="Escrow fees held" value={naira(data.escrow_fees_held_kobo)} note="DealMatch's share of property escrows funded in this period. Counted as revenue only when the escrow is released." />
         <Figure label="Completed jobs" value={data.completed_jobs} note="Marketplace jobs finished in this period." />
@@ -100,6 +124,23 @@ export function FinanceTab() {
           <div><p style={muted}>Refunds to send back</p><p className="text-lg font-bold text-white">{naira(c.refunds_to_return_kobo)}</p></div>
           <div><p style={muted}>Open disputes</p><p className="text-lg font-bold text-white">{c.open_disputes}</p></div>
         </div>
+      </div>
+
+      <div className="rounded-2xl p-4 space-y-3" style={card}>
+        <div>
+          <p className="text-sm font-bold text-white">Gateway fee rates</p>
+          <p className="text-[11px] mt-1" style={muted}>These come from Flutterwave&apos;s published Nigeria pricing page. They are not confirmed against your own agreement: compare with your Flutterwave dashboard or settlement report, and correct them here. Past estimates keep the rates they were written with.</p>
+        </div>
+        {gwRates.map(r => (
+          <div key={r.key} className="flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[12rem]"><p className="text-xs text-white">{r.label}</p><p className="text-[11px]" style={muted}>{r.note}</p></div>
+            <input type="number" step="0.01" min="0" value={gwDrafts[r.key] ?? ''} disabled={!isSuperAdmin} aria-label={r.label}
+              onChange={e => setGwDrafts(d => ({ ...d, [r.key]: e.target.value }))} className="w-24 rounded-xl px-3 py-2 text-xs outline-none" style={FEE_INPUT_STYLE} />
+            <span className="text-xs w-6" style={muted}>{r.unit === 'percent' ? '%' : '\u20a6'}</span>
+            {isSuperAdmin && <button onClick={() => saveRate(r)} disabled={busy === r.key || String(r.value) === gwDrafts[r.key]} className="px-3 py-2 rounded-xl text-xs font-bold disabled:opacity-40" style={{ backgroundColor: 'var(--dm-gold)', color: 'var(--dm-deep)' }}>{busy === r.key ? 'Saving...' : 'Save'}</button>}
+          </div>
+        ))}
+        {!isSuperAdmin && <p className="text-[11px]" style={muted}>Only the owner can change these.</p>}
       </div>
 
       {data.tax ? (

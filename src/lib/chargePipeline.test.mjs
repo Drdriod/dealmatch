@@ -279,3 +279,29 @@ test('VAT: paying only the price (without VAT) is a short payment', async () => 
     assert.equal(row().status, 'underpaid')
   } finally { restore() }
 })
+
+// ── Gateway cost: recorded on what the gateway collected (VAT included), never blocking the payment ─
+test('gateway cost: the collected total (price + VAT) is recorded once per payment', async () => {
+  const restore = quiet()
+  try {
+    const { svc, charge, row } = setup({ extra: { expected_kobo: 537500, metadata: { type: 'transaction_escrow', vat_kobo: '37500', vat_rate: '7.5' } } })
+    const calls = []
+    svc.rpc = async (name, args) => { calls.push({ name, args }); return { data: null, error: null } }
+    await processCharge(svc, charge('c-gw', 5375))
+    const gw = calls.filter((c) => c.name === 'record_gateway_cost')
+    assert.equal(gw.length, 1)
+    assert.equal(gw[0].args.p_kind, 'collection')
+    assert.equal(gw[0].args.p_base_kobo, 537500, 'the gateway collected price + VAT')
+    assert.equal(row().status, 'paid')
+  } finally { restore() }
+})
+
+test('gateway cost: a failure to record it never stops the payment', async () => {
+  const restore = quiet()
+  try {
+    const { svc, charge, row } = setup()
+    svc.rpc = async () => ({ data: null, error: { message: 'db down' } })
+    await processCharge(svc, charge('c-gw2', 5000))
+    assert.equal(row().status, 'paid')
+  } finally { restore() }
+})

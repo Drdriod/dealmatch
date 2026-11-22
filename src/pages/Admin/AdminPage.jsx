@@ -131,7 +131,7 @@ export default function AdminPage() {
             <Route path="payouts"                 element={<PayoutsTab/>}/>
             <Route path="monetisation"            element={<MonetisationTab/>}/>
             <Route path="fees"                    element={<PlatformFeesTab/>}/>
-            <Route path="finance"                 element={<FinanceTab/>}/>
+            <Route path="finance"                 element={<FinanceTab isSuperAdmin={isSuperAdmin}/>}/>
             <Route path="tax"                     element={<TaxTab isSuperAdmin={isSuperAdmin}/>}/>
             <Route path="referral-settings"       element={<ReferralSettingsTab/>}/>
             <Route path="mortgage"                element={<MortgageTab/>}/>
