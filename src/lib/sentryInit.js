@@ -24,8 +24,6 @@ export function initSentry() {
     // ── PII Scrubbing ──────────────────────────────────────────
     // NEVER send passwords, tokens, or personal data to Sentry.
     // These patterns are scrubbed from all events before transmission.
-    // The same injected-eval noise also arrives as a thrown EvalError.
-    ignoreErrors: [/Refused to evaluate a string as JavaScript/],
     beforeSend(event) {
       // Strip request bodies entirely - they may contain passwords
       if (event.request?.data) {
@@ -40,7 +38,7 @@ export function initSentry() {
 
       // Strip cookies
       if (event.request?.cookies) {
-        event.request.cookies = '[Scrubbed]'
+        event.request.cookies = { cookies: '[Scrubbed]' }
       }
 
       // Strip auth headers
@@ -62,6 +60,8 @@ export function initSentry() {
 
     // Ignore known harmless errors that would pollute the feed
     ignoreErrors: [
+      // Injected-eval noise from extensions and in-app browsers
+      /Refused to evaluate a string as JavaScript/,
       // Browser extension interference
       'ResizeObserver loop limit exceeded',
       'ResizeObserver loop completed with undelivered notifications',
