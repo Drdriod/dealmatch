@@ -56,6 +56,9 @@ import {
 } from '../src/data/payoutQueueRepository.js'
 import { demoteExpiredVerifications, cancelUnpaidBookings } from '../src/data/maintenanceRepository.js'
 import { findListingLatLng } from '../src/data/listingRepository.js'
+import { saveCampaignLead, countCampaignVisit, findPublishedCampaign } from '../src/data/campaignServerRepository.js'
+import { isValidSlug, cleanSource, cleanPhone, validateLead, renderCampaignHtml } from '../src/lib/campaign.js'
+import { sendLeadAlert } from '../src/lib/campaignAlert.js'
 
 import { listCategories, createCategory, getCategoryBySlug, getCategoryById, updateCategorySchema, getCategoryTree, listChildCategories as listChildCatalogCategories } from '../src/modules/catalog/catalogService.js'
 import { createListing, listMyListings, getListing, getListingForIndexing } from '../src/modules/listings/listingsService.js'
@@ -107,6 +110,22 @@ async function handleRenderPublic(req, res) {
       res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n${fallback}\\n</urlset>`)
     }
     return
+  }
+
+  // render === 'campaign' -> plain HTML with link-preview tags for a campaign page
+  if (req.query.render === 'campaign') {
+    const slug = String(req.query.slug || '').toLowerCase()
+    const origin = process.env.APP_URL || process.env.VITE_APP_URL || 'https://www.dealmatch.com.ng'
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    try {
+      const { data } = isValidSlug(slug) ? await findPublishedCampaign(supabase, slug) : { data: null }
+      if (!data) return res.status(404).send('<!doctype html><html><head><title>Page not found</title><meta name="robots" content="noindex"></head><body><main><h1>Page not found</h1></main></body></html>')
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600')
+      return res.status(200).send(renderCampaignHtml(data, { origin, supabaseUrl: process.env.VITE_SUPABASE_URL }))
+    } catch (err) {
+      console.error('[platform:campaign-render]', err?.message || err)
+      return res.status(200).send('<!doctype html><html><head><title>DealMatch</title></head><body><main><h1>DealMatch</h1></main></body></html>')
+    }
   }
 
   // render === 'html' -> forum SSR for crawlers
@@ -644,6 +663,61 @@ const jsonResources = {
     }
 
     return res.status(200).json({ processed, failed, reconciled, total: (rows || []).length, released_bookings })
+  },
+
+  // -- Campaign pages (landing pages for ads and outreach). Public, no sign-in.
+  // The enquiry and visit functions in the database accept only the service role, so these two
+  // routes are the only way in, and they carry the rate limits and the spam trap.
+  async ['campaign-visit'](req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { slug, source } = req.body || {}
+    if (!isValidSlug(slug)) return res.status(400).json({ error: 'Unknown page' })
+    const rl = await redisRateLimit(req, 'campaign-visit', 20, 60)
+    if (!rl.allowed) return res.status(429).json({ error: 'Too many requests' })
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(200).json({ ok: false })
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { error } = await countCampaignVisit(svc, slug, cleanSource(source))
+    if (error) console.error('campaign-visit failed:', error.message)
+    return res.status(200).json({ ok: !error })
+  },
+
+  async ['campaign-lead'](req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const b = req.body || {}
+    // Hidden field a person never fills in. A bot that does gets a normal-looking answer and nothing is saved.
+    if (String(b.website || '').trim()) return res.status(200).json({ ok: true })
+    if (!isValidSlug(b.slug)) return res.status(400).json({ error: 'Unknown page' })
+    const rl = await redisRateLimit(req, 'campaign-lead', 5, 600, true, { failClosed: true })
+    if (!rl.allowed) return res.status(rl.unavailable ? 503 : 429).json({ error: rl.message || 'Too many enquiries. Please try again later.' })
+
+    const lead = {
+      slug: String(b.slug),
+      name: String(b.name || '').trim().slice(0, 100),
+      phone: cleanPhone(b.phone),
+      email: String(b.email || '').trim().toLowerCase().slice(0, 200),
+      message: String(b.message || '').trim().slice(0, 2000),
+      consent: b.consent === true,
+      source: cleanSource(b.source),
+      utm: (b.utm && typeof b.utm === 'object' && !Array.isArray(b.utm))
+        ? Object.fromEntries(Object.entries(b.utm).filter(([k]) => /^utm_(source|medium|campaign|content|term)$/.test(k)).map(([k, v]) => [k, String(v).slice(0, 100)]))
+        : {},
+    }
+    const problem = validateLead({ ...lead, phone: lead.phone || b.phone })
+    if (problem) return res.status(400).json({ error: problem })
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(503).json({ error: 'Enquiries are briefly unavailable. Please try again soon.' })
+
+    const svc = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { data, error } = await saveCampaignLead(svc, lead)
+    if (error) {
+      // The database words its own refusals for people ("This page is not taking enquiries"); anything else stays private.
+      const friendly = error.code === 'P0001' ? error.message : 'We could not save your enquiry. Please try again.'
+      if (error.code !== 'P0001') console.error('campaign-lead failed:', error.message)
+      return res.status(error.code === 'P0001' ? 400 : 500).json({ error: friendly })
+    }
+    if (data && !data.duplicate && data.notify_email) {
+      await sendLeadAlert({ to: data.notify_email, pageTitle: data.title, lead })
+    }
+    return res.status(200).json({ ok: true })
   },
 
   async ['payout-banks'](req, res) {

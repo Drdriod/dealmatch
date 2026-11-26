@@ -37,6 +37,7 @@ import { EnquiriesTab } from './tabs/EnquiriesTab'
 import { StudentHostelsAdminTab } from './tabs/StudentHostelsAdminTab'
 import { StudentVerificationsTab } from './tabs/StudentVerificationsTab'
 import { AnnouncementsTab } from './tabs/AnnouncementsTab'
+import { CampaignsTab } from './tabs/CampaignsTab'
 import { TestimonialsTab } from './tabs/TestimonialsTab'
 import { StaffTab } from './tabs/StaffTab'
 import { AnalyticsTab } from './tabs/AnalyticsTab'
@@ -140,6 +141,7 @@ export default function AdminPage() {
             <Route path="hostels"                 element={<StudentHostelsAdminTab/>}/>
             <Route path="student-verifications"   element={<StudentVerificationsTab/>}/>
             <Route path="announcements"           element={<AnnouncementsTab/>}/>
+            <Route path="campaigns"               element={<CampaignsTab/>}/>
             <Route path="testimonials"            element={<TestimonialsTab/>}/>
             <Route path="staff"                   element={<StaffTab isSuperAdmin={isSuperAdmin}/>}/>
             <Route path="settings"                element={<SettingsTab isSuperAdmin={isSuperAdmin}/>}/>
