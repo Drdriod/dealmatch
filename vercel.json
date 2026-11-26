@@ -1,6 +1,17 @@
 {
   "rewrites": [
     {
+      "source": "/l/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawl|spider|slurp|googlebot|bingbot|duckduckbot|baiduspider|yandex|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|chatgpt-user|oai-searchbot|ccbot|perplexitybot|claudebot|anthropic-ai|applebot|semrushbot|ahrefsbot|mj12bot|embedly|quora link preview|pinterest|redditbot).*"
+        }
+      ],
+      "destination": "/api/platform?render=campaign&slug=:slug"
+    },
+    {
       "source": "/api/admin/:resource",
       "destination": "/api/admin/[resource]"
     },

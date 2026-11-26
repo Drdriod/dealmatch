@@ -48,6 +48,7 @@ export const ProtectionPage         = lazyWithRetry(() => import('@/pages/Trust/
 export const HelpPage               = lazyWithRetry(() => import('@/pages/Trust/HelpPage'))
 export const RulesPage              = lazyWithRetry(() => import('@/pages/Trust/RulesPage'))
 export const ContactPage            = lazyWithRetry(() => import('@/pages/Trust/ContactPage'))
+export const CampaignPage           = lazyWithRetry(() => import('@/pages/Campaign/CampaignPage'))
 export const AboutPage              = lazyWithRetry(() => import('@/pages/Trust/AboutPage'))
 export const TransactionDetailPage  = lazyWithRetry(() => import('@/pages/TransactionDetailPage'))
 export const DisputeNewPage         = lazyWithRetry(() => import('@/pages/DisputeNewPage'))

@@ -16,7 +16,7 @@ import ComingSoonPage from '@/pages/ComingSoonPage'
 import { isTestMode } from '@/lib/testMode'
 
 // Page components, error boundary, loaders, guards and the app shell live in src/routes/.
-import { HomePage, AuthPage, OnboardingPage, VerifyIdentityPage, WhatsAppLinkPage, TestSeatPage, TestFeedPage, PayoutSetupPage, DashboardPage, BrowsePage, MatchesPage, PropertyPage, ApplyProfessionalPage, LandlordDashboardPage, ProfilePage, AdminPage, AcceptStaffInvitePage, AdminLoginPage, PaymentTestPage, AuthCallback, ResetPasswordPage, StudentHostelsPage, ListHostelPage, StudentVerifyPage, RentalsPage, CategoryPage, HotelsPage, ListRentalPage, EscrowPage, TenancyPage, ListPropertyPage, AvailabilityPage, PrivacyPage, TermsPage, DeleteAccountPage, ProtectionPage, HelpPage, RulesPage, ContactPage, AboutPage, TransactionDetailPage, DisputeNewPage, DisputeCasePage, ProviderWorkspacePage, MortgagePage, VerificationPage, MessagesPage, LenderDashboardPage, AgentDashboardPage, ReferralPage, ForumPage, MarketplacePage, SearchPage, JobPostingPage, FindProviderPage, ProviderProfilePage, WalletPage, ManageListingsPage, SkillVerificationPage, HowItWorksPage } from '@/routes/lazyPages'
+import { HomePage, AuthPage, OnboardingPage, VerifyIdentityPage, WhatsAppLinkPage, TestSeatPage, TestFeedPage, PayoutSetupPage, DashboardPage, BrowsePage, MatchesPage, PropertyPage, ApplyProfessionalPage, LandlordDashboardPage, ProfilePage, AdminPage, AcceptStaffInvitePage, AdminLoginPage, PaymentTestPage, AuthCallback, ResetPasswordPage, StudentHostelsPage, ListHostelPage, StudentVerifyPage, RentalsPage, CategoryPage, HotelsPage, ListRentalPage, EscrowPage, TenancyPage, ListPropertyPage, AvailabilityPage, PrivacyPage, TermsPage, DeleteAccountPage, ProtectionPage, HelpPage, RulesPage, ContactPage, AboutPage, CampaignPage, TransactionDetailPage, DisputeNewPage, DisputeCasePage, ProviderWorkspacePage, MortgagePage, VerificationPage, MessagesPage, LenderDashboardPage, AgentDashboardPage, ReferralPage, ForumPage, MarketplacePage, SearchPage, JobPostingPage, FindProviderPage, ProviderProfilePage, WalletPage, ManageListingsPage, SkillVerificationPage, HowItWorksPage } from '@/routes/lazyPages'
 import { ErrorBoundary, LoadingScreen, PageSkeleton, PageTransition, AppShell } from '@/routes/shell'
 import { ProtectedRoute, AdminRoute, PublicOnlyRoute } from '@/routes/guards'
 
@@ -95,6 +95,13 @@ function AnimatedRoutes() {
               </PageTransition>
             </Suspense>
           </AppShell>
+        } />
+
+        {/* Campaign landing pages for ads and outreach. Standalone: no app navigation, so the page keeps one job. */}
+        <Route path="/l/:slug" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <CampaignPage />
+          </Suspense>
         } />
 
         <Route path="/privacy" element={
